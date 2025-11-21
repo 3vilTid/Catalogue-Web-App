@@ -1058,18 +1058,7 @@
               <span>▾</span>
             </button>
             <div id="filterDropdown" class="dropdown-menu">
-              <div class="dropdown-section" id="categoryFilterSection">
-                <div class="dropdown-section-title">Category</div>
-                <div id="categoryDropdownList"></div>
-              </div>
-              <div class="dropdown-section" id="placeFilterSection">
-                <div class="dropdown-section-title">Place</div>
-                <div id="placeDropdownList"></div>
-              </div>
-              <div class="dropdown-divider"></div>
-              <div class="dropdown-actions">
-                <button class="dropdown-btn" id="filterClearAll">Clear Filters</button>
-              </div>
+              <!-- Dynamic filter sections will be populated here -->
             </div>
           </div>
 
@@ -1436,20 +1425,22 @@
       let headers = [];
       let user = null;
       let settings = null;
+      let columnConfig = [];
 
-      let categoryHeader = "Category";
-      let placeHeader = "Place";
-      let nameHeader = "Name";
-      let descriptionHeader = "Description";
-      let imageHeader = "Picture url";
-      let externalLinkHeader = "ExternalLink";
-      let dateHeader = "Date";
+      // Dynamic column references (populated from columnConfig)
+      let nameColumn = null;
+      let descriptionColumn = null;
+      let imageColumn = null;
+      let categoryColumn = null;
+      let placeColumn = null;
+      let dateColumn = null;
+      let externalLinkColumn = null;
+      let addedByColumn = null;
 
-      let uniqueCategories = [];
-      let uniquePlaces = [];
+      // Filter columns (columns with showInFilter = true)
+      let filterColumns = [];
+      let filterValues = {}; // { columnName: [selectedValue1, selectedValue2, ...] }
 
-      let selectedCategories = [];
-      let selectedPlaces = [];
       let sortField = "none";
       let sortOrder = "asc";
 
@@ -1458,34 +1449,72 @@
 
       // -------------------- Helpers --------------------
 
-      function detectKeyColumns() {
-        function findByExactOrRegex(exact, regex) {
-          if (headers.indexOf(exact) !== -1) return exact;
-          for (let i = 0; i < headers.length; i++) {
-            if (regex.test(headers[i])) return headers[i];
+      function loadColumnConfig() {
+        // Reset column references
+        nameColumn = null;
+        descriptionColumn = null;
+        imageColumn = null;
+        categoryColumn = null;
+        placeColumn = null;
+        dateColumn = null;
+        externalLinkColumn = null;
+        addedByColumn = null;
+        filterColumns = [];
+
+        // Build column references from config
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          const role = config.specialRole;
+
+          if (role === "name") {
+            nameColumn = config;
+          } else if (role === "description") {
+            descriptionColumn = config;
+          } else if (role === "image") {
+            imageColumn = config;
+          } else if (role === "category") {
+            categoryColumn = config;
+          } else if (role === "place") {
+            placeColumn = config;
+          } else if (role === "date") {
+            dateColumn = config;
+          } else if (role === "externallink") {
+            externalLinkColumn = config;
+          } else if (role === "addedby") {
+            addedByColumn = config;
           }
-          return headers[0] || "";
+
+          // Build filter columns list
+          if (config.showInFilter) {
+            filterColumns.push(config);
+            if (!filterValues[config.columnName]) {
+              filterValues[config.columnName] = [];
+            }
+          }
         }
 
-        nameHeader = findByExactOrRegex("Name", /name/i);
-        descriptionHeader = findByExactOrRegex("Description", /description/i);
-        imageHeader = findByExactOrRegex("Picture url", /(picture|image|photo)/i);
-        categoryHeader = findByExactOrRegex("Category", /category/i);
-        placeHeader = findByExactOrRegex("Place", /place/i);
-        dateHeader = findByExactOrRegex("Date", /date/i);
-        externalLinkHeader = findByExactOrRegex("ExternalLink", /externallink/i);
+        // Set defaults if not found
+        if (!nameColumn && headers.length > 0) {
+          nameColumn = { columnName: headers[0], displayName: headers[0], specialRole: "name" };
+        }
       }
 
       function computeUniqueValues() {
-        const catSet = new Set();
-        const placeSet = new Set();
-        for (let i = 0; i < allItems.length; i++) {
-          const item = allItems[i];
-          if (item[categoryHeader]) catSet.add(String(item[categoryHeader]));
-          if (item[placeHeader]) placeSet.add(String(item[placeHeader]));
+        // Compute unique values for all filter columns
+        for (let i = 0; i < filterColumns.length; i++) {
+          const config = filterColumns[i];
+          const valueSet = new Set();
+
+          for (let j = 0; j < allItems.length; j++) {
+            const item = allItems[j];
+            const value = item[config.columnName];
+            if (value != null && String(value).trim() !== "") {
+              valueSet.add(String(value).trim());
+            }
+          }
+
+          config.uniqueValues = Array.from(valueSet).sort();
         }
-        uniqueCategories = Array.from(catSet).sort();
-        uniquePlaces = Array.from(placeSet).sort();
       }
 
       // Check if a column has any non-empty values
@@ -1533,13 +1562,14 @@
           columnsBtn.style.display = "inline-block";
           editCatalogBtn.style.display = "inline-block";
         }
-        
-        // Hide Filter button if no filterable columns are used
+
+        // Hide Filter button if no filter columns configured or used
         const filterBtn = document.getElementById("filterBtn");
-        const hasCategoryData = isColumnUsed(categoryHeader);
-        const hasPlaceData = isColumnUsed(placeHeader);
-        
-        if (!hasCategoryData && !hasPlaceData) {
+        const hasFilterData = filterColumns.length > 0 && filterColumns.some(col =>
+          col.uniqueValues && col.uniqueValues.length > 0
+        );
+
+        if (!hasFilterData) {
           filterBtn.style.display = "none";
         } else {
           filterBtn.style.display = "inline-flex";
@@ -1689,10 +1719,13 @@
       }
 
       function updateChipsUI() {
-        // Update filter badge
-        const totalFilters = selectedCategories.length + selectedPlaces.length;
+        // Count total filters selected
+        let totalFilters = 0;
+        for (const columnName in filterValues) {
+          totalFilters += filterValues[columnName].length;
+        }
+
         const badge = document.getElementById("filterBadge");
-        
         if (totalFilters > 0) {
           badge.textContent = totalFilters;
           badge.style.display = "inline-flex";
@@ -1705,36 +1738,50 @@
         if (sortField === "none") {
           sortLabel.textContent = "None";
         } else {
+          // Find display name for sort field
+          let displayName = sortField;
+          for (let i = 0; i < columnConfig.length; i++) {
+            if (columnConfig[i].columnName === sortField) {
+              displayName = columnConfig[i].displayName || sortField;
+              break;
+            }
+          }
           const orderText = sortOrder === "asc" ? "↑" : "↓";
-          sortLabel.textContent = sortField + " " + orderText;
+          sortLabel.textContent = displayName + " " + orderText;
         }
       }
 
       function applyFiltersAndSorting() {
         let items = allItems.slice();
 
-        // Category filter - show items that match ANY selected category
-        if (selectedCategories.length) {
-          items = items.filter(function (it) {
-            return selectedCategories.indexOf(String(it[categoryHeader])) !== -1;
-          });
-        }
-        
-        // Place filter - show items that match ANY selected place
-        if (selectedPlaces.length) {
-          items = items.filter(function (it) {
-            return selectedPlaces.indexOf(String(it[placeHeader])) !== -1;
-          });
+        // Apply all filters (items must match ALL selected filters)
+        for (const columnName in filterValues) {
+          const selected = filterValues[columnName];
+          if (selected && selected.length > 0) {
+            items = items.filter(function (it) {
+              const itemValue = String(it[columnName] || "");
+              return selected.indexOf(itemValue) !== -1;
+            });
+          }
         }
 
         // Sorting
         if (sortField !== "none") {
+          // Check if this is a date column
+          let isDateColumn = false;
+          for (let i = 0; i < columnConfig.length; i++) {
+            if (columnConfig[i].columnName === sortField && columnConfig[i].type === "date") {
+              isDateColumn = true;
+              break;
+            }
+          }
+
           items.sort(function (a, b) {
             let av = a[sortField];
             let bv = b[sortField];
 
             // Date sorting: oldest -> newest for asc
-            if (sortField === dateHeader || sortField === "Date") {
+            if (isDateColumn || (dateColumn && sortField === dateColumn.columnName)) {
               let ad = av ? new Date(av) : null;
               let bd = bv ? new Date(bv) : null;
               if (!ad && !bd) return 0;
@@ -1776,8 +1823,8 @@
           const imgWrapper = document.createElement("div");
           imgWrapper.className = "card-img-wrapper";
 
-          if (imageHeader && item[imageHeader]) {
-            const rawUrl = item[imageHeader];
+          if (imageColumn && item[imageColumn.columnName]) {
+            const rawUrl = item[imageColumn.columnName];
             const fileId = extractDriveFileId(rawUrl);
 
             if (fileId) {
@@ -1811,13 +1858,13 @@
 
           const nameEl = document.createElement("div");
           nameEl.className = "card-name";
-          nameEl.textContent = item[nameHeader] || "(no name)";
+          nameEl.textContent = nameColumn ? (item[nameColumn.columnName] || "(no name)") : "(no name)";
           body.appendChild(nameEl);
 
           const sub = document.createElement("div");
           sub.className = "card-sub";
-          const cat = item[categoryHeader] || "";
-          const place = item[placeHeader] || "";
+          const cat = categoryColumn ? (item[categoryColumn.columnName] || "") : "";
+          const place = placeColumn ? (item[placeColumn.columnName] || "") : "";
           sub.textContent = [cat, place].filter(Boolean).join(" • ");
           body.appendChild(sub);
 
@@ -1844,7 +1891,7 @@
           '<div class="detail-layout">' +
           '<div id="detailImgContainer">';
 
-        if (imageHeader && item[imageHeader]) {
+        if (imageColumn && item[imageColumn.columnName]) {
           html += '<div class="detail-img-wrapper" id="detailImgWrapper"></div>';
         } else {
           html += '<div class="detail-img-wrapper"></div>';
@@ -1855,43 +1902,46 @@
           "<div>" +
           '<div class="detail-title-row">' +
           '<div class="detail-name">' +
-          (item[nameHeader] || "") +
+          (nameColumn ? (item[nameColumn.columnName] || "") : "") +
           "</div>" +
           "</div>" +
           '<div class="detail-meta">';
 
         const bits = [];
-        if (item[categoryHeader]) bits.push(item[categoryHeader]);
-        if (item[placeHeader]) bits.push(item[placeHeader]);
-        if (item[dateHeader]) bits.push(item[dateHeader]);
+        if (categoryColumn && item[categoryColumn.columnName]) bits.push(item[categoryColumn.columnName]);
+        if (placeColumn && item[placeColumn.columnName]) bits.push(item[placeColumn.columnName]);
+        if (dateColumn && item[dateColumn.columnName]) bits.push(item[dateColumn.columnName]);
         html += bits.join(" • ") + "</div>";
 
-        for (let i = 0; i < headers.length; i++) {
-          const h = headers[i];
-          if (
-            h === nameHeader ||
-            h === categoryHeader ||
-            h === imageHeader ||
-            h === placeHeader ||
-            h === dateHeader ||
-            h === "Added By" ||
-            h === externalLinkHeader
-          ) {
+        // Show fields configured with showInDetail
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (!config.showInDetail) continue;
+
+          // Skip special columns that are shown elsewhere
+          if (config.specialRole === "name" ||
+              config.specialRole === "category" ||
+              config.specialRole === "image" ||
+              config.specialRole === "place" ||
+              config.specialRole === "date" ||
+              config.specialRole === "addedby" ||
+              config.specialRole === "externallink") {
             continue;
           }
-          const val = item[h];
+
+          const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
             html +=
               '<div class="detail-field"><span class="detail-label">' +
-              h +
+              (config.displayName || config.columnName) +
               ":</span> " +
               val +
               "</div>";
           }
         }
 
-        if (externalLinkHeader && item[externalLinkHeader]) {
-          const url = item[externalLinkHeader];
+        if (externalLinkColumn && item[externalLinkColumn.columnName]) {
+          const url = item[externalLinkColumn.columnName];
           html +=
             '<div class="detail-field">' +
             '<a href="' +
@@ -1902,11 +1952,11 @@
             "</div>";
         }
 
-        if (item["Added By"]) {
+        if (addedByColumn && item[addedByColumn.columnName]) {
           html +=
             '<div class="detail-field" style="margin-top:10px;font-size:11px;color:#9ca3af;">' +
             "Added by: " +
-            item["Added By"] +
+            item[addedByColumn.columnName] +
             "</div>";
         }
 
@@ -1917,15 +1967,17 @@
           if (editable || deletable) {
             html += '<div class="detail-actions">';
             if (editable) {
+              const itemName = nameColumn ? (item[nameColumn.columnName] || "") : "";
               html +=
                 '<button class="btn-secondary" onclick="openEdit(\'' +
-                item[nameHeader] +
+                itemName.replace(/'/g, "\\'") +
                 "')\">✏ Edit</button>";
             }
             if (deletable) {
+              const itemName = nameColumn ? (item[nameColumn.columnName] || "") : "";
               html +=
                 '<button class="btn-danger" onclick="confirmDelete(\'' +
-                item[nameHeader] +
+                itemName.replace(/'/g, "\\'") +
                 "')\">🗑 Delete</button>";
             }
             html += "</div>";
@@ -1937,8 +1989,8 @@
 
         // Load detail image with progressive loading
         const imgWrapper = document.getElementById("detailImgWrapper");
-        if (imgWrapper && imageHeader && item[imageHeader]) {
-          const rawUrl = item[imageHeader];
+        if (imgWrapper && imageColumn && item[imageColumn.columnName]) {
+          const rawUrl = item[imageColumn.columnName];
           const fileId = extractDriveFileId(rawUrl);
 
           if (fileId) {
@@ -2055,123 +2107,110 @@
       // -------------------- Filter & Sort Dropdowns --------------------
 
       function populateFilterDropdown() {
-        // Populate categories (only if column is used)
-        const catList = document.getElementById("categoryDropdownList");
-        const categorySection = document.getElementById("categoryFilterSection");
-        
-        if (!isColumnUsed(categoryHeader)) {
-          categorySection.style.display = "none";
-        } else {
-          categorySection.style.display = "block";
-          catList.innerHTML = "";
-          
-          if (uniqueCategories.length === 0) {
-            catList.innerHTML = '<div style="padding:8px 10px;color:#9ca3af;font-size:12px;">No categories</div>';
-          } else {
-            uniqueCategories.forEach(cat => {
-              const item = document.createElement("div");
-              item.className = "dropdown-item";
-              
-              // Use radio button styled as checkbox for visual consistency
-              const radio = document.createElement("input");
-              radio.type = "radio";
-              radio.name = "categoryFilter_" + cat.replace(/\s/g, '_');
-              radio.id = "cat_" + cat.replace(/\s/g, '_');
-              radio.value = cat;
-              radio.checked = selectedCategories.indexOf(cat) !== -1;
-              radio.onclick = (e) => {
-                e.stopPropagation();
-                const idx = selectedCategories.indexOf(cat);
+        const filterDropdown = document.getElementById("filterDropdown");
+        filterDropdown.innerHTML = "";
+
+        // Generate filter sections for each filter column
+        for (let i = 0; i < filterColumns.length; i++) {
+          const config = filterColumns[i];
+          if (!config.uniqueValues || config.uniqueValues.length === 0) continue;
+
+          // Create section
+          const section = document.createElement("div");
+          section.className = "dropdown-section";
+
+          const title = document.createElement("div");
+          title.className = "dropdown-section-title";
+          title.textContent = config.displayName || config.columnName;
+          section.appendChild(title);
+
+          const listContainer = document.createElement("div");
+
+          config.uniqueValues.forEach(value => {
+            const item = document.createElement("div");
+            item.className = "dropdown-item";
+
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.id = "filter_" + config.columnName + "_" + value.replace(/\s/g, '_');
+            checkbox.value = value;
+
+            const selected = filterValues[config.columnName] || [];
+            checkbox.checked = selected.indexOf(value) !== -1;
+
+            checkbox.onchange = () => {
+              if (!filterValues[config.columnName]) {
+                filterValues[config.columnName] = [];
+              }
+
+              if (checkbox.checked) {
+                if (filterValues[config.columnName].indexOf(value) === -1) {
+                  filterValues[config.columnName].push(value);
+                }
+              } else {
+                const idx = filterValues[config.columnName].indexOf(value);
                 if (idx !== -1) {
-                  // Uncheck - remove from selection
-                  selectedCategories.splice(idx, 1);
-                  radio.checked = false;
-                } else {
-                  // Check - add to selection
-                  selectedCategories.push(cat);
-                  radio.checked = true;
+                  filterValues[config.columnName].splice(idx, 1);
                 }
-                updateChipsUI();
-                applyFiltersAndSorting();
-              };
-              
-              const label = document.createElement("span");
-              label.textContent = cat;
-              
-              item.onclick = (e) => {
-                if (e.target !== radio) {
-                  radio.onclick(e);
-                }
-              };
-              
-              item.appendChild(radio);
-              item.appendChild(label);
-              catList.appendChild(item);
-            });
-          }
+              }
+
+              updateChipsUI();
+              applyFiltersAndSorting();
+            };
+
+            const label = document.createElement("span");
+            label.textContent = value;
+
+            item.onclick = (e) => {
+              if (e.target !== checkbox) {
+                checkbox.checked = !checkbox.checked;
+                checkbox.onchange();
+              }
+            };
+
+            item.appendChild(checkbox);
+            item.appendChild(label);
+            listContainer.appendChild(item);
+          });
+
+          section.appendChild(listContainer);
+          filterDropdown.appendChild(section);
         }
 
-        // Populate places (only if column is used)
-        const placeList = document.getElementById("placeDropdownList");
-        const placeSection = document.getElementById("placeFilterSection");
-        
-        if (!isColumnUsed(placeHeader)) {
-          placeSection.style.display = "none";
-        } else {
-          placeSection.style.display = "block";
-          placeList.innerHTML = "";
-          
-          if (uniquePlaces.length === 0) {
-            placeList.innerHTML = '<div style="padding:8px 10px;color:#9ca3af;font-size:12px;">No places</div>';
-          } else {
-            uniquePlaces.forEach(place => {
-              const item = document.createElement("div");
-              item.className = "dropdown-item";
-              
-              const checkbox = document.createElement("input");
-              checkbox.type = "checkbox";
-              checkbox.id = "place_" + place.replace(/\s/g, '_');
-              checkbox.value = place;
-              checkbox.checked = selectedPlaces.indexOf(place) !== -1;
-              checkbox.onchange = () => {
-                if (checkbox.checked) {
-                  if (selectedPlaces.indexOf(place) === -1) {
-                    selectedPlaces.push(place);
-                  }
-                } else {
-                  const idx = selectedPlaces.indexOf(place);
-                  if (idx !== -1) selectedPlaces.splice(idx, 1);
-                }
-                // Instant apply
-                updateChipsUI();
-                applyFiltersAndSorting();
-              };
-              
-              const label = document.createElement("span");
-              label.textContent = place;
-              
-              item.onclick = (e) => {
-                if (e.target !== checkbox) {
-                  checkbox.checked = !checkbox.checked;
-                  checkbox.onchange();
-                }
-              };
-              
-              item.appendChild(checkbox);
-              item.appendChild(label);
-              placeList.appendChild(item);
-            });
-          }
+        // Add divider and clear button
+        if (filterColumns.length > 0) {
+          const divider = document.createElement("div");
+          divider.className = "dropdown-divider";
+          filterDropdown.appendChild(divider);
+
+          const actions = document.createElement("div");
+          actions.className = "dropdown-actions";
+
+          const clearBtn = document.createElement("button");
+          clearBtn.className = "dropdown-btn";
+          clearBtn.textContent = "Clear Filters";
+          clearBtn.onclick = () => {
+            filterValues = {};
+            for (let i = 0; i < filterColumns.length; i++) {
+              filterValues[filterColumns[i].columnName] = [];
+            }
+            populateFilterDropdown();
+            updateChipsUI();
+            applyFiltersAndSorting();
+          };
+
+          actions.appendChild(clearBtn);
+          filterDropdown.appendChild(actions);
         }
       }
 
       function populateSortDropdown() {
         const sortDropdown = document.getElementById("sortDropdown");
-        const sortSection = sortDropdown.querySelector(".dropdown-section");
-        
-        // Rebuild sort options based on which columns are used
-        sortSection.innerHTML = '<div class="dropdown-section-title">Sort by</div>';
-        
+        const firstSection = sortDropdown.querySelector(".dropdown-section");
+
+        // Rebuild sort options based on showInSort configuration
+        firstSection.innerHTML = '<div class="dropdown-section-title">Sort by</div>';
+
         // Always include "No sorting"
         const noneItem = document.createElement("div");
         noneItem.className = "dropdown-item";
@@ -2185,86 +2224,44 @@
         noneLabel.textContent = "No sorting";
         noneItem.appendChild(noneRadio);
         noneItem.appendChild(noneLabel);
-        sortSection.appendChild(noneItem);
-        
-        // Add Name (always available)
-        if (nameHeader) {
-          const nameItem = document.createElement("div");
-          nameItem.className = "dropdown-item";
-          nameItem.dataset.sort = nameHeader;
-          const nameRadio = document.createElement("input");
-          nameRadio.type = "radio";
-          nameRadio.name = "sortField";
-          nameRadio.value = nameHeader;
-          nameRadio.checked = sortField === nameHeader;
-          const nameLabel = document.createElement("span");
-          nameLabel.textContent = "Name";
-          nameItem.appendChild(nameRadio);
-          nameItem.appendChild(nameLabel);
-          sortSection.appendChild(nameItem);
+        firstSection.appendChild(noneItem);
+
+        // Add sort options for columns with showInSort = true
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (!config.showInSort) continue;
+
+          // Check if column has any values
+          if (!isColumnUsed(config.columnName)) continue;
+
+          const item = document.createElement("div");
+          item.className = "dropdown-item";
+          item.dataset.sort = config.columnName;
+
+          const radio = document.createElement("input");
+          radio.type = "radio";
+          radio.name = "sortField";
+          radio.value = config.columnName;
+          radio.checked = sortField === config.columnName;
+
+          const label = document.createElement("span");
+          label.textContent = config.displayName || config.columnName;
+
+          item.appendChild(radio);
+          item.appendChild(label);
+          firstSection.appendChild(item);
         }
-        
-        // Add Category (if used)
-        if (isColumnUsed(categoryHeader)) {
-          const catItem = document.createElement("div");
-          catItem.className = "dropdown-item";
-          catItem.dataset.sort = categoryHeader;
-          const catRadio = document.createElement("input");
-          catRadio.type = "radio";
-          catRadio.name = "sortField";
-          catRadio.value = categoryHeader;
-          catRadio.checked = sortField === categoryHeader;
-          const catLabel = document.createElement("span");
-          catLabel.textContent = "Category";
-          catItem.appendChild(catRadio);
-          catItem.appendChild(catLabel);
-          sortSection.appendChild(catItem);
-        }
-        
-        // Add Place (if used)
-        if (isColumnUsed(placeHeader)) {
-          const placeItem = document.createElement("div");
-          placeItem.className = "dropdown-item";
-          placeItem.dataset.sort = placeHeader;
-          const placeRadio = document.createElement("input");
-          placeRadio.type = "radio";
-          placeRadio.name = "sortField";
-          placeRadio.value = placeHeader;
-          placeRadio.checked = sortField === placeHeader;
-          const placeLabel = document.createElement("span");
-          placeLabel.textContent = "Place";
-          placeItem.appendChild(placeRadio);
-          placeItem.appendChild(placeLabel);
-          sortSection.appendChild(placeItem);
-        }
-        
-        // Add Date (if used)
-        if (isColumnUsed(dateHeader)) {
-          const dateItem = document.createElement("div");
-          dateItem.className = "dropdown-item";
-          dateItem.dataset.sort = dateHeader;
-          const dateRadio = document.createElement("input");
-          dateRadio.type = "radio";
-          dateRadio.name = "sortField";
-          dateRadio.value = dateHeader;
-          dateRadio.checked = sortField === dateHeader;
-          const dateLabel = document.createElement("span");
-          dateLabel.textContent = "Date";
-          dateItem.appendChild(dateRadio);
-          dateItem.appendChild(dateLabel);
-          sortSection.appendChild(dateItem);
-        }
-        
+
         // Re-attach event listeners for sort field
-        sortSection.querySelectorAll('input[name="sortField"]').forEach(radio => {
+        firstSection.querySelectorAll('input[name="sortField"]').forEach(radio => {
           radio.onchange = function() {
             sortField = this.value;
             updateChipsUI();
             applyFiltersAndSorting();
           };
         });
-        
-        sortSection.querySelectorAll('.dropdown-item').forEach(item => {
+
+        firstSection.querySelectorAll('.dropdown-item').forEach(item => {
           item.onclick = function(e) {
             if (e.target.tagName !== 'INPUT') {
               const radio = this.querySelector('input[type="radio"]');
@@ -2275,7 +2272,7 @@
             }
           };
         });
-        
+
         // Re-attach event listeners for sort order
         const orderRadios = sortDropdown.querySelectorAll('input[name="sortOrder"]');
         orderRadios.forEach(radio => {
@@ -2285,7 +2282,7 @@
             applyFiltersAndSorting();
           };
         });
-        
+
         const orderItems = sortDropdown.querySelectorAll('[data-order]');
         orderItems.forEach(item => {
           item.onclick = function(e) {
@@ -2362,23 +2359,32 @@
         title.textContent = "Add item";
         body.innerHTML = "";
 
-        for (let i = 0; i < headers.length; i++) {
-          const h = headers[i];
-          if (h === "Added By") continue;
+        // Show only columns that are not "addedby" or "formula" (read-only)
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
 
-          let val = "";
-          if (h === categoryHeader && selectedCategories.length === 1) {
-            val = selectedCategories[0];
+          // Skip auto-filled and read-only columns
+          if (config.specialRole === "addedby" || config.specialRole === "formula") {
+            continue;
           }
 
+          let val = "";
+          // Pre-fill if single filter value selected
+          if (filterValues[config.columnName] && filterValues[config.columnName].length === 1) {
+            val = filterValues[config.columnName][0];
+          }
+
+          const displayName = config.displayName || config.columnName;
           body.innerHTML +=
             "<label>" +
-            h +
+            displayName +
             "</label>" +
             '<input id="field_' +
-            h +
+            config.columnName +
             '" value="' +
             (val || "") +
+            '" data-column="' +
+            config.columnName +
             '">';
         }
 
@@ -2400,18 +2406,28 @@
             title.textContent = "Edit item";
             body.innerHTML = "";
 
-            for (let i = 0; i < headers.length; i++) {
-              const h = headers[i];
-              if (h === "Added By") continue;
-              const val = item[h] || "";
+            // Show only columns that are not "addedby" or "formula" (read-only)
+            for (let i = 0; i < columnConfig.length; i++) {
+              const config = columnConfig[i];
+
+              // Skip auto-filled and read-only columns
+              if (config.specialRole === "addedby" || config.specialRole === "formula") {
+                continue;
+              }
+
+              const val = item[config.columnName] || "";
+              const displayName = config.displayName || config.columnName;
+
               body.innerHTML +=
                 "<label>" +
-                h +
+                displayName +
                 "</label>" +
                 '<input id="field_' +
-                h +
+                config.columnName +
                 '" value="' +
                 String(val).replace(/"/g, "&quot;") +
+                '" data-column="' +
+                config.columnName +
                 '">';
             }
 
@@ -2427,11 +2443,20 @@
 
       function saveAddOrEdit() {
         const obj = {};
-        for (let i = 0; i < headers.length; i++) {
-          const h = headers[i];
-          if (h === "Added By") continue;
-          const el = document.getElementById("field_" + h);
-          if (el) obj[h] = el.value;
+
+        // Collect values from all field inputs
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+
+          // Skip auto-filled and read-only columns
+          if (config.specialRole === "addedby" || config.specialRole === "formula") {
+            continue;
+          }
+
+          const el = document.getElementById("field_" + config.columnName);
+          if (el) {
+            obj[config.columnName] = el.value;
+          }
         }
 
         if (!editingItemName) {
@@ -2640,6 +2665,7 @@
             settings = payload.settings;
             headers = payload.headers || [];
             allItems = payload.items || [];
+            columnConfig = payload.columnConfig || [];
 
             if (settings) {
               imageProxyBaseUrl =
@@ -2648,7 +2674,8 @@
                 "";
             }
 
-            detectKeyColumns();
+            // Load column configuration
+            loadColumnConfig();
             computeUniqueValues();
             updateHeaderUI();
             applyRoleVisibility();
@@ -2666,14 +2693,6 @@
         document.getElementById("filterBtn").onclick = function(e) {
           e.stopPropagation();
           toggleDropdown("filterDropdown", "filterBtn");
-        };
-
-        document.getElementById("filterClearAll").onclick = function() {
-          selectedCategories = [];
-          selectedPlaces = [];
-          populateFilterDropdown();
-          updateChipsUI();
-          applyFiltersAndSorting();
         };
 
         // Sort dropdown
