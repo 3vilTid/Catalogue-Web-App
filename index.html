@@ -2,7 +2,21 @@
 <html>
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Catalogue">
+    <meta name="description" content="Catalogue web application">
+
     <title>Catalogue</title>
+
+    <!-- PWA Manifest -->
+    <link id="manifestLink" rel="manifest" href="">
+
     <style>
       :root {
         --bg: #f3f4fb;
@@ -3037,9 +3051,52 @@
         );
       }
 
+      // -------------------- PWA Support --------------------
+
+      function initPWA() {
+        // Get the base URL (deployment URL)
+        const baseUrl = window.location.origin + window.location.pathname;
+
+        // Set manifest URL
+        const manifestLink = document.getElementById('manifestLink');
+        if (manifestLink) {
+          manifestLink.href = baseUrl + '?manifest=true';
+        }
+
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            const swUrl = baseUrl + '?sw=true';
+            navigator.serviceWorker.register(swUrl)
+              .then(registration => {
+                console.log('✓ Service Worker registered:', registration);
+              })
+              .catch(error => {
+                console.warn('Service Worker registration failed:', error);
+              });
+          });
+        }
+      }
+
+      function updatePWAWithSettings(settings) {
+        // Update document title
+        if (settings.appName) {
+          document.title = settings.appName;
+        }
+
+        // Update apple mobile web app title
+        const appleTitleMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+        if (appleTitleMeta && settings.appName) {
+          appleTitleMeta.content = settings.appName;
+        }
+      }
+
       // -------------------- Init --------------------
 
       async function init() {
+        // Initialize PWA
+        initPWA();
+
         // Initialize IndexedDB
         try {
           await imageCacheDB.init();
@@ -3064,6 +3121,9 @@
                 settings.imageBaseUrl ||
                 settings.deploymentUrl ||
                 "";
+
+              // Update PWA manifest and title with settings
+              updatePWAWithSettings(settings);
             }
 
             // Load column configuration
