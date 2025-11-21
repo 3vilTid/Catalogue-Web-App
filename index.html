@@ -1159,6 +1159,7 @@
         </div>
 
         <div class="filters-right">
+          <button id="sheetLinkBtn" class="btn-toolbar" style="display: none;">📊 Sheet</button>
           <button id="columnsBtn" class="btn-toolbar">⚙ Columns</button>
           <button id="addBtn" class="btn-toolbar btn-primary">+ Add item</button>
         </div>
@@ -1712,19 +1713,23 @@
         const addBtn = document.getElementById("addBtn");
         const columnsBtn = document.getElementById("columnsBtn");
         const editCatalogBtn = document.getElementById("editCatalogBtn");
+        const sheetLinkBtn = document.getElementById("sheetLinkBtn");
 
         if (user.profile === "Viewer") {
           addBtn.style.display = "none";
           columnsBtn.style.display = "none";
           editCatalogBtn.style.display = "none";
+          sheetLinkBtn.style.display = "none";
         } else if (user.profile === "Editor") {
           addBtn.style.display = "inline-block";
           columnsBtn.style.display = "none";
           editCatalogBtn.style.display = "none";
+          sheetLinkBtn.style.display = "none";
         } else if (user.profile === "Creator") {
           addBtn.style.display = "inline-block";
           columnsBtn.style.display = "inline-block";
           editCatalogBtn.style.display = "inline-block";
+          sheetLinkBtn.style.display = "inline-block";
         }
 
         // Hide Filter button if no filter columns configured or used
@@ -3197,6 +3202,14 @@
         document.getElementById("editCancelBtn").onclick = closeEditModal;
 
         document.getElementById("columnsBtn").onclick = openManageColumnsModal;
+
+        document.getElementById("sheetLinkBtn").onclick = function() {
+          if (settings && settings.sheetUrl) {
+            window.open(settings.sheetUrl, '_blank');
+          } else {
+            showToast("Google Sheet URL not configured.", "warning");
+          }
+        };
 
         // Manage Columns Modal handlers
         document.getElementById("manageColsCancelBtn").onclick = closeManageColumnsModal;

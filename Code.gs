@@ -488,7 +488,8 @@ function getSettings() {
       appName: "App",
       catalogName: "Catalogue",
       imageBaseUrl: "",
-      appIcon: ""
+      appIcon: "",
+      sheetUrl: ""
     };
   }
 
@@ -496,12 +497,14 @@ function getSettings() {
   var catalogName = sh.getRange("C3").getDisplayValue() || "Catalogue";
   var imageBaseUrl = sh.getRange("C4").getDisplayValue() || "";
   var appIcon = sh.getRange("C6").getDisplayValue() || "";
+  var sheetUrl = sh.getRange("C7").getDisplayValue() || "";
 
   return {
     appName: appName,
     catalogName: catalogName,
     imageBaseUrl: imageBaseUrl,
-    appIcon: appIcon
+    appIcon: appIcon,
+    sheetUrl: sheetUrl
   };
 }
 
