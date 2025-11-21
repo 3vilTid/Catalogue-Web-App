@@ -283,9 +283,11 @@
         font-weight: 500;
       }
 
-      .dropdown-item input[type="checkbox"] {
+      .dropdown-item input[type="radio"] {
         margin: 0;
         cursor: pointer;
+        width: 16px;
+        height: 16px;
       }
 
       .dropdown-divider {
@@ -989,6 +991,29 @@
         }
       }
 
+      /* Column Management Table ----------------------------------------- */
+
+      #columnsTable {
+        font-size: 12px;
+      }
+
+      #columnsTable th {
+        font-weight: 600;
+        color: #374151;
+        position: sticky;
+        top: 0;
+        background: #f3f4f6;
+        z-index: 10;
+      }
+
+      #columnsTable tbody tr:hover {
+        background: #f9fafb;
+      }
+
+      #columnsTable input[type="checkbox"] {
+        cursor: pointer;
+      }
+
       @media (max-width: 780px) {
         body {
           padding: 10px;
@@ -1012,6 +1037,16 @@
           left: 0;
           right: 0;
           min-width: auto;
+        }
+        #manageColumnsModal .modal-card {
+          width: 95% !important;
+          max-width: 95% !important;
+        }
+        #columnsTable {
+          font-size: 10px;
+        }
+        #columnsTable th, #columnsTable td {
+          padding: 4px !important;
         }
       }
     </style>
@@ -1132,7 +1167,7 @@
       </div>
     </div>
 
-    <!-- Columns modal -->
+    <!-- Columns modal (Legacy - kept for compatibility) -->
     <div id="columnsModal" class="modal">
       <div class="modal-card">
         <h3>Edit column names</h3>
@@ -1140,6 +1175,121 @@
         <div class="modal-footer">
           <button class="btn-text" id="colsCancelBtn">Cancel</button>
           <button class="btn-toolbar btn-primary" id="colsSaveBtn">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Column Configuration Management Modal -->
+    <div id="manageColumnsModal" class="modal">
+      <div class="modal-card" style="width: 90%; max-width: 950px;">
+        <h3>Manage Columns</h3>
+        <div style="margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn-toolbar btn-primary" id="addColumnBtn">+ Add New Column</button>
+          <button class="btn-toolbar" id="exportColumnsBtn" style="background: #10b981; color: white;">📤 Export Config</button>
+          <button class="btn-toolbar" id="importColumnsBtn" style="background: #3b82f6; color: white;">📥 Import Config</button>
+        </div>
+        <div style="max-height: 400px; overflow-y: auto; margin-bottom: 12px;">
+          <table id="columnsTable" style="width: 100%; border-collapse: collapse; font-size: 12px;">
+            <thead>
+              <tr style="background: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
+                <th style="padding: 8px; text-align: center; width: 80px;">Order</th>
+                <th style="padding: 8px; text-align: left;">Column Name</th>
+                <th style="padding: 8px; text-align: left;">Display Name</th>
+                <th style="padding: 8px; text-align: left;">Type</th>
+                <th style="padding: 8px; text-align: center;">Filter</th>
+                <th style="padding: 8px; text-align: center;">Sort</th>
+                <th style="padding: 8px; text-align: center;">Detail</th>
+                <th style="padding: 8px; text-align: left;">Special Role</th>
+                <th style="padding: 8px; text-align: center; width: 120px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="columnsTableBody">
+              <!-- Will be populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-text" id="manageColsCancelBtn">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import Config Modal -->
+    <div id="importConfigModal" class="modal">
+      <div class="modal-card" style="width: 600px;">
+        <h3>Import Column Configuration</h3>
+        <div style="margin-bottom: 12px;">
+          <p style="color: #6b7280; font-size: 13px; margin-bottom: 8px;">
+            Paste your JSON configuration below. This will replace all existing column configurations.
+          </p>
+          <textarea id="importConfigTextarea" style="width: 100%; height: 300px; font-family: monospace; font-size: 11px; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; resize: vertical;" placeholder='[{"columnName": "Name", "displayName": "Name", ...}]'></textarea>
+        </div>
+        <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 6px; padding: 8px; margin-bottom: 12px; font-size: 12px;">
+          <strong>⚠️ Warning:</strong> This will overwrite your current configuration. Make sure to export first as a backup!
+        </div>
+        <div class="modal-footer">
+          <button class="btn-text" id="importConfigCancelBtn">Cancel</button>
+          <button class="btn-toolbar btn-primary" id="importConfigSaveBtn">Import</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add/Edit Column Modal -->
+    <div id="columnEditorModal" class="modal">
+      <div class="modal-card" style="width: 450px;">
+        <h3 id="columnEditorTitle">Add Column</h3>
+        <div id="columnEditorBody">
+          <label>Column Name (internal)</label>
+          <input type="text" id="editColName" placeholder="e.g., Info6">
+
+          <label>Display Name (user-friendly)</label>
+          <input type="text" id="editColDisplayName" placeholder="e.g., Additional Info">
+
+          <label>Type</label>
+          <select id="editColType" style="width: 100%; margin: 3px 0 10px; padding: 7px 9px; border-radius: 9px; border: 1px solid #d1d5db; font-size: 13px;">
+            <option value="text">Text</option>
+            <option value="number">Number</option>
+            <option value="date">Date</option>
+            <option value="url">URL</option>
+            <option value="image">Image</option>
+          </select>
+
+          <div style="display: flex; gap: 20px; margin: 10px 0;">
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="checkbox" id="editColShowInFilter">
+              <span>Show in Filter</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="checkbox" id="editColShowInSort">
+              <span>Show in Sort</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="checkbox" id="editColShowInDetail">
+              <span>Show in Detail</span>
+            </label>
+          </div>
+
+          <label>Special Role</label>
+          <select id="editColSpecialRole" style="width: 100%; margin: 3px 0 10px; padding: 7px 9px; border-radius: 9px; border: 1px solid #d1d5db; font-size: 13px;">
+            <option value="">None</option>
+            <option value="Primary Identifier">Primary Identifier (Name)</option>
+            <option value="Description">Description</option>
+            <option value="Image URL">Image URL</option>
+            <option value="Category">Category</option>
+            <option value="Location">Location (Place)</option>
+            <option value="Date">Date</option>
+            <option value="External Link">External Link</option>
+            <option value="Auto-filled Creator">Auto-filled Creator</option>
+            <option value="Formula (Read-only)">Formula (Read-only)</option>
+          </select>
+
+          <div style="font-size: 11px; color: #6b7280; margin-top: 8px; padding: 8px; background: #f9fafb; border-radius: 6px;">
+            <strong>Note:</strong> Special roles define how the column behaves. Only one column should have each special role.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-text" id="columnEditorCancelBtn">Cancel</button>
+          <button class="btn-toolbar btn-primary" id="columnEditorSaveBtn">Save</button>
         </div>
       </div>
     </div>
@@ -2130,28 +2280,30 @@
             const item = document.createElement("div");
             item.className = "dropdown-item";
 
-            const checkbox = document.createElement("input");
-            checkbox.type = "checkbox";
-            checkbox.id = "filter_" + config.columnName + "_" + value.replace(/\s/g, '_');
-            checkbox.value = value;
+            const radio = document.createElement("input");
+            radio.type = "radio";
+            radio.name = "filter_" + config.columnName;
+            radio.id = "filter_" + config.columnName + "_" + value.replace(/\s/g, '_');
+            radio.value = value;
 
             const selected = filterValues[config.columnName] || [];
-            checkbox.checked = selected.indexOf(value) !== -1;
+            radio.checked = selected.indexOf(value) !== -1;
 
-            checkbox.onchange = () => {
+            radio.onclick = (e) => {
+              e.stopPropagation();
               if (!filterValues[config.columnName]) {
                 filterValues[config.columnName] = [];
               }
 
-              if (checkbox.checked) {
-                if (filterValues[config.columnName].indexOf(value) === -1) {
-                  filterValues[config.columnName].push(value);
-                }
+              const idx = filterValues[config.columnName].indexOf(value);
+              if (idx !== -1) {
+                // Uncheck - remove from selection
+                filterValues[config.columnName].splice(idx, 1);
+                radio.checked = false;
               } else {
-                const idx = filterValues[config.columnName].indexOf(value);
-                if (idx !== -1) {
-                  filterValues[config.columnName].splice(idx, 1);
-                }
+                // Check - add to selection
+                filterValues[config.columnName].push(value);
+                radio.checked = true;
               }
 
               updateChipsUI();
@@ -2162,13 +2314,12 @@
             label.textContent = value;
 
             item.onclick = (e) => {
-              if (e.target !== checkbox) {
-                checkbox.checked = !checkbox.checked;
-                checkbox.onchange();
+              if (e.target !== radio) {
+                radio.onclick(e);
               }
             };
 
-            item.appendChild(checkbox);
+            item.appendChild(radio);
             item.appendChild(label);
             listContainer.appendChild(item);
           });
@@ -2521,46 +2672,332 @@
         );
       }
 
-      // -------------------- Columns modal (Creator only) --------------------
+      // -------------------- Column Management (Creator only) --------------------
 
-      function openColumnsModal() {
+      let editingColumnIndex = -1;
+
+      function openManageColumnsModal() {
         if (!user || user.profile !== "Creator") {
-          showToast("Only Creator can edit column names.", "warning");
+          showToast("Only Creator can manage columns.", "warning");
           return;
         }
 
-        const locked = [
-          "Name",
-          "Description",
-          "Picture url",
-          "Category",
-          "Date",
-          "Place",
-          "ExternalLink",
-          "Added By"
-        ];
+        const modal = document.getElementById("manageColumnsModal");
+        populateColumnsTable();
+        modal.style.display = "flex";
+      }
 
-        const modal = document.getElementById("columnsModal");
-        const body = document.getElementById("columnsBody");
-        body.innerHTML =
-          "<p style='color:#6b7280;font-size:12px;margin-bottom:8px;'>Locked columns are hidden and cannot be renamed.</p>";
+      function closeManageColumnsModal() {
+        document.getElementById("manageColumnsModal").style.display = "none";
+      }
 
-        for (let i = 0; i < headers.length; i++) {
-          const h = headers[i];
-          if (locked.indexOf(h) !== -1) continue;
+      function populateColumnsTable() {
+        const tbody = document.getElementById("columnsTableBody");
+        tbody.innerHTML = "";
 
-          body.innerHTML +=
-            "<label>" +
-            h +
-            "</label>" +
-            '<input id="col_' +
-            i +
-            '" value="' +
-            String(h).replace(/"/g, "&quot;") +
-            '">';
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          const row = document.createElement("tr");
+          row.style.borderBottom = "1px solid #e5e7eb";
+
+          const canMoveUp = i > 0;
+          const canMoveDown = i < columnConfig.length - 1;
+
+          row.innerHTML = `
+            <td style="padding: 8px; text-align: center;">
+              <button onclick="moveColumnUp(${i})" ${!canMoveUp ? 'disabled' : ''} style="background: none; border: none; cursor: ${canMoveUp ? 'pointer' : 'not-allowed'}; font-size: 16px; padding: 2px 4px; color: ${canMoveUp ? '#3b82f6' : '#d1d5db'};">▲</button>
+              <button onclick="moveColumnDown(${i})" ${!canMoveDown ? 'disabled' : ''} style="background: none; border: none; cursor: ${canMoveDown ? 'pointer' : 'not-allowed'}; font-size: 16px; padding: 2px 4px; color: ${canMoveDown ? '#3b82f6' : '#d1d5db'};">▼</button>
+            </td>
+            <td style="padding: 8px;">${config.columnName}</td>
+            <td style="padding: 8px;">${config.displayName || config.columnName}</td>
+            <td style="padding: 8px;">${config.type || 'text'}</td>
+            <td style="padding: 8px; text-align: center;">${config.showInFilter ? '✓' : '—'}</td>
+            <td style="padding: 8px; text-align: center;">${config.showInSort ? '✓' : '—'}</td>
+            <td style="padding: 8px; text-align: center;">${config.showInDetail ? '✓' : '—'}</td>
+            <td style="padding: 8px;">${config.specialRoleDisplay || '—'}</td>
+            <td style="padding: 8px; text-align: center;">
+              <button class="btn-text" onclick="openEditColumn(${i})" style="font-size: 11px; padding: 4px 8px;">Edit</button>
+              <button class="btn-text" onclick="confirmDeleteColumn(${i})" style="font-size: 11px; padding: 4px 8px; color: #dc2626;">Delete</button>
+            </td>
+          `;
+
+          tbody.appendChild(row);
         }
+      }
+
+      function openAddColumn() {
+        editingColumnIndex = -1;
+        const modal = document.getElementById("columnEditorModal");
+        const title = document.getElementById("columnEditorTitle");
+
+        title.textContent = "Add New Column";
+
+        // Clear form
+        document.getElementById("editColName").value = "";
+        document.getElementById("editColDisplayName").value = "";
+        document.getElementById("editColType").value = "text";
+        document.getElementById("editColShowInFilter").checked = false;
+        document.getElementById("editColShowInSort").checked = false;
+        document.getElementById("editColShowInDetail").checked = true;
+        document.getElementById("editColSpecialRole").value = "";
+
+        // Enable column name field (only for new columns)
+        document.getElementById("editColName").disabled = false;
 
         modal.style.display = "flex";
+      }
+
+      function openEditColumn(index) {
+        editingColumnIndex = index;
+        const config = columnConfig[index];
+        const modal = document.getElementById("columnEditorModal");
+        const title = document.getElementById("columnEditorTitle");
+
+        title.textContent = "Edit Column";
+
+        // Populate form
+        document.getElementById("editColName").value = config.columnName;
+        document.getElementById("editColDisplayName").value = config.displayName || config.columnName;
+        document.getElementById("editColType").value = config.type || "text";
+        document.getElementById("editColShowInFilter").checked = config.showInFilter || false;
+        document.getElementById("editColShowInSort").checked = config.showInSort || false;
+        document.getElementById("editColShowInDetail").checked = config.showInDetail || false;
+        document.getElementById("editColSpecialRole").value = config.specialRoleDisplay || "";
+
+        // Disable column name field (can't rename existing columns)
+        document.getElementById("editColName").disabled = true;
+
+        modal.style.display = "flex";
+      }
+
+      function closeColumnEditor() {
+        document.getElementById("columnEditorModal").style.display = "none";
+      }
+
+      function saveColumnEditor() {
+        const columnName = document.getElementById("editColName").value.trim();
+        const displayName = document.getElementById("editColDisplayName").value.trim();
+        const type = document.getElementById("editColType").value;
+        const showInFilter = document.getElementById("editColShowInFilter").checked;
+        const showInSort = document.getElementById("editColShowInSort").checked;
+        const showInDetail = document.getElementById("editColShowInDetail").checked;
+        const specialRole = document.getElementById("editColSpecialRole").value;
+
+        if (!columnName) {
+          showToast("Column name is required.", "error");
+          return;
+        }
+
+        if (editingColumnIndex === -1) {
+          // Adding new column
+          google.script.run
+            .withSuccessHandler(function (msg) {
+              showToast(msg, "success");
+              closeColumnEditor();
+              reloadColumnConfig();
+            })
+            .withFailureHandler(function(error) {
+              showToast("Error: " + error.message, "error");
+            })
+            .addNewColumn(columnName, displayName, type, showInFilter, showInSort, showInDetail, specialRole);
+        } else {
+          // Editing existing column
+          const updatedConfig = columnConfig.slice();
+          updatedConfig[editingColumnIndex] = {
+            columnName: columnName,
+            displayName: displayName,
+            type: type,
+            showInFilter: showInFilter,
+            showInSort: showInSort,
+            showInDetail: showInDetail,
+            specialRole: specialRole
+          };
+
+          google.script.run
+            .withSuccessHandler(function (msg) {
+              showToast(msg, "success");
+              closeColumnEditor();
+              reloadColumnConfig();
+            })
+            .withFailureHandler(function(error) {
+              showToast("Error: " + error.message, "error");
+            })
+            .saveColumnConfig(updatedConfig);
+        }
+      }
+
+      function reloadColumnConfig() {
+        google.script.run
+          .withSuccessHandler(function (payload) {
+            columnConfig = payload.columnConfig || [];
+            headers = payload.headers || [];
+            allItems = payload.items || [];
+
+            loadColumnConfig();
+            computeUniqueValues();
+            populateColumnsTable();
+            updateChipsUI();
+            applyFiltersAndSorting();
+          })
+          .getInitialData();
+      }
+
+      // -------------------- Reorder Columns --------------------
+
+      function moveColumnUp(index) {
+        if (index <= 0) return;
+
+        // Swap with previous item
+        const temp = columnConfig[index];
+        columnConfig[index] = columnConfig[index - 1];
+        columnConfig[index - 1] = temp;
+
+        // Save reordered config
+        google.script.run
+          .withSuccessHandler(function (msg) {
+            showToast(msg, "success");
+            populateColumnsTable();
+          })
+          .withFailureHandler(function(error) {
+            showToast("Error: " + error.message, "error");
+          })
+          .saveColumnConfig(columnConfig);
+      }
+
+      function moveColumnDown(index) {
+        if (index >= columnConfig.length - 1) return;
+
+        // Swap with next item
+        const temp = columnConfig[index];
+        columnConfig[index] = columnConfig[index + 1];
+        columnConfig[index + 1] = temp;
+
+        // Save reordered config
+        google.script.run
+          .withSuccessHandler(function (msg) {
+            showToast(msg, "success");
+            populateColumnsTable();
+          })
+          .withFailureHandler(function(error) {
+            showToast("Error: " + error.message, "error");
+          })
+          .saveColumnConfig(columnConfig);
+      }
+
+      // -------------------- Delete Column --------------------
+
+      function confirmDeleteColumn(index) {
+        const config = columnConfig[index];
+        showConfirm(
+          "Delete Column",
+          "Are you sure you want to delete the column '" + config.columnName + "'? This will remove the column from both the ColumnConfig and Main sheets. This action cannot be undone.",
+          function() {
+            deleteColumn(index);
+          }
+        );
+      }
+
+      function deleteColumn(index) {
+        const config = columnConfig[index];
+
+        google.script.run
+          .withSuccessHandler(function (msg) {
+            showToast(msg, "success");
+            reloadColumnConfig();
+          })
+          .withFailureHandler(function(error) {
+            showToast("Error: " + error.message, "error");
+          })
+          .deleteColumn(config.columnName);
+      }
+
+      // -------------------- Import/Export Config --------------------
+
+      function exportColumnsConfig() {
+        // Create a clean copy for export
+        const exportData = columnConfig.map(col => ({
+          columnName: col.columnName,
+          displayName: col.displayName || col.columnName,
+          type: col.type || 'text',
+          showInFilter: col.showInFilter || false,
+          showInSort: col.showInSort || false,
+          showInDetail: col.showInDetail || false,
+          specialRole: col.specialRoleDisplay || ''
+        }));
+
+        const json = JSON.stringify(exportData, null, 2);
+
+        // Create download
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'column-config-' + new Date().toISOString().slice(0,10) + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        showToast("Configuration exported successfully!", "success");
+      }
+
+      function openImportConfigModal() {
+        const modal = document.getElementById("importConfigModal");
+        document.getElementById("importConfigTextarea").value = "";
+        modal.style.display = "flex";
+      }
+
+      function closeImportConfigModal() {
+        document.getElementById("importConfigModal").style.display = "none";
+      }
+
+      function importColumnsConfig() {
+        const json = document.getElementById("importConfigTextarea").value.trim();
+
+        if (!json) {
+          showToast("Please paste a configuration JSON.", "error");
+          return;
+        }
+
+        try {
+          const importedConfig = JSON.parse(json);
+
+          if (!Array.isArray(importedConfig)) {
+            showToast("Invalid format: Configuration must be an array.", "error");
+            return;
+          }
+
+          // Validate required fields
+          for (let i = 0; i < importedConfig.length; i++) {
+            const col = importedConfig[i];
+            if (!col.columnName) {
+              showToast("Invalid format: Column at index " + i + " is missing 'columnName'.", "error");
+              return;
+            }
+          }
+
+          // Save imported config
+          google.script.run
+            .withSuccessHandler(function (msg) {
+              showToast(msg, "success");
+              closeImportConfigModal();
+              reloadColumnConfig();
+            })
+            .withFailureHandler(function(error) {
+              showToast("Error: " + error.message, "error");
+            })
+            .saveColumnConfig(importedConfig);
+
+        } catch (e) {
+          showToast("Invalid JSON format: " + e.message, "error");
+        }
+      }
+
+      // -------------------- Legacy Columns modal (kept for compatibility) --------------------
+
+      function openColumnsModal() {
+        // Redirect to new manage columns modal
+        openManageColumnsModal();
       }
 
       function closeColumnsModal() {
@@ -2568,52 +3005,7 @@
       }
 
       function saveColumns() {
-        const locked = [
-          "Name",
-          "Description",
-          "Picture url",
-          "Category",
-          "Date",
-          "Place",
-          "ExternalLink",
-          "Added By"
-        ];
-
-        const newHeaders = headers.slice();
-
-        for (let i = 0; i < headers.length; i++) {
-          const h = headers[i];
-          if (locked.indexOf(h) !== -1) continue;
-          const el = document.getElementById("col_" + i);
-          if (el) {
-            const v = el.value.trim();
-            if (v) newHeaders[i] = v;
-          }
-        }
-
-        google.script.run
-          .withSuccessHandler(function (msg) {
-            showToast(msg, "success");
-            closeColumnsModal();
-            google.script.run
-              .withSuccessHandler(function (hs) {
-                headers = hs || [];
-                detectKeyColumns();
-                google.script.run
-                  .withSuccessHandler(function (data) {
-                    allItems = data || [];
-                    computeUniqueValues();
-                    updateChipsUI();
-                    applyFiltersAndSorting();
-                  })
-                  .getMainData();
-              })
-              .getHeaders();
-          })
-          .withFailureHandler(function(error) {
-            showToast("Error: " + error.message, "error");
-          })
-          .renameHeaders(newHeaders);
+        // Legacy function - not used anymore
       }
 
       // -------------------- Catalogue rename --------------------
@@ -2744,7 +3136,23 @@
         };
         document.getElementById("editCancelBtn").onclick = closeEditModal;
 
-        document.getElementById("columnsBtn").onclick = openColumnsModal;
+        document.getElementById("columnsBtn").onclick = openManageColumnsModal;
+
+        // Manage Columns Modal handlers
+        document.getElementById("manageColsCancelBtn").onclick = closeManageColumnsModal;
+        document.getElementById("addColumnBtn").onclick = openAddColumn;
+        document.getElementById("exportColumnsBtn").onclick = exportColumnsConfig;
+        document.getElementById("importColumnsBtn").onclick = openImportConfigModal;
+
+        // Column Editor Modal handlers
+        document.getElementById("columnEditorCancelBtn").onclick = closeColumnEditor;
+        document.getElementById("columnEditorSaveBtn").onclick = saveColumnEditor;
+
+        // Import Config Modal handlers
+        document.getElementById("importConfigCancelBtn").onclick = closeImportConfigModal;
+        document.getElementById("importConfigSaveBtn").onclick = importColumnsConfig;
+
+        // Legacy columns modal (redirects to new modal)
         document.getElementById("colsCancelBtn").onclick = closeColumnsModal;
         document.getElementById("colsSaveBtn").onclick = saveColumns;
 
@@ -2763,6 +3171,25 @@
             }
           });
         }
+
+        // Close modals on overlay click
+        document.getElementById("manageColumnsModal").addEventListener("click", function(e) {
+          if (e.target.id === "manageColumnsModal") {
+            closeManageColumnsModal();
+          }
+        });
+
+        document.getElementById("columnEditorModal").addEventListener("click", function(e) {
+          if (e.target.id === "columnEditorModal") {
+            closeColumnEditor();
+          }
+        });
+
+        document.getElementById("importConfigModal").addEventListener("click", function(e) {
+          if (e.target.id === "importConfigModal") {
+            closeImportConfigModal();
+          }
+        });
       };
     </script>
   </body>

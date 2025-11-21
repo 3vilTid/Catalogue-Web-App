@@ -198,11 +198,11 @@ function addNewColumn(columnName, displayName, type, showInFilter, showInSort, s
   if (user.profile !== "Creator") {
     return "Only Creator can add columns.";
   }
-  
+
   if (!columnName || columnName.trim() === "") {
     return "Column name cannot be empty.";
   }
-  
+
   try {
     var sh = getColumnConfigSheet_();
     sh.appendRow([
@@ -214,16 +214,68 @@ function addNewColumn(columnName, displayName, type, showInFilter, showInSort, s
       showInDetail || false,
       specialRole || ""
     ]);
-    
+
     // Add column to Main sheet
     var mainSheet = getMainSheet_();
     mainSheet.insertColumnAfter(mainSheet.getLastColumn());
     var lastCol = mainSheet.getLastColumn();
     mainSheet.getRange(1, lastCol).setValue(columnName.trim());
-    
+
     return "Column added successfully.";
   } catch (err) {
     return "Error adding column: " + err.toString();
+  }
+}
+
+function deleteColumn(columnName) {
+  var user = getUserInfo();
+  if (user.profile !== "Creator") {
+    return "Only Creator can delete columns.";
+  }
+
+  if (!columnName || columnName.trim() === "") {
+    return "Column name cannot be empty.";
+  }
+
+  try {
+    // Remove from ColumnConfig sheet
+    var configSheet = getColumnConfigSheet_();
+    var configData = configSheet.getDataRange().getValues();
+
+    // Find the row with this column name
+    var rowToDelete = -1;
+    for (var i = 1; i < configData.length; i++) {
+      if (configData[i][0] === columnName) {
+        rowToDelete = i + 1; // +1 because sheets are 1-indexed
+        break;
+      }
+    }
+
+    if (rowToDelete > 0) {
+      configSheet.deleteRow(rowToDelete);
+    } else {
+      return "Column not found in ColumnConfig sheet.";
+    }
+
+    // Remove from Main sheet
+    var mainSheet = getMainSheet_();
+    var headers = mainSheet.getRange(1, 1, 1, mainSheet.getLastColumn()).getValues()[0];
+
+    var colToDelete = -1;
+    for (var j = 0; j < headers.length; j++) {
+      if (headers[j] === columnName) {
+        colToDelete = j + 1; // +1 because sheets are 1-indexed
+        break;
+      }
+    }
+
+    if (colToDelete > 0) {
+      mainSheet.deleteColumn(colToDelete);
+    }
+
+    return "Column '" + columnName + "' deleted successfully.";
+  } catch (err) {
+    return "Error deleting column: " + err.toString();
   }
 }
 
