@@ -1179,15 +1179,18 @@
 
     <!-- Column Configuration Management Modal -->
     <div id="manageColumnsModal" class="modal">
-      <div class="modal-card" style="width: 90%; max-width: 900px;">
+      <div class="modal-card" style="width: 90%; max-width: 950px;">
         <h3>Manage Columns</h3>
-        <div style="margin-bottom: 12px;">
+        <div style="margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
           <button class="btn-toolbar btn-primary" id="addColumnBtn">+ Add New Column</button>
+          <button class="btn-toolbar" id="exportColumnsBtn" style="background: #10b981; color: white;">📤 Export Config</button>
+          <button class="btn-toolbar" id="importColumnsBtn" style="background: #3b82f6; color: white;">📥 Import Config</button>
         </div>
         <div style="max-height: 400px; overflow-y: auto; margin-bottom: 12px;">
           <table id="columnsTable" style="width: 100%; border-collapse: collapse; font-size: 12px;">
             <thead>
               <tr style="background: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
+                <th style="padding: 8px; text-align: center; width: 80px;">Order</th>
                 <th style="padding: 8px; text-align: left;">Column Name</th>
                 <th style="padding: 8px; text-align: left;">Display Name</th>
                 <th style="padding: 8px; text-align: left;">Type</th>
@@ -1195,7 +1198,7 @@
                 <th style="padding: 8px; text-align: center;">Sort</th>
                 <th style="padding: 8px; text-align: center;">Detail</th>
                 <th style="padding: 8px; text-align: left;">Special Role</th>
-                <th style="padding: 8px; text-align: center;">Actions</th>
+                <th style="padding: 8px; text-align: center; width: 120px;">Actions</th>
               </tr>
             </thead>
             <tbody id="columnsTableBody">
@@ -1205,6 +1208,26 @@
         </div>
         <div class="modal-footer">
           <button class="btn-text" id="manageColsCancelBtn">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import Config Modal -->
+    <div id="importConfigModal" class="modal">
+      <div class="modal-card" style="width: 600px;">
+        <h3>Import Column Configuration</h3>
+        <div style="margin-bottom: 12px;">
+          <p style="color: #6b7280; font-size: 13px; margin-bottom: 8px;">
+            Paste your JSON configuration below. This will replace all existing column configurations.
+          </p>
+          <textarea id="importConfigTextarea" style="width: 100%; height: 300px; font-family: monospace; font-size: 11px; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; resize: vertical;" placeholder='[{"columnName": "Name", "displayName": "Name", ...}]'></textarea>
+        </div>
+        <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 6px; padding: 8px; margin-bottom: 12px; font-size: 12px;">
+          <strong>⚠️ Warning:</strong> This will overwrite your current configuration. Make sure to export first as a backup!
+        </div>
+        <div class="modal-footer">
+          <button class="btn-text" id="importConfigCancelBtn">Cancel</button>
+          <button class="btn-toolbar btn-primary" id="importConfigSaveBtn">Import</button>
         </div>
       </div>
     </div>
@@ -2674,7 +2697,14 @@
           const row = document.createElement("tr");
           row.style.borderBottom = "1px solid #e5e7eb";
 
+          const canMoveUp = i > 0;
+          const canMoveDown = i < columnConfig.length - 1;
+
           row.innerHTML = `
+            <td style="padding: 8px; text-align: center;">
+              <button onclick="moveColumnUp(${i})" ${!canMoveUp ? 'disabled' : ''} style="background: none; border: none; cursor: ${canMoveUp ? 'pointer' : 'not-allowed'}; font-size: 16px; padding: 2px 4px; color: ${canMoveUp ? '#3b82f6' : '#d1d5db'};">▲</button>
+              <button onclick="moveColumnDown(${i})" ${!canMoveDown ? 'disabled' : ''} style="background: none; border: none; cursor: ${canMoveDown ? 'pointer' : 'not-allowed'}; font-size: 16px; padding: 2px 4px; color: ${canMoveDown ? '#3b82f6' : '#d1d5db'};">▼</button>
+            </td>
             <td style="padding: 8px;">${config.columnName}</td>
             <td style="padding: 8px;">${config.displayName || config.columnName}</td>
             <td style="padding: 8px;">${config.type || 'text'}</td>
@@ -2684,6 +2714,7 @@
             <td style="padding: 8px;">${config.specialRoleDisplay || '—'}</td>
             <td style="padding: 8px; text-align: center;">
               <button class="btn-text" onclick="openEditColumn(${i})" style="font-size: 11px; padding: 4px 8px;">Edit</button>
+              <button class="btn-text" onclick="confirmDeleteColumn(${i})" style="font-size: 11px; padding: 4px 8px; color: #dc2626;">Delete</button>
             </td>
           `;
 
@@ -2806,6 +2837,157 @@
             applyFiltersAndSorting();
           })
           .getInitialData();
+      }
+
+      // -------------------- Reorder Columns --------------------
+
+      function moveColumnUp(index) {
+        if (index <= 0) return;
+
+        // Swap with previous item
+        const temp = columnConfig[index];
+        columnConfig[index] = columnConfig[index - 1];
+        columnConfig[index - 1] = temp;
+
+        // Save reordered config
+        google.script.run
+          .withSuccessHandler(function (msg) {
+            showToast(msg, "success");
+            populateColumnsTable();
+          })
+          .withFailureHandler(function(error) {
+            showToast("Error: " + error.message, "error");
+          })
+          .saveColumnConfig(columnConfig);
+      }
+
+      function moveColumnDown(index) {
+        if (index >= columnConfig.length - 1) return;
+
+        // Swap with next item
+        const temp = columnConfig[index];
+        columnConfig[index] = columnConfig[index + 1];
+        columnConfig[index + 1] = temp;
+
+        // Save reordered config
+        google.script.run
+          .withSuccessHandler(function (msg) {
+            showToast(msg, "success");
+            populateColumnsTable();
+          })
+          .withFailureHandler(function(error) {
+            showToast("Error: " + error.message, "error");
+          })
+          .saveColumnConfig(columnConfig);
+      }
+
+      // -------------------- Delete Column --------------------
+
+      function confirmDeleteColumn(index) {
+        const config = columnConfig[index];
+        showConfirm(
+          "Delete Column",
+          "Are you sure you want to delete the column '" + config.columnName + "'? This will remove the column from both the ColumnConfig and Main sheets. This action cannot be undone.",
+          function() {
+            deleteColumn(index);
+          }
+        );
+      }
+
+      function deleteColumn(index) {
+        const config = columnConfig[index];
+
+        google.script.run
+          .withSuccessHandler(function (msg) {
+            showToast(msg, "success");
+            reloadColumnConfig();
+          })
+          .withFailureHandler(function(error) {
+            showToast("Error: " + error.message, "error");
+          })
+          .deleteColumn(config.columnName);
+      }
+
+      // -------------------- Import/Export Config --------------------
+
+      function exportColumnsConfig() {
+        // Create a clean copy for export
+        const exportData = columnConfig.map(col => ({
+          columnName: col.columnName,
+          displayName: col.displayName || col.columnName,
+          type: col.type || 'text',
+          showInFilter: col.showInFilter || false,
+          showInSort: col.showInSort || false,
+          showInDetail: col.showInDetail || false,
+          specialRole: col.specialRoleDisplay || ''
+        }));
+
+        const json = JSON.stringify(exportData, null, 2);
+
+        // Create download
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'column-config-' + new Date().toISOString().slice(0,10) + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        showToast("Configuration exported successfully!", "success");
+      }
+
+      function openImportConfigModal() {
+        const modal = document.getElementById("importConfigModal");
+        document.getElementById("importConfigTextarea").value = "";
+        modal.style.display = "flex";
+      }
+
+      function closeImportConfigModal() {
+        document.getElementById("importConfigModal").style.display = "none";
+      }
+
+      function importColumnsConfig() {
+        const json = document.getElementById("importConfigTextarea").value.trim();
+
+        if (!json) {
+          showToast("Please paste a configuration JSON.", "error");
+          return;
+        }
+
+        try {
+          const importedConfig = JSON.parse(json);
+
+          if (!Array.isArray(importedConfig)) {
+            showToast("Invalid format: Configuration must be an array.", "error");
+            return;
+          }
+
+          // Validate required fields
+          for (let i = 0; i < importedConfig.length; i++) {
+            const col = importedConfig[i];
+            if (!col.columnName) {
+              showToast("Invalid format: Column at index " + i + " is missing 'columnName'.", "error");
+              return;
+            }
+          }
+
+          // Save imported config
+          google.script.run
+            .withSuccessHandler(function (msg) {
+              showToast(msg, "success");
+              closeImportConfigModal();
+              reloadColumnConfig();
+            })
+            .withFailureHandler(function(error) {
+              showToast("Error: " + error.message, "error");
+            })
+            .saveColumnConfig(importedConfig);
+
+        } catch (e) {
+          showToast("Invalid JSON format: " + e.message, "error");
+        }
       }
 
       // -------------------- Legacy Columns modal (kept for compatibility) --------------------
@@ -2956,10 +3138,16 @@
         // Manage Columns Modal handlers
         document.getElementById("manageColsCancelBtn").onclick = closeManageColumnsModal;
         document.getElementById("addColumnBtn").onclick = openAddColumn;
+        document.getElementById("exportColumnsBtn").onclick = exportColumnsConfig;
+        document.getElementById("importColumnsBtn").onclick = openImportConfigModal;
 
         // Column Editor Modal handlers
         document.getElementById("columnEditorCancelBtn").onclick = closeColumnEditor;
         document.getElementById("columnEditorSaveBtn").onclick = saveColumnEditor;
+
+        // Import Config Modal handlers
+        document.getElementById("importConfigCancelBtn").onclick = closeImportConfigModal;
+        document.getElementById("importConfigSaveBtn").onclick = importColumnsConfig;
 
         // Legacy columns modal (redirects to new modal)
         document.getElementById("colsCancelBtn").onclick = closeColumnsModal;
@@ -2991,6 +3179,12 @@
         document.getElementById("columnEditorModal").addEventListener("click", function(e) {
           if (e.target.id === "columnEditorModal") {
             closeColumnEditor();
+          }
+        });
+
+        document.getElementById("importConfigModal").addEventListener("click", function(e) {
+          if (e.target.id === "importConfigModal") {
+            closeImportConfigModal();
           }
         });
       };
