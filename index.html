@@ -3085,10 +3085,18 @@
       let deferredInstallPrompt = null;
 
       // Listen for beforeinstallprompt event (capture it if browser fires it)
+      // This must be set up early, before the browser decides to fire the event
       window.addEventListener('beforeinstallprompt', (e) => {
         console.log('✓ beforeinstallprompt event captured');
         e.preventDefault();
         deferredInstallPrompt = e;
+
+        // Show install button if it exists
+        const installBtn = document.getElementById('installAppBtn');
+        if (installBtn && !window.matchMedia('(display-mode: standalone)').matches) {
+          installBtn.style.display = 'inline-block';
+          console.log('✓ Install button shown after beforeinstallprompt');
+        }
       });
 
       // Listen for app installation
@@ -3100,10 +3108,21 @@
       });
 
       function setupInstallButton() {
+        console.log('Setting up install button...');
         const installBtn = document.getElementById('installAppBtn');
 
+        if (!installBtn) {
+          console.error('Install button not found in DOM!');
+          return;
+        }
+
+        console.log('Install button found:', installBtn);
+
         // Hide button if already running as installed app (standalone mode)
-        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        console.log('Is standalone mode:', isStandalone);
+
+        if (isStandalone) {
           installBtn.style.display = 'none';
           console.log('Running in standalone mode - install button hidden');
           return;
@@ -3111,7 +3130,7 @@
 
         // Always show button when in browser
         installBtn.style.display = 'inline-block';
-        console.log('Running in browser - install button shown');
+        console.log('✓ Install button shown (display: inline-block)');
 
         // Handle install button click
         installBtn.onclick = async () => {
@@ -3147,16 +3166,22 @@
           console.log('Manifest href:', document.getElementById('manifestLink')?.href);
           console.log('Service Worker ready:', navigator.serviceWorker?.ready);
           console.log('Install prompt available:', !!deferredInstallPrompt);
+          console.log('Install button display:', installBtn.style.display);
+          console.log('Install button visible:', installBtn.offsetParent !== null);
         }, 2000);
       }
 
       // -------------------- Init --------------------
 
       async function init() {
+        console.log('=== App Initialization Starting ===');
+
         // Initialize PWA
+        console.log('Initializing PWA...');
         initPWA();
 
         // Setup install button
+        console.log('Setting up install button...');
         setupInstallButton();
 
         // Initialize IndexedDB
