@@ -1128,6 +1128,14 @@
     <!-- Toast notification container -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <!-- Fullscreen image viewer -->
+    <div id="imgOverlay">
+      <div id="imgOverlayInner">
+        <img id="imgOverlayImg" alt="Full size">
+        <button id="imgOverlayClose">✕</button>
+      </div>
+    </div>
+
     <script>
       // ==================== TOAST NOTIFICATION SYSTEM ====================
       
@@ -1170,96 +1178,6 @@
         }, 300);
       }
 
-      // ==================== CUSTOM CONFIRM DIALOG ====================
-      
-      function showConfirm(title, message, onConfirm) {
-        const overlay = document.getElementById('confirmOverlay');
-        const titleEl = document.getElementById('confirmTitle');
-        const messageEl = document.getElementById('confirmMessage');
-        const cancelBtn = document.getElementById('confirmCancel');
-        const okBtn = document.getElementById('confirmOk');
-        
-        titleEl.textContent = title;
-        messageEl.textContent = message;
-        overlay.classList.add('show');
-        
-        // Remove old listeners
-        const newCancelBtn = cancelBtn.cloneNode(true);
-        const newOkBtn = okBtn.cloneNode(true);
-        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
-        okBtn.parentNode.replaceChild(newOkBtn, okBtn);
-        
-        // Add new listeners
-        newCancelBtn.onclick = () => {
-          overlay.classList.remove('show');
-        };
-        
-        newOkBtn.onclick = () => {
-          overlay.classList.remove('show');
-          if (onConfirm) onConfirm();
-        };
-        
-        // Close on overlay click
-        overlay.onclick = (e) => {
-          if (e.target === overlay) {
-            overlay.classList.remove('show');
-          }
-        };
-      }
-
-      // ==================== CUSTOM PROMPT DIALOG ====================
-      
-      function showPrompt(title, message, defaultValue, onConfirm) {
-        const overlay = document.getElementById('promptOverlay');
-        const titleEl = document.getElementById('promptTitle');
-        const messageEl = document.getElementById('promptMessage');
-        const inputEl = document.getElementById('promptInput');
-        const cancelBtn = document.getElementById('promptCancel');
-        const okBtn = document.getElementById('promptOk');
-        
-        titleEl.textContent = title;
-        messageEl.textContent = message;
-        inputEl.value = defaultValue || '';
-        overlay.classList.add('show');
-        
-        // Focus input
-        setTimeout(() => inputEl.focus(), 100);
-        
-        // Remove old listeners
-        const newCancelBtn = cancelBtn.cloneNode(true);
-        const newOkBtn = okBtn.cloneNode(true);
-        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
-        okBtn.parentNode.replaceChild(newOkBtn, okBtn);
-        
-        const handleConfirm = () => {
-          const value = inputEl.value.trim();
-          if (value) {
-            overlay.classList.remove('show');
-            if (onConfirm) onConfirm(value);
-          }
-        };
-        
-        // Add new listeners
-        newCancelBtn.onclick = () => {
-          overlay.classList.remove('show');
-        };
-        
-        newOkBtn.onclick = handleConfirm;
-        
-        // Submit on Enter key
-        inputEl.onkeypress = (e) => {
-          if (e.key === 'Enter') {
-            handleConfirm();
-          }
-        };
-        
-        // Close on overlay click
-        overlay.onclick = (e) => {
-          if (e.target === overlay) {
-            overlay.classList.remove('show');
-          }
-        };
-      }
 
       // ==================== INDEXEDDB CACHE MANAGER ====================
       class ImageCacheDB {
@@ -1371,7 +1289,6 @@
       // -------------------- State --------------------
       let allItems = [];
       let headers = [];
-      let user = null;
       let settings = null;
       let columnConfig = [];
 
@@ -1392,7 +1309,6 @@
       let sortField = "none";
       let sortOrder = "asc";
 
-      let editingItemName = null;
       let imageProxyBaseUrl = "";
 
       // -------------------- Helpers --------------------
@@ -1475,57 +1391,6 @@
           }
         }
         return false;
-      }
-
-      function canEditItem(item) {
-        if (!user) return false;
-        if (user.profile === "Creator") return true;
-        if (user.profile === "Editor") {
-          return item["Added By"] === user.email;
-        }
-        return false;
-      }
-
-      function canDeleteItem(item) {
-        return canEditItem(item);
-      }
-
-      function applyRoleVisibility() {
-        if (!user) return;
-
-        const addBtn = document.getElementById("addBtn");
-        const columnsBtn = document.getElementById("columnsBtn");
-        const editCatalogBtn = document.getElementById("editCatalogBtn");
-        const sheetLinkBtn = document.getElementById("sheetLinkBtn");
-
-        if (user.profile === "Viewer") {
-          addBtn.style.display = "none";
-          columnsBtn.style.display = "none";
-          editCatalogBtn.style.display = "none";
-          sheetLinkBtn.style.display = "none";
-        } else if (user.profile === "Editor") {
-          addBtn.style.display = "inline-block";
-          columnsBtn.style.display = "none";
-          editCatalogBtn.style.display = "none";
-          sheetLinkBtn.style.display = "none";
-        } else if (user.profile === "Creator") {
-          addBtn.style.display = "inline-block";
-          columnsBtn.style.display = "inline-block";
-          editCatalogBtn.style.display = "inline-block";
-          sheetLinkBtn.style.display = "inline-block";
-        }
-
-        // Hide Filter button if no filter columns configured or used
-        const filterBtn = document.getElementById("filterBtn");
-        const hasFilterData = filterColumns.length > 0 && filterColumns.some(col =>
-          col.uniqueValues && col.uniqueValues.length > 0
-        );
-
-        if (!hasFilterData) {
-          filterBtn.style.display = "none";
-        } else {
-          filterBtn.style.display = "inline-flex";
-        }
       }
 
       // --- DRIVE IMAGE HELPERS WITH PROGRESSIVE LOADING + INDEXEDDB + LAZY LOADING ---
@@ -1661,11 +1526,6 @@
 
         document.getElementById("catalogName").textContent =
           (settings && settings.catalogName) || "Catalogue";
-
-        document.getElementById("userEmail").textContent =
-          (user && user.email) || "";
-        document.getElementById("userProfilePill").textContent =
-          (user && user.profile) || "";
 
         document.title = (settings && settings.appName) || "Catalogue";
       }
@@ -1910,30 +1770,6 @@
             "Added by: " +
             item[addedByColumn.columnName] +
             "</div>";
-        }
-
-        if (user && user.profile !== "Viewer") {
-          const editable = canEditItem(item);
-          const deletable = canDeleteItem(item);
-
-          if (editable || deletable) {
-            html += '<div class="detail-actions">';
-            if (editable) {
-              const itemName = nameColumn ? (item[nameColumn.columnName] || "") : "";
-              html +=
-                '<button class="btn-secondary" onclick="openEdit(\'' +
-                itemName.replace(/'/g, "\\'") +
-                "')\">✏ Edit</button>";
-            }
-            if (deletable) {
-              const itemName = nameColumn ? (item[nameColumn.columnName] || "") : "";
-              html +=
-                '<button class="btn-danger" onclick="confirmDelete(\'' +
-                itemName.replace(/'/g, "\\'") +
-                "')\">🗑 Delete</button>";
-            }
-            html += "</div>";
-          }
         }
 
         html += "</div></div>";
@@ -2286,478 +2122,7 @@
         }
       });
 
-      // -------------------- Category & Place panels (REMOVED, using dropdowns now) --------------------
 
-      function openCategoryPanel() {
-        // Legacy function - no longer used
-      }
-
-      function closeCategoryPanel(apply) {
-        // Legacy function - no longer used
-      }
-
-      function openPlacePanel() {
-        // Legacy function - no longer used
-      }
-
-      function closePlacePanel(apply) {
-        // Legacy function - no longer used
-      }
-
-      // -------------------- Add / Edit modal --------------------
-
-      function openAdd() {
-        editingItemName = null;
-        const modal = document.getElementById("editModal");
-        const title = document.getElementById("editModalTitle");
-        const body = document.getElementById("editModalBody");
-        title.textContent = "Add item";
-        body.innerHTML = "";
-
-        // Show only columns that are not "addedby" or "formula" (read-only)
-        for (let i = 0; i < columnConfig.length; i++) {
-          const config = columnConfig[i];
-
-          // Skip auto-filled and read-only columns
-          if (config.specialRole === "addedby" || config.specialRole === "formula") {
-            continue;
-          }
-
-          let val = "";
-          // Pre-fill if single filter value selected
-          if (filterValues[config.columnName] && filterValues[config.columnName].length === 1) {
-            val = filterValues[config.columnName][0];
-          }
-
-          const displayName = config.displayName || config.columnName;
-          body.innerHTML +=
-            "<label>" +
-            displayName +
-            "</label>" +
-            '<input id="field_' +
-            config.columnName +
-            '" value="' +
-            (val || "") +
-            '" data-column="' +
-            config.columnName +
-            '">';
-        }
-
-        modal.style.display = "flex";
-        document.getElementById("editSaveBtn").onclick = saveAddOrEdit;
-      }
-
-      function openEdit(name) {
-        editingItemName = name;
-        google.script.run
-          .withSuccessHandler(function (item) {
-            if (!item) {
-              showToast("Item not found.", "error");
-              return;
-            }
-            const modal = document.getElementById("editModal");
-            const title = document.getElementById("editModalTitle");
-            const body = document.getElementById("editModalBody");
-            title.textContent = "Edit item";
-            body.innerHTML = "";
-
-            // Show only columns that are not "addedby" or "formula" (read-only)
-            for (let i = 0; i < columnConfig.length; i++) {
-              const config = columnConfig[i];
-
-              // Skip auto-filled and read-only columns
-              if (config.specialRole === "addedby" || config.specialRole === "formula") {
-                continue;
-              }
-
-              const val = item[config.columnName] || "";
-              const displayName = config.displayName || config.columnName;
-
-              body.innerHTML +=
-                "<label>" +
-                displayName +
-                "</label>" +
-                '<input id="field_' +
-                config.columnName +
-                '" value="' +
-                String(val).replace(/"/g, "&quot;") +
-                '" data-column="' +
-                config.columnName +
-                '">';
-            }
-
-            modal.style.display = "flex";
-            document.getElementById("editSaveBtn").onclick = saveAddOrEdit;
-          })
-          .getItemByName(name);
-      }
-
-      function closeEditModal() {
-        document.getElementById("editModal").style.display = "none";
-      }
-
-      function saveAddOrEdit() {
-        const obj = {};
-
-        // Collect values from all field inputs
-        for (let i = 0; i < columnConfig.length; i++) {
-          const config = columnConfig[i];
-
-          // Skip auto-filled and read-only columns
-          if (config.specialRole === "addedby" || config.specialRole === "formula") {
-            continue;
-          }
-
-          const el = document.getElementById("field_" + config.columnName);
-          if (el) {
-            obj[config.columnName] = el.value;
-          }
-        }
-
-        if (!editingItemName) {
-          google.script.run
-            .withSuccessHandler(function (msg) {
-              showToast(msg, "success");
-              closeEditModal();
-              google.script.run
-                .withSuccessHandler(function (data) {
-                  allItems = data || [];
-                  computeUniqueValues();
-                  applyFiltersAndSorting();
-                })
-                .getMainData();
-            })
-            .withFailureHandler(function(error) {
-              showToast("Error: " + error.message, "error");
-            })
-            .addMainRow(obj);
-        } else {
-          google.script.run
-            .withSuccessHandler(function (msg) {
-              showToast(msg, "success");
-              closeEditModal();
-              google.script.run
-                .withSuccessHandler(function (data) {
-                  allItems = data || [];
-                  computeUniqueValues();
-                  applyFiltersAndSorting();
-                })
-                .getMainData();
-            })
-            .withFailureHandler(function(error) {
-              showToast("Error: " + error.message, "error");
-            })
-            .editItem(editingItemName, obj);
-        }
-      }
-
-      function confirmDelete(name) {
-        showConfirm(
-          "Delete Item",
-          "Are you sure you want to delete this item? This action cannot be undone.",
-          function() {
-            google.script.run
-              .withSuccessHandler(function (msg) {
-                showToast(msg, "success");
-                backToList();
-                google.script.run
-                  .withSuccessHandler(function (data) {
-                    allItems = data || [];
-                    computeUniqueValues();
-                    applyFiltersAndSorting();
-                  })
-                  .getMainData();
-              })
-              .withFailureHandler(function(error) {
-                showToast("Error: " + error.message, "error");
-              })
-              .deleteItem(name);
-          }
-        );
-      }
-
-      // -------------------- Column Management (Creator only) --------------------
-
-      let editingColumnIndex = -1;
-
-      function openManageColumnsModal() {
-        if (!user || user.profile !== "Creator") {
-          showToast("Only Creator can manage columns.", "warning");
-          return;
-        }
-
-        const modal = document.getElementById("manageColumnsModal");
-        populateColumnsTable();
-        modal.style.display = "flex";
-      }
-
-      function closeManageColumnsModal() {
-        document.getElementById("manageColumnsModal").style.display = "none";
-      }
-
-      function populateColumnsTable() {
-        const tbody = document.getElementById("columnsTableBody");
-        tbody.innerHTML = "";
-
-        for (let i = 0; i < columnConfig.length; i++) {
-          const config = columnConfig[i];
-          const row = document.createElement("tr");
-          row.style.borderBottom = "1px solid #e5e7eb";
-
-          const canMoveUp = i > 0;
-          const canMoveDown = i < columnConfig.length - 1;
-
-          row.innerHTML = `
-            <td style="padding: 8px; text-align: center;">
-              <button onclick="moveColumnUp(${i})" ${!canMoveUp ? 'disabled' : ''} style="background: none; border: none; cursor: ${canMoveUp ? 'pointer' : 'not-allowed'}; font-size: 16px; padding: 2px 4px; color: ${canMoveUp ? '#3b82f6' : '#d1d5db'};">▲</button>
-              <button onclick="moveColumnDown(${i})" ${!canMoveDown ? 'disabled' : ''} style="background: none; border: none; cursor: ${canMoveDown ? 'pointer' : 'not-allowed'}; font-size: 16px; padding: 2px 4px; color: ${canMoveDown ? '#3b82f6' : '#d1d5db'};">▼</button>
-            </td>
-            <td style="padding: 8px;">${config.columnName}</td>
-            <td style="padding: 8px;">${config.displayName || config.columnName}</td>
-            <td style="padding: 8px;">${config.type || 'text'}</td>
-            <td style="padding: 8px; text-align: center;">${config.showInFilter ? '✓' : '—'}</td>
-            <td style="padding: 8px; text-align: center;">${config.showInSort ? '✓' : '—'}</td>
-            <td style="padding: 8px; text-align: center;">${config.showInDetail ? '✓' : '—'}</td>
-            <td style="padding: 8px;">${config.specialRoleDisplay || '—'}</td>
-            <td style="padding: 8px; text-align: center;">
-              <button class="btn-text" onclick="openEditColumn(${i})" style="font-size: 11px; padding: 4px 8px;">Edit</button>
-              <button class="btn-text" onclick="confirmDeleteColumn(${i})" style="font-size: 11px; padding: 4px 8px; color: #dc2626;">Delete</button>
-            </td>
-          `;
-
-          tbody.appendChild(row);
-        }
-      }
-
-      function openAddColumn() {
-        editingColumnIndex = -1;
-        const modal = document.getElementById("columnEditorModal");
-        const title = document.getElementById("columnEditorTitle");
-
-        title.textContent = "Add New Column";
-
-        // Clear form
-        document.getElementById("editColName").value = "";
-        document.getElementById("editColDisplayName").value = "";
-        document.getElementById("editColType").value = "text";
-        document.getElementById("editColShowInFilter").checked = false;
-        document.getElementById("editColShowInSort").checked = false;
-        document.getElementById("editColShowInDetail").checked = true;
-        document.getElementById("editColSpecialRole").value = "";
-
-        // Enable column name field (only for new columns)
-        document.getElementById("editColName").disabled = false;
-
-        modal.style.display = "flex";
-      }
-
-      function openEditColumn(index) {
-        editingColumnIndex = index;
-        const config = columnConfig[index];
-        const modal = document.getElementById("columnEditorModal");
-        const title = document.getElementById("columnEditorTitle");
-
-        title.textContent = "Edit Column";
-
-        // Populate form
-        document.getElementById("editColName").value = config.columnName;
-        document.getElementById("editColDisplayName").value = config.displayName || config.columnName;
-        document.getElementById("editColType").value = config.type || "text";
-        document.getElementById("editColShowInFilter").checked = config.showInFilter || false;
-        document.getElementById("editColShowInSort").checked = config.showInSort || false;
-        document.getElementById("editColShowInDetail").checked = config.showInDetail || false;
-        document.getElementById("editColSpecialRole").value = config.specialRoleDisplay || "";
-
-        // Disable column name field (can't rename existing columns)
-        document.getElementById("editColName").disabled = true;
-
-        modal.style.display = "flex";
-      }
-
-      function closeColumnEditor() {
-        document.getElementById("columnEditorModal").style.display = "none";
-      }
-
-      function saveColumnEditor() {
-        const columnName = document.getElementById("editColName").value.trim();
-        const displayName = document.getElementById("editColDisplayName").value.trim();
-        const type = document.getElementById("editColType").value;
-        const showInFilter = document.getElementById("editColShowInFilter").checked;
-        const showInSort = document.getElementById("editColShowInSort").checked;
-        const showInDetail = document.getElementById("editColShowInDetail").checked;
-        const specialRole = document.getElementById("editColSpecialRole").value;
-
-        if (!columnName) {
-          showToast("Column name is required.", "error");
-          return;
-        }
-
-        if (editingColumnIndex === -1) {
-          // Adding new column
-          google.script.run
-            .withSuccessHandler(function (msg) {
-              showToast(msg, "success");
-              closeColumnEditor();
-              reloadColumnConfig();
-            })
-            .withFailureHandler(function(error) {
-              showToast("Error: " + error.message, "error");
-            })
-            .addNewColumn(columnName, displayName, type, showInFilter, showInSort, showInDetail, specialRole);
-        } else {
-          // Editing existing column
-          const updatedConfig = columnConfig.slice();
-          updatedConfig[editingColumnIndex] = {
-            columnName: columnName,
-            displayName: displayName,
-            type: type,
-            showInFilter: showInFilter,
-            showInSort: showInSort,
-            showInDetail: showInDetail,
-            specialRole: specialRole
-          };
-
-          google.script.run
-            .withSuccessHandler(function (msg) {
-              showToast(msg, "success");
-              closeColumnEditor();
-              reloadColumnConfig();
-            })
-            .withFailureHandler(function(error) {
-              showToast("Error: " + error.message, "error");
-            })
-            .saveColumnConfig(updatedConfig);
-        }
-      }
-
-      function reloadColumnConfig() {
-        google.script.run
-          .withSuccessHandler(function (payload) {
-            columnConfig = payload.columnConfig || [];
-            headers = payload.headers || [];
-            allItems = payload.items || [];
-
-            loadColumnConfig();
-            computeUniqueValues();
-            populateColumnsTable();
-            updateChipsUI();
-            applyFiltersAndSorting();
-          })
-          .getInitialData();
-      }
-
-      // -------------------- Reorder Columns --------------------
-
-      function moveColumnUp(index) {
-        if (index <= 0) return;
-
-        // Swap with previous item
-        const temp = columnConfig[index];
-        columnConfig[index] = columnConfig[index - 1];
-        columnConfig[index - 1] = temp;
-
-        // Save reordered config
-        google.script.run
-          .withSuccessHandler(function (msg) {
-            showToast(msg, "success");
-            populateColumnsTable();
-          })
-          .withFailureHandler(function(error) {
-            showToast("Error: " + error.message, "error");
-          })
-          .saveColumnConfig(columnConfig);
-      }
-
-      function moveColumnDown(index) {
-        if (index >= columnConfig.length - 1) return;
-
-        // Swap with next item
-        const temp = columnConfig[index];
-        columnConfig[index] = columnConfig[index + 1];
-        columnConfig[index + 1] = temp;
-
-        // Save reordered config
-        google.script.run
-          .withSuccessHandler(function (msg) {
-            showToast(msg, "success");
-            populateColumnsTable();
-          })
-          .withFailureHandler(function(error) {
-            showToast("Error: " + error.message, "error");
-          })
-          .saveColumnConfig(columnConfig);
-      }
-
-      // -------------------- Delete Column --------------------
-
-      function confirmDeleteColumn(index) {
-        const config = columnConfig[index];
-        showConfirm(
-          "Delete Column",
-          "Are you sure you want to delete the column '" + config.columnName + "'? This will remove the column from both the ColumnConfig and Main sheets. This action cannot be undone.",
-          function() {
-            deleteColumn(index);
-          }
-        );
-      }
-
-      function deleteColumn(index) {
-        const config = columnConfig[index];
-
-        google.script.run
-          .withSuccessHandler(function (msg) {
-            showToast(msg, "success");
-            reloadColumnConfig();
-          })
-          .withFailureHandler(function(error) {
-            showToast("Error: " + error.message, "error");
-          })
-          .deleteColumn(config.columnName);
-      }
-
-      // -------------------- Legacy Columns modal (kept for compatibility) --------------------
-
-      function openColumnsModal() {
-        // Redirect to new manage columns modal
-        openManageColumnsModal();
-      }
-
-      function closeColumnsModal() {
-        document.getElementById("columnsModal").style.display = "none";
-      }
-
-      function saveColumns() {
-        // Legacy function - not used anymore
-      }
-
-      // -------------------- Catalogue rename --------------------
-
-      function promptRenameCatalogue() {
-        if (!user || user.profile !== "Creator") return;
-        const current = (settings && settings.catalogName) || "";
-        
-        showPrompt(
-          "Rename Catalogue",
-          "Enter a new name for your catalogue:",
-          current,
-          function(name) {
-            google.script.run
-              .withSuccessHandler(function (msg) {
-                showToast(msg, "success");
-                google.script.run
-                  .withSuccessHandler(function (s) {
-                    settings = s || settings;
-                    updateHeaderUI();
-                  })
-                  .getSettings();
-              })
-              .withFailureHandler(function(error) {
-                showToast("Error: " + error.message, "error");
-              })
-              .renameCatalogue(name);
-          }
-        );
-      }
 
       // -------------------- Init --------------------
 
@@ -2777,7 +2142,6 @@
 
         google.script.run
           .withSuccessHandler(function (payload) {
-            user = payload.user;
             settings = payload.settings;
             headers = payload.headers || [];
             allItems = payload.items || [];
@@ -2799,7 +2163,6 @@
             loadColumnConfig();
             computeUniqueValues();
             updateHeaderUI();
-            applyRoleVisibility();
             updateChipsUI();
             applyFiltersAndSorting();
           })
@@ -2853,43 +2216,6 @@
           };
         });
 
-        document.getElementById("addBtn").onclick = function () {
-          if (
-            !user ||
-            (user.profile !== "Creator" && user.profile !== "Editor")
-          ) {
-            showToast("Only Creator or Editor can add items.", "warning");
-            return;
-          }
-          openAdd();
-        };
-        document.getElementById("editCancelBtn").onclick = closeEditModal;
-
-        document.getElementById("columnsBtn").onclick = openManageColumnsModal;
-
-        document.getElementById("sheetLinkBtn").onclick = function() {
-          if (settings && settings.sheetUrl) {
-            window.open(settings.sheetUrl, '_blank');
-          } else {
-            showToast("Google Sheet URL not configured.", "warning");
-          }
-        };
-
-        // Manage Columns Modal handlers
-        document.getElementById("manageColsCancelBtn").onclick = closeManageColumnsModal;
-        document.getElementById("addColumnBtn").onclick = openAddColumn;
-
-        // Column Editor Modal handlers
-        document.getElementById("columnEditorCancelBtn").onclick = closeColumnEditor;
-        document.getElementById("columnEditorSaveBtn").onclick = saveColumnEditor;
-
-        // Legacy columns modal (redirects to new modal)
-        document.getElementById("colsCancelBtn").onclick = closeColumnsModal;
-        document.getElementById("colsSaveBtn").onclick = saveColumns;
-
-        document.getElementById("editCatalogBtn").onclick =
-          promptRenameCatalogue;
-
         const overlay = document.getElementById("imgOverlay");
         const closeBtn = document.getElementById("imgOverlayClose");
         if (closeBtn) {
@@ -2903,24 +2229,6 @@
           });
         }
 
-        // Close modals on overlay click
-        document.getElementById("manageColumnsModal").addEventListener("click", function(e) {
-          if (e.target.id === "manageColumnsModal") {
-            closeManageColumnsModal();
-          }
-        });
-
-        document.getElementById("columnEditorModal").addEventListener("click", function(e) {
-          if (e.target.id === "columnEditorModal") {
-            closeColumnEditor();
-          }
-        });
-
-        document.getElementById("importConfigModal").addEventListener("click", function(e) {
-          if (e.target.id === "importConfigModal") {
-            closeImportConfigModal();
-          }
-        });
       };
     </script>
   </body>
