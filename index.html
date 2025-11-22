@@ -3083,29 +3083,17 @@
       // -------------------- Install App Button --------------------
 
       let deferredInstallPrompt = null;
-      let installPromptRequested = false;
 
-      // Listen for beforeinstallprompt at window level (before DOM is ready)
+      // Listen for beforeinstallprompt event (capture it if browser fires it)
       window.addEventListener('beforeinstallprompt', (e) => {
-        console.log('beforeinstallprompt event fired!');
+        console.log('✓ beforeinstallprompt event captured');
         e.preventDefault();
         deferredInstallPrompt = e;
-
-        // Update button state if it exists
-        const installBtn = document.getElementById('installAppBtn');
-        if (installBtn && !installPromptRequested) {
-          console.log('✓ Install prompt captured and ready');
-        }
       });
 
       // Listen for app installation
       window.addEventListener('appinstalled', () => {
-        console.log('✓ PWA was installed');
-        const installBtn = document.getElementById('installAppBtn');
-        if (installBtn) {
-          installBtn.style.display = 'none';
-        }
-        deferredInstallPrompt = null;
+        console.log('✓ App installed successfully');
         if (typeof showToast === 'function') {
           showToast('App installed successfully!', 'success');
         }
@@ -3113,76 +3101,39 @@
 
       function setupInstallButton() {
         const installBtn = document.getElementById('installAppBtn');
-        console.log('Setting up install button...');
 
-        // Check if app is already running in standalone mode (already installed)
+        // Hide button if already running as installed app (standalone mode)
         if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
           installBtn.style.display = 'none';
-          console.log('App is already installed (standalone mode)');
+          console.log('Running in standalone mode - install button hidden');
           return;
         }
 
-        // Show button by default
+        // Always show button when in browser
         installBtn.style.display = 'inline-block';
-        console.log('Install button shown');
+        console.log('Running in browser - install button shown');
 
         // Handle install button click
         installBtn.onclick = async () => {
-          installPromptRequested = true;
+          // If browser's install prompt is available, use it
+          if (deferredInstallPrompt) {
+            try {
+              await deferredInstallPrompt.prompt();
+              const { outcome } = await deferredInstallPrompt.userChoice;
 
-          if (!deferredInstallPrompt) {
-            console.warn('beforeinstallprompt not available - trying alternative');
-
-            // Try to trigger by reloading after a small delay
-            showToast('Preparing app for installation...', 'info');
-
-            // Wait a moment to see if the event fires
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            if (!deferredInstallPrompt) {
-              console.error('Install prompt still not available after wait');
-              showToast('Please use browser menu: ⋮ → Install app', 'warning');
-              return;
+              if (outcome === 'accepted') {
+                showToast('App is being installed...', 'success');
+              }
+              deferredInstallPrompt = null;
+            } catch (error) {
+              console.error('Install prompt error:', error);
+              showToast('Use browser menu: ⋮ → Install app', 'warning');
             }
-          }
-
-          try {
-            // Show the install prompt
-            console.log('Showing install prompt...');
-            await deferredInstallPrompt.prompt();
-
-            // Wait for the user's response
-            const { outcome } = await deferredInstallPrompt.userChoice;
-            console.log('Install prompt outcome:', outcome);
-
-            if (outcome === 'accepted') {
-              showToast('App is being installed...', 'success');
-              installBtn.style.display = 'none';
-            } else {
-              showToast('Installation cancelled', 'info');
-            }
-
-            // Clear the prompt
-            deferredInstallPrompt = null;
-          } catch (error) {
-            console.error('Error showing install prompt:', error);
-            showToast('Installation failed. Use browser menu: ⋮ → Install app', 'error');
+          } else {
+            // No prompt available - direct user to browser menu
+            showToast('Use browser menu: ⋮ → Install app', 'info');
           }
         };
-
-        // Log PWA readiness status after a delay
-        setTimeout(() => {
-          console.log('=== PWA Status Check ===');
-          console.log('Service Worker supported:', 'serviceWorker' in navigator);
-          console.log('Install prompt available:', !!deferredInstallPrompt);
-          console.log('Standalone mode:', window.matchMedia('(display-mode: standalone)').matches);
-
-          if (!deferredInstallPrompt) {
-            console.log('TIP: If you recently uninstalled, Chrome may have a cooldown period.');
-            console.log('TIP: Try clearing site data in DevTools → Application → Storage');
-            console.log('TIP: Or use browser menu: ⋮ → Install app');
-          }
-        }, 2000);
       }
 
       // -------------------- Init --------------------
