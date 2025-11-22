@@ -3115,11 +3115,16 @@
 
         // Handle install button click
         installBtn.onclick = async () => {
+          console.log('Install button clicked');
+          console.log('Install prompt available:', !!deferredInstallPrompt);
+
           // If browser's install prompt is available, use it
           if (deferredInstallPrompt) {
             try {
+              console.log('Showing install prompt...');
               await deferredInstallPrompt.prompt();
               const { outcome } = await deferredInstallPrompt.userChoice;
+              console.log('User choice:', outcome);
 
               if (outcome === 'accepted') {
                 showToast('App is being installed...', 'success');
@@ -3131,9 +3136,18 @@
             }
           } else {
             // No prompt available - direct user to browser menu
+            console.warn('beforeinstallprompt event not available');
             showToast('Use browser menu: ⋮ → Install app', 'info');
           }
         };
+
+        // Debug: Check PWA status after 2 seconds
+        setTimeout(() => {
+          console.log('=== PWA Status ===');
+          console.log('Manifest href:', document.getElementById('manifestLink')?.href);
+          console.log('Service Worker ready:', navigator.serviceWorker?.ready);
+          console.log('Install prompt available:', !!deferredInstallPrompt);
+        }, 2000);
       }
 
       // -------------------- Init --------------------
