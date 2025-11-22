@@ -104,17 +104,41 @@ viewer@example.com   | Bob Jones   | Viewer
    - Find "People API" and add it
 7. Save the project
 
-### 3. Deploy as Web App
+### 3. Deploy as Web App (TWO DEPLOYMENTS REQUIRED)
+
+**Important**: This app requires **TWO separate deployments** for full functionality:
+
+#### Deployment 1: Image Server (Execute as "Me")
+
+This deployment is needed to serve images from Google Drive:
 
 1. In the Apps Script editor, click **Deploy > New deployment**
 2. Click **Select type > Web app**
 3. Configure:
-   - **Description**: "Catalogue Web App"
-   - **Execute as**: Me
-   - **Who has access**: Anyone (your Users sheet controls access)
+   - **Description**: "Image Server"
+   - **Execute as**: **Me**
+   - **Who has access**: **Anyone**
 4. Click **Deploy**
-5. Copy the web app URL
+5. Copy this web app URL - this will be used internally for image serving
+
+#### Deployment 2: Main Web App (Execute as "User accessing")
+
+This is the actual web app link that users will access:
+
+1. Click **Deploy > New deployment** again
+2. Click **Select type > Web app**
+3. Configure:
+   - **Description**: "Catalogue Web App"
+   - **Execute as**: **User accessing the web app**
+   - **Who has access**: **Anyone with a Google account**
+4. Click **Deploy**
+5. **Copy this web app URL** - this is your main app link
 6. Paste this URL into your Settings sheet cell C7 (for the Sheet link feature)
+7. Share this URL with your users
+
+**Why two deployments?**
+- **Deployment 1 (Execute as "Me")**: Allows the app to serve images from Google Drive using your permissions, so all users can view images regardless of their Drive access
+- **Deployment 2 (Execute as "User accessing")**: Runs the app with each user's permissions, enabling proper user identification and role-based access control
 
 ### 4. First-Time Authorization
 
