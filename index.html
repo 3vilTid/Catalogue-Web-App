@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- PWA FIXED VERSION - Updated: 2025-11-22 -->
 <html>
   <head>
     <meta charset="UTF-8" />
@@ -1058,38 +1059,169 @@
       }
 
       @media (max-width: 780px) {
+        /* Base Layout */
         body {
-          padding: 10px;
+          padding: 8px;
         }
+
+        /* Header */
         .top-header {
           flex-direction: column;
-          gap: 10px;
+          gap: 12px;
+          padding: 12px;
+          border-radius: 14px;
         }
+
+        .left-block {
+          width: 100%;
+        }
+
+        .app-name {
+          font-size: 18px;
+        }
+
+        .catalog-name {
+          font-size: 16px;
+        }
+
+        .right-block {
+          width: 100%;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
+        }
+
+        .user-pill {
+          font-size: 11px;
+        }
+
+        /* Filters Row */
         .filters-row {
           flex-direction: column;
           align-items: stretch;
+          gap: 10px;
         }
+
         .filters-left, .filters-right {
           width: 100%;
           justify-content: space-between;
+          gap: 8px;
         }
+
+        /* Buttons - Larger touch targets */
+        .btn-toolbar {
+          padding: 10px 14px;
+          font-size: 13px;
+          min-height: 44px;
+        }
+
+        .btn-primary {
+          padding: 12px 20px;
+          font-size: 14px;
+          min-height: 44px;
+        }
+
+        /* Card Grid - Better mobile layout */
+        .grid {
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+          gap: 12px;
+        }
+
+        .card {
+          border-radius: 14px;
+        }
+
+        .card-img-wrapper {
+          height: 150px;
+        }
+
+        .card-body {
+          padding: 10px;
+        }
+
+        .card-name {
+          font-size: 13px;
+        }
+
+        .card-sub {
+          font-size: 11px;
+        }
+
+        /* Detail View */
         .detail-layout {
           grid-template-columns: 1fr;
+          gap: 14px;
         }
+
+        #detailView {
+          padding: 14px;
+          border-radius: 14px;
+        }
+
+        .detail-img-wrapper {
+          max-height: 300px;
+        }
+
+        .detail-name {
+          font-size: 20px;
+        }
+
+        /* Dropdown Menus */
         .dropdown-menu {
           left: 0;
           right: 0;
           min-width: auto;
+          max-height: 60vh;
+          overflow-y: auto;
         }
+
+        .dropdown-item {
+          padding: 12px;
+          min-height: 44px;
+        }
+
+        /* Modals */
+        .modal-card {
+          width: 95% !important;
+          max-width: 95% !important;
+          max-height: 85vh;
+          margin: 20px auto;
+        }
+
         #manageColumnsModal .modal-card {
           width: 95% !important;
           max-width: 95% !important;
         }
-        #columnsTable {
-          font-size: 10px;
+
+        .modal-body {
+          padding: 14px;
+          max-height: calc(85vh - 120px);
+          overflow-y: auto;
         }
+
+        /* Forms */
+        input[type="text"],
+        input[type="url"],
+        input[type="number"],
+        textarea,
+        select {
+          font-size: 16px;
+          padding: 10px;
+          min-height: 44px;
+        }
+
+        /* Table */
+        #columnsTable {
+          font-size: 11px;
+        }
+
         #columnsTable th, #columnsTable td {
-          padding: 4px !important;
+          padding: 6px !important;
+        }
+
+        /* Prevent zoom on input focus */
+        input, select, textarea {
+          font-size: 16px !important;
         }
       }
     </style>
@@ -1124,7 +1256,6 @@
               <span id="userProfilePill" class="profile-badge">ROLE</span>
             </div>
           </div>
-          <button id="installAppBtn" class="btn-toolbar" style="display: none; background: #10b981; color: white; font-size: 11px; padding: 2px 10px; height: auto;">📱 Install App</button>
         </div>
       </div>
 
@@ -2986,262 +3117,26 @@
         );
       }
 
-      // -------------------- PWA Support --------------------
+      // -------------------- App Settings --------------------
 
-      function initPWA() {
-        // PWA initialization will happen after settings are loaded
-        // This is called from updatePWAWithSettings()
-      }
-
-      function updatePWAWithSettings(settings) {
-        console.log('=== updatePWAWithSettings called ===');
-        console.log('Settings:', settings);
-
+      function updateAppSettings(settings) {
         // Update document title
         if (settings.appName) {
           document.title = settings.appName;
-          console.log('✓ Document title set:', settings.appName);
         }
 
         // Update apple mobile web app title
         const appleTitleMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]');
         if (appleTitleMeta && settings.appName) {
           appleTitleMeta.content = settings.appName;
-          console.log('✓ Apple title meta set:', settings.appName);
         }
-
-        // Create and set manifest
-        const deploymentUrl = window.location.href.split('?')[0];
-        const iconUrl = settings.appIcon || "";
-        console.log('Deployment URL:', deploymentUrl);
-        console.log('Icon URL from settings:', iconUrl);
-
-        // Convert Google Drive URL to proper image URL using imageBaseUrl
-        const imageServer = settings.imageBaseUrl || deploymentUrl;
-        let iconSrc = "";
-
-        if (iconUrl) {
-          // Extract file ID from Drive URL or use URL as-is
-          const fileIdMatch = iconUrl.match(/[-\w]{25,}/);
-          if (fileIdMatch) {
-            const fileId = fileIdMatch[0];
-            iconSrc = imageServer + "?img=" + fileId;
-            console.log('✓ Converted Drive URL to image proxy:', iconSrc);
-          } else {
-            // Use the URL as-is if it's already a direct URL
-            iconSrc = iconUrl;
-            console.log('Using icon URL as-is:', iconSrc);
-          }
-        }
-
-        console.log('Image Server:', imageServer);
-        console.log('Final Icon Source:', iconSrc);
-
-        const manifest = {
-          "name": settings.appName || "Catalogue",
-          "short_name": settings.appName || "Catalogue",
-          "description": "Catalogue web application",
-          "start_url": deploymentUrl,
-          "display": "standalone",
-          "background_color": "#ffffff",
-          "theme_color": "#2563eb",
-          "orientation": "portrait-primary",
-          "icons": []
-        };
-
-        // Add icons if icon source is available
-        if (iconSrc) {
-          manifest.icons = [
-            {
-              "src": iconSrc,
-              "sizes": "192x192",
-              "type": "image/png",
-              "purpose": "any maskable"
-            },
-            {
-              "src": iconSrc,
-              "sizes": "512x512",
-              "type": "image/png",
-              "purpose": "any maskable"
-            }
-          ];
-          console.log('✓ Manifest icons added with source:', iconSrc);
-        } else {
-          console.warn('⚠ No icon source available - PWA may not be installable');
-        }
-
-        console.log('Manifest object:', manifest);
-        console.log('  Manifest JSON:', JSON.stringify(manifest, null, 2));
-
-        // Use server endpoint for manifest (REQUIRED for Chrome PWA detection)
-        // Chrome does NOT recognize data: or blob: URLs for PWA manifests!
-        const baseUrl = window.location.origin + window.location.pathname;
-        const manifestUrl = baseUrl + '?manifest=true';
-
-        const manifestLink = document.getElementById('manifestLink');
-        if (manifestLink) {
-          const oldHref = manifestLink.href;
-          manifestLink.href = manifestUrl;
-
-          console.log('✓ Manifest link set to server endpoint (required for Chrome)');
-          console.log('  Old href:', oldHref);
-          console.log('  New href:', manifestLink.href);
-
-          // Validate manifest by fetching from server
-          setTimeout(() => {
-            fetch(manifestLink.href)
-              .then(response => {
-                if (!response.ok) {
-                  throw new Error('Failed to fetch manifest: HTTP ' + response.status);
-                }
-                return response.json();
-              })
-              .then(data => {
-                console.log('✓ Server manifest validation successful:', data);
-                console.log('  Name:', data.name);
-                console.log('  Icons count:', data.icons?.length || 0);
-
-                if (data.icons && data.icons.length > 0) {
-                  console.log('  Icon URLs:', data.icons.map(i => i.src));
-                  console.log('✓✓✓ Manifest has valid icons - PWA SHOULD be installable! ✓✓✓');
-                } else {
-                  console.warn('⚠ No icons in manifest - PWA will not be installable');
-                }
-              })
-              .catch(error => {
-                console.error('✗ Server manifest fetch failed:', error);
-                console.error('  Check that ?manifest=true endpoint is working');
-              });
-          }, 500);
-
-        } else {
-          console.error('✗ manifestLink element not found!');
-        }
-
-        // Register service worker from server endpoint
-        if ('serviceWorker' in navigator) {
-          console.log('Registering service worker from server endpoint...');
-          const swUrl = baseUrl + '?sw=true';
-          console.log('  Service worker URL:', swUrl);
-
-          navigator.serviceWorker.register(swUrl)
-            .then(registration => {
-              console.log('✓ Service Worker registered successfully:', registration);
-              console.log('  Scope:', registration.scope);
-            })
-            .catch(error => {
-              console.error('✗ Service Worker registration failed:', error);
-            });
-        } else {
-          console.warn('⚠ Service Worker not supported in this browser');
-        }
-
-        console.log('=== updatePWAWithSettings completed ===');
       }
 
-      // -------------------- Install App Button --------------------
-
-      let deferredInstallPrompt = null;
-
-      // Listen for beforeinstallprompt event (capture it if browser fires it)
-      // This must be set up early, before the browser decides to fire the event
-      window.addEventListener('beforeinstallprompt', (e) => {
-        console.log('✓ beforeinstallprompt event captured');
-        e.preventDefault();
-        deferredInstallPrompt = e;
-
-        // Show install button if it exists
-        const installBtn = document.getElementById('installAppBtn');
-        if (installBtn && !window.matchMedia('(display-mode: standalone)').matches) {
-          installBtn.style.display = 'inline-block';
-          console.log('✓ Install button shown after beforeinstallprompt');
-        }
-      });
-
-      // Listen for app installation
-      window.addEventListener('appinstalled', () => {
-        console.log('✓ App installed successfully');
-        if (typeof showToast === 'function') {
-          showToast('App installed successfully!', 'success');
-        }
-      });
-
-      function setupInstallButton() {
-        console.log('Setting up install button...');
-        const installBtn = document.getElementById('installAppBtn');
-
-        if (!installBtn) {
-          console.error('Install button not found in DOM!');
-          return;
-        }
-
-        console.log('Install button found:', installBtn);
-
-        // Hide button if already running as installed app (standalone mode)
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-        console.log('Is standalone mode:', isStandalone);
-
-        if (isStandalone) {
-          installBtn.style.display = 'none';
-          console.log('Running in standalone mode - install button hidden');
-          return;
-        }
-
-        // Always show button when in browser
-        installBtn.style.display = 'inline-block';
-        console.log('✓ Install button shown (display: inline-block)');
-
-        // Handle install button click
-        installBtn.onclick = async () => {
-          console.log('Install button clicked');
-          console.log('Install prompt available:', !!deferredInstallPrompt);
-
-          // If browser's install prompt is available, use it
-          if (deferredInstallPrompt) {
-            try {
-              console.log('Showing install prompt...');
-              await deferredInstallPrompt.prompt();
-              const { outcome } = await deferredInstallPrompt.userChoice;
-              console.log('User choice:', outcome);
-
-              if (outcome === 'accepted') {
-                showToast('App is being installed...', 'success');
-              }
-              deferredInstallPrompt = null;
-            } catch (error) {
-              console.error('Install prompt error:', error);
-              showToast('Use browser menu: ⋮ → Install app', 'warning');
-            }
-          } else {
-            // No prompt available - direct user to browser menu
-            console.warn('beforeinstallprompt event not available');
-            showToast('Use browser menu: ⋮ → Install app', 'info');
-          }
-        };
-
-        // Debug: Check PWA status after 5 seconds (gives time for settings to load)
-        setTimeout(() => {
-          console.log('=== PWA Status (5s check) ===');
-          console.log('Manifest href:', document.getElementById('manifestLink')?.href);
-          console.log('Service Worker ready:', navigator.serviceWorker?.ready);
-          console.log('Install prompt available:', !!deferredInstallPrompt);
-          console.log('Install button display:', installBtn.style.display);
-          console.log('Install button visible:', installBtn.offsetParent !== null);
-        }, 5000);
-      }
 
       // -------------------- Init --------------------
 
       async function init() {
         console.log('=== App Initialization Starting ===');
-
-        // Initialize PWA
-        console.log('Initializing PWA...');
-        initPWA();
-
-        // Setup install button
-        console.log('Setting up install button...');
-        setupInstallButton();
 
         // Initialize IndexedDB
         try {
@@ -3268,8 +3163,8 @@
                 settings.deploymentUrl ||
                 "";
 
-              // Update PWA manifest and title with settings
-              updatePWAWithSettings(settings);
+              // Update app title
+              updateAppSettings(settings);
             }
 
             // Load column configuration

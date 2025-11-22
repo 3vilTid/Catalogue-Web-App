@@ -284,9 +284,27 @@ function deleteColumn(columnName) {
  **************************************************/
 
 function doGet(e) {
+  // Debug: Log all parameters
+  Logger.log('doGet called with parameters: ' + JSON.stringify(e && e.parameter));
+
+  // TEST ENDPOINT - to verify deployment is updated
+  if (e && e.parameter && e.parameter.test) {
+    return ContentService
+      .createTextOutput('{"status":"OK","message":"Deployment is working!","timestamp":"' + new Date().toISOString() + '"}')
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   // Serve manifest.json for PWA
   if (e && e.parameter && e.parameter.manifest) {
-    return serveManifest_();
+    Logger.log('Serving manifest...');
+    try {
+      return serveManifest_();
+    } catch (err) {
+      // Emergency fallback if serveManifest_ fails
+      return ContentService
+        .createTextOutput('{"error":"' + err.toString() + '","location":"doGet->serveManifest"}')
+        .setMimeType(ContentService.MimeType.JSON);
+    }
   }
 
   // Serve service worker for PWA
@@ -350,70 +368,79 @@ function serveImage_(fileId) {
  **************************************************/
 
 function serveManifest_() {
-  var settings = getSettings();
-  var deploymentUrl = ScriptApp.getService().getUrl();
+  try {
+    var settings = getSettings();
+    var deploymentUrl = ScriptApp.getService().getUrl();
 
-  // Use image base URL (C4) if provided, otherwise use main deployment
-  var imageServer = settings.imageBaseUrl || deploymentUrl;
+    // Get app icon URL from settings
+    var iconUrl = settings.appIcon || "";
 
-  // Get app icon URL from settings
-  var iconUrl = settings.appIcon || "";
-
-  // Convert icon to data URI for PWA manifest
-  // PWA manifests need actual image URLs, but Apps Script can't serve binary images
-  // Solution: Convert to data URI and embed directly in manifest
-  var iconDataUri = "";
-  if (iconUrl) {
-    try {
-      // Extract file ID from Drive URL
-      var fileIdMatch = iconUrl.match(/[-\w]{25,}/);
-      if (fileIdMatch) {
-        var fileId = fileIdMatch[0];
-        var file = DriveApp.getFileById(fileId);
-        var blob = file.getBlob();
-        var contentType = blob.getContentType();
-        var base64 = Utilities.base64Encode(blob.getBytes());
-        iconDataUri = 'data:' + contentType + ';base64,' + base64;
+    // Convert icon to data URI for PWA manifest
+    var iconDataUri = "";
+    if (iconUrl) {
+      try {
+        // Extract file ID from Drive URL
+        var fileIdMatch = iconUrl.match(/[-\w]{25,}/);
+        if (fileIdMatch) {
+          var fileId = fileIdMatch[0];
+          var file = DriveApp.getFileById(fileId);
+          var blob = file.getBlob();
+          var contentType = blob.getContentType();
+          var base64 = Utilities.base64Encode(blob.getBytes());
+          iconDataUri = 'data:' + contentType + ';base64,' + base64;
+        }
+      } catch (iconErr) {
+        // If error fetching icon, continue without it
+        Logger.log('Error fetching icon for PWA manifest: ' + iconErr.toString());
       }
-    } catch (err) {
-      // If error fetching icon, log it but continue
-      Logger.log('Error fetching icon for PWA manifest: ' + err.toString());
     }
+
+    var manifest = {
+      "name": settings.appName || "Catalogue",
+      "short_name": settings.appName || "Catalogue",
+      "description": "Catalogue web application",
+      "start_url": deploymentUrl,
+      "display": "standalone",
+      "background_color": "#ffffff",
+      "theme_color": "#2563eb",
+      "orientation": "portrait-primary",
+      "icons": []
+    };
+
+    // Add icons if data URI was successfully created
+    if (iconDataUri) {
+      manifest.icons = [
+        {
+          "src": iconDataUri,
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "any maskable"
+        },
+        {
+          "src": iconDataUri,
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "any maskable"
+        }
+      ];
+    }
+
+    return ContentService
+      .createTextOutput(JSON.stringify(manifest))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    // Return error as JSON for debugging
+    var errorResponse = {
+      "error": err.toString(),
+      "message": "Failed to generate PWA manifest",
+      "stack": err.stack
+    };
+
+    return ContentService
+      .createTextOutput(JSON.stringify(errorResponse))
+      .setMimeType(ContentService.MimeType.JSON);
   }
-
-  var manifest = {
-    "name": settings.appName || "Catalogue",
-    "short_name": settings.appName || "Catalogue",
-    "description": "Catalogue web application",
-    "start_url": deploymentUrl,
-    "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#2563eb",
-    "orientation": "portrait-primary",
-    "icons": []
-  };
-
-  // Add icons if data URI was successfully created
-  if (iconDataUri) {
-    manifest.icons = [
-      {
-        "src": iconDataUri,
-        "sizes": "192x192",
-        "type": "image/png",
-        "purpose": "any maskable"
-      },
-      {
-        "src": iconDataUri,
-        "sizes": "512x512",
-        "type": "image/png",
-        "purpose": "any maskable"
-      }
-    ];
-  }
-
-  return ContentService
-    .createTextOutput(JSON.stringify(manifest))
-    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function serveServiceWorker_() {
