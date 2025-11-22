@@ -2,7 +2,21 @@
 <html>
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Catalogue">
+    <meta name="description" content="Catalogue web application">
+
     <title>Catalogue</title>
+
+    <!-- PWA Manifest -->
+    <link id="manifestLink" rel="manifest" href="">
+
     <style>
       :root {
         --bg: #f3f4fb;
@@ -1145,6 +1159,7 @@
         </div>
 
         <div class="filters-right">
+          <button id="sheetLinkBtn" class="btn-toolbar" style="display: none;">📊 Sheet</button>
           <button id="columnsBtn" class="btn-toolbar">⚙ Columns</button>
           <button id="addBtn" class="btn-toolbar btn-primary">+ Add item</button>
         </div>
@@ -1698,19 +1713,23 @@
         const addBtn = document.getElementById("addBtn");
         const columnsBtn = document.getElementById("columnsBtn");
         const editCatalogBtn = document.getElementById("editCatalogBtn");
+        const sheetLinkBtn = document.getElementById("sheetLinkBtn");
 
         if (user.profile === "Viewer") {
           addBtn.style.display = "none";
           columnsBtn.style.display = "none";
           editCatalogBtn.style.display = "none";
+          sheetLinkBtn.style.display = "none";
         } else if (user.profile === "Editor") {
           addBtn.style.display = "inline-block";
           columnsBtn.style.display = "none";
           editCatalogBtn.style.display = "none";
+          sheetLinkBtn.style.display = "none";
         } else if (user.profile === "Creator") {
           addBtn.style.display = "inline-block";
           columnsBtn.style.display = "inline-block";
           editCatalogBtn.style.display = "inline-block";
+          sheetLinkBtn.style.display = "inline-block";
         }
 
         // Hide Filter button if no filter columns configured or used
@@ -3037,9 +3056,52 @@
         );
       }
 
+      // -------------------- PWA Support --------------------
+
+      function initPWA() {
+        // Get the base URL (deployment URL)
+        const baseUrl = window.location.origin + window.location.pathname;
+
+        // Set manifest URL
+        const manifestLink = document.getElementById('manifestLink');
+        if (manifestLink) {
+          manifestLink.href = baseUrl + '?manifest=true';
+        }
+
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            const swUrl = baseUrl + '?sw=true';
+            navigator.serviceWorker.register(swUrl)
+              .then(registration => {
+                console.log('✓ Service Worker registered:', registration);
+              })
+              .catch(error => {
+                console.warn('Service Worker registration failed:', error);
+              });
+          });
+        }
+      }
+
+      function updatePWAWithSettings(settings) {
+        // Update document title
+        if (settings.appName) {
+          document.title = settings.appName;
+        }
+
+        // Update apple mobile web app title
+        const appleTitleMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+        if (appleTitleMeta && settings.appName) {
+          appleTitleMeta.content = settings.appName;
+        }
+      }
+
       // -------------------- Init --------------------
 
       async function init() {
+        // Initialize PWA
+        initPWA();
+
         // Initialize IndexedDB
         try {
           await imageCacheDB.init();
@@ -3064,6 +3126,9 @@
                 settings.imageBaseUrl ||
                 settings.deploymentUrl ||
                 "";
+
+              // Update PWA manifest and title with settings
+              updatePWAWithSettings(settings);
             }
 
             // Load column configuration
@@ -3137,6 +3202,14 @@
         document.getElementById("editCancelBtn").onclick = closeEditModal;
 
         document.getElementById("columnsBtn").onclick = openManageColumnsModal;
+
+        document.getElementById("sheetLinkBtn").onclick = function() {
+          if (settings && settings.sheetUrl) {
+            window.open(settings.sheetUrl, '_blank');
+          } else {
+            showToast("Google Sheet URL not configured.", "warning");
+          }
+        };
 
         // Manage Columns Modal handlers
         document.getElementById("manageColsCancelBtn").onclick = closeManageColumnsModal;

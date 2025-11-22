@@ -284,9 +284,21 @@ function deleteColumn(columnName) {
  **************************************************/
 
 function doGet(e) {
+  // Serve manifest.json for PWA
+  if (e && e.parameter && e.parameter.manifest) {
+    return serveManifest_();
+  }
+
+  // Serve service worker for PWA
+  if (e && e.parameter && e.parameter.sw) {
+    return serveServiceWorker_();
+  }
+
+  // Serve images
   if (e && e.parameter && (e.parameter.img)) {
     return serveImage_(e.parameter.img);
   }
+
   return serveUi_(e);
 }
 
@@ -331,6 +343,77 @@ function serveImage_(fileId) {
       .createTextOutput(JSON.stringify(json))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+/**************************************************
+ * PWA Support - Manifest and Service Worker
+ **************************************************/
+
+function serveManifest_() {
+  var settings = getSettings();
+  var deploymentUrl = ScriptApp.getService().getUrl();
+
+  // Get app icon URL from settings
+  var iconUrl = settings.appIcon || "";
+
+  var manifest = {
+    "name": settings.appName || "Catalogue",
+    "short_name": settings.appName || "Catalogue",
+    "description": "Catalogue web application",
+    "start_url": deploymentUrl,
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#2563eb",
+    "orientation": "portrait-primary",
+    "icons": []
+  };
+
+  // Add icons if icon URL is provided
+  if (iconUrl) {
+    manifest.icons = [
+      {
+        "src": iconUrl,
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any maskable"
+      },
+      {
+        "src": iconUrl,
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any maskable"
+      }
+    ];
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify(manifest))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function serveServiceWorker_() {
+  var sw = `
+// Service Worker for PWA installation
+self.addEventListener('install', (event) => {
+  console.log('Service Worker installed');
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  console.log('Service Worker activated');
+  return self.clients.claim();
+});
+
+self.addEventListener('fetch', (event) => {
+  // Let all requests pass through - no offline caching
+  // (Apps Script requires online connection)
+  event.respondWith(fetch(event.request));
+});
+`;
+
+  return ContentService
+    .createTextOutput(sw)
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
 }
 
 /**************************************************
@@ -404,18 +487,24 @@ function getSettings() {
     return {
       appName: "App",
       catalogName: "Catalogue",
-      imageBaseUrl: ""
+      imageBaseUrl: "",
+      appIcon: "",
+      sheetUrl: ""
     };
   }
 
   var appName = sh.getRange("C2").getDisplayValue() || "App";
   var catalogName = sh.getRange("C3").getDisplayValue() || "Catalogue";
   var imageBaseUrl = sh.getRange("C4").getDisplayValue() || "";
+  var appIcon = sh.getRange("C6").getDisplayValue() || "";
+  var sheetUrl = sh.getRange("C7").getDisplayValue() || "";
 
   return {
     appName: appName,
     catalogName: catalogName,
-    imageBaseUrl: imageBaseUrl
+    imageBaseUrl: imageBaseUrl,
+    appIcon: appIcon,
+    sheetUrl: sheetUrl
   };
 }
 
