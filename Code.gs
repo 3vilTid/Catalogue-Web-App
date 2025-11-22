@@ -284,9 +284,27 @@ function deleteColumn(columnName) {
  **************************************************/
 
 function doGet(e) {
+  // Debug: Log all parameters
+  Logger.log('doGet called with parameters: ' + JSON.stringify(e && e.parameter));
+
+  // TEST ENDPOINT - to verify deployment is updated
+  if (e && e.parameter && e.parameter.test) {
+    return ContentService
+      .createTextOutput('{"status":"OK","message":"Deployment is working!","timestamp":"' + new Date().toISOString() + '"}')
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   // Serve manifest.json for PWA
   if (e && e.parameter && e.parameter.manifest) {
-    return serveManifest_();
+    Logger.log('Serving manifest...');
+    try {
+      return serveManifest_();
+    } catch (err) {
+      // Emergency fallback if serveManifest_ fails
+      return ContentService
+        .createTextOutput('{"error":"' + err.toString() + '","location":"doGet->serveManifest"}')
+        .setMimeType(ContentService.MimeType.JSON);
+    }
   }
 
   // Serve service worker for PWA
