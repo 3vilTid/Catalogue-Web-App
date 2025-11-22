@@ -297,11 +297,33 @@
         font-weight: 500;
       }
 
-      .dropdown-item input[type="radio"] {
+      .dropdown-item input[type="checkbox"] {
         margin: 0;
         cursor: pointer;
         width: 16px;
         height: 16px;
+        border-radius: 50%;
+        appearance: none;
+        -webkit-appearance: none;
+        border: 2px solid #d1d5db;
+        background: white;
+        position: relative;
+      }
+
+      .dropdown-item input[type="checkbox"]:checked {
+        background: var(--primary);
+        border-color: var(--primary);
+      }
+
+      .dropdown-item input[type="checkbox"]:checked::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: white;
       }
 
       .dropdown-divider {
@@ -2299,30 +2321,31 @@
             const item = document.createElement("div");
             item.className = "dropdown-item";
 
-            const radio = document.createElement("input");
-            radio.type = "radio";
-            radio.name = "filter_" + config.columnName;
-            radio.id = "filter_" + config.columnName + "_" + value.replace(/\s/g, '_');
-            radio.value = value;
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.id = "filter_" + config.columnName + "_" + value.replace(/\s/g, '_');
+            checkbox.value = value;
 
             const selected = filterValues[config.columnName] || [];
-            radio.checked = selected.indexOf(value) !== -1;
+            checkbox.checked = selected.indexOf(value) !== -1;
 
-            radio.onclick = (e) => {
+            checkbox.onchange = (e) => {
               e.stopPropagation();
               if (!filterValues[config.columnName]) {
                 filterValues[config.columnName] = [];
               }
 
               const idx = filterValues[config.columnName].indexOf(value);
-              if (idx !== -1) {
-                // Uncheck - remove from selection
-                filterValues[config.columnName].splice(idx, 1);
-                radio.checked = false;
+              if (checkbox.checked) {
+                // Add to selection if not already there
+                if (idx === -1) {
+                  filterValues[config.columnName].push(value);
+                }
               } else {
-                // Check - add to selection
-                filterValues[config.columnName].push(value);
-                radio.checked = true;
+                // Remove from selection
+                if (idx !== -1) {
+                  filterValues[config.columnName].splice(idx, 1);
+                }
               }
 
               updateChipsUI();
@@ -2333,12 +2356,13 @@
             label.textContent = value;
 
             item.onclick = (e) => {
-              if (e.target !== radio) {
-                radio.onclick(e);
+              if (e.target !== checkbox) {
+                checkbox.checked = !checkbox.checked;
+                checkbox.onchange(e);
               }
             };
 
-            item.appendChild(radio);
+            item.appendChild(checkbox);
             item.appendChild(label);
             listContainer.appendChild(item);
           });
