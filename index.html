@@ -3,7 +3,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, user-scalable=yes">
 
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#2563eb">
@@ -40,8 +40,14 @@
         box-sizing: border-box;
       }
 
-      body {
+      html, body {
         margin: 0;
+        padding: 0;
+        width: 100%;
+        overflow-x: hidden;
+      }
+
+      body {
         padding: 18px 20px 32px;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter",
           "Segoe UI", sans-serif;
@@ -56,6 +62,7 @@
 
       .shell {
         max-width: 1160px;
+        width: 100%;
         margin: 0 auto;
       }
 
