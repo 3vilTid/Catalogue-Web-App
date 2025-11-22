@@ -3014,7 +3014,28 @@
         const deploymentUrl = window.location.href.split('?')[0];
         const iconUrl = settings.appIcon || "";
         console.log('Deployment URL:', deploymentUrl);
-        console.log('Icon URL:', iconUrl);
+        console.log('Icon URL from settings:', iconUrl);
+
+        // Convert Google Drive URL to proper image URL using imageBaseUrl
+        const imageServer = settings.imageBaseUrl || deploymentUrl;
+        let iconSrc = "";
+
+        if (iconUrl) {
+          // Extract file ID from Drive URL or use URL as-is
+          const fileIdMatch = iconUrl.match(/[-\w]{25,}/);
+          if (fileIdMatch) {
+            const fileId = fileIdMatch[0];
+            iconSrc = imageServer + "?img=" + fileId;
+            console.log('✓ Converted Drive URL to image proxy:', iconSrc);
+          } else {
+            // Use the URL as-is if it's already a direct URL
+            iconSrc = iconUrl;
+            console.log('Using icon URL as-is:', iconSrc);
+          }
+        }
+
+        console.log('Image Server:', imageServer);
+        console.log('Final Icon Source:', iconSrc);
 
         const manifest = {
           "name": settings.appName || "Catalogue",
@@ -3028,25 +3049,25 @@
           "icons": []
         };
 
-        // Add icons if icon URL is provided
-        if (iconUrl) {
+        // Add icons if icon source is available
+        if (iconSrc) {
           manifest.icons = [
             {
-              "src": iconUrl,
+              "src": iconSrc,
               "sizes": "192x192",
               "type": "image/png",
               "purpose": "any maskable"
             },
             {
-              "src": iconUrl,
+              "src": iconSrc,
               "sizes": "512x512",
               "type": "image/png",
               "purpose": "any maskable"
             }
           ];
-          console.log('✓ Manifest icons added');
+          console.log('✓ Manifest icons added with source:', iconSrc);
         } else {
-          console.warn('⚠ No icon URL provided - PWA may not be installable');
+          console.warn('⚠ No icon source available - PWA may not be installable');
         }
 
         console.log('Manifest object:', manifest);
