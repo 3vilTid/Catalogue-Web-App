@@ -3095,6 +3095,10 @@
           return;
         }
 
+        // Show button by default (user can use browser's native install option if prompt doesn't work)
+        installBtn.style.display = 'inline-block';
+        console.log('Install button shown by default');
+
         // Listen for the beforeinstallprompt event
         window.addEventListener('beforeinstallprompt', (e) => {
           console.log('beforeinstallprompt event fired!');
@@ -3104,16 +3108,14 @@
           // Save the event so it can be triggered later
           deferredInstallPrompt = e;
 
-          // Show the install button
-          installBtn.style.display = 'inline-block';
-          console.log('✓ Install prompt available - button shown');
+          console.log('✓ Install prompt available - custom prompt enabled');
         });
 
         // Handle install button click
         installBtn.onclick = async () => {
           if (!deferredInstallPrompt) {
-            console.warn('No install prompt available');
-            showToast('Installation not available at this time.', 'warning');
+            console.warn('No install prompt available - showing instructions');
+            showToast('Please use your browser\'s menu to install: Menu → Install app', 'info');
             return;
           }
 
@@ -3142,17 +3144,6 @@
           deferredInstallPrompt = null;
           showToast('App installed successfully!', 'success');
         });
-
-        // Debug: Log after a short delay if event hasn't fired
-        setTimeout(() => {
-          if (!deferredInstallPrompt) {
-            console.log('Note: beforeinstallprompt event has not fired yet. This is normal if:');
-            console.log('- App is already installed');
-            console.log('- Browser doesn\'t support PWA installation');
-            console.log('- Manifest or service worker has issues');
-            console.log('- Browser installation criteria not met');
-          }
-        }, 3000);
       }
 
       // -------------------- Init --------------------
