@@ -1,22 +1,11 @@
 <!DOCTYPE html>
-<!-- PWA FIXED VERSION - Updated: 2025-11-22 -->
 <html>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#2563eb">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Catalogue">
     <meta name="description" content="Catalogue web application">
 
     <title>Catalogue</title>
-
-    <!-- PWA Manifest -->
-    <link id="manifestLink" rel="manifest" href="">
 
     <style>
       :root {
@@ -2944,22 +2933,6 @@
         );
       }
 
-      // -------------------- App Settings --------------------
-
-      function updateAppSettings(settings) {
-        // Update document title
-        if (settings.appName) {
-          document.title = settings.appName;
-        }
-
-        // Update apple mobile web app title
-        const appleTitleMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]');
-        if (appleTitleMeta && settings.appName) {
-          appleTitleMeta.content = settings.appName;
-        }
-      }
-
-
       // -------------------- Init --------------------
 
       async function init() {
@@ -2991,7 +2964,9 @@
                 "";
 
               // Update app title
-              updateAppSettings(settings);
+              if (settings.appName) {
+                document.title = settings.appName;
+              }
             }
 
             // Load column configuration
