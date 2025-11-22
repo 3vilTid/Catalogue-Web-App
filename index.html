@@ -3083,28 +3083,8 @@
       // -------------------- PWA Support --------------------
 
       function initPWA() {
-        // Get the base URL (deployment URL)
-        const baseUrl = window.location.origin + window.location.pathname;
-
-        // Set manifest URL
-        const manifestLink = document.getElementById('manifestLink');
-        if (manifestLink) {
-          manifestLink.href = baseUrl + '?manifest=true';
-        }
-
-        // Register service worker
-        if ('serviceWorker' in navigator) {
-          window.addEventListener('load', () => {
-            const swUrl = baseUrl + '?sw=true';
-            navigator.serviceWorker.register(swUrl)
-              .then(registration => {
-                console.log('✓ Service Worker registered:', registration);
-              })
-              .catch(error => {
-                console.warn('Service Worker registration failed:', error);
-              });
-          });
-        }
+        // PWA initialization will happen after settings are loaded
+        // This is called from updatePWAWithSettings()
       }
 
       function updatePWAWithSettings(settings) {
@@ -3117,6 +3097,80 @@
         const appleTitleMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]');
         if (appleTitleMeta && settings.appName) {
           appleTitleMeta.content = settings.appName;
+        }
+
+        // Create and set manifest
+        const deploymentUrl = window.location.href.split('?')[0];
+        const iconUrl = settings.appIcon || "";
+
+        const manifest = {
+          "name": settings.appName || "Catalogue",
+          "short_name": settings.appName || "Catalogue",
+          "description": "Catalogue web application",
+          "start_url": deploymentUrl,
+          "display": "standalone",
+          "background_color": "#ffffff",
+          "theme_color": "#2563eb",
+          "orientation": "portrait-primary",
+          "icons": []
+        };
+
+        // Add icons if icon URL is provided
+        if (iconUrl) {
+          manifest.icons = [
+            {
+              "src": iconUrl,
+              "sizes": "192x192",
+              "type": "image/png",
+              "purpose": "any maskable"
+            },
+            {
+              "src": iconUrl,
+              "sizes": "512x512",
+              "type": "image/png",
+              "purpose": "any maskable"
+            }
+          ];
+        }
+
+        // Create blob URL for manifest
+        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+
+        const manifestLink = document.getElementById('manifestLink');
+        if (manifestLink) {
+          manifestLink.href = manifestUrl;
+        }
+
+        // Register inline service worker
+        if ('serviceWorker' in navigator) {
+          const swCode = `
+            self.addEventListener('install', (event) => {
+              console.log('Service Worker installed');
+              self.skipWaiting();
+            });
+
+            self.addEventListener('activate', (event) => {
+              console.log('Service Worker activated');
+              return self.clients.claim();
+            });
+
+            self.addEventListener('fetch', (event) => {
+              // Let all requests pass through - no offline caching
+              event.respondWith(fetch(event.request));
+            });
+          `;
+
+          const swBlob = new Blob([swCode], { type: 'application/javascript' });
+          const swUrl = URL.createObjectURL(swBlob);
+
+          navigator.serviceWorker.register(swUrl)
+            .then(registration => {
+              console.log('✓ Service Worker registered:', registration);
+            })
+            .catch(error => {
+              console.warn('Service Worker registration failed:', error);
+            });
         }
       }
 
