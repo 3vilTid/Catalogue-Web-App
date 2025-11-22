@@ -122,10 +122,17 @@
 
       .right-block {
         display: flex;
-        align-items: center;
-        gap: 8px;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
         font-size: 13px;
         color: var(--text-soft);
+      }
+
+      .right-block > div:first-of-type {
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
       .user-pill {
@@ -1110,11 +1117,14 @@
         </div>
 
         <div class="right-block">
-          <span>Signed in:</span>
-          <div class="user-pill">
-            <span id="userEmail" class="user-email">email</span>
-            <span id="userProfilePill" class="profile-badge">ROLE</span>
+          <div>
+            <span>Signed in:</span>
+            <div class="user-pill">
+              <span id="userEmail" class="user-email">email</span>
+              <span id="userProfilePill" class="profile-badge">ROLE</span>
+            </div>
           </div>
+          <button id="installAppBtn" class="btn-toolbar" style="display: none; background: #10b981; color: white; font-size: 12px; padding: 4px 12px;">📱 Install App</button>
         </div>
       </div>
 
@@ -1181,7 +1191,6 @@
         </div>
 
         <div class="filters-right">
-          <button id="installAppBtn" class="btn-toolbar" style="display: none; background: #10b981; color: white;">📱 Install App</button>
           <button id="sheetLinkBtn" class="btn-toolbar" style="display: none;">📊 Sheet</button>
           <button id="columnsBtn" class="btn-toolbar">⚙ Columns</button>
           <button id="addBtn" class="btn-toolbar btn-primary">+ Add item</button>
@@ -3077,9 +3086,18 @@
 
       function setupInstallButton() {
         const installBtn = document.getElementById('installAppBtn');
+        console.log('Setting up install button...');
+
+        // Check if app is already running in standalone mode (already installed)
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+          installBtn.style.display = 'none';
+          console.log('App is already installed (standalone mode)');
+          return;
+        }
 
         // Listen for the beforeinstallprompt event
         window.addEventListener('beforeinstallprompt', (e) => {
+          console.log('beforeinstallprompt event fired!');
           // Prevent the mini-infobar from appearing on mobile
           e.preventDefault();
 
@@ -3088,12 +3106,14 @@
 
           // Show the install button
           installBtn.style.display = 'inline-block';
-          console.log('✓ Install prompt available');
+          console.log('✓ Install prompt available - button shown');
         });
 
         // Handle install button click
         installBtn.onclick = async () => {
           if (!deferredInstallPrompt) {
+            console.warn('No install prompt available');
+            showToast('Installation not available at this time.', 'warning');
             return;
           }
 
@@ -3110,8 +3130,9 @@
             console.log('User dismissed the install prompt');
           }
 
-          // Clear the prompt
+          // Clear the prompt and hide button
           deferredInstallPrompt = null;
+          installBtn.style.display = 'none';
         };
 
         // Listen for the app being installed
@@ -3122,11 +3143,16 @@
           showToast('App installed successfully!', 'success');
         });
 
-        // Check if app is already running in standalone mode (already installed)
-        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-          installBtn.style.display = 'none';
-          console.log('App is already installed');
-        }
+        // Debug: Log after a short delay if event hasn't fired
+        setTimeout(() => {
+          if (!deferredInstallPrompt) {
+            console.log('Note: beforeinstallprompt event has not fired yet. This is normal if:');
+            console.log('- App is already installed');
+            console.log('- Browser doesn\'t support PWA installation');
+            console.log('- Manifest or service worker has issues');
+            console.log('- Browser installation criteria not met');
+          }
+        }, 3000);
       }
 
       // -------------------- Init --------------------
