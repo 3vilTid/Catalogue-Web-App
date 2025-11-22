@@ -353,8 +353,8 @@ function serveManifest_() {
   var settings = getSettings();
   var deploymentUrl = ScriptApp.getService().getUrl();
 
-  // Use image server URL if provided, otherwise use main deployment
-  var imageServer = settings.imageServerUrl || deploymentUrl;
+  // Use image base URL (C4) if provided, otherwise use main deployment
+  var imageServer = settings.imageBaseUrl || deploymentUrl;
 
   // Get app icon URL from settings
   var iconUrl = settings.appIcon || "";
@@ -507,8 +507,7 @@ function getSettings() {
       catalogName: "Catalogue",
       imageBaseUrl: "",
       appIcon: "",
-      sheetUrl: "",
-      imageServerUrl: ""
+      sheetUrl: ""
     };
   }
 
@@ -517,15 +516,13 @@ function getSettings() {
   var imageBaseUrl = sh.getRange("C4").getDisplayValue() || "";
   var appIcon = sh.getRange("C6").getDisplayValue() || "";
   var sheetUrl = sh.getRange("C7").getDisplayValue() || "";
-  var imageServerUrl = sh.getRange("C8").getDisplayValue() || "";
 
   return {
     appName: appName,
     catalogName: catalogName,
     imageBaseUrl: imageBaseUrl,
     appIcon: appIcon,
-    sheetUrl: sheetUrl,
-    imageServerUrl: imageServerUrl
+    sheetUrl: sheetUrl
   };
 }
 
