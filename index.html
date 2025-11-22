@@ -122,10 +122,17 @@
 
       .right-block {
         display: flex;
-        align-items: center;
-        gap: 8px;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
         font-size: 13px;
         color: var(--text-soft);
+      }
+
+      .right-block > div:first-of-type {
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
       .user-pill {
@@ -1110,11 +1117,14 @@
         </div>
 
         <div class="right-block">
-          <span>Signed in:</span>
-          <div class="user-pill">
-            <span id="userEmail" class="user-email">email</span>
-            <span id="userProfilePill" class="profile-badge">ROLE</span>
+          <div>
+            <span>Signed in:</span>
+            <div class="user-pill">
+              <span id="userEmail" class="user-email">email</span>
+              <span id="userProfilePill" class="profile-badge">ROLE</span>
+            </div>
           </div>
+          <button id="installAppBtn" class="btn-toolbar" style="display: none; background: #10b981; color: white; font-size: 11px; padding: 2px 10px; height: auto;">📱 Install App</button>
         </div>
       </div>
 
@@ -2995,79 +3005,97 @@
           appleTitleMeta.content = settings.appName;
         }
 
-        // Create and set manifest
-        const deploymentUrl = window.location.href.split('?')[0];
-        const iconUrl = settings.appIcon || "";
-
-        const manifest = {
-          "name": settings.appName || "Catalogue",
-          "short_name": settings.appName || "Catalogue",
-          "description": "Catalogue web application",
-          "start_url": deploymentUrl,
-          "display": "standalone",
-          "background_color": "#ffffff",
-          "theme_color": "#2563eb",
-          "orientation": "portrait-primary",
-          "icons": []
-        };
-
-        // Add icons if icon URL is provided
-        if (iconUrl) {
-          manifest.icons = [
-            {
-              "src": iconUrl,
-              "sizes": "192x192",
-              "type": "image/png",
-              "purpose": "any maskable"
-            },
-            {
-              "src": iconUrl,
-              "sizes": "512x512",
-              "type": "image/png",
-              "purpose": "any maskable"
-            }
-          ];
-        }
-
-        // Create blob URL for manifest
-        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-        const manifestUrl = URL.createObjectURL(manifestBlob);
-
+        // Set manifest URL to server endpoint (no auth required)
+        const baseUrl = window.location.origin + window.location.pathname;
         const manifestLink = document.getElementById('manifestLink');
         if (manifestLink) {
-          manifestLink.href = manifestUrl;
+          manifestLink.href = baseUrl + '?manifest=true';
+          console.log('✓ Manifest link set:', manifestLink.href);
         }
 
-        // Register inline service worker
+        // Register service worker from server endpoint (no auth required)
         if ('serviceWorker' in navigator) {
-          const swCode = `
-            self.addEventListener('install', (event) => {
-              console.log('Service Worker installed');
-              self.skipWaiting();
-            });
-
-            self.addEventListener('activate', (event) => {
-              console.log('Service Worker activated');
-              return self.clients.claim();
-            });
-
-            self.addEventListener('fetch', (event) => {
-              // Let all requests pass through - no offline caching
-              event.respondWith(fetch(event.request));
-            });
-          `;
-
-          const swBlob = new Blob([swCode], { type: 'application/javascript' });
-          const swUrl = URL.createObjectURL(swBlob);
-
+          const swUrl = baseUrl + '?sw=true';
           navigator.serviceWorker.register(swUrl)
             .then(registration => {
               console.log('✓ Service Worker registered:', registration);
             })
             .catch(error => {
-              console.warn('Service Worker registration failed:', error);
+              console.error('✗ Service Worker registration failed:', error);
             });
+        } else {
+          console.warn('Service Worker not supported in this browser');
         }
+      }
+
+      // -------------------- Install App Button --------------------
+
+      let deferredInstallPrompt = null;
+
+      // Listen for beforeinstallprompt event (capture it if browser fires it)
+      window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('✓ beforeinstallprompt event captured');
+        e.preventDefault();
+        deferredInstallPrompt = e;
+      });
+
+      // Listen for app installation
+      window.addEventListener('appinstalled', () => {
+        console.log('✓ App installed successfully');
+        if (typeof showToast === 'function') {
+          showToast('App installed successfully!', 'success');
+        }
+      });
+
+      function setupInstallButton() {
+        const installBtn = document.getElementById('installAppBtn');
+
+        // Hide button if already running as installed app (standalone mode)
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+          installBtn.style.display = 'none';
+          console.log('Running in standalone mode - install button hidden');
+          return;
+        }
+
+        // Always show button when in browser
+        installBtn.style.display = 'inline-block';
+        console.log('Running in browser - install button shown');
+
+        // Handle install button click
+        installBtn.onclick = async () => {
+          console.log('Install button clicked');
+          console.log('Install prompt available:', !!deferredInstallPrompt);
+
+          // If browser's install prompt is available, use it
+          if (deferredInstallPrompt) {
+            try {
+              console.log('Showing install prompt...');
+              await deferredInstallPrompt.prompt();
+              const { outcome } = await deferredInstallPrompt.userChoice;
+              console.log('User choice:', outcome);
+
+              if (outcome === 'accepted') {
+                showToast('App is being installed...', 'success');
+              }
+              deferredInstallPrompt = null;
+            } catch (error) {
+              console.error('Install prompt error:', error);
+              showToast('Use browser menu: ⋮ → Install app', 'warning');
+            }
+          } else {
+            // No prompt available - direct user to browser menu
+            console.warn('beforeinstallprompt event not available');
+            showToast('Use browser menu: ⋮ → Install app', 'info');
+          }
+        };
+
+        // Debug: Check PWA status after 2 seconds
+        setTimeout(() => {
+          console.log('=== PWA Status ===');
+          console.log('Manifest href:', document.getElementById('manifestLink')?.href);
+          console.log('Service Worker ready:', navigator.serviceWorker?.ready);
+          console.log('Install prompt available:', !!deferredInstallPrompt);
+        }, 2000);
       }
 
       // -------------------- Init --------------------
@@ -3075,6 +3103,9 @@
       async function init() {
         // Initialize PWA
         initPWA();
+
+        // Setup install button
+        setupInstallButton();
 
         // Initialize IndexedDB
         try {

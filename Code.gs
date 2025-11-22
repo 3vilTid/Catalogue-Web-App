@@ -353,8 +353,26 @@ function serveManifest_() {
   var settings = getSettings();
   var deploymentUrl = ScriptApp.getService().getUrl();
 
+  // Use image base URL (C4) if provided, otherwise use main deployment
+  var imageServer = settings.imageBaseUrl || deploymentUrl;
+
   // Get app icon URL from settings
   var iconUrl = settings.appIcon || "";
+
+  // Extract file ID from Drive URL if needed and convert to direct image URL
+  var iconSrc = "";
+  if (iconUrl) {
+    // Check if it's a Drive URL or file ID
+    var fileIdMatch = iconUrl.match(/[-\w]{25,}/);
+    if (fileIdMatch) {
+      var fileId = fileIdMatch[0];
+      // Use the image server endpoint
+      iconSrc = imageServer + "?img=" + fileId;
+    } else {
+      // Use the URL as-is if it's already a direct URL
+      iconSrc = iconUrl;
+    }
+  }
 
   var manifest = {
     "name": settings.appName || "Catalogue",
@@ -368,17 +386,17 @@ function serveManifest_() {
     "icons": []
   };
 
-  // Add icons if icon URL is provided
-  if (iconUrl) {
+  // Add icons if icon source is available
+  if (iconSrc) {
     manifest.icons = [
       {
-        "src": iconUrl,
+        "src": iconSrc,
         "sizes": "192x192",
         "type": "image/png",
         "purpose": "any maskable"
       },
       {
-        "src": iconUrl,
+        "src": iconSrc,
         "sizes": "512x512",
         "type": "image/png",
         "purpose": "any maskable"
