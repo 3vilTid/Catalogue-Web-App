@@ -8,7 +8,6 @@ A dynamic, installable web application built with Google Apps Script for managin
 - **Fully Configurable Columns**: Define columns dynamically through the ColumnConfig sheet
 - **Special Column Roles**: Assign special behaviors to columns (name, description, image, category, place, date, external link, etc.)
 - **Column Management UI**: Add, edit, delete, and reorder columns (Creator only)
-- **Import/Export**: Backup and restore column configurations via JSON
 
 ### Role-Based Access Control
 Three user roles with different permissions:
@@ -158,8 +157,6 @@ This is the actual web app link that users will access:
    - Edit existing columns (display name, type, visibility, special role)
    - Delete columns (with confirmation)
    - Reorder columns using ▲▼ arrows
-   - Export configuration to JSON file
-   - Import configuration from JSON file
 
 **Access Google Sheet:**
 1. Click the "📊 Sheet" button to open the Google Sheet directly

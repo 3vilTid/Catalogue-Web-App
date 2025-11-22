@@ -297,11 +297,33 @@
         font-weight: 500;
       }
 
-      .dropdown-item input[type="radio"] {
+      .dropdown-item input[type="checkbox"] {
         margin: 0;
         cursor: pointer;
         width: 16px;
         height: 16px;
+        border-radius: 50%;
+        appearance: none;
+        -webkit-appearance: none;
+        border: 2px solid #d1d5db;
+        background: white;
+        position: relative;
+      }
+
+      .dropdown-item input[type="checkbox"]:checked {
+        background: var(--primary);
+        border-color: var(--primary);
+      }
+
+      .dropdown-item input[type="checkbox"]:checked::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: white;
       }
 
       .dropdown-divider {
@@ -1200,8 +1222,6 @@
         <h3>Manage Columns</h3>
         <div style="margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
           <button class="btn-toolbar btn-primary" id="addColumnBtn">+ Add New Column</button>
-          <button class="btn-toolbar" id="exportColumnsBtn" style="background: #10b981; color: white;">📤 Export Config</button>
-          <button class="btn-toolbar" id="importColumnsBtn" style="background: #3b82f6; color: white;">📥 Import Config</button>
         </div>
         <div style="max-height: 400px; overflow-y: auto; margin-bottom: 12px;">
           <table id="columnsTable" style="width: 100%; border-collapse: collapse; font-size: 12px;">
@@ -1225,26 +1245,6 @@
         </div>
         <div class="modal-footer">
           <button class="btn-text" id="manageColsCancelBtn">Close</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Import Config Modal -->
-    <div id="importConfigModal" class="modal">
-      <div class="modal-card" style="width: 600px;">
-        <h3>Import Column Configuration</h3>
-        <div style="margin-bottom: 12px;">
-          <p style="color: #6b7280; font-size: 13px; margin-bottom: 8px;">
-            Paste your JSON configuration below. This will replace all existing column configurations.
-          </p>
-          <textarea id="importConfigTextarea" style="width: 100%; height: 300px; font-family: monospace; font-size: 11px; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; resize: vertical;" placeholder='[{"columnName": "Name", "displayName": "Name", ...}]'></textarea>
-        </div>
-        <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 6px; padding: 8px; margin-bottom: 12px; font-size: 12px;">
-          <strong>⚠️ Warning:</strong> This will overwrite your current configuration. Make sure to export first as a backup!
-        </div>
-        <div class="modal-footer">
-          <button class="btn-text" id="importConfigCancelBtn">Cancel</button>
-          <button class="btn-toolbar btn-primary" id="importConfigSaveBtn">Import</button>
         </div>
       </div>
     </div>
@@ -2299,30 +2299,31 @@
             const item = document.createElement("div");
             item.className = "dropdown-item";
 
-            const radio = document.createElement("input");
-            radio.type = "radio";
-            radio.name = "filter_" + config.columnName;
-            radio.id = "filter_" + config.columnName + "_" + value.replace(/\s/g, '_');
-            radio.value = value;
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.id = "filter_" + config.columnName + "_" + value.replace(/\s/g, '_');
+            checkbox.value = value;
 
             const selected = filterValues[config.columnName] || [];
-            radio.checked = selected.indexOf(value) !== -1;
+            checkbox.checked = selected.indexOf(value) !== -1;
 
-            radio.onclick = (e) => {
+            checkbox.onchange = (e) => {
               e.stopPropagation();
               if (!filterValues[config.columnName]) {
                 filterValues[config.columnName] = [];
               }
 
               const idx = filterValues[config.columnName].indexOf(value);
-              if (idx !== -1) {
-                // Uncheck - remove from selection
-                filterValues[config.columnName].splice(idx, 1);
-                radio.checked = false;
+              if (checkbox.checked) {
+                // Add to selection if not already there
+                if (idx === -1) {
+                  filterValues[config.columnName].push(value);
+                }
               } else {
-                // Check - add to selection
-                filterValues[config.columnName].push(value);
-                radio.checked = true;
+                // Remove from selection
+                if (idx !== -1) {
+                  filterValues[config.columnName].splice(idx, 1);
+                }
               }
 
               updateChipsUI();
@@ -2333,12 +2334,13 @@
             label.textContent = value;
 
             item.onclick = (e) => {
-              if (e.target !== radio) {
-                radio.onclick(e);
+              if (e.target !== checkbox) {
+                checkbox.checked = !checkbox.checked;
+                checkbox.onchange(e);
               }
             };
 
-            item.appendChild(radio);
+            item.appendChild(checkbox);
             item.appendChild(label);
             listContainer.appendChild(item);
           });
@@ -2930,88 +2932,6 @@
           .deleteColumn(config.columnName);
       }
 
-      // -------------------- Import/Export Config --------------------
-
-      function exportColumnsConfig() {
-        // Create a clean copy for export
-        const exportData = columnConfig.map(col => ({
-          columnName: col.columnName,
-          displayName: col.displayName || col.columnName,
-          type: col.type || 'text',
-          showInFilter: col.showInFilter || false,
-          showInSort: col.showInSort || false,
-          showInDetail: col.showInDetail || false,
-          specialRole: col.specialRoleDisplay || ''
-        }));
-
-        const json = JSON.stringify(exportData, null, 2);
-
-        // Create download
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'column-config-' + new Date().toISOString().slice(0,10) + '.json';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        showToast("Configuration exported successfully!", "success");
-      }
-
-      function openImportConfigModal() {
-        const modal = document.getElementById("importConfigModal");
-        document.getElementById("importConfigTextarea").value = "";
-        modal.style.display = "flex";
-      }
-
-      function closeImportConfigModal() {
-        document.getElementById("importConfigModal").style.display = "none";
-      }
-
-      function importColumnsConfig() {
-        const json = document.getElementById("importConfigTextarea").value.trim();
-
-        if (!json) {
-          showToast("Please paste a configuration JSON.", "error");
-          return;
-        }
-
-        try {
-          const importedConfig = JSON.parse(json);
-
-          if (!Array.isArray(importedConfig)) {
-            showToast("Invalid format: Configuration must be an array.", "error");
-            return;
-          }
-
-          // Validate required fields
-          for (let i = 0; i < importedConfig.length; i++) {
-            const col = importedConfig[i];
-            if (!col.columnName) {
-              showToast("Invalid format: Column at index " + i + " is missing 'columnName'.", "error");
-              return;
-            }
-          }
-
-          // Save imported config
-          google.script.run
-            .withSuccessHandler(function (msg) {
-              showToast(msg, "success");
-              closeImportConfigModal();
-              reloadColumnConfig();
-            })
-            .withFailureHandler(function(error) {
-              showToast("Error: " + error.message, "error");
-            })
-            .saveColumnConfig(importedConfig);
-
-        } catch (e) {
-          showToast("Invalid JSON format: " + e.message, "error");
-        }
-      }
-
       // -------------------- Legacy Columns modal (kept for compatibility) --------------------
 
       function openColumnsModal() {
@@ -3059,28 +2979,8 @@
       // -------------------- PWA Support --------------------
 
       function initPWA() {
-        // Get the base URL (deployment URL)
-        const baseUrl = window.location.origin + window.location.pathname;
-
-        // Set manifest URL
-        const manifestLink = document.getElementById('manifestLink');
-        if (manifestLink) {
-          manifestLink.href = baseUrl + '?manifest=true';
-        }
-
-        // Register service worker
-        if ('serviceWorker' in navigator) {
-          window.addEventListener('load', () => {
-            const swUrl = baseUrl + '?sw=true';
-            navigator.serviceWorker.register(swUrl)
-              .then(registration => {
-                console.log('✓ Service Worker registered:', registration);
-              })
-              .catch(error => {
-                console.warn('Service Worker registration failed:', error);
-              });
-          });
-        }
+        // PWA initialization will happen after settings are loaded
+        // This is called from updatePWAWithSettings()
       }
 
       function updatePWAWithSettings(settings) {
@@ -3093,6 +2993,80 @@
         const appleTitleMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]');
         if (appleTitleMeta && settings.appName) {
           appleTitleMeta.content = settings.appName;
+        }
+
+        // Create and set manifest
+        const deploymentUrl = window.location.href.split('?')[0];
+        const iconUrl = settings.appIcon || "";
+
+        const manifest = {
+          "name": settings.appName || "Catalogue",
+          "short_name": settings.appName || "Catalogue",
+          "description": "Catalogue web application",
+          "start_url": deploymentUrl,
+          "display": "standalone",
+          "background_color": "#ffffff",
+          "theme_color": "#2563eb",
+          "orientation": "portrait-primary",
+          "icons": []
+        };
+
+        // Add icons if icon URL is provided
+        if (iconUrl) {
+          manifest.icons = [
+            {
+              "src": iconUrl,
+              "sizes": "192x192",
+              "type": "image/png",
+              "purpose": "any maskable"
+            },
+            {
+              "src": iconUrl,
+              "sizes": "512x512",
+              "type": "image/png",
+              "purpose": "any maskable"
+            }
+          ];
+        }
+
+        // Create blob URL for manifest
+        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+
+        const manifestLink = document.getElementById('manifestLink');
+        if (manifestLink) {
+          manifestLink.href = manifestUrl;
+        }
+
+        // Register inline service worker
+        if ('serviceWorker' in navigator) {
+          const swCode = `
+            self.addEventListener('install', (event) => {
+              console.log('Service Worker installed');
+              self.skipWaiting();
+            });
+
+            self.addEventListener('activate', (event) => {
+              console.log('Service Worker activated');
+              return self.clients.claim();
+            });
+
+            self.addEventListener('fetch', (event) => {
+              // Let all requests pass through - no offline caching
+              event.respondWith(fetch(event.request));
+            });
+          `;
+
+          const swBlob = new Blob([swCode], { type: 'application/javascript' });
+          const swUrl = URL.createObjectURL(swBlob);
+
+          navigator.serviceWorker.register(swUrl)
+            .then(registration => {
+              console.log('✓ Service Worker registered:', registration);
+            })
+            .catch(error => {
+              console.warn('Service Worker registration failed:', error);
+            });
         }
       }
 
@@ -3214,16 +3188,10 @@
         // Manage Columns Modal handlers
         document.getElementById("manageColsCancelBtn").onclick = closeManageColumnsModal;
         document.getElementById("addColumnBtn").onclick = openAddColumn;
-        document.getElementById("exportColumnsBtn").onclick = exportColumnsConfig;
-        document.getElementById("importColumnsBtn").onclick = openImportConfigModal;
 
         // Column Editor Modal handlers
         document.getElementById("columnEditorCancelBtn").onclick = closeColumnEditor;
         document.getElementById("columnEditorSaveBtn").onclick = saveColumnEditor;
-
-        // Import Config Modal handlers
-        document.getElementById("importConfigCancelBtn").onclick = closeImportConfigModal;
-        document.getElementById("importConfigSaveBtn").onclick = importColumnsConfig;
 
         // Legacy columns modal (redirects to new modal)
         document.getElementById("colsCancelBtn").onclick = closeColumnsModal;
