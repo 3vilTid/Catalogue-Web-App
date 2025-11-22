@@ -2994,20 +2994,48 @@
       }
 
       function updatePWAWithSettings(settings) {
+        console.log('=== updatePWAWithSettings called ===');
+        console.log('Settings:', settings);
+
         // Update document title
         if (settings.appName) {
           document.title = settings.appName;
+          console.log('✓ Document title set:', settings.appName);
         }
 
         // Update apple mobile web app title
         const appleTitleMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]');
         if (appleTitleMeta && settings.appName) {
           appleTitleMeta.content = settings.appName;
+          console.log('✓ Apple title meta set:', settings.appName);
         }
 
         // Create and set manifest
         const deploymentUrl = window.location.href.split('?')[0];
         const iconUrl = settings.appIcon || "";
+        console.log('Deployment URL:', deploymentUrl);
+        console.log('Icon URL from settings:', iconUrl);
+
+        // Convert Google Drive URL to proper image URL using imageBaseUrl
+        const imageServer = settings.imageBaseUrl || deploymentUrl;
+        let iconSrc = "";
+
+        if (iconUrl) {
+          // Extract file ID from Drive URL or use URL as-is
+          const fileIdMatch = iconUrl.match(/[-\w]{25,}/);
+          if (fileIdMatch) {
+            const fileId = fileIdMatch[0];
+            iconSrc = imageServer + "?img=" + fileId;
+            console.log('✓ Converted Drive URL to image proxy:', iconSrc);
+          } else {
+            // Use the URL as-is if it's already a direct URL
+            iconSrc = iconUrl;
+            console.log('Using icon URL as-is:', iconSrc);
+          }
+        }
+
+        console.log('Image Server:', imageServer);
+        console.log('Final Icon Source:', iconSrc);
 
         const manifest = {
           "name": settings.appName || "Catalogue",
@@ -3021,63 +3049,94 @@
           "icons": []
         };
 
-        // Add icons if icon URL is provided
-        if (iconUrl) {
+        // Add icons if icon source is available
+        if (iconSrc) {
           manifest.icons = [
             {
-              "src": iconUrl,
+              "src": iconSrc,
               "sizes": "192x192",
               "type": "image/png",
               "purpose": "any maskable"
             },
             {
-              "src": iconUrl,
+              "src": iconSrc,
               "sizes": "512x512",
               "type": "image/png",
               "purpose": "any maskable"
             }
           ];
+          console.log('✓ Manifest icons added with source:', iconSrc);
+        } else {
+          console.warn('⚠ No icon source available - PWA may not be installable');
         }
 
-        // Create blob URL for manifest
-        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-        const manifestUrl = URL.createObjectURL(manifestBlob);
+        console.log('Manifest object:', manifest);
+        console.log('  Manifest JSON:', JSON.stringify(manifest, null, 2));
+
+        // Use server endpoint for manifest (REQUIRED for Chrome PWA detection)
+        // Chrome does NOT recognize data: or blob: URLs for PWA manifests!
+        const baseUrl = window.location.origin + window.location.pathname;
+        const manifestUrl = baseUrl + '?manifest=true';
 
         const manifestLink = document.getElementById('manifestLink');
         if (manifestLink) {
+          const oldHref = manifestLink.href;
           manifestLink.href = manifestUrl;
+
+          console.log('✓ Manifest link set to server endpoint (required for Chrome)');
+          console.log('  Old href:', oldHref);
+          console.log('  New href:', manifestLink.href);
+
+          // Validate manifest by fetching from server
+          setTimeout(() => {
+            fetch(manifestLink.href)
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error('Failed to fetch manifest: HTTP ' + response.status);
+                }
+                return response.json();
+              })
+              .then(data => {
+                console.log('✓ Server manifest validation successful:', data);
+                console.log('  Name:', data.name);
+                console.log('  Icons count:', data.icons?.length || 0);
+
+                if (data.icons && data.icons.length > 0) {
+                  console.log('  Icon URLs:', data.icons.map(i => i.src));
+                  console.log('✓✓✓ Manifest has valid icons - PWA SHOULD be installable! ✓✓✓');
+                } else {
+                  console.warn('⚠ No icons in manifest - PWA will not be installable');
+                }
+              })
+              .catch(error => {
+                console.error('✗ Server manifest fetch failed:', error);
+                console.error('  Check that ?manifest=true endpoint is working');
+              });
+          }, 500);
+
+        } else {
+          console.error('✗ manifestLink element not found!');
         }
 
-        // Register inline service worker
+        // Register service worker from server endpoint
         if ('serviceWorker' in navigator) {
-          const swCode = `
-            self.addEventListener('install', (event) => {
-              console.log('Service Worker installed');
-              self.skipWaiting();
-            });
-
-            self.addEventListener('activate', (event) => {
-              console.log('Service Worker activated');
-              return self.clients.claim();
-            });
-
-            self.addEventListener('fetch', (event) => {
-              // Let all requests pass through - no offline caching
-              event.respondWith(fetch(event.request));
-            });
-          `;
-
-          const swBlob = new Blob([swCode], { type: 'application/javascript' });
-          const swUrl = URL.createObjectURL(swBlob);
+          console.log('Registering service worker from server endpoint...');
+          const swUrl = baseUrl + '?sw=true';
+          console.log('  Service worker URL:', swUrl);
 
           navigator.serviceWorker.register(swUrl)
             .then(registration => {
-              console.log('✓ Service Worker registered:', registration);
+              console.log('✓ Service Worker registered successfully:', registration);
+              console.log('  Scope:', registration.scope);
             })
             .catch(error => {
-              console.warn('Service Worker registration failed:', error);
+              console.error('✗ Service Worker registration failed:', error);
             });
+        } else {
+          console.warn('⚠ Service Worker not supported in this browser');
         }
+
+        console.log('=== updatePWAWithSettings completed ===');
       }
 
       // -------------------- Install App Button --------------------
@@ -3085,10 +3144,18 @@
       let deferredInstallPrompt = null;
 
       // Listen for beforeinstallprompt event (capture it if browser fires it)
+      // This must be set up early, before the browser decides to fire the event
       window.addEventListener('beforeinstallprompt', (e) => {
         console.log('✓ beforeinstallprompt event captured');
         e.preventDefault();
         deferredInstallPrompt = e;
+
+        // Show install button if it exists
+        const installBtn = document.getElementById('installAppBtn');
+        if (installBtn && !window.matchMedia('(display-mode: standalone)').matches) {
+          installBtn.style.display = 'inline-block';
+          console.log('✓ Install button shown after beforeinstallprompt');
+        }
       });
 
       // Listen for app installation
@@ -3100,10 +3167,21 @@
       });
 
       function setupInstallButton() {
+        console.log('Setting up install button...');
         const installBtn = document.getElementById('installAppBtn');
 
+        if (!installBtn) {
+          console.error('Install button not found in DOM!');
+          return;
+        }
+
+        console.log('Install button found:', installBtn);
+
         // Hide button if already running as installed app (standalone mode)
-        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        console.log('Is standalone mode:', isStandalone);
+
+        if (isStandalone) {
           installBtn.style.display = 'none';
           console.log('Running in standalone mode - install button hidden');
           return;
@@ -3111,7 +3189,7 @@
 
         // Always show button when in browser
         installBtn.style.display = 'inline-block';
-        console.log('Running in browser - install button shown');
+        console.log('✓ Install button shown (display: inline-block)');
 
         // Handle install button click
         installBtn.onclick = async () => {
@@ -3141,22 +3219,28 @@
           }
         };
 
-        // Debug: Check PWA status after 2 seconds
+        // Debug: Check PWA status after 5 seconds (gives time for settings to load)
         setTimeout(() => {
-          console.log('=== PWA Status ===');
+          console.log('=== PWA Status (5s check) ===');
           console.log('Manifest href:', document.getElementById('manifestLink')?.href);
           console.log('Service Worker ready:', navigator.serviceWorker?.ready);
           console.log('Install prompt available:', !!deferredInstallPrompt);
-        }, 2000);
+          console.log('Install button display:', installBtn.style.display);
+          console.log('Install button visible:', installBtn.offsetParent !== null);
+        }, 5000);
       }
 
       // -------------------- Init --------------------
 
       async function init() {
+        console.log('=== App Initialization Starting ===');
+
         // Initialize PWA
+        console.log('Initializing PWA...');
         initPWA();
 
         // Setup install button
+        console.log('Setting up install button...');
         setupInstallButton();
 
         // Initialize IndexedDB

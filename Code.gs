@@ -359,18 +359,25 @@ function serveManifest_() {
   // Get app icon URL from settings
   var iconUrl = settings.appIcon || "";
 
-  // Extract file ID from Drive URL if needed and convert to direct image URL
-  var iconSrc = "";
+  // Convert icon to data URI for PWA manifest
+  // PWA manifests need actual image URLs, but Apps Script can't serve binary images
+  // Solution: Convert to data URI and embed directly in manifest
+  var iconDataUri = "";
   if (iconUrl) {
-    // Check if it's a Drive URL or file ID
-    var fileIdMatch = iconUrl.match(/[-\w]{25,}/);
-    if (fileIdMatch) {
-      var fileId = fileIdMatch[0];
-      // Use the image server endpoint
-      iconSrc = imageServer + "?img=" + fileId;
-    } else {
-      // Use the URL as-is if it's already a direct URL
-      iconSrc = iconUrl;
+    try {
+      // Extract file ID from Drive URL
+      var fileIdMatch = iconUrl.match(/[-\w]{25,}/);
+      if (fileIdMatch) {
+        var fileId = fileIdMatch[0];
+        var file = DriveApp.getFileById(fileId);
+        var blob = file.getBlob();
+        var contentType = blob.getContentType();
+        var base64 = Utilities.base64Encode(blob.getBytes());
+        iconDataUri = 'data:' + contentType + ';base64,' + base64;
+      }
+    } catch (err) {
+      // If error fetching icon, log it but continue
+      Logger.log('Error fetching icon for PWA manifest: ' + err.toString());
     }
   }
 
@@ -386,17 +393,17 @@ function serveManifest_() {
     "icons": []
   };
 
-  // Add icons if icon source is available
-  if (iconSrc) {
+  // Add icons if data URI was successfully created
+  if (iconDataUri) {
     manifest.icons = [
       {
-        "src": iconSrc,
+        "src": iconDataUri,
         "sizes": "192x192",
         "type": "image/png",
         "purpose": "any maskable"
       },
       {
-        "src": iconSrc,
+        "src": iconDataUri,
         "sizes": "512x512",
         "type": "image/png",
         "purpose": "any maskable"
