@@ -2994,20 +2994,27 @@
       }
 
       function updatePWAWithSettings(settings) {
+        console.log('=== updatePWAWithSettings called ===');
+        console.log('Settings:', settings);
+
         // Update document title
         if (settings.appName) {
           document.title = settings.appName;
+          console.log('✓ Document title set:', settings.appName);
         }
 
         // Update apple mobile web app title
         const appleTitleMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]');
         if (appleTitleMeta && settings.appName) {
           appleTitleMeta.content = settings.appName;
+          console.log('✓ Apple title meta set:', settings.appName);
         }
 
         // Create and set manifest
         const deploymentUrl = window.location.href.split('?')[0];
         const iconUrl = settings.appIcon || "";
+        console.log('Deployment URL:', deploymentUrl);
+        console.log('Icon URL:', iconUrl);
 
         const manifest = {
           "name": settings.appName || "Catalogue",
@@ -3037,19 +3044,32 @@
               "purpose": "any maskable"
             }
           ];
+          console.log('✓ Manifest icons added');
+        } else {
+          console.warn('⚠ No icon URL provided - PWA may not be installable');
         }
+
+        console.log('Manifest object:', manifest);
 
         // Create blob URL for manifest
         const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
         const manifestUrl = URL.createObjectURL(manifestBlob);
+        console.log('✓ Blob URL created for manifest:', manifestUrl);
 
         const manifestLink = document.getElementById('manifestLink');
         if (manifestLink) {
+          const oldHref = manifestLink.href;
           manifestLink.href = manifestUrl;
+          console.log('✓ Manifest link updated');
+          console.log('  Old href:', oldHref);
+          console.log('  New href:', manifestLink.href);
+        } else {
+          console.error('✗ manifestLink element not found!');
         }
 
         // Register inline service worker
         if ('serviceWorker' in navigator) {
+          console.log('Registering service worker...');
           const swCode = `
             self.addEventListener('install', (event) => {
               console.log('Service Worker installed');
@@ -3069,15 +3089,20 @@
 
           const swBlob = new Blob([swCode], { type: 'application/javascript' });
           const swUrl = URL.createObjectURL(swBlob);
+          console.log('✓ Blob URL created for service worker:', swUrl);
 
           navigator.serviceWorker.register(swUrl)
             .then(registration => {
-              console.log('✓ Service Worker registered:', registration);
+              console.log('✓ Service Worker registered successfully:', registration);
             })
             .catch(error => {
-              console.warn('Service Worker registration failed:', error);
+              console.error('✗ Service Worker registration failed:', error);
             });
+        } else {
+          console.warn('⚠ Service Worker not supported in this browser');
         }
+
+        console.log('=== updatePWAWithSettings completed ===');
       }
 
       // -------------------- Install App Button --------------------
@@ -3160,15 +3185,15 @@
           }
         };
 
-        // Debug: Check PWA status after 2 seconds
+        // Debug: Check PWA status after 5 seconds (gives time for settings to load)
         setTimeout(() => {
-          console.log('=== PWA Status ===');
+          console.log('=== PWA Status (5s check) ===');
           console.log('Manifest href:', document.getElementById('manifestLink')?.href);
           console.log('Service Worker ready:', navigator.serviceWorker?.ready);
           console.log('Install prompt available:', !!deferredInstallPrompt);
           console.log('Install button display:', installBtn.style.display);
           console.log('Install button visible:', installBtn.offsetParent !== null);
-        }, 2000);
+        }, 5000);
       }
 
       // -------------------- Init --------------------
