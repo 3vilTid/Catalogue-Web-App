@@ -3005,26 +3005,78 @@
           appleTitleMeta.content = settings.appName;
         }
 
-        // Set manifest URL to server endpoint (no auth required)
-        const baseUrl = window.location.origin + window.location.pathname;
-        const manifestLink = document.getElementById('manifestLink');
-        if (manifestLink) {
-          manifestLink.href = baseUrl + '?manifest=true';
-          console.log('✓ Manifest link set:', manifestLink.href);
+        // Create and set manifest
+        const deploymentUrl = window.location.href.split('?')[0];
+        const iconUrl = settings.appIcon || "";
+
+        const manifest = {
+          "name": settings.appName || "Catalogue",
+          "short_name": settings.appName || "Catalogue",
+          "description": "Catalogue web application",
+          "start_url": deploymentUrl,
+          "display": "standalone",
+          "background_color": "#ffffff",
+          "theme_color": "#2563eb",
+          "orientation": "portrait-primary",
+          "icons": []
+        };
+
+        // Add icons if icon URL is provided
+        if (iconUrl) {
+          manifest.icons = [
+            {
+              "src": iconUrl,
+              "sizes": "192x192",
+              "type": "image/png",
+              "purpose": "any maskable"
+            },
+            {
+              "src": iconUrl,
+              "sizes": "512x512",
+              "type": "image/png",
+              "purpose": "any maskable"
+            }
+          ];
         }
 
-        // Register service worker from server endpoint (no auth required)
+        // Create blob URL for manifest
+        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+
+        const manifestLink = document.getElementById('manifestLink');
+        if (manifestLink) {
+          manifestLink.href = manifestUrl;
+        }
+
+        // Register inline service worker
         if ('serviceWorker' in navigator) {
-          const swUrl = baseUrl + '?sw=true';
+          const swCode = `
+            self.addEventListener('install', (event) => {
+              console.log('Service Worker installed');
+              self.skipWaiting();
+            });
+
+            self.addEventListener('activate', (event) => {
+              console.log('Service Worker activated');
+              return self.clients.claim();
+            });
+
+            self.addEventListener('fetch', (event) => {
+              // Let all requests pass through - no offline caching
+              event.respondWith(fetch(event.request));
+            });
+          `;
+
+          const swBlob = new Blob([swCode], { type: 'application/javascript' });
+          const swUrl = URL.createObjectURL(swBlob);
+
           navigator.serviceWorker.register(swUrl)
             .then(registration => {
               console.log('✓ Service Worker registered:', registration);
             })
             .catch(error => {
-              console.error('✗ Service Worker registration failed:', error);
+              console.warn('Service Worker registration failed:', error);
             });
-        } else {
-          console.warn('Service Worker not supported in this browser');
         }
       }
 
