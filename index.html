@@ -3,7 +3,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#2563eb">
@@ -1029,7 +1029,7 @@
         }
       }
 
-      @media (max-width: 780px) {
+      @media (max-width: 780px), (max-device-width: 1024px) {
         .toast-container {
           left: 10px;
           right: 10px;
@@ -1065,7 +1065,7 @@
         cursor: pointer;
       }
 
-      @media (max-width: 780px) {
+      @media (max-width: 780px), (max-device-width: 1024px) {
         /* Base Layout */
         body {
           padding: 8px;
