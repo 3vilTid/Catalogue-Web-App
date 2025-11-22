@@ -1,22 +1,11 @@
 <!DOCTYPE html>
-<!-- PWA FIXED VERSION - Updated: 2025-11-22 -->
 <html>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#2563eb">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Catalogue">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="description" content="Catalogue web application">
 
     <title>Catalogue</title>
-
-    <!-- PWA Manifest -->
-    <link id="manifestLink" rel="manifest" href="">
 
     <style>
       :root {
@@ -40,8 +29,14 @@
         box-sizing: border-box;
       }
 
-      body {
+      html, body {
         margin: 0;
+        padding: 0;
+        width: 100%;
+        overflow-x: hidden;
+      }
+
+      body {
         padding: 18px 20px 32px;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter",
           "Segoe UI", sans-serif;
@@ -56,6 +51,7 @@
 
       .shell {
         max-width: 1160px;
+        width: 100%;
         margin: 0 auto;
       }
 
@@ -1022,19 +1018,6 @@
         }
       }
 
-      @media (max-width: 780px) {
-        .toast-container {
-          left: 10px;
-          right: 10px;
-          top: 10px;
-        }
-        
-        .toast {
-          min-width: auto;
-          max-width: none;
-        }
-      }
-
       /* Column Management Table ----------------------------------------- */
 
       #columnsTable {
@@ -1056,173 +1039,6 @@
 
       #columnsTable input[type="checkbox"] {
         cursor: pointer;
-      }
-
-      @media (max-width: 780px) {
-        /* Base Layout */
-        body {
-          padding: 8px;
-        }
-
-        /* Header */
-        .top-header {
-          flex-direction: column;
-          gap: 12px;
-          padding: 12px;
-          border-radius: 14px;
-        }
-
-        .left-block {
-          width: 100%;
-        }
-
-        .app-name {
-          font-size: 18px;
-        }
-
-        .catalog-name {
-          font-size: 16px;
-        }
-
-        .right-block {
-          width: 100%;
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 8px;
-        }
-
-        .user-pill {
-          font-size: 11px;
-        }
-
-        /* Filters Row */
-        .filters-row {
-          flex-direction: column;
-          align-items: stretch;
-          gap: 10px;
-        }
-
-        .filters-left, .filters-right {
-          width: 100%;
-          justify-content: space-between;
-          gap: 8px;
-        }
-
-        /* Buttons - Larger touch targets */
-        .btn-toolbar {
-          padding: 10px 14px;
-          font-size: 13px;
-          min-height: 44px;
-        }
-
-        .btn-primary {
-          padding: 12px 20px;
-          font-size: 14px;
-          min-height: 44px;
-        }
-
-        /* Card Grid - Better mobile layout */
-        .grid {
-          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-          gap: 12px;
-        }
-
-        .card {
-          border-radius: 14px;
-        }
-
-        .card-img-wrapper {
-          height: 150px;
-        }
-
-        .card-body {
-          padding: 10px;
-        }
-
-        .card-name {
-          font-size: 13px;
-        }
-
-        .card-sub {
-          font-size: 11px;
-        }
-
-        /* Detail View */
-        .detail-layout {
-          grid-template-columns: 1fr;
-          gap: 14px;
-        }
-
-        #detailView {
-          padding: 14px;
-          border-radius: 14px;
-        }
-
-        .detail-img-wrapper {
-          max-height: 300px;
-        }
-
-        .detail-name {
-          font-size: 20px;
-        }
-
-        /* Dropdown Menus */
-        .dropdown-menu {
-          left: 0;
-          right: 0;
-          min-width: auto;
-          max-height: 60vh;
-          overflow-y: auto;
-        }
-
-        .dropdown-item {
-          padding: 12px;
-          min-height: 44px;
-        }
-
-        /* Modals */
-        .modal-card {
-          width: 95% !important;
-          max-width: 95% !important;
-          max-height: 85vh;
-          margin: 20px auto;
-        }
-
-        #manageColumnsModal .modal-card {
-          width: 95% !important;
-          max-width: 95% !important;
-        }
-
-        .modal-body {
-          padding: 14px;
-          max-height: calc(85vh - 120px);
-          overflow-y: auto;
-        }
-
-        /* Forms */
-        input[type="text"],
-        input[type="url"],
-        input[type="number"],
-        textarea,
-        select {
-          font-size: 16px;
-          padding: 10px;
-          min-height: 44px;
-        }
-
-        /* Table */
-        #columnsTable {
-          font-size: 11px;
-        }
-
-        #columnsTable th, #columnsTable td {
-          padding: 6px !important;
-        }
-
-        /* Prevent zoom on input focus */
-        input, select, textarea {
-          font-size: 16px !important;
-        }
       }
     </style>
   </head>
@@ -3117,22 +2933,6 @@
         );
       }
 
-      // -------------------- App Settings --------------------
-
-      function updateAppSettings(settings) {
-        // Update document title
-        if (settings.appName) {
-          document.title = settings.appName;
-        }
-
-        // Update apple mobile web app title
-        const appleTitleMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]');
-        if (appleTitleMeta && settings.appName) {
-          appleTitleMeta.content = settings.appName;
-        }
-      }
-
-
       // -------------------- Init --------------------
 
       async function init() {
@@ -3164,7 +2964,9 @@
                 "";
 
               // Update app title
-              updateAppSettings(settings);
+              if (settings.appName) {
+                document.title = settings.appName;
+              }
             }
 
             // Load column configuration
