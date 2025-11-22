@@ -1181,6 +1181,7 @@
         </div>
 
         <div class="filters-right">
+          <button id="installAppBtn" class="btn-toolbar" style="display: none; background: #10b981; color: white;">📱 Install App</button>
           <button id="sheetLinkBtn" class="btn-toolbar" style="display: none;">📊 Sheet</button>
           <button id="columnsBtn" class="btn-toolbar">⚙ Columns</button>
           <button id="addBtn" class="btn-toolbar btn-primary">+ Add item</button>
@@ -3070,11 +3071,72 @@
         }
       }
 
+      // -------------------- Install App Button --------------------
+
+      let deferredInstallPrompt = null;
+
+      function setupInstallButton() {
+        const installBtn = document.getElementById('installAppBtn');
+
+        // Listen for the beforeinstallprompt event
+        window.addEventListener('beforeinstallprompt', (e) => {
+          // Prevent the mini-infobar from appearing on mobile
+          e.preventDefault();
+
+          // Save the event so it can be triggered later
+          deferredInstallPrompt = e;
+
+          // Show the install button
+          installBtn.style.display = 'inline-block';
+          console.log('✓ Install prompt available');
+        });
+
+        // Handle install button click
+        installBtn.onclick = async () => {
+          if (!deferredInstallPrompt) {
+            return;
+          }
+
+          // Show the install prompt
+          deferredInstallPrompt.prompt();
+
+          // Wait for the user's response
+          const { outcome } = await deferredInstallPrompt.userChoice;
+
+          if (outcome === 'accepted') {
+            console.log('User accepted the install prompt');
+            showToast('App is being installed...', 'success');
+          } else {
+            console.log('User dismissed the install prompt');
+          }
+
+          // Clear the prompt
+          deferredInstallPrompt = null;
+        };
+
+        // Listen for the app being installed
+        window.addEventListener('appinstalled', () => {
+          console.log('✓ PWA was installed');
+          installBtn.style.display = 'none';
+          deferredInstallPrompt = null;
+          showToast('App installed successfully!', 'success');
+        });
+
+        // Check if app is already running in standalone mode (already installed)
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+          installBtn.style.display = 'none';
+          console.log('App is already installed');
+        }
+      }
+
       // -------------------- Init --------------------
 
       async function init() {
         // Initialize PWA
         initPWA();
+
+        // Setup install button
+        setupInstallButton();
 
         // Initialize IndexedDB
         try {
