@@ -1222,8 +1222,6 @@
         <h3>Manage Columns</h3>
         <div style="margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
           <button class="btn-toolbar btn-primary" id="addColumnBtn">+ Add New Column</button>
-          <button class="btn-toolbar" id="exportColumnsBtn" style="background: #10b981; color: white;">📤 Export Config</button>
-          <button class="btn-toolbar" id="importColumnsBtn" style="background: #3b82f6; color: white;">📥 Import Config</button>
         </div>
         <div style="max-height: 400px; overflow-y: auto; margin-bottom: 12px;">
           <table id="columnsTable" style="width: 100%; border-collapse: collapse; font-size: 12px;">
@@ -1247,26 +1245,6 @@
         </div>
         <div class="modal-footer">
           <button class="btn-text" id="manageColsCancelBtn">Close</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Import Config Modal -->
-    <div id="importConfigModal" class="modal">
-      <div class="modal-card" style="width: 600px;">
-        <h3>Import Column Configuration</h3>
-        <div style="margin-bottom: 12px;">
-          <p style="color: #6b7280; font-size: 13px; margin-bottom: 8px;">
-            Paste your JSON configuration below. This will replace all existing column configurations.
-          </p>
-          <textarea id="importConfigTextarea" style="width: 100%; height: 300px; font-family: monospace; font-size: 11px; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; resize: vertical;" placeholder='[{"columnName": "Name", "displayName": "Name", ...}]'></textarea>
-        </div>
-        <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 6px; padding: 8px; margin-bottom: 12px; font-size: 12px;">
-          <strong>⚠️ Warning:</strong> This will overwrite your current configuration. Make sure to export first as a backup!
-        </div>
-        <div class="modal-footer">
-          <button class="btn-text" id="importConfigCancelBtn">Cancel</button>
-          <button class="btn-toolbar btn-primary" id="importConfigSaveBtn">Import</button>
         </div>
       </div>
     </div>
@@ -2954,88 +2932,6 @@
           .deleteColumn(config.columnName);
       }
 
-      // -------------------- Import/Export Config --------------------
-
-      function exportColumnsConfig() {
-        // Create a clean copy for export
-        const exportData = columnConfig.map(col => ({
-          columnName: col.columnName,
-          displayName: col.displayName || col.columnName,
-          type: col.type || 'text',
-          showInFilter: col.showInFilter || false,
-          showInSort: col.showInSort || false,
-          showInDetail: col.showInDetail || false,
-          specialRole: col.specialRoleDisplay || ''
-        }));
-
-        const json = JSON.stringify(exportData, null, 2);
-
-        // Create download
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'column-config-' + new Date().toISOString().slice(0,10) + '.json';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        showToast("Configuration exported successfully!", "success");
-      }
-
-      function openImportConfigModal() {
-        const modal = document.getElementById("importConfigModal");
-        document.getElementById("importConfigTextarea").value = "";
-        modal.style.display = "flex";
-      }
-
-      function closeImportConfigModal() {
-        document.getElementById("importConfigModal").style.display = "none";
-      }
-
-      function importColumnsConfig() {
-        const json = document.getElementById("importConfigTextarea").value.trim();
-
-        if (!json) {
-          showToast("Please paste a configuration JSON.", "error");
-          return;
-        }
-
-        try {
-          const importedConfig = JSON.parse(json);
-
-          if (!Array.isArray(importedConfig)) {
-            showToast("Invalid format: Configuration must be an array.", "error");
-            return;
-          }
-
-          // Validate required fields
-          for (let i = 0; i < importedConfig.length; i++) {
-            const col = importedConfig[i];
-            if (!col.columnName) {
-              showToast("Invalid format: Column at index " + i + " is missing 'columnName'.", "error");
-              return;
-            }
-          }
-
-          // Save imported config
-          google.script.run
-            .withSuccessHandler(function (msg) {
-              showToast(msg, "success");
-              closeImportConfigModal();
-              reloadColumnConfig();
-            })
-            .withFailureHandler(function(error) {
-              showToast("Error: " + error.message, "error");
-            })
-            .saveColumnConfig(importedConfig);
-
-        } catch (e) {
-          showToast("Invalid JSON format: " + e.message, "error");
-        }
-      }
-
       // -------------------- Legacy Columns modal (kept for compatibility) --------------------
 
       function openColumnsModal() {
@@ -3292,16 +3188,10 @@
         // Manage Columns Modal handlers
         document.getElementById("manageColsCancelBtn").onclick = closeManageColumnsModal;
         document.getElementById("addColumnBtn").onclick = openAddColumn;
-        document.getElementById("exportColumnsBtn").onclick = exportColumnsConfig;
-        document.getElementById("importColumnsBtn").onclick = openImportConfigModal;
 
         // Column Editor Modal handlers
         document.getElementById("columnEditorCancelBtn").onclick = closeColumnEditor;
         document.getElementById("columnEditorSaveBtn").onclick = saveColumnEditor;
-
-        // Import Config Modal handlers
-        document.getElementById("importConfigCancelBtn").onclick = closeImportConfigModal;
-        document.getElementById("importConfigSaveBtn").onclick = importColumnsConfig;
 
         // Legacy columns modal (redirects to new modal)
         document.getElementById("colsCancelBtn").onclick = closeColumnsModal;
