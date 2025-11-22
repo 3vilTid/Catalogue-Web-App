@@ -3072,18 +3072,70 @@
 
         console.log('Manifest object:', manifest);
 
-        // Create blob URL for manifest
-        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-        const manifestUrl = URL.createObjectURL(manifestBlob);
-        console.log('✓ Blob URL created for manifest:', manifestUrl);
+        // Try both data URI and blob URL approaches for better compatibility
+        const manifestJson = JSON.stringify(manifest, null, 2);
+
+        // Create data URI for manifest (better browser support)
+        const manifestDataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(manifestJson);
+        console.log('✓ Data URI created for manifest');
+
+        // Also create blob URL as fallback
+        const manifestBlob = new Blob([manifestJson], { type: 'application/json' });
+        const manifestBlobUrl = URL.createObjectURL(manifestBlob);
+        console.log('✓ Blob URL created for manifest:', manifestBlobUrl);
 
         const manifestLink = document.getElementById('manifestLink');
         if (manifestLink) {
           const oldHref = manifestLink.href;
-          manifestLink.href = manifestUrl;
-          console.log('✓ Manifest link updated');
+
+          // Use data URI (better for PWA manifest detection)
+          manifestLink.href = manifestDataUri;
+
+          console.log('✓ Manifest link updated with data URI');
           console.log('  Old href:', oldHref);
-          console.log('  New href:', manifestLink.href);
+          console.log('  New href (first 100 chars):', manifestLink.href.substring(0, 100) + '...');
+          console.log('  Full manifest JSON:', manifestJson);
+
+          // Force browser to recognize the manifest update
+          manifestLink.removeAttribute('href');
+          manifestLink.setAttribute('href', manifestDataUri);
+
+          // Validate manifest by attempting to fetch it
+          setTimeout(() => {
+            fetch(manifestLink.href)
+              .then(response => {
+                if (response.ok) {
+                  return response.json();
+                }
+                throw new Error('Failed to fetch manifest: ' + response.status);
+              })
+              .then(data => {
+                console.log('✓ Manifest validation successful:', data);
+                console.log('  Icons count:', data.icons?.length || 0);
+                if (data.icons && data.icons.length > 0) {
+                  console.log('  Icon URLs:', data.icons.map(i => i.src));
+
+                  // Test if icon URLs are actually accessible
+                  const iconUrl = data.icons[0].src;
+                  console.log('Testing icon URL accessibility:', iconUrl);
+
+                  fetch(iconUrl, { mode: 'no-cors' })
+                    .then(() => {
+                      console.log('✓ Icon URL is accessible');
+                    })
+                    .catch(iconError => {
+                      console.error('✗ Icon URL not accessible:', iconError);
+                      console.error('  This will prevent PWA installation!');
+                    });
+                } else {
+                  console.warn('⚠ No icons in manifest - PWA will not be installable');
+                }
+              })
+              .catch(error => {
+                console.error('✗ Manifest validation failed:', error);
+              });
+          }, 500);
+
         } else {
           console.error('✗ manifestLink element not found!');
         }
