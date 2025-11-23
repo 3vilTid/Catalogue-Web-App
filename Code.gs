@@ -7,8 +7,8 @@ var SPECIAL_ROLE_MAP = {
   "Primary Identifier": "name",
   "Description": "description",
   "Image URL": "image",
-  "Category": "category",
-  "Location": "place",
+  "SubID1": "category",
+  "SubID2": "place",
   "Date": "date",
   "External Link": "externallink",
   "Auto-filled User Mail": "addedby",
@@ -20,8 +20,8 @@ var SPECIAL_ROLE_DISPLAY = {
   "name": "Primary Identifier",
   "description": "Description",
   "image": "Image URL",
-  "category": "Category",
-  "place": "Location",
+  "category": "SubID1",
+  "place": "SubID2",
   "date": "Date",
   "externallink": "External Link",
   "addedby": "Auto-filled User Mail",
@@ -49,10 +49,10 @@ function normalizeSpecialRole_(displayRole) {
   }
 
   // Backwards compatibility for old names
-  if (roleStr === "Auto-filled Creator" || roleStr === "Primary Identifier (Name)") {
-    if (roleStr === "Auto-filled Creator") return "addedby";
-    if (roleStr === "Primary Identifier (Name)") return "name";
-  }
+  if (roleStr === "Auto-filled Creator") return "addedby";
+  if (roleStr === "Primary Identifier (Name)") return "name";
+  if (roleStr === "Category") return "category";
+  if (roleStr === "Location") return "place";
 
   // Convert display name to internal code
   return SPECIAL_ROLE_MAP[roleStr] || "";
