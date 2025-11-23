@@ -2102,6 +2102,21 @@
           const year = date.getFullYear();
           const month = String(date.getMonth() + 1).padStart(2, '0');
           const day = String(date.getDate()).padStart(2, '0');
+          return `${day}/${month}/${year}`;
+        } catch (e) {
+          return String(dateValue);
+        }
+      }
+
+      function formatDateForInput(dateValue) {
+        if (!dateValue) return "";
+        try {
+          const date = new Date(dateValue);
+          if (isNaN(date.getTime())) return String(dateValue);
+
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
           return `${year}-${month}-${day}`;
         } catch (e) {
           return String(dateValue);
@@ -3181,17 +3196,7 @@
 
               // Format date for input[type="date"] (YYYY-MM-DD)
               if (config.type === "date" && val) {
-                try {
-                  const date = new Date(val);
-                  if (!isNaN(date.getTime())) {
-                    const year = date.getFullYear();
-                    const month = String(date.getMonth() + 1).padStart(2, '0');
-                    const day = String(date.getDate()).padStart(2, '0');
-                    val = `${year}-${month}-${day}`;
-                  }
-                } catch (e) {
-                  // Keep original value if parsing fails
-                }
+                val = formatDateForInput(val);
               }
 
               body.innerHTML +=
