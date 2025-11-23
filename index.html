@@ -2565,10 +2565,14 @@
         if (dateColumn && item[dateColumn.columnName]) bits.push(item[dateColumn.columnName]);
         html += bits.join(" • ") + "</div>";
 
-        // Show fields configured with showInDetail
+        // Create two-column layout for detail fields
+        html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px;">';
+
+        // Left column
+        html += '<div>';
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
-          if (!config.showInDetail) continue;
+          if (!config.showInDetailLeft) continue;
 
           // Skip special columns that are shown elsewhere
           if (config.specialRole === "name" ||
@@ -2593,12 +2597,11 @@
           }
         }
 
-        // Show all external links (both type="url" and specialRole="externallink")
+        // External links in left column
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
-          if (!config.showInDetail) continue;
+          if (!config.showInDetailLeft) continue;
 
-          // Check if this is an external link column
           if (config.type === "url" || config.specialRole === "externallink") {
             const url = item[config.columnName];
             if (url && String(url).trim() !== "") {
@@ -2614,6 +2617,60 @@
             }
           }
         }
+        html += '</div>';
+
+        // Right column
+        html += '<div>';
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (!config.showInDetailRight) continue;
+
+          // Skip special columns that are shown elsewhere
+          if (config.specialRole === "name" ||
+              config.specialRole === "category" ||
+              config.specialRole === "image" ||
+              config.specialRole === "place" ||
+              config.specialRole === "date" ||
+              config.specialRole === "addedby" ||
+              config.specialRole === "externallink" ||
+              config.type === "url") {
+            continue;
+          }
+
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            html +=
+              '<div class="detail-field"><span class="detail-label">' +
+              (config.displayName || config.columnName) +
+              ":</span> " +
+              val +
+              "</div>";
+          }
+        }
+
+        // External links in right column
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (!config.showInDetailRight) continue;
+
+          if (config.type === "url" || config.specialRole === "externallink") {
+            const url = item[config.columnName];
+            if (url && String(url).trim() !== "") {
+              const linkLabel = config.displayName || config.columnName;
+              html +=
+                '<div class="detail-field">' +
+                '<a href="' +
+                url +
+                '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
+                "🔗 " + linkLabel +
+                "</a>" +
+                "</div>";
+            }
+          }
+        }
+        html += '</div>';
+
+        html += '</div>'; // Close grid
 
         if (addedByColumn && item[addedByColumn.columnName]) {
           html +=
