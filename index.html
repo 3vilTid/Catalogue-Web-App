@@ -29,6 +29,15 @@
         box-sizing: border-box;
       }
 
+      /* Remove all borders and outlines */
+      .shell, .top-header, .filters-row, #gridView, #detailView,
+      .grid, .card, .card-body, .card-img-wrapper,
+      .detail-layout, .detail-layout > *, .detail-field,
+      .detail-title-row, .detail-name {
+        border: none !important;
+        outline: none !important;
+      }
+
       html, body {
         margin: 0;
         padding: 0;
