@@ -1424,8 +1424,13 @@
       <!-- Filters row -->
       <div class="filters-row">
         <div class="filters-left">
+          <!-- Back to list button (hidden by default, shown in detail view) -->
+          <button id="backToListBtn" class="btn-toolbar" onclick="backToList()" style="display: none;">
+            ← Back to list
+          </button>
+
           <!-- Filter button with dropdown -->
-          <div class="dropdown-wrapper">
+          <div id="filterWrapper" class="dropdown-wrapper">
             <button id="filterBtn" class="btn-toolbar">
               🔍 Filter
               <span id="filterBadge" class="btn-badge" style="display: none;">0</span>
@@ -1437,7 +1442,7 @@
           </div>
 
           <!-- Sort button with dropdown -->
-          <div class="dropdown-wrapper">
+          <div id="sortWrapper" class="dropdown-wrapper">
             <button id="sortBtn" class="btn-toolbar">
               ↕️ Sort
               <span id="sortLabel">None</span>
@@ -2644,8 +2649,12 @@
         det.style.display = "block";
         grid.innerHTML = "";
 
+        // Show back button, hide filter and sort
+        document.getElementById("backToListBtn").style.display = "inline-flex";
+        document.getElementById("filterWrapper").style.display = "none";
+        document.getElementById("sortWrapper").style.display = "none";
+
         let html =
-          '<button class="back-btn" onclick="backToList()">← Back to list</button>' +
           '<div class="detail-layout">' +
           '<div id="detailImgContainer">';
 
@@ -2959,6 +2968,12 @@
 
       function backToList() {
         document.getElementById("detailView").style.display = "none";
+
+        // Hide back button, show filter and sort
+        document.getElementById("backToListBtn").style.display = "none";
+        document.getElementById("filterWrapper").style.display = "inline-block";
+        document.getElementById("sortWrapper").style.display = "inline-block";
+
         applyFiltersAndSorting();
       }
 
