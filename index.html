@@ -692,6 +692,41 @@
         box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
       }
 
+      .modal-card input[type="date"] {
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid #d1d5db;
+        background-color: #ffffff;
+        font-family: inherit;
+        font-size: 13px;
+        color: #374151;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .modal-card input[type="date"]:hover {
+        border-color: #9ca3af;
+        background-color: #f9fafb;
+      }
+
+      .modal-card input[type="date"]:focus {
+        border-color: #93c5fd;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        background-color: #ffffff;
+      }
+
+      .modal-card input[type="date"]::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        opacity: 0.6;
+        padding: 4px;
+        border-radius: 4px;
+      }
+
+      .modal-card input[type="date"]::-webkit-calendar-picker-indicator:hover {
+        opacity: 1;
+        background-color: #f3f4f6;
+      }
+
       .modal-header {
         display: flex;
         align-items: center;
