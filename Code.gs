@@ -8,6 +8,7 @@ var ITEM_PLACE_MAP = {
   "Main Image": "image",
   "SubId1": "category",
   "SubId2": "place",
+  "Top Corner": "topcorner",
   "Long text Up": "longtextup",
   "Detail Left": "detailleft",
   "Detail Right": "detailright",
@@ -20,6 +21,7 @@ var ITEM_PLACE_DISPLAY = {
   "image": "Main Image",
   "category": "SubId1",
   "place": "SubId2",
+  "topcorner": "Top Corner",
   "longtextup": "Long text Up",
   "detailleft": "Detail Left",
   "detailright": "Detail Right",
@@ -54,8 +56,9 @@ function normalizeItemPlace_(displayPlace) {
   // If already internal code, return as-is
   if (placeStr === "name" || placeStr === "image" ||
       placeStr === "category" || placeStr === "place" ||
-      placeStr === "longtextup" || placeStr === "detailleft" ||
-      placeStr === "detailright" || placeStr === "longtextdown") {
+      placeStr === "topcorner" || placeStr === "longtextup" ||
+      placeStr === "detailleft" || placeStr === "detailright" ||
+      placeStr === "longtextdown") {
     return placeStr;
   }
 
