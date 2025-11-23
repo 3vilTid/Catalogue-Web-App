@@ -2545,20 +2545,21 @@
           "<div>" +
           '<div class="detail-title-row">' +
           '<div class="detail-name">' +
-          (nameColumn ? (item[nameColumn.columnName] || "") : "");
+          (nameColumn ? (item[nameColumn.columnName] || "") : "") +
+          "</div>";
 
-        // Add SubID1 and SubID2 next to the Primary Identifier
-        if (categoryColumn && item[categoryColumn.columnName]) {
-          html += '<span style="display: inline-block; margin-left: 12px; padding: 4px 12px; background-color: #e5e7eb; border-radius: 12px; font-size: 0.85em; color: #374151;">' +
-            item[categoryColumn.columnName] + '</span>';
-        }
-        if (placeColumn && item[placeColumn.columnName]) {
-          html += '<span style="display: inline-block; margin-left: 8px; padding: 4px 12px; background-color: #e5e7eb; border-radius: 12px; font-size: 0.85em; color: #374151;">' +
-            item[placeColumn.columnName] + '</span>';
+        // Add SubID1 and SubID2 under the Primary Identifier (like in card view)
+        const subBits = [];
+        if (categoryColumn && item[categoryColumn.columnName]) subBits.push(item[categoryColumn.columnName]);
+        if (placeColumn && item[placeColumn.columnName]) subBits.push(item[placeColumn.columnName]);
+
+        if (subBits.length > 0) {
+          html += '<div style="font-size: 14px; color: #6b7280; margin-top: 4px;">' +
+            subBits.join(" • ") +
+            '</div>';
         }
 
         html += "</div>" +
-          "</div>" +
           '<div class="detail-meta">';
 
         // Only show date in metadata line
