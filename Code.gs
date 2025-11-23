@@ -510,13 +510,33 @@ function getMainData() {
   var rows = data.slice(1);
   var out = [];
 
+  // Get column config to identify date columns
+  var configs = getColumnConfig();
+  var dateColumns = {};
+  for (var i = 0; i < configs.length; i++) {
+    if (configs[i].type === "date") {
+      dateColumns[configs[i].columnName] = true;
+    }
+  }
+
   for (var r = 0; r < rows.length; r++) {
     var row = rows[r];
     if (!row[0]) continue;
     var obj = {};
     for (var c = 0; c < headers.length; c++) {
       var h = headers[c];
-      if (h) obj[h] = row[c];
+      if (h) {
+        var val = row[c];
+        // Convert Date objects to YYYY-MM-DD strings
+        if (dateColumns[h] && val instanceof Date) {
+          var year = val.getFullYear();
+          var month = String(val.getMonth() + 1).padStart(2, '0');
+          var day = String(val.getDate()).padStart(2, '0');
+          obj[h] = year + "-" + month + "-" + day;
+        } else {
+          obj[h] = val;
+        }
+      }
     }
     out.push(obj);
   }
@@ -589,12 +609,31 @@ function getItemByName(name, token) {
     var data = sh.getDataRange().getValues();
     if (data.length < 2) return null;
 
+    // Get column config to identify date columns
+    var configs = getColumnConfig();
+    var dateColumns = {};
+    for (var i = 0; i < configs.length; i++) {
+      if (configs[i].type === "date") {
+        dateColumns[configs[i].columnName] = true;
+      }
+    }
+
     var headers = data[0];
     for (var r = 1; r < data.length; r++) {
       if (data[r][0] === name) {
         var obj = {};
         for (var c = 0; c < headers.length; c++) {
-          obj[headers[c]] = data[r][c];
+          var h = headers[c];
+          var val = data[r][c];
+          // Convert Date objects to YYYY-MM-DD strings
+          if (dateColumns[h] && val instanceof Date) {
+            var year = val.getFullYear();
+            var month = String(val.getMonth() + 1).padStart(2, '0');
+            var day = String(val.getDate()).padStart(2, '0');
+            obj[h] = year + "-" + month + "-" + day;
+          } else {
+            obj[h] = val;
+          }
         }
         return obj;
       }
