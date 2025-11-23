@@ -5,10 +5,13 @@
 // Map human-readable special roles to internal codes
 var SPECIAL_ROLE_MAP = {
   "Primary Identifier": "name",
-  "Description": "description",
   "Image URL": "image",
-  "SubID1": "category",
-  "SubID2": "place",
+  "SubId1": "category",
+  "SubId2": "place",
+  "Long text Up": "longtextup",
+  "Detail Left": "detailleft",
+  "Detail Right": "detailright",
+  "Long text Down": "longtextdown",
   "Date": "date",
   "External Link": "externallink",
   "Auto-filled User Mail": "addedby",
@@ -18,10 +21,13 @@ var SPECIAL_ROLE_MAP = {
 // Reverse map for display
 var SPECIAL_ROLE_DISPLAY = {
   "name": "Primary Identifier",
-  "description": "Description",
   "image": "Image URL",
-  "category": "SubID1",
-  "place": "SubID2",
+  "category": "SubId1",
+  "place": "SubId2",
+  "longtextup": "Long text Up",
+  "detailleft": "Detail Left",
+  "detailright": "Detail Right",
+  "longtextdown": "Long text Down",
   "date": "Date",
   "externallink": "External Link",
   "addedby": "Auto-filled User Mail",
@@ -40,11 +46,12 @@ function normalizeSpecialRole_(displayRole) {
   }
 
   // If already internal code, return as-is
-  if (roleStr === "name" || roleStr === "description" ||
-      roleStr === "image" || roleStr === "category" ||
-      roleStr === "place" || roleStr === "date" ||
-      roleStr === "externallink" || roleStr === "addedby" ||
-      roleStr === "formula") {
+  if (roleStr === "name" || roleStr === "image" ||
+      roleStr === "category" || roleStr === "place" ||
+      roleStr === "longtextup" || roleStr === "detailleft" ||
+      roleStr === "detailright" || roleStr === "longtextdown" ||
+      roleStr === "date" || roleStr === "externallink" ||
+      roleStr === "addedby" || roleStr === "formula") {
     return roleStr;
   }
 
@@ -94,7 +101,7 @@ function getColumnConfig() {
 
     for (var i = 1; i < data.length; i++) {
       var row = data[i];
-      var rawSpecialRole = String(row[7] || "").trim();
+      var rawSpecialRole = String(row[5] || "").trim();
 
       configs.push({
         columnName: row[0] || "",
@@ -102,8 +109,6 @@ function getColumnConfig() {
         type: row[2] || "text",
         showInFilter: row[3] === true || row[3] === "TRUE",
         showInSort: row[4] === true || row[4] === "TRUE",
-        showInDetailLeft: row[5] === true || row[5] === "TRUE",
-        showInDetailRight: row[6] === true || row[6] === "TRUE",
         specialRole: normalizeSpecialRole_(rawSpecialRole),
         specialRoleDisplay: rawSpecialRole
       });
@@ -691,7 +696,7 @@ function saveColumnConfig(configs, token) {
     }
 
     var sh = getColumnConfigSheet_();
-    var headers = ["Column Name", "Display Name", "Type", "Show in Filter", "Show in Sort", "Show in Detail Left", "Show in Detail Right", "Special Role"];
+    var headers = ["Column Name", "Display Name", "Type", "Show in Filter", "Show in Sort", "Special Role"];
 
     // Clear existing data (except header)
     var lastRow = sh.getLastRow();
@@ -712,8 +717,6 @@ function saveColumnConfig(configs, token) {
         config.type || "text",
         config.showInFilter || false,
         config.showInSort || false,
-        config.showInDetailLeft || false,
-        config.showInDetailRight || false,
         roleToSave
       ]);
     }
@@ -729,7 +732,7 @@ function saveColumnConfig(configs, token) {
   }
 }
 
-function addNewColumn(columnName, displayName, type, showInFilter, showInSort, showInDetailLeft, showInDetailRight, specialRole, token) {
+function addNewColumn(columnName, displayName, type, showInFilter, showInSort, specialRole, token) {
   try {
     // Verify session
     var sessionResult = verifySession(token);
@@ -752,8 +755,6 @@ function addNewColumn(columnName, displayName, type, showInFilter, showInSort, s
       type || "text",
       showInFilter || false,
       showInSort || false,
-      showInDetailLeft || false,
-      showInDetailRight || false,
       specialRole || ""
     ]);
 
