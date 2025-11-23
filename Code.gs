@@ -5,41 +5,37 @@
 // Map human-readable item places to internal codes
 var ITEM_PLACE_MAP = {
   "Primary Identifier": "name",
-  "Image URL": "image",
+  "Main Image": "image",
   "SubId1": "category",
   "SubId2": "place",
   "Long text Up": "longtextup",
   "Detail Left": "detailleft",
   "Detail Right": "detailright",
-  "Long text Down": "longtextdown",
+  "Long text Down": "longtextdown"
+};
+
+// Reverse map for display
+var ITEM_PLACE_DISPLAY = {
+  "name": "Primary Identifier",
+  "image": "Main Image",
+  "category": "SubId1",
+  "place": "SubId2",
+  "longtextup": "Long text Up",
+  "detailleft": "Detail Left",
+  "detailright": "Detail Right",
+  "longtextdown": "Long text Down"
+};
+
+// Map human-readable special roles to internal codes
+var SPECIAL_ROLE_MAP = {
   "Auto-filled User Mail": "addedby",
   "External Link": "externallink",
   "Formula (Read-only)": "formula"
 };
 
 // Reverse map for display
-var ITEM_PLACE_DISPLAY = {
-  "name": "Primary Identifier",
-  "image": "Image URL",
-  "category": "SubId1",
-  "place": "SubId2",
-  "longtextup": "Long text Up",
-  "detailleft": "Detail Left",
-  "detailright": "Detail Right",
-  "longtextdown": "Long text Down",
-  "addedby": "Auto-filled User Mail",
-  "externallink": "External Link",
-  "formula": "Formula (Read-only)"
-};
-
-// Map human-readable special roles to internal codes
-var SPECIAL_ROLE_MAP = {
-  "External Link": "externallink",
-  "Formula (Read-only)": "formula"
-};
-
-// Reverse map for display
 var SPECIAL_ROLE_DISPLAY = {
+  "addedby": "Auto-filled User Mail",
   "externallink": "External Link",
   "formula": "Formula (Read-only)"
 };
@@ -59,9 +55,7 @@ function normalizeItemPlace_(displayPlace) {
   if (placeStr === "name" || placeStr === "image" ||
       placeStr === "category" || placeStr === "place" ||
       placeStr === "longtextup" || placeStr === "detailleft" ||
-      placeStr === "detailright" || placeStr === "longtextdown" ||
-      placeStr === "addedby" || placeStr === "externallink" ||
-      placeStr === "formula") {
+      placeStr === "detailright" || placeStr === "longtextdown") {
     return placeStr;
   }
 
@@ -81,7 +75,7 @@ function normalizeSpecialRole_(displayRole) {
   }
 
   // If already internal code, return as-is
-  if (roleStr === "externallink" || roleStr === "formula") {
+  if (roleStr === "addedby" || roleStr === "externallink" || roleStr === "formula") {
     return roleStr;
   }
 
