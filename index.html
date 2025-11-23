@@ -1382,7 +1382,7 @@
     </div>
 
     <!-- Edit Item Modal -->
-    <div id="editModal" class="modal-overlay">
+    <div id="editModal" class="modal">
       <div class="modal-box">
         <div class="modal-header">
           <h2 id="editModalTitle">Edit item</h2>
@@ -1424,7 +1424,7 @@
     </div>
 
     <!-- Manage Columns Modal -->
-    <div id="manageColumnsModal" class="modal-overlay">
+    <div id="manageColumnsModal" class="modal">
       <div class="modal-box" style="max-width: 900px;">
         <div class="modal-header">
           <h2>Manage Columns</h2>
@@ -1458,7 +1458,7 @@
     </div>
 
     <!-- Column Editor Modal -->
-    <div id="columnEditorModal" class="modal-overlay">
+    <div id="columnEditorModal" class="modal">
       <div class="modal-box">
         <div class="modal-header">
           <h2 id="columnEditorTitle">Edit Column</h2>
@@ -1706,10 +1706,11 @@
 
               showLoginMessage(2, result.message, 'success');
 
-              // Reload the app with authentication
+              // Load the app with authentication (without full page reload)
               setTimeout(() => {
-                location.reload();
-              }, 1000);
+                hideLoginScreen();
+                init(); // Reinitialize the app
+              }, 800);
             } else {
               showLoginMessage(2, result.message, 'error');
             }
