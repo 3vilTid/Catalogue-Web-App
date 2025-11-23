@@ -12,7 +12,8 @@ var ITEM_PLACE_MAP = {
   "Long text Up": "longtextup",
   "Detail Left": "detailleft",
   "Detail Right": "detailright",
-  "Long text Down": "longtextdown"
+  "Long text Down": "longtextdown",
+  "Bottom": "bottom"
 };
 
 // Reverse map for display
@@ -25,7 +26,8 @@ var ITEM_PLACE_DISPLAY = {
   "longtextup": "Long text Up",
   "detailleft": "Detail Left",
   "detailright": "Detail Right",
-  "longtextdown": "Long text Down"
+  "longtextdown": "Long text Down",
+  "bottom": "Bottom"
 };
 
 // Map human-readable special roles to internal codes
@@ -58,7 +60,7 @@ function normalizeItemPlace_(displayPlace) {
       placeStr === "category" || placeStr === "place" ||
       placeStr === "topcorner" || placeStr === "longtextup" ||
       placeStr === "detailleft" || placeStr === "detailright" ||
-      placeStr === "longtextdown") {
+      placeStr === "longtextdown" || placeStr === "bottom") {
     return placeStr;
   }
 

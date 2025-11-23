@@ -1613,6 +1613,7 @@
             <option value="Detail Left">Detail Left</option>
             <option value="Detail Right">Detail Right</option>
             <option value="Long text Down">Long text Down</option>
+            <option value="Bottom">Bottom</option>
             <option value="">None</option>
           </select>
 
@@ -2757,12 +2758,19 @@
           }
         }
 
-        if (addedByColumn && item[addedByColumn.columnName]) {
-          html +=
-            '<div class="detail-field" style="margin-top:10px;font-size:11px;color:#9ca3af;">' +
-            "Added by: " +
-            item[addedByColumn.columnName] +
-            "</div>";
+        // Bottom fields (like "Added by" placement)
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "bottom") continue;
+
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            const displayVal = config.type === "date" ? formatDate(val) : val;
+            html +=
+              '<div class="detail-field" style="margin-top:10px;font-size:11px;color:#9ca3af;">' +
+              displayVal +
+              "</div>";
+          }
         }
 
         if (user && user.profile !== "Viewer") {
