@@ -1381,6 +1381,48 @@
       </div>
     </div>
 
+    <!-- Edit Item Modal -->
+    <div id="editModal" class="modal-overlay">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h2 id="editModalTitle">Edit item</h2>
+          <button class="modal-close-x" onclick="closeEditModal()">✕</button>
+        </div>
+        <div id="editModalBody" class="modal-body">
+          <!-- Fields dynamically populated -->
+        </div>
+        <div class="modal-footer">
+          <button id="editCancelBtn" class="btn-secondary">Cancel</button>
+          <button id="editSaveBtn" class="btn-primary">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Dialog -->
+    <div id="confirmOverlay" class="prompt-overlay">
+      <div class="prompt-box">
+        <h3 id="confirmTitle" class="prompt-title">Confirm</h3>
+        <p id="confirmMessage" class="prompt-message">Are you sure?</p>
+        <div class="prompt-actions">
+          <button id="confirmCancel" class="prompt-btn cancel">Cancel</button>
+          <button id="confirmOk" class="prompt-btn confirm">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prompt Dialog -->
+    <div id="promptOverlay" class="prompt-overlay">
+      <div class="prompt-box">
+        <h3 id="promptTitle" class="prompt-title">Input</h3>
+        <p id="promptMessage" class="prompt-message">Enter value:</p>
+        <input type="text" id="promptInput" class="prompt-input">
+        <div class="prompt-actions">
+          <button id="promptCancel" class="prompt-btn cancel">Cancel</button>
+          <button id="promptOk" class="prompt-btn confirm">OK</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Toast notification container -->
     <div class="toast-container" id="toastContainer"></div>
 
@@ -1615,6 +1657,97 @@
         switchLoginStep('Email');
         hideLoginMessage(2);
         document.getElementById('loginCodeInput').value = '';
+      }
+
+      // ==================== CUSTOM CONFIRM DIALOG ====================
+
+      function showConfirm(title, message, onConfirm) {
+        const overlay = document.getElementById('confirmOverlay');
+        const titleEl = document.getElementById('confirmTitle');
+        const messageEl = document.getElementById('confirmMessage');
+        const cancelBtn = document.getElementById('confirmCancel');
+        const okBtn = document.getElementById('confirmOk');
+
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        overlay.classList.add('show');
+
+        // Remove old listeners
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        const newOkBtn = okBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+        okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+
+        // Add new listeners
+        newCancelBtn.onclick = () => {
+          overlay.classList.remove('show');
+        };
+
+        newOkBtn.onclick = () => {
+          overlay.classList.remove('show');
+          if (onConfirm) onConfirm();
+        };
+
+        // Close on overlay click
+        overlay.onclick = (e) => {
+          if (e.target === overlay) {
+            overlay.classList.remove('show');
+          }
+        };
+      }
+
+      // ==================== CUSTOM PROMPT DIALOG ====================
+
+      function showPrompt(title, message, defaultValue, onConfirm) {
+        const overlay = document.getElementById('promptOverlay');
+        const titleEl = document.getElementById('promptTitle');
+        const messageEl = document.getElementById('promptMessage');
+        const inputEl = document.getElementById('promptInput');
+        const cancelBtn = document.getElementById('promptCancel');
+        const okBtn = document.getElementById('promptOk');
+
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        inputEl.value = defaultValue || '';
+        overlay.classList.add('show');
+
+        // Focus input
+        setTimeout(() => inputEl.focus(), 100);
+
+        // Remove old listeners
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        const newOkBtn = okBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+        okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+
+        const handleConfirm = () => {
+          const value = inputEl.value.trim();
+          if (value) {
+            overlay.classList.remove('show');
+            if (onConfirm) onConfirm(value);
+          }
+        };
+
+        // Add new listeners
+        newCancelBtn.onclick = () => {
+          overlay.classList.remove('show');
+        };
+
+        newOkBtn.onclick = handleConfirm;
+
+        // Submit on Enter key
+        inputEl.onkeypress = (e) => {
+          if (e.key === 'Enter') {
+            handleConfirm();
+          }
+        };
+
+        // Close on overlay click
+        overlay.onclick = (e) => {
+          if (e.target === overlay) {
+            overlay.classList.remove('show');
+          }
+        };
       }
 
       // ==================== INDEXEDDB CACHE MANAGER ====================
@@ -2268,6 +2401,30 @@
             "</div>";
         }
 
+        if (user && user.profile !== "Viewer") {
+          const editable = canEditItem(item);
+          const deletable = canDeleteItem(item);
+
+          if (editable || deletable) {
+            html += '<div class="detail-actions">';
+            if (editable) {
+              const itemName = nameColumn ? (item[nameColumn.columnName] || "") : "";
+              html +=
+                '<button class="btn-secondary" onclick="openEdit(\'' +
+                itemName.replace(/'/g, "\\'") +
+                "')\">✏ Edit</button>";
+            }
+            if (deletable) {
+              const itemName = nameColumn ? (item[nameColumn.columnName] || "") : "";
+              html +=
+                '<button class="btn-danger" onclick="confirmDelete(\'' +
+                itemName.replace(/'/g, "\\'") +
+                "')\">🗑 Delete</button>";
+            }
+            html += "</div>";
+          }
+        }
+
         html += "</div></div>";
         det.innerHTML = html;
 
@@ -2620,6 +2777,188 @@
 
 
 
+      // -------------------- Add / Edit / Delete Items --------------------
+
+      function openAdd() {
+        editingItemName = null;
+        const modal = document.getElementById("editModal");
+        const title = document.getElementById("editModalTitle");
+        const body = document.getElementById("editModalBody");
+        title.textContent = "Add item";
+        body.innerHTML = "";
+
+        // Show only columns that are not "addedby" or "formula" (read-only)
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+
+          // Skip auto-filled and read-only columns
+          if (config.specialRole === "addedby" || config.specialRole === "formula") {
+            continue;
+          }
+
+          let val = "";
+          // Pre-fill if single filter value selected
+          if (filterValues[config.columnName] && filterValues[config.columnName].length === 1) {
+            val = filterValues[config.columnName][0];
+          }
+
+          const displayName = config.displayName || config.columnName;
+          body.innerHTML +=
+            "<label>" +
+            displayName +
+            "</label>" +
+            '<input id="field_' +
+            config.columnName +
+            '" value="' +
+            (val || "") +
+            '" data-column="' +
+            config.columnName +
+            '">';
+        }
+
+        modal.style.display = "flex";
+        document.getElementById("editSaveBtn").onclick = saveAddOrEdit;
+      }
+
+      function openEdit(name) {
+        editingItemName = name;
+        const token = getSessionToken();
+
+        google.script.run
+          .withSuccessHandler(function (item) {
+            if (!item) {
+              showToast("Item not found.", "error");
+              return;
+            }
+            const modal = document.getElementById("editModal");
+            const title = document.getElementById("editModalTitle");
+            const body = document.getElementById("editModalBody");
+            title.textContent = "Edit item";
+            body.innerHTML = "";
+
+            // Show only columns that are not "addedby" or "formula" (read-only)
+            for (let i = 0; i < columnConfig.length; i++) {
+              const config = columnConfig[i];
+
+              // Skip auto-filled and read-only columns
+              if (config.specialRole === "addedby" || config.specialRole === "formula") {
+                continue;
+              }
+
+              const val = item[config.columnName] || "";
+              const displayName = config.displayName || config.columnName;
+
+              body.innerHTML +=
+                "<label>" +
+                displayName +
+                "</label>" +
+                '<input id="field_' +
+                config.columnName +
+                '" value="' +
+                String(val).replace(/"/g, "&quot;") +
+                '" data-column="' +
+                config.columnName +
+                '">';
+            }
+
+            modal.style.display = "flex";
+            document.getElementById("editSaveBtn").onclick = saveAddOrEdit;
+          })
+          .withFailureHandler(function(error) {
+            showToast("Error: " + error.message, "error");
+          })
+          .getItemByName(name, token);
+      }
+
+      function closeEditModal() {
+        document.getElementById("editModal").style.display = "none";
+      }
+
+      function saveAddOrEdit() {
+        const obj = {};
+        const token = getSessionToken();
+
+        // Collect values from all field inputs
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+
+          // Skip auto-filled and read-only columns
+          if (config.specialRole === "addedby" || config.specialRole === "formula") {
+            continue;
+          }
+
+          const el = document.getElementById("field_" + config.columnName);
+          if (el) {
+            obj[config.columnName] = el.value;
+          }
+        }
+
+        if (!editingItemName) {
+          // Adding new item
+          google.script.run
+            .withSuccessHandler(function (msg) {
+              showToast(msg, "success");
+              closeEditModal();
+              google.script.run
+                .withSuccessHandler(function (data) {
+                  allItems = data || [];
+                  computeUniqueValues();
+                  applyFiltersAndSorting();
+                })
+                .getMainData();
+            })
+            .withFailureHandler(function(error) {
+              showToast("Error: " + error.message, "error");
+            })
+            .addMainRow(obj, token);
+        } else {
+          // Editing existing item
+          google.script.run
+            .withSuccessHandler(function (msg) {
+              showToast(msg, "success");
+              closeEditModal();
+              google.script.run
+                .withSuccessHandler(function (data) {
+                  allItems = data || [];
+                  computeUniqueValues();
+                  applyFiltersAndSorting();
+                })
+                .getMainData();
+            })
+            .withFailureHandler(function(error) {
+              showToast("Error: " + error.message, "error");
+            })
+            .editItem(editingItemName, obj, token);
+        }
+      }
+
+      function confirmDelete(name) {
+        showConfirm(
+          "Delete Item",
+          "Are you sure you want to delete this item? This action cannot be undone.",
+          function() {
+            const token = getSessionToken();
+
+            google.script.run
+              .withSuccessHandler(function (msg) {
+                showToast(msg, "success");
+                backToList();
+                google.script.run
+                  .withSuccessHandler(function (data) {
+                    allItems = data || [];
+                    computeUniqueValues();
+                    applyFiltersAndSorting();
+                  })
+                  .getMainData();
+              })
+              .withFailureHandler(function(error) {
+                showToast("Error: " + error.message, "error");
+              })
+              .deleteItem(name, token);
+          }
+        );
+      }
+
       // -------------------- Init --------------------
 
       async function init() {
@@ -2715,6 +3054,19 @@
         document.getElementById('loginCodeInput').onkeypress = function(e) {
           if (e.key === 'Enter') verifyOTP();
         };
+
+        // CRUD event handlers
+        document.getElementById("addBtn").onclick = function () {
+          if (
+            !user ||
+            (user.profile !== "Creator" && user.profile !== "Editor")
+          ) {
+            showToast("Only Creator or Editor can add items.", "warning");
+            return;
+          }
+          openAdd();
+        };
+        document.getElementById("editCancelBtn").onclick = closeEditModal;
 
         init();
 
