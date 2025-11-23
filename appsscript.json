@@ -10,7 +10,7 @@
     ]
   },
   "webapp": {
-    "executeAs": "USER_ACCESSING",
+    "executeAs": "ME",
     "access": "ANYONE"
   },
   "exceptionLogging": "STACKDRIVER",
