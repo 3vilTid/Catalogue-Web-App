@@ -94,7 +94,7 @@ function getColumnConfig() {
 
     for (var i = 1; i < data.length; i++) {
       var row = data[i];
-      var rawSpecialRole = String(row[6] || "").trim();
+      var rawSpecialRole = String(row[7] || "").trim();
 
       configs.push({
         columnName: row[0] || "",
@@ -102,7 +102,8 @@ function getColumnConfig() {
         type: row[2] || "text",
         showInFilter: row[3] === true || row[3] === "TRUE",
         showInSort: row[4] === true || row[4] === "TRUE",
-        showInDetail: row[5] === true || row[5] === "TRUE",
+        showInDetailLeft: row[5] === true || row[5] === "TRUE",
+        showInDetailRight: row[6] === true || row[6] === "TRUE",
         specialRole: normalizeSpecialRole_(rawSpecialRole),
         specialRoleDisplay: rawSpecialRole
       });
@@ -690,7 +691,7 @@ function saveColumnConfig(configs, token) {
     }
 
     var sh = getColumnConfigSheet_();
-    var headers = ["Column Name", "Display Name", "Type", "Show in Filter", "Show in Sort", "Show in Detail", "Special Role"];
+    var headers = ["Column Name", "Display Name", "Type", "Show in Filter", "Show in Sort", "Show in Detail Left", "Show in Detail Right", "Special Role"];
 
     // Clear existing data (except header)
     var lastRow = sh.getLastRow();
@@ -711,7 +712,8 @@ function saveColumnConfig(configs, token) {
         config.type || "text",
         config.showInFilter || false,
         config.showInSort || false,
-        config.showInDetail || false,
+        config.showInDetailLeft || false,
+        config.showInDetailRight || false,
         roleToSave
       ]);
     }
@@ -727,7 +729,7 @@ function saveColumnConfig(configs, token) {
   }
 }
 
-function addNewColumn(columnName, displayName, type, showInFilter, showInSort, showInDetail, specialRole, token) {
+function addNewColumn(columnName, displayName, type, showInFilter, showInSort, showInDetailLeft, showInDetailRight, specialRole, token) {
   try {
     // Verify session
     var sessionResult = verifySession(token);
@@ -750,7 +752,8 @@ function addNewColumn(columnName, displayName, type, showInFilter, showInSort, s
       type || "text",
       showInFilter || false,
       showInSort || false,
-      showInDetail || false,
+      showInDetailLeft || false,
+      showInDetailRight || false,
       specialRole || ""
     ]);
 

@@ -1551,7 +1551,8 @@
                 <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Type</th>
                 <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Filter</th>
                 <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Sort</th>
-                <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Detail</th>
+                <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Detail Left</th>
+                <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Detail Right</th>
                 <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Special Role</th>
                 <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Actions</th>
               </tr>
@@ -1602,8 +1603,13 @@
           </label>
 
           <label class="checkbox-label">
-            <input type="checkbox" id="editColShowInDetail">
-            Show in Detail
+            <input type="checkbox" id="editColShowInDetailLeft">
+            Show in Detail Left
+          </label>
+
+          <label class="checkbox-label">
+            <input type="checkbox" id="editColShowInDetailRight">
+            Show in Detail Right
           </label>
 
           <label>Special Role</label>
@@ -3223,7 +3229,8 @@
             <td style="padding: 8px;">${config.type || 'text'}</td>
             <td style="padding: 8px; text-align: center;">${config.showInFilter ? '✓' : '—'}</td>
             <td style="padding: 8px; text-align: center;">${config.showInSort ? '✓' : '—'}</td>
-            <td style="padding: 8px; text-align: center;">${config.showInDetail ? '✓' : '—'}</td>
+            <td style="padding: 8px; text-align: center;">${config.showInDetailLeft ? '✓' : '—'}</td>
+            <td style="padding: 8px; text-align: center;">${config.showInDetailRight ? '✓' : '—'}</td>
             <td style="padding: 8px;">${config.specialRoleDisplay || '—'}</td>
             <td style="padding: 8px; text-align: center;">
               <button class="btn-text" onclick="openEditColumn(${i})" style="font-size: 11px; padding: 4px 8px;">Edit</button>
@@ -3248,7 +3255,8 @@
         document.getElementById("editColType").value = "text";
         document.getElementById("editColShowInFilter").checked = false;
         document.getElementById("editColShowInSort").checked = false;
-        document.getElementById("editColShowInDetail").checked = true;
+        document.getElementById("editColShowInDetailLeft").checked = true;
+        document.getElementById("editColShowInDetailRight").checked = false;
         document.getElementById("editColSpecialRole").value = "";
 
         // Enable column name field (only for new columns)
@@ -3271,7 +3279,8 @@
         document.getElementById("editColType").value = config.type || "text";
         document.getElementById("editColShowInFilter").checked = config.showInFilter || false;
         document.getElementById("editColShowInSort").checked = config.showInSort || false;
-        document.getElementById("editColShowInDetail").checked = config.showInDetail || false;
+        document.getElementById("editColShowInDetailLeft").checked = config.showInDetailLeft || false;
+        document.getElementById("editColShowInDetailRight").checked = config.showInDetailRight || false;
         document.getElementById("editColSpecialRole").value = config.specialRoleDisplay || "";
 
         // Disable column name field (can't rename existing columns)
@@ -3290,7 +3299,8 @@
         const type = document.getElementById("editColType").value;
         const showInFilter = document.getElementById("editColShowInFilter").checked;
         const showInSort = document.getElementById("editColShowInSort").checked;
-        const showInDetail = document.getElementById("editColShowInDetail").checked;
+        const showInDetailLeft = document.getElementById("editColShowInDetailLeft").checked;
+        const showInDetailRight = document.getElementById("editColShowInDetailRight").checked;
         const specialRole = document.getElementById("editColSpecialRole").value;
         const token = getSessionToken();
 
@@ -3310,7 +3320,7 @@
             .withFailureHandler(function(error) {
               showToast("Error: " + error.message, "error");
             })
-            .addNewColumn(columnName, displayName, type, showInFilter, showInSort, showInDetail, specialRole, token);
+            .addNewColumn(columnName, displayName, type, showInFilter, showInSort, showInDetailLeft, showInDetailRight, specialRole, token);
         } else {
           // Editing existing column
           const updatedConfig = columnConfig.slice();
@@ -3320,7 +3330,8 @@
             type: type,
             showInFilter: showInFilter,
             showInSort: showInSort,
-            showInDetail: showInDetail,
+            showInDetailLeft: showInDetailLeft,
+            showInDetailRight: showInDetailRight,
             specialRole: specialRole,
             specialRoleDisplay: specialRole  // Keep display name for saving to sheet
           };
