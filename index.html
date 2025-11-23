@@ -2571,7 +2571,8 @@
               config.specialRole === "place" ||
               config.specialRole === "date" ||
               config.specialRole === "addedby" ||
-              config.specialRole === "externallink") {
+              config.specialRole === "externallink" ||
+              config.type === "url") {
             continue;
           }
 
@@ -2586,16 +2587,26 @@
           }
         }
 
-        if (externalLinkColumn && item[externalLinkColumn.columnName]) {
-          const url = item[externalLinkColumn.columnName];
-          html +=
-            '<div class="detail-field">' +
-            '<a href="' +
-            url +
-            '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
-            "🔗 Open external link" +
-            "</a>" +
-            "</div>";
+        // Show all external links (both type="url" and specialRole="externallink")
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (!config.showInDetail) continue;
+
+          // Check if this is an external link column
+          if (config.type === "url" || config.specialRole === "externallink") {
+            const url = item[config.columnName];
+            if (url && String(url).trim() !== "") {
+              const linkLabel = config.displayName || config.columnName;
+              html +=
+                '<div class="detail-field">' +
+                '<a href="' +
+                url +
+                '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
+                "🔗 " + linkLabel +
+                "</a>" +
+                "</div>";
+            }
+          }
         }
 
         if (addedByColumn && item[addedByColumn.columnName]) {
