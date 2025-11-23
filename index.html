@@ -2601,8 +2601,8 @@
             '</div>';
         }
 
-        // Top Corner field
-        let topCornerHtml = '';
+        // Top Corner fields - collect all values with same styling as SubId
+        const topCornerBits = [];
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
           if (config.itemPlace !== "topcorner") continue;
@@ -2610,14 +2610,15 @@
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
             const displayVal = config.type === "date" ? formatDate(val) : val;
-            topCornerHtml = '<div style="position: absolute; top: 16px; right: 16px; padding: 8px 16px; background-color: #f3f4f6; border-radius: 8px; font-size: 14px; font-weight: 500;">' +
-              displayVal +
-              '</div>';
-            break;
+            topCornerBits.push(displayVal);
           }
         }
 
-        html += topCornerHtml;
+        if (topCornerBits.length > 0) {
+          html += '<div style="position: absolute; top: 16px; right: 16px; font-size: 14px; color: #6b7280;">' +
+            topCornerBits.join(" • ") +
+            '</div>';
+        }
 
         // Long text Up fields (before two-column grid)
         for (let i = 0; i < columnConfig.length; i++) {
