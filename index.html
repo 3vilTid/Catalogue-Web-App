@@ -29,11 +29,39 @@
         box-sizing: border-box;
       }
 
+      /* Hide or style scrollbars */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+      }
+
+      *::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      *::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      *::-webkit-scrollbar-thumb {
+        background-color: rgba(148, 163, 184, 0.3);
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+      }
+
+      *::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(148, 163, 184, 0.5);
+      }
+
       html, body {
         margin: 0;
         padding: 0;
         width: 100%;
         overflow-x: hidden;
+        border: none;
+        outline: none;
       }
 
       body {
@@ -47,12 +75,15 @@
           #eef2ff
         );
         color: var(--text-main);
+        min-height: 100vh;
       }
 
       .shell {
         max-width: 1160px;
         width: 100%;
         margin: 0 auto;
+        border: none;
+        outline: none;
       }
 
       /* Top header ----------------------------------------------------------- */
