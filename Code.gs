@@ -833,3 +833,24 @@ function renameCatalogue(newName, token) {
     throw new Error("Error renaming catalogue: " + err.message);
   }
 }
+
+/**************************************************
+ * Test Function - Use this to trigger authorization
+ **************************************************/
+
+// Run this function from the Apps Script editor to authorize email permissions
+function testEmailPermissions() {
+  Logger.log("Testing email permissions...");
+
+  // This will trigger the authorization prompt for MailApp
+  var recipient = Session.getActiveUser().getEmail();
+
+  MailApp.sendEmail({
+    to: recipient,
+    subject: "Test - Email Permission Authorization",
+    body: "This is a test email to authorize the email sending permission.\n\nYou can now deploy your Email OTP authentication app!"
+  });
+
+  Logger.log("Test email sent successfully to: " + recipient);
+  return "Authorization successful! Email sent.";
+}
