@@ -11,7 +11,7 @@ var SPECIAL_ROLE_MAP = {
   "Location": "place",
   "Date": "date",
   "External Link": "externallink",
-  "Auto-filled Creator": "addedby",
+  "Auto-filled User Mail": "addedby",
   "Formula (Read-only)": "formula"
 };
 
@@ -24,7 +24,7 @@ var SPECIAL_ROLE_DISPLAY = {
   "place": "Location",
   "date": "Date",
   "externallink": "External Link",
-  "addedby": "Auto-filled Creator",
+  "addedby": "Auto-filled User Mail",
   "formula": "Formula (Read-only)"
 };
 
@@ -46,6 +46,12 @@ function normalizeSpecialRole_(displayRole) {
       roleStr === "externallink" || roleStr === "addedby" ||
       roleStr === "formula") {
     return roleStr;
+  }
+
+  // Backwards compatibility for old names
+  if (roleStr === "Auto-filled Creator" || roleStr === "Primary Identifier (Name)") {
+    if (roleStr === "Auto-filled Creator") return "addedby";
+    if (roleStr === "Primary Identifier (Name)") return "name";
   }
 
   // Convert display name to internal code
