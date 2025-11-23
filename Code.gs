@@ -51,8 +51,6 @@ function normalizeSpecialRole_(displayRole) {
   // Backwards compatibility for old names
   if (roleStr === "Auto-filled Creator") return "addedby";
   if (roleStr === "Primary Identifier (Name)") return "name";
-  if (roleStr === "Category") return "category";
-  if (roleStr === "Location") return "place";
 
   // Convert display name to internal code
   return SPECIAL_ROLE_MAP[roleStr] || "";
