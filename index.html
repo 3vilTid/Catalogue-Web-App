@@ -2093,6 +2093,21 @@
 
       // -------------------- Helpers --------------------
 
+      function formatDate(dateValue) {
+        if (!dateValue) return "";
+        try {
+          const date = new Date(dateValue);
+          if (isNaN(date.getTime())) return String(dateValue);
+
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        } catch (e) {
+          return String(dateValue);
+        }
+      }
+
       function loadColumnConfig() {
         // Reset column references
         nameColumn = null;
@@ -2572,7 +2587,7 @@
 
         // Only show date in metadata line
         if (dateColumn && item[dateColumn.columnName]) {
-          html += item[dateColumn.columnName];
+          html += formatDate(item[dateColumn.columnName]);
         }
         html += "</div>";
 
@@ -2583,11 +2598,12 @@
 
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
+            const displayVal = config.type === "date" ? formatDate(val) : val;
             html +=
               '<div class="detail-field" style="margin-top: 16px;"><span class="detail-label">' +
               (config.displayName || config.columnName) +
               ":</span> " +
-              val +
+              displayVal +
               "</div>";
           }
         }
@@ -2615,11 +2631,12 @@
                 "</a>" +
                 "</div>";
             } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
               html +=
                 '<div class="detail-field"><span class="detail-label">' +
                 (config.displayName || config.columnName) +
                 ":</span> " +
-                val +
+                displayVal +
                 "</div>";
             }
           }
@@ -2646,11 +2663,12 @@
                 "</a>" +
                 "</div>";
             } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
               html +=
                 '<div class="detail-field"><span class="detail-label">' +
                 (config.displayName || config.columnName) +
                 ":</span> " +
-                val +
+                displayVal +
                 "</div>";
             }
           }
@@ -2666,11 +2684,12 @@
 
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
+            const displayVal = config.type === "date" ? formatDate(val) : val;
             html +=
               '<div class="detail-field" style="margin-top: 16px;"><span class="detail-label">' +
               (config.displayName || config.columnName) +
               ":</span> " +
-              val +
+              displayVal +
               "</div>";
           }
         }
@@ -3106,17 +3125,18 @@
           }
 
           const displayName = config.displayName || config.columnName;
+          const inputType = config.type === "date" ? "date" : "text";
           body.innerHTML +=
             "<label>" +
             displayName +
             "</label>" +
-            '<input type="text" id="field_' +
+            '<input type="' + inputType + '" id="field_' +
             config.columnName +
             '" value="' +
             (val || "") +
             '" data-column="' +
             config.columnName +
-            '" placeholder="Enter ' + displayName.toLowerCase() + '">';
+            '" placeholder="' + (config.type === "date" ? "" : "Enter " + displayName.toLowerCase()) + '">';
         }
 
         modal.style.display = "flex";
@@ -3155,20 +3175,36 @@
                 continue;
               }
 
-              const val = item[config.columnName] || "";
+              let val = item[config.columnName] || "";
               const displayName = config.displayName || config.columnName;
+              const inputType = config.type === "date" ? "date" : "text";
+
+              // Format date for input[type="date"] (YYYY-MM-DD)
+              if (config.type === "date" && val) {
+                try {
+                  const date = new Date(val);
+                  if (!isNaN(date.getTime())) {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    val = `${year}-${month}-${day}`;
+                  }
+                } catch (e) {
+                  // Keep original value if parsing fails
+                }
+              }
 
               body.innerHTML +=
                 "<label>" +
                 displayName +
                 "</label>" +
-                '<input type="text" id="field_' +
+                '<input type="' + inputType + '" id="field_' +
                 config.columnName +
                 '" value="' +
                 String(val).replace(/"/g, "&quot;") +
                 '" data-column="' +
                 config.columnName +
-                '" placeholder="Enter ' + displayName.toLowerCase() + '">';
+                '" placeholder="' + (config.type === "date" ? "" : "Enter " + displayName.toLowerCase()) + '">';
             }
 
             document.getElementById("editSaveBtn").onclick = saveAddOrEdit;
