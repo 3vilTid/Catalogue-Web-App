@@ -530,11 +530,12 @@ function getMainData() {
       var h = headers[c];
       if (h) {
         var val = row[c];
-        // Convert Date objects to YYYY-MM-DD strings using UTC to avoid timezone issues
+        // Convert Date objects to YYYY-MM-DD strings using local methods
+        // Sheets dates are already in correct timezone, don't use UTC
         if (dateColumns[h] && val instanceof Date) {
-          var year = val.getUTCFullYear();
-          var month = String(val.getUTCMonth() + 1).padStart(2, '0');
-          var day = String(val.getUTCDate()).padStart(2, '0');
+          var year = val.getFullYear();
+          var month = String(val.getMonth() + 1).padStart(2, '0');
+          var day = String(val.getDate()).padStart(2, '0');
           obj[h] = year + "-" + month + "-" + day;
         } else {
           obj[h] = val;
@@ -628,11 +629,12 @@ function getItemByName(name, token) {
         for (var c = 0; c < headers.length; c++) {
           var h = headers[c];
           var val = data[r][c];
-          // Convert Date objects to YYYY-MM-DD strings using UTC to avoid timezone issues
+          // Convert Date objects to YYYY-MM-DD strings using local methods
+          // Sheets dates are already in correct timezone, don't use UTC
           if (dateColumns[h] && val instanceof Date) {
-            var year = val.getUTCFullYear();
-            var month = String(val.getUTCMonth() + 1).padStart(2, '0');
-            var day = String(val.getUTCDate()).padStart(2, '0');
+            var year = val.getFullYear();
+            var month = String(val.getMonth() + 1).padStart(2, '0');
+            var day = String(val.getDate()).padStart(2, '0');
             obj[h] = year + "-" + month + "-" + day;
           } else {
             obj[h] = val;
