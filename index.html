@@ -216,11 +216,11 @@
 
       .btn-primary {
         border: none;
+        border-radius: 8px;
         background: linear-gradient(135deg, #2563eb, #1d4ed8);
         color: white;
         font-weight: 500;
         padding: 0 16px;
-        box-shadow: 0 12px 25px rgba(37, 99, 235, 0.4);
       }
 
       .btn-primary:hover {
@@ -3040,16 +3040,23 @@
         editingItemName = name;
         const token = getSessionToken();
 
+        // Open modal immediately with loading state
+        const modal = document.getElementById("editModal");
+        const title = document.getElementById("editModalTitle");
+        const body = document.getElementById("editModalBody");
+        title.textContent = "Edit item";
+        body.innerHTML = '<div style="text-align: center; padding: 40px; color: #9ca3af;">Loading...</div>';
+        modal.style.display = "flex";
+
+        // Fetch data
         google.script.run
           .withSuccessHandler(function (item) {
             if (!item) {
+              closeEditModal();
               showToast("Item not found.", "error");
               return;
             }
-            const modal = document.getElementById("editModal");
-            const title = document.getElementById("editModalTitle");
-            const body = document.getElementById("editModalBody");
-            title.textContent = "Edit item";
+
             body.innerHTML = "";
 
             // Show only columns that are not "addedby" or "formula" (read-only)
@@ -3077,10 +3084,10 @@
                 '" placeholder="Enter ' + displayName.toLowerCase() + '">';
             }
 
-            modal.style.display = "flex";
             document.getElementById("editSaveBtn").onclick = saveAddOrEdit;
           })
           .withFailureHandler(function(error) {
+            closeEditModal();
             showToast("Error: " + error.message, "error");
           })
           .getItemByName(name, token);
