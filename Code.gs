@@ -709,7 +709,7 @@ function saveColumnConfig(configs, token) {
         config.showInFilter || false,
         config.showInSort || false,
         config.showInDetail || false,
-        config.specialRole || ""
+        normalizeSpecialRole_(config.specialRole || "")
       ]);
     }
 
@@ -748,7 +748,7 @@ function addNewColumn(columnName, displayName, type, showInFilter, showInSort, s
       showInFilter || false,
       showInSort || false,
       showInDetail || false,
-      specialRole || ""
+      normalizeSpecialRole_(specialRole)
     ]);
 
     // Add column to Main sheet
