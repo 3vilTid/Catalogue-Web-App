@@ -2,8 +2,8 @@
  * Constants & Helpers
  **************************************************/
 
-// Map human-readable special roles to internal codes
-var SPECIAL_ROLE_MAP = {
+// Map human-readable item places to internal codes
+var ITEM_PLACE_MAP = {
   "Primary Identifier": "name",
   "Image URL": "image",
   "SubId1": "category",
@@ -12,14 +12,13 @@ var SPECIAL_ROLE_MAP = {
   "Detail Left": "detailleft",
   "Detail Right": "detailright",
   "Long text Down": "longtextdown",
-  "Date": "date",
-  "External Link": "externallink",
   "Auto-filled User Mail": "addedby",
+  "External Link": "externallink",
   "Formula (Read-only)": "formula"
 };
 
 // Reverse map for display
-var SPECIAL_ROLE_DISPLAY = {
+var ITEM_PLACE_DISPLAY = {
   "name": "Primary Identifier",
   "image": "Image URL",
   "category": "SubId1",
@@ -28,13 +27,49 @@ var SPECIAL_ROLE_DISPLAY = {
   "detailleft": "Detail Left",
   "detailright": "Detail Right",
   "longtextdown": "Long text Down",
-  "date": "Date",
-  "externallink": "External Link",
   "addedby": "Auto-filled User Mail",
+  "externallink": "External Link",
   "formula": "Formula (Read-only)"
 };
 
-// Convert display name to internal code
+// Map human-readable special roles to internal codes
+var SPECIAL_ROLE_MAP = {
+  "External Link": "externallink",
+  "Formula (Read-only)": "formula"
+};
+
+// Reverse map for display
+var SPECIAL_ROLE_DISPLAY = {
+  "externallink": "External Link",
+  "formula": "Formula (Read-only)"
+};
+
+// Convert item place display name to internal code
+function normalizeItemPlace_(displayPlace) {
+  if (!displayPlace) return "";
+
+  var placeStr = String(displayPlace).trim();
+
+  // "None" means no item place
+  if (placeStr === "None" || placeStr === "NONE" || placeStr === "none") {
+    return "";
+  }
+
+  // If already internal code, return as-is
+  if (placeStr === "name" || placeStr === "image" ||
+      placeStr === "category" || placeStr === "place" ||
+      placeStr === "longtextup" || placeStr === "detailleft" ||
+      placeStr === "detailright" || placeStr === "longtextdown" ||
+      placeStr === "addedby" || placeStr === "externallink" ||
+      placeStr === "formula") {
+    return placeStr;
+  }
+
+  // Convert display name to internal code
+  return ITEM_PLACE_MAP[placeStr] || "";
+}
+
+// Convert special role display name to internal code
 function normalizeSpecialRole_(displayRole) {
   if (!displayRole) return "";
 
@@ -46,12 +81,7 @@ function normalizeSpecialRole_(displayRole) {
   }
 
   // If already internal code, return as-is
-  if (roleStr === "name" || roleStr === "image" ||
-      roleStr === "category" || roleStr === "place" ||
-      roleStr === "longtextup" || roleStr === "detailleft" ||
-      roleStr === "detailright" || roleStr === "longtextdown" ||
-      roleStr === "date" || roleStr === "externallink" ||
-      roleStr === "addedby" || roleStr === "formula") {
+  if (roleStr === "externallink" || roleStr === "formula") {
     return roleStr;
   }
 
@@ -101,7 +131,8 @@ function getColumnConfig() {
 
     for (var i = 1; i < data.length; i++) {
       var row = data[i];
-      var rawSpecialRole = String(row[5] || "").trim();
+      var rawItemPlace = String(row[5] || "").trim();
+      var rawSpecialRole = String(row[6] || "").trim();
 
       configs.push({
         columnName: row[0] || "",
@@ -109,6 +140,8 @@ function getColumnConfig() {
         type: row[2] || "text",
         showInFilter: row[3] === true || row[3] === "TRUE",
         showInSort: row[4] === true || row[4] === "TRUE",
+        itemPlace: normalizeItemPlace_(rawItemPlace),
+        itemPlaceDisplay: rawItemPlace,
         specialRole: normalizeSpecialRole_(rawSpecialRole),
         specialRoleDisplay: rawSpecialRole
       });
@@ -696,7 +729,7 @@ function saveColumnConfig(configs, token) {
     }
 
     var sh = getColumnConfigSheet_();
-    var headers = ["Column Name", "Display Name", "Type", "Show in Filter", "Show in Sort", "Item Place"];
+    var headers = ["Column Name", "Display Name", "Type", "Show in Filter", "Show in Sort", "Item Place", "Special Role"];
 
     // Clear existing data (except header)
     var lastRow = sh.getLastRow();
@@ -708,8 +741,8 @@ function saveColumnConfig(configs, token) {
     var rows = [];
     for (var i = 0; i < configs.length; i++) {
       var config = configs[i];
-      // Use specialRoleDisplay if available (for display names), otherwise fall back to specialRole
-      var roleToSave = config.specialRoleDisplay || config.specialRole || "";
+      var itemPlaceToSave = config.itemPlaceDisplay || config.itemPlace || "";
+      var specialRoleToSave = config.specialRoleDisplay || config.specialRole || "";
 
       rows.push([
         config.columnName || "",
@@ -717,7 +750,8 @@ function saveColumnConfig(configs, token) {
         config.type || "text",
         config.showInFilter || false,
         config.showInSort || false,
-        roleToSave
+        itemPlaceToSave,
+        specialRoleToSave
       ]);
     }
 
@@ -732,7 +766,7 @@ function saveColumnConfig(configs, token) {
   }
 }
 
-function addNewColumn(columnName, displayName, type, showInFilter, showInSort, specialRole, token) {
+function addNewColumn(columnName, displayName, type, showInFilter, showInSort, itemPlace, specialRole, token) {
   try {
     // Verify session
     var sessionResult = verifySession(token);
@@ -755,6 +789,7 @@ function addNewColumn(columnName, displayName, type, showInFilter, showInSort, s
       type || "text",
       showInFilter || false,
       showInSort || false,
+      itemPlace || "",
       specialRole || ""
     ]);
 

@@ -1552,6 +1552,7 @@
                 <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Filter</th>
                 <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Sort</th>
                 <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Item Place</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Special Role</th>
                 <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Actions</th>
               </tr>
             </thead>
@@ -1601,7 +1602,7 @@
           </label>
 
           <label>Item Place</label>
-          <select id="editColSpecialRole">
+          <select id="editColItemPlace">
             <option value="Primary Identifier">Primary Identifier</option>
             <option value="Image URL">Image URL</option>
             <option value="SubId1">SubId1</option>
@@ -1610,11 +1611,17 @@
             <option value="Detail Left">Detail Left</option>
             <option value="Detail Right">Detail Right</option>
             <option value="Long text Down">Long text Down</option>
-            <option value="Date">Date</option>
-            <option value="External Link">External Link</option>
             <option value="Auto-filled User Mail">Auto-filled User Mail</option>
+            <option value="External Link">External Link</option>
             <option value="Formula (Read-only)">Formula (Read-only)</option>
             <option value="">None</option>
+          </select>
+
+          <label>Special Role</label>
+          <select id="editColSpecialRole">
+            <option value="">None</option>
+            <option value="External Link">External Link</option>
+            <option value="Formula (Read-only)">Formula (Read-only)</option>
           </select>
         </div>
         <div class="modal-footer">
@@ -2103,23 +2110,17 @@
         // Build column references from config
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
-          const role = config.specialRole;
+          const place = config.itemPlace;
 
-          if (role === "name") {
+          if (place === "name") {
             nameColumn = config;
-          } else if (role === "description") {
-            descriptionColumn = config;
-          } else if (role === "image") {
+          } else if (place === "image") {
             imageColumn = config;
-          } else if (role === "category") {
+          } else if (place === "category") {
             categoryColumn = config;
-          } else if (role === "place") {
+          } else if (place === "place") {
             placeColumn = config;
-          } else if (role === "date") {
-            dateColumn = config;
-          } else if (role === "externallink") {
-            externalLinkColumn = config;
-          } else if (role === "addedby") {
+          } else if (place === "addedby") {
             addedByColumn = config;
           }
 
@@ -2571,7 +2572,7 @@
         // Long text Up fields (before two-column grid)
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
-          if (config.specialRole !== "longtextup") continue;
+          if (config.itemPlace !== "longtextup") continue;
 
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
@@ -2591,7 +2592,7 @@
         html += '<div>';
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
-          if (config.specialRole !== "detailleft") continue;
+          if (config.itemPlace !== "detailleft") continue;
 
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
@@ -2622,7 +2623,7 @@
         html += '<div>';
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
-          if (config.specialRole !== "detailright") continue;
+          if (config.itemPlace !== "detailright") continue;
 
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
@@ -2654,7 +2655,7 @@
         // Long text Down fields (after two-column grid)
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
-          if (config.specialRole !== "longtextdown") continue;
+          if (config.itemPlace !== "longtextdown") continue;
 
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
@@ -3281,6 +3282,7 @@
             <td style="padding: 8px;">${config.type || 'text'}</td>
             <td style="padding: 8px; text-align: center;">${config.showInFilter ? '✓' : '—'}</td>
             <td style="padding: 8px; text-align: center;">${config.showInSort ? '✓' : '—'}</td>
+            <td style="padding: 8px;">${config.itemPlaceDisplay || '—'}</td>
             <td style="padding: 8px;">${config.specialRoleDisplay || '—'}</td>
             <td style="padding: 8px; text-align: center;">
               <button class="btn-text" onclick="openEditColumn(${i})" style="font-size: 11px; padding: 4px 8px;">Edit</button>
@@ -3305,6 +3307,7 @@
         document.getElementById("editColType").value = "text";
         document.getElementById("editColShowInFilter").checked = false;
         document.getElementById("editColShowInSort").checked = false;
+        document.getElementById("editColItemPlace").value = "";
         document.getElementById("editColSpecialRole").value = "";
 
         // Enable column name field (only for new columns)
@@ -3327,6 +3330,7 @@
         document.getElementById("editColType").value = config.type || "text";
         document.getElementById("editColShowInFilter").checked = config.showInFilter || false;
         document.getElementById("editColShowInSort").checked = config.showInSort || false;
+        document.getElementById("editColItemPlace").value = config.itemPlaceDisplay || "";
         document.getElementById("editColSpecialRole").value = config.specialRoleDisplay || "";
 
         // Disable column name field (can't rename existing columns)
@@ -3345,6 +3349,7 @@
         const type = document.getElementById("editColType").value;
         const showInFilter = document.getElementById("editColShowInFilter").checked;
         const showInSort = document.getElementById("editColShowInSort").checked;
+        const itemPlace = document.getElementById("editColItemPlace").value;
         const specialRole = document.getElementById("editColSpecialRole").value;
         const token = getSessionToken();
 
@@ -3364,7 +3369,7 @@
             .withFailureHandler(function(error) {
               showToast("Error: " + error.message, "error");
             })
-            .addNewColumn(columnName, displayName, type, showInFilter, showInSort, specialRole, token);
+            .addNewColumn(columnName, displayName, type, showInFilter, showInSort, itemPlace, specialRole, token);
         } else {
           // Editing existing column
           const updatedConfig = columnConfig.slice();
@@ -3374,8 +3379,10 @@
             type: type,
             showInFilter: showInFilter,
             showInSort: showInSort,
+            itemPlace: itemPlace,
+            itemPlaceDisplay: itemPlace,
             specialRole: specialRole,
-            specialRoleDisplay: specialRole  // Keep display name for saving to sheet
+            specialRoleDisplay: specialRole
           };
 
           google.script.run
