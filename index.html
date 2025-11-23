@@ -3012,13 +3012,13 @@
             "<label>" +
             displayName +
             "</label>" +
-            '<input id="field_' +
+            '<input type="text" id="field_' +
             config.columnName +
             '" value="' +
             (val || "") +
             '" data-column="' +
             config.columnName +
-            '">';
+            '" placeholder="Enter ' + displayName.toLowerCase() + '">';
         }
 
         modal.style.display = "flex";
@@ -3057,13 +3057,13 @@
                 "<label>" +
                 displayName +
                 "</label>" +
-                '<input id="field_' +
+                '<input type="text" id="field_' +
                 config.columnName +
                 '" value="' +
                 String(val).replace(/"/g, "&quot;") +
                 '" data-column="' +
                 config.columnName +
-                '">';
+                '" placeholder="Enter ' + displayName.toLowerCase() + '">';
             }
 
             modal.style.display = "flex";
