@@ -696,7 +696,7 @@ function saveColumnConfig(configs, token) {
     }
 
     var sh = getColumnConfigSheet_();
-    var headers = ["Column Name", "Display Name", "Type", "Show in Filter", "Show in Sort", "Item place"];
+    var headers = ["Column Name", "Display Name", "Type", "Show in Filter", "Show in Sort", "Item Place"];
 
     // Clear existing data (except header)
     var lastRow = sh.getLastRow();
