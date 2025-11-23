@@ -196,18 +196,18 @@ function getSettings() {
     return {
       appName: "App",
       catalogName: "Catalogue",
-      imageBaseUrl: ""
+      sheetUrl: ""
     };
   }
 
   var appName = sh.getRange("C2").getDisplayValue() || "App";
   var catalogName = sh.getRange("C3").getDisplayValue() || "Catalogue";
-  var imageBaseUrl = sh.getRange("C4").getDisplayValue() || "";
+  var sheetUrl = sh.getRange("C4").getDisplayValue() || "";
 
   return {
     appName: appName,
     catalogName: catalogName,
-    imageBaseUrl: imageBaseUrl
+    sheetUrl: sheetUrl
   };
 }
 
