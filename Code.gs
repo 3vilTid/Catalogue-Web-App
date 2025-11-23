@@ -708,6 +708,9 @@ function saveColumnConfig(configs, token) {
     var rows = [];
     for (var i = 0; i < configs.length; i++) {
       var config = configs[i];
+      // Use specialRoleDisplay if available (for display names), otherwise fall back to specialRole
+      var roleToSave = config.specialRoleDisplay || config.specialRole || "";
+
       rows.push([
         config.columnName || "",
         config.displayName || config.columnName || "",
@@ -715,7 +718,7 @@ function saveColumnConfig(configs, token) {
         config.showInFilter || false,
         config.showInSort || false,
         config.showInDetail || false,
-        config.specialRole || ""
+        roleToSave
       ]);
     }
 
