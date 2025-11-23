@@ -1021,7 +1021,8 @@
       .prompt-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(15, 23, 42, 0.4);
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(4px);
         display: none;
         align-items: center;
         justify-content: center;
@@ -1033,27 +1034,29 @@
         display: flex;
       }
 
+      .prompt-box,
       .prompt-dialog {
         background: white;
         border-radius: 16px;
-        padding: 24px;
-        max-width: 400px;
+        padding: 28px;
+        max-width: 440px;
         width: 90%;
-        box-shadow: 0 20px 60px rgba(15, 23, 42, 0.4);
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
         animation: scaleIn 0.2s ease;
       }
 
       .prompt-title {
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 600;
         margin-bottom: 12px;
         color: #111827;
       }
 
       .prompt-message {
-        font-size: 14px;
+        font-size: 15px;
         color: #6b7280;
-        margin-bottom: 12px;
+        line-height: 1.5;
+        margin-bottom: 20px;
       }
 
       .prompt-input {
@@ -1073,27 +1076,31 @@
 
       .prompt-actions {
         display: flex;
-        gap: 10px;
+        gap: 12px;
         justify-content: flex-end;
+        margin-top: 24px;
       }
 
       .prompt-btn {
-        padding: 8px 16px;
+        padding: 10px 20px;
         border-radius: 8px;
         border: none;
-        font-size: 14px;
+        font-size: 15px;
         font-weight: 500;
         cursor: pointer;
-        transition: all 0.15s ease;
+        transition: all 0.2s ease;
+        min-width: 80px;
       }
 
       .prompt-btn.cancel {
         background: #f3f4f6;
         color: #374151;
+        border: 1px solid #e5e7eb;
       }
 
       .prompt-btn.cancel:hover {
         background: #e5e7eb;
+        border-color: #d1d5db;
       }
 
       .prompt-btn.confirm {
@@ -1103,6 +1110,7 @@
 
       .prompt-btn.confirm:hover {
         background: #1d4ed8;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
       }
 
       @keyframes fadeIn {
@@ -1486,7 +1494,7 @@
 
     <!-- Edit Item Modal -->
     <div id="editModal" class="modal">
-      <div class="modal-box">
+      <div class="modal-box" style="min-width: 520px;">
         <div class="modal-header">
           <h2 id="editModalTitle">Edit item</h2>
           <button class="modal-close-x" onclick="closeEditModal()">✕</button>
