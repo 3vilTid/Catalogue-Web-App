@@ -1040,6 +1040,182 @@
       #columnsTable input[type="checkbox"] {
         cursor: pointer;
       }
+
+      /* Login Screen ---------------------------------------------------- */
+
+      #loginScreen {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at top left, #e8f0ff, #f9fafb 42%, #eef2ff);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #loginScreen.show {
+        display: flex;
+      }
+
+      .login-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        max-width: 420px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(15, 23, 42, 0.2);
+      }
+
+      .login-header {
+        text-align: center;
+        margin-bottom: 32px;
+      }
+
+      .login-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 8px;
+      }
+
+      .login-subtitle {
+        font-size: 14px;
+        color: var(--text-soft);
+      }
+
+      .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .login-input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .login-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-main);
+      }
+
+      .login-input {
+        padding: 12px 16px;
+        border: 1px solid var(--border-soft);
+        border-radius: 10px;
+        font-size: 15px;
+        outline: none;
+        transition: all 0.2s ease;
+      }
+
+      .login-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+      .login-input::placeholder {
+        color: #9ca3af;
+      }
+
+      .login-btn {
+        padding: 14px 24px;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .login-btn-primary {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: white;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+      }
+
+      .login-btn-primary:hover {
+        background: linear-gradient(135deg, #1d4ed8, #1e40af);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+      }
+
+      .login-btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .login-btn-secondary {
+        background: #f3f4f6;
+        color: var(--text-main);
+      }
+
+      .login-btn-secondary:hover {
+        background: #e5e7eb;
+      }
+
+      .login-message {
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        margin-bottom: 16px;
+      }
+
+      .login-message.success {
+        background: #ecfdf5;
+        color: #047857;
+        border: 1px solid #a7f3d0;
+      }
+
+      .login-message.error {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+      }
+
+      .login-step {
+        display: none;
+      }
+
+      .login-step.active {
+        display: block;
+      }
+
+      .login-back-btn {
+        margin-top: 16px;
+        text-align: center;
+      }
+
+      .login-back-btn button {
+        background: none;
+        border: none;
+        color: var(--primary);
+        cursor: pointer;
+        font-size: 13px;
+        text-decoration: underline;
+      }
+
+      .login-back-btn button:hover {
+        color: var(--primary-dark);
+      }
+
+      .login-loading {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid white;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
     </style>
   </head>
 
@@ -1053,7 +1229,23 @@
           <div class="catalog-row">
             <span class="catalog-label"></span>
             <span id="catalogName" class="catalog-name">Catalogue</span>
+            <button id="editCatalogBtn" class="catalog-edit-btn" title="Rename catalogue" style="display: none">
+              ✏
+            </button>
           </div>
+        </div>
+
+        <div class="right-block">
+          <div>
+            <span>Signed in:</span>
+            <div class="user-pill">
+              <span id="userEmail" class="user-email">email</span>
+              <span id="userProfilePill" class="profile-badge">ROLE</span>
+            </div>
+          </div>
+          <button id="logoutBtn" class="btn-toolbar" style="padding: 0 12px; height: 28px; font-size: 12px;">
+            Logout
+          </button>
         </div>
       </div>
 
@@ -1117,12 +1309,76 @@
               </div>
             </div>
           </div>
+
+          <div class="filters-right">
+            <button id="sheetLinkBtn" class="btn-toolbar" style="display: none;">📊 Sheet</button>
+            <button id="columnsBtn" class="btn-toolbar" style="display: none;">⚙ Columns</button>
+            <button id="addBtn" class="btn-toolbar btn-primary" style="display: none;">+ Add item</button>
+          </div>
         </div>
       </div>
 
       <!-- Cards grid & details -->
       <div id="gridView" class="grid"></div>
       <div id="detailView"></div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="loginScreen">
+      <div class="login-card">
+        <div class="login-header">
+          <div class="login-title" id="loginAppName">Catalogue</div>
+          <div class="login-subtitle">Sign in to access the catalogue</div>
+        </div>
+
+        <!-- Step 1: Enter Email -->
+        <div id="loginStepEmail" class="login-step active">
+          <div id="loginMessage1" class="login-message" style="display: none;"></div>
+          <div class="login-form">
+            <div class="login-input-group">
+              <label class="login-label" for="loginEmailInput">Email Address</label>
+              <input
+                type="email"
+                id="loginEmailInput"
+                class="login-input"
+                placeholder="your@email.com"
+                autocomplete="email"
+              >
+            </div>
+            <button id="loginSendCodeBtn" class="login-btn login-btn-primary">
+              Send Verification Code
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: Enter Code -->
+        <div id="loginStepCode" class="login-step">
+          <div id="loginMessage2" class="login-message" style="display: none;"></div>
+          <div class="login-form">
+            <div class="login-input-group">
+              <label class="login-label" for="loginCodeInput">Verification Code</label>
+              <input
+                type="text"
+                id="loginCodeInput"
+                class="login-input"
+                placeholder="Enter 6-digit code"
+                maxlength="6"
+                pattern="[0-9]*"
+                inputmode="numeric"
+              >
+              <div style="font-size: 12px; color: var(--text-soft); margin-top: 4px;">
+                Check your email for the verification code
+              </div>
+            </div>
+            <button id="loginVerifyBtn" class="login-btn login-btn-primary">
+              Verify & Sign In
+            </button>
+          </div>
+          <div class="login-back-btn">
+            <button id="loginBackBtn">← Back to email</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Toast notification container -->
@@ -1178,6 +1434,188 @@
         }, 300);
       }
 
+      // ==================== AUTHENTICATION & SESSION MANAGEMENT ====================
+
+      // Session storage keys
+      const SESSION_TOKEN_KEY = 'catalogueSessionToken';
+      const SESSION_USER_KEY = 'catalogueSessionUser';
+      const SESSION_EMAIL_KEY = 'catalogueLoginEmail';
+
+      // Get session token from localStorage
+      function getSessionToken() {
+        return localStorage.getItem(SESSION_TOKEN_KEY);
+      }
+
+      // Save session token and user to localStorage
+      function saveSession(token, user) {
+        localStorage.setItem(SESSION_TOKEN_KEY, token);
+        localStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
+      }
+
+      // Get user from localStorage
+      function getStoredUser() {
+        const userStr = localStorage.getItem(SESSION_USER_KEY);
+        return userStr ? JSON.parse(userStr) : null;
+      }
+
+      // Clear session
+      function clearSession() {
+        localStorage.removeItem(SESSION_TOKEN_KEY);
+        localStorage.removeItem(SESSION_USER_KEY);
+        localStorage.removeItem(SESSION_EMAIL_KEY);
+      }
+
+      // Show login screen
+      function showLoginScreen() {
+        document.getElementById('loginScreen').classList.add('show');
+        document.querySelector('.shell').style.display = 'none';
+      }
+
+      // Hide login screen
+      function hideLoginScreen() {
+        document.getElementById('loginScreen').classList.remove('show');
+        document.querySelector('.shell').style.display = 'block';
+      }
+
+      // Show login message
+      function showLoginMessage(step, message, type) {
+        const messageEl = document.getElementById('loginMessage' + step);
+        messageEl.textContent = message;
+        messageEl.className = 'login-message ' + type;
+        messageEl.style.display = 'block';
+      }
+
+      // Hide login message
+      function hideLoginMessage(step) {
+        const messageEl = document.getElementById('loginMessage' + step);
+        messageEl.style.display = 'none';
+      }
+
+      // Switch login steps
+      function switchLoginStep(toStep) {
+        document.getElementById('loginStepEmail').classList.remove('active');
+        document.getElementById('loginStepCode').classList.remove('active');
+        document.getElementById('loginStep' + toStep).classList.add('active');
+      }
+
+      // Request OTP code
+      function requestOTP() {
+        const email = document.getElementById('loginEmailInput').value.trim();
+
+        if (!email) {
+          showLoginMessage(1, 'Please enter your email address.', 'error');
+          return;
+        }
+
+        const btn = document.getElementById('loginSendCodeBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="login-loading"></span>Sending code...';
+        hideLoginMessage(1);
+
+        // Store email for code verification step
+        localStorage.setItem(SESSION_EMAIL_KEY, email);
+
+        google.script.run
+          .withSuccessHandler(function(result) {
+            btn.disabled = false;
+            btn.innerHTML = 'Send Verification Code';
+
+            if (result.success) {
+              showLoginMessage(1, result.message, 'success');
+              setTimeout(() => {
+                switchLoginStep('Code');
+                hideLoginMessage(1);
+              }, 1500);
+            } else {
+              showLoginMessage(1, result.message, 'error');
+            }
+          })
+          .withFailureHandler(function(error) {
+            btn.disabled = false;
+            btn.innerHTML = 'Send Verification Code';
+            showLoginMessage(1, 'Error: ' + error.message, 'error');
+          })
+          .requestOTP(email);
+      }
+
+      // Verify OTP code
+      function verifyOTP() {
+        const email = localStorage.getItem(SESSION_EMAIL_KEY);
+        const code = document.getElementById('loginCodeInput').value.trim();
+
+        if (!code) {
+          showLoginMessage(2, 'Please enter the verification code.', 'error');
+          return;
+        }
+
+        if (!email) {
+          showLoginMessage(2, 'Session expired. Please start over.', 'error');
+          setTimeout(() => {
+            switchLoginStep('Email');
+            hideLoginMessage(2);
+          }, 2000);
+          return;
+        }
+
+        const btn = document.getElementById('loginVerifyBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="login-loading"></span>Verifying...';
+        hideLoginMessage(2);
+
+        google.script.run
+          .withSuccessHandler(function(result) {
+            btn.disabled = false;
+            btn.innerHTML = 'Verify & Sign In';
+
+            if (result.success) {
+              // Save session
+              saveSession(result.token, result.user);
+
+              showLoginMessage(2, result.message, 'success');
+
+              // Reload the app with authentication
+              setTimeout(() => {
+                location.reload();
+              }, 1000);
+            } else {
+              showLoginMessage(2, result.message, 'error');
+            }
+          })
+          .withFailureHandler(function(error) {
+            btn.disabled = false;
+            btn.innerHTML = 'Verify & Sign In';
+            showLoginMessage(2, 'Error: ' + error.message, 'error');
+          })
+          .verifyOTP(email, code);
+      }
+
+      // Logout function
+      function logout() {
+        const token = getSessionToken();
+
+        if (token) {
+          google.script.run
+            .withSuccessHandler(function(result) {
+              clearSession();
+              location.reload();
+            })
+            .withFailureHandler(function(error) {
+              clearSession();
+              location.reload();
+            })
+            .logout(token);
+        } else {
+          clearSession();
+          location.reload();
+        }
+      }
+
+      // Back to email step
+      function backToEmailStep() {
+        switchLoginStep('Email');
+        hideLoginMessage(2);
+        document.getElementById('loginCodeInput').value = '';
+      }
 
       // ==================== INDEXEDDB CACHE MANAGER ====================
       class ImageCacheDB {
@@ -1289,6 +1727,7 @@
       // -------------------- State --------------------
       let allItems = [];
       let headers = [];
+      let user = null;
       let settings = null;
       let columnConfig = [];
 
@@ -1309,6 +1748,7 @@
       let sortField = "none";
       let sortOrder = "asc";
 
+      let editingItemName = null;
       let imageProxyBaseUrl = "";
 
       // -------------------- Helpers --------------------
@@ -1527,7 +1967,63 @@
         document.getElementById("catalogName").textContent =
           (settings && settings.catalogName) || "Catalogue";
 
+        document.getElementById("userEmail").textContent =
+          (user && user.email) || "";
+        document.getElementById("userProfilePill").textContent =
+          (user && user.profile) || "";
+
         document.title = (settings && settings.appName) || "Catalogue";
+      }
+
+      function canEditItem(item) {
+        if (!user) return false;
+        if (user.profile === "Creator") return true;
+        if (user.profile === "Editor") {
+          return item["Added By"] === user.email;
+        }
+        return false;
+      }
+
+      function canDeleteItem(item) {
+        return canEditItem(item);
+      }
+
+      function applyRoleVisibility() {
+        if (!user) return;
+
+        const addBtn = document.getElementById("addBtn");
+        const columnsBtn = document.getElementById("columnsBtn");
+        const editCatalogBtn = document.getElementById("editCatalogBtn");
+        const sheetLinkBtn = document.getElementById("sheetLinkBtn");
+
+        if (user.profile === "Viewer") {
+          addBtn.style.display = "none";
+          columnsBtn.style.display = "none";
+          editCatalogBtn.style.display = "none";
+          sheetLinkBtn.style.display = "none";
+        } else if (user.profile === "Editor") {
+          addBtn.style.display = "inline-flex";
+          columnsBtn.style.display = "none";
+          editCatalogBtn.style.display = "none";
+          sheetLinkBtn.style.display = "none";
+        } else if (user.profile === "Creator") {
+          addBtn.style.display = "inline-flex";
+          columnsBtn.style.display = "inline-flex";
+          editCatalogBtn.style.display = "inline-block";
+          sheetLinkBtn.style.display = "inline-flex";
+        }
+
+        // Hide Filter button if no filter columns configured or used
+        const filterBtn = document.getElementById("filterBtn");
+        const hasFilterData = filterColumns.length > 0 && filterColumns.some(col =>
+          col.uniqueValues && col.uniqueValues.length > 0
+        );
+
+        if (!hasFilterData) {
+          filterBtn.style.display = "none";
+        } else {
+          filterBtn.style.display = "inline-flex";
+        }
       }
 
       function updateChipsUI() {
@@ -2140,12 +2636,36 @@
         // Setup lazy loading
         setupLazyLoading();
 
+        // Check for existing session
+        const token = getSessionToken();
+        const storedUser = getStoredUser();
+
+        // If no token, show login screen
+        if (!token) {
+          showLoginScreen();
+          console.log('No session token - showing login screen');
+          return;
+        }
+
+        console.log('Session token found - loading app...');
+
         google.script.run
           .withSuccessHandler(function (payload) {
+            user = payload.user;
             settings = payload.settings;
             headers = payload.headers || [];
             allItems = payload.items || [];
             columnConfig = payload.columnConfig || [];
+
+            // Check if user is still authenticated
+            if (!user) {
+              console.log('Session expired - showing login screen');
+              clearSession();
+              showLoginScreen();
+              return;
+            }
+
+            console.log('User authenticated:', user.email, user.profile);
 
             if (settings) {
               imageProxyBaseUrl =
@@ -2156,6 +2676,7 @@
               // Update app title
               if (settings.appName) {
                 document.title = settings.appName;
+                document.getElementById('loginAppName').textContent = settings.appName;
               }
             }
 
@@ -2163,14 +2684,38 @@
             loadColumnConfig();
             computeUniqueValues();
             updateHeaderUI();
+            applyRoleVisibility();
             updateChipsUI();
             applyFiltersAndSorting();
+
+            // Hide login screen and show app
+            hideLoginScreen();
           })
-          .getInitialData();
+          .withFailureHandler(function(error) {
+            console.error('Error loading app:', error);
+            clearSession();
+            showLoginScreen();
+            showToast('Error loading catalogue: ' + error.message, 'error');
+          })
+          .getInitialData(token);
       }
 
       // Event wiring
       window.onload = function () {
+        // Login event handlers
+        document.getElementById('loginSendCodeBtn').onclick = requestOTP;
+        document.getElementById('loginVerifyBtn').onclick = verifyOTP;
+        document.getElementById('loginBackBtn').onclick = backToEmailStep;
+        document.getElementById('logoutBtn').onclick = logout;
+
+        // Allow Enter key to submit
+        document.getElementById('loginEmailInput').onkeypress = function(e) {
+          if (e.key === 'Enter') requestOTP();
+        };
+        document.getElementById('loginCodeInput').onkeypress = function(e) {
+          if (e.key === 'Enter') verifyOTP();
+        };
+
         init();
 
         // Filter dropdown
