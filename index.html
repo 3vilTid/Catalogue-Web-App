@@ -2109,6 +2109,7 @@
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
           const place = config.itemPlace;
+          const role = config.specialRole;
 
           if (place === "name") {
             nameColumn = config;
@@ -2118,8 +2119,16 @@
             categoryColumn = config;
           } else if (place === "place") {
             placeColumn = config;
-          } else if (place === "addedby") {
+          }
+
+          // Check special roles
+          if (role === "addedby") {
             addedByColumn = config;
+          }
+
+          // Find date column by type
+          if (config.type === "date" && !dateColumn) {
+            dateColumn = config;
           }
 
           // Build filter columns list
@@ -2662,6 +2671,27 @@
               (config.displayName || config.columnName) +
               ":</span> " +
               val +
+              "</div>";
+          }
+        }
+
+        // External Link fields that don't have an itemPlace (special role only)
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.specialRole !== "externallink") continue;
+          // Skip if it already has an itemPlace and was rendered above
+          if (config.itemPlace && config.itemPlace !== "") continue;
+
+          const url = item[config.columnName];
+          if (url && String(url).trim() !== "") {
+            const linkLabel = config.displayName || config.columnName;
+            html +=
+              '<div class="detail-field" style="margin-top: 12px;">' +
+              '<a href="' +
+              url +
+              '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
+              "🔗 " + linkLabel +
+              "</a>" +
               "</div>";
           }
         }

@@ -555,11 +555,11 @@ function addMainRow(obj, token) {
     var sh = getMainSheet_();
     var headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
 
-    // Auto-fill "Added By" if column exists
-    for (var i = 0; i < headers.length; i++) {
-      if (headers[i] === "Added By") {
-        obj["Added By"] = user.email;
-        break;
+    // Auto-fill columns with "addedby" special role
+    var configs = getColumnConfig();
+    for (var i = 0; i < configs.length; i++) {
+      if (configs[i].specialRole === "addedby") {
+        obj[configs[i].columnName] = user.email;
       }
     }
 
