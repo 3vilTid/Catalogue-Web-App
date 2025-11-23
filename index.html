@@ -2546,6 +2546,7 @@
           '<div class="detail-title-row">' +
           '<div class="detail-name">' +
           (nameColumn ? (item[nameColumn.columnName] || "") : "") +
+          "</div>" +
           "</div>";
 
         // Add SubID1 and SubID2 under the Primary Identifier (like in card view)
@@ -2559,8 +2560,7 @@
             '</div>';
         }
 
-        html += "</div>" +
-          '<div class="detail-meta">';
+        html += '<div class="detail-meta">';
 
         // Only show date in metadata line
         if (dateColumn && item[dateColumn.columnName]) {
