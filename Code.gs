@@ -226,18 +226,21 @@ function getSettings() {
     return {
       appName: "App",
       catalogName: "Catalogue",
-      sheetUrl: ""
+      sheetUrl: "",
+      dateAdjustment: 0
     };
   }
 
   var appName = sh.getRange("C2").getDisplayValue() || "App";
   var catalogName = sh.getRange("C3").getDisplayValue() || "Catalogue";
   var sheetUrl = sh.getRange("C4").getDisplayValue() || "";
+  var dateAdjustment = parseInt(sh.getRange("H2").getValue()) || 0;
 
   return {
     appName: appName,
     catalogName: catalogName,
-    sheetUrl: sheetUrl
+    sheetUrl: sheetUrl,
+    dateAdjustment: dateAdjustment
   };
 }
 
@@ -522,6 +525,10 @@ function getMainData() {
     }
   }
 
+  // Get date adjustment from settings (H2)
+  var settings = getSettings();
+  var dateAdjustment = settings.dateAdjustment || 0;
+
   for (var r = 0; r < rows.length; r++) {
     var row = rows[r];
     if (!row[0]) continue;
@@ -531,11 +538,15 @@ function getMainData() {
       if (h) {
         var val = row[c];
         // Convert Date objects to YYYY-MM-DD strings using local methods
-        // Sheets dates are already in correct timezone, don't use UTC
+        // Apply date adjustment from Settings H2
         if (dateColumns[h] && val instanceof Date) {
-          var year = val.getFullYear();
-          var month = String(val.getMonth() + 1).padStart(2, '0');
-          var day = String(val.getDate()).padStart(2, '0');
+          // Apply date adjustment (add days)
+          var adjustedDate = new Date(val);
+          adjustedDate.setDate(adjustedDate.getDate() + dateAdjustment);
+
+          var year = adjustedDate.getFullYear();
+          var month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
+          var day = String(adjustedDate.getDate()).padStart(2, '0');
           obj[h] = year + "-" + month + "-" + day;
         } else {
           obj[h] = val;
@@ -622,6 +633,10 @@ function getItemByName(name, token) {
       }
     }
 
+    // Get date adjustment from settings (H2)
+    var settings = getSettings();
+    var dateAdjustment = settings.dateAdjustment || 0;
+
     var headers = data[0];
     for (var r = 1; r < data.length; r++) {
       if (data[r][0] === name) {
@@ -630,11 +645,15 @@ function getItemByName(name, token) {
           var h = headers[c];
           var val = data[r][c];
           // Convert Date objects to YYYY-MM-DD strings using local methods
-          // Sheets dates are already in correct timezone, don't use UTC
+          // Apply date adjustment from Settings H2
           if (dateColumns[h] && val instanceof Date) {
-            var year = val.getFullYear();
-            var month = String(val.getMonth() + 1).padStart(2, '0');
-            var day = String(val.getDate()).padStart(2, '0');
+            // Apply date adjustment (add days)
+            var adjustedDate = new Date(val);
+            adjustedDate.setDate(adjustedDate.getDate() + dateAdjustment);
+
+            var year = adjustedDate.getFullYear();
+            var month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
+            var day = String(adjustedDate.getDate()).padStart(2, '0');
             obj[h] = year + "-" + month + "-" + day;
           } else {
             obj[h] = val;
