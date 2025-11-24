@@ -229,6 +229,7 @@ function getSettings() {
       appName: "App",
       catalogName: "Catalogue",
       sheetUrl: "",
+      deploymentUrl: "",
       dateAdjustment: 0,
       appMode: "Private with Profiles"
     };
@@ -237,6 +238,7 @@ function getSettings() {
   var appName = sh.getRange("C2").getDisplayValue() || "App";
   var catalogName = sh.getRange("C3").getDisplayValue() || "Catalogue";
   var sheetUrl = sh.getRange("C4").getDisplayValue() || "";
+  var deploymentUrl = sh.getRange("C5").getDisplayValue() || "";
   var dateAdjustment = parseInt(sh.getRange("H2").getValue()) || 0;
   var appMode = sh.getRange("J2").getDisplayValue() || "Private with Profiles";
 
@@ -244,6 +246,7 @@ function getSettings() {
     appName: appName,
     catalogName: catalogName,
     sheetUrl: sheetUrl,
+    deploymentUrl: deploymentUrl,
     dateAdjustment: dateAdjustment,
     appMode: appMode
   };
