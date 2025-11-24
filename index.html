@@ -3755,14 +3755,15 @@
             console.log('Public viewer loaded:', user.email, user.profile);
 
             if (settings) {
-              // Use current deployment URL as image proxy base if not specified
-              const currentUrl = window.location.origin + window.location.pathname;
-              imageProxyBaseUrl =
-                settings.imageBaseUrl ||
-                settings.deploymentUrl ||
-                currentUrl;
+              // Use deployment URL from Settings C5
+              imageProxyBaseUrl = settings.deploymentUrl || "";
 
-              console.log('Image proxy URL set to:', imageProxyBaseUrl);
+              if (!imageProxyBaseUrl) {
+                console.warn('⚠️ No deployment URL configured in Settings C5! Images may not load correctly.');
+                console.warn('Please add your /exec URL to Settings sheet cell C5');
+              } else {
+                console.log('✓ Image proxy URL set to:', imageProxyBaseUrl);
+              }
 
               // Update app title
               if (settings.appName) {
@@ -3809,14 +3810,15 @@
             console.log('User authenticated:', user.email, user.profile);
 
             if (settings) {
-              // Use current deployment URL as image proxy base if not specified
-              const currentUrl = window.location.origin + window.location.pathname;
-              imageProxyBaseUrl =
-                settings.imageBaseUrl ||
-                settings.deploymentUrl ||
-                currentUrl;
+              // Use deployment URL from Settings C5
+              imageProxyBaseUrl = settings.deploymentUrl || "";
 
-              console.log('Image proxy URL set to:', imageProxyBaseUrl);
+              if (!imageProxyBaseUrl) {
+                console.warn('⚠️ No deployment URL configured in Settings C5! Images may not load correctly.');
+                console.warn('Please add your /exec URL to Settings sheet cell C5');
+              } else {
+                console.log('✓ Image proxy URL set to:', imageProxyBaseUrl);
+              }
 
               // Update app title
               if (settings.appName) {
