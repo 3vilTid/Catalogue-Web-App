@@ -229,7 +229,8 @@ function getSettings() {
       appName: "App",
       catalogName: "Catalogue",
       sheetUrl: "",
-      dateAdjustment: 0
+      dateAdjustment: 0,
+      appMode: "Private with Profiles"
     };
   }
 
@@ -237,13 +238,23 @@ function getSettings() {
   var catalogName = sh.getRange("C3").getDisplayValue() || "Catalogue";
   var sheetUrl = sh.getRange("C4").getDisplayValue() || "";
   var dateAdjustment = parseInt(sh.getRange("H2").getValue()) || 0;
+  var appMode = sh.getRange("J2").getDisplayValue() || "Private with Profiles";
 
   return {
     appName: appName,
     catalogName: catalogName,
     sheetUrl: sheetUrl,
-    dateAdjustment: dateAdjustment
+    dateAdjustment: dateAdjustment,
+    appMode: appMode
   };
+}
+
+/**
+ * Check if app is in public mode
+ */
+function isPublicMode_() {
+  var settings = getSettings();
+  return settings.appMode === "Public all in Viewer";
 }
 
 /**************************************************
@@ -485,7 +496,23 @@ function logout(token) {
  **************************************************/
 
 function getInitialData(token) {
-  // Verify session if token provided
+  // Check if app is in public mode
+  if (isPublicMode_()) {
+    // Public mode: Everyone is a Viewer, no authentication required
+    return {
+      user: {
+        email: "public@viewer",
+        name: "Public Viewer",
+        profile: "Viewer"
+      },
+      settings: getSettings(),
+      headers: getHeaders(),
+      items: getMainData(),
+      columnConfig: getColumnConfig()
+    };
+  }
+
+  // Private mode: Verify session if token provided
   var user = null;
   if (token) {
     var sessionResult = verifySession(token);

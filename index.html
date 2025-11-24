@@ -3708,19 +3708,81 @@
         // Setup lazy loading
         setupLazyLoading();
 
-        // Check for existing session
-        const token = getSessionToken();
-        const storedUser = getStoredUser();
+        // First, check app mode (public or private)
+        google.script.run
+          .withSuccessHandler(function (appSettings) {
+            console.log('App mode:', appSettings.appMode);
 
-        // If no token, show login screen
-        if (!token) {
-          showLoginScreen();
-          console.log('No session token - showing login screen');
-          return;
-        }
+            // If public mode, skip login and load data directly
+            if (appSettings.appMode === "Public all in Viewer") {
+              console.log('Public mode - loading app without authentication...');
+              loadPublicApp();
+              return;
+            }
 
-        console.log('Session token found - loading app...');
+            // Private mode - check for existing session
+            const token = getSessionToken();
 
+            // If no token, show login screen
+            if (!token) {
+              showLoginScreen();
+              console.log('No session token - showing login screen');
+              return;
+            }
+
+            console.log('Session token found - loading app...');
+            loadPrivateApp(token);
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error checking app mode:', error);
+            showToast('Error loading app settings', 'error');
+          })
+          .getSettings();
+      }
+
+      function loadPublicApp() {
+        google.script.run
+          .withSuccessHandler(function (payload) {
+            user = payload.user;
+            settings = payload.settings;
+            headers = payload.headers || [];
+            allItems = payload.items || [];
+            columnConfig = payload.columnConfig || [];
+
+            console.log('Public viewer loaded:', user.email, user.profile);
+
+            if (settings) {
+              imageProxyBaseUrl =
+                settings.imageBaseUrl ||
+                settings.deploymentUrl ||
+                "";
+
+              // Update app title
+              if (settings.appName) {
+                document.title = settings.appName;
+                document.getElementById('loginAppName').textContent = settings.appName;
+              }
+            }
+
+            // Load column configuration
+            loadColumnConfig();
+            computeUniqueValues();
+            updateHeaderUI();
+            applyRoleVisibility();
+            updateChipsUI();
+            applyFiltersAndSorting();
+
+            // Hide login screen and show app
+            hideLoginScreen();
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error loading public app:', error);
+            showToast('Error loading catalogue: ' + error.message, 'error');
+          })
+          .getInitialData(null);  // No token needed in public mode
+      }
+
+      function loadPrivateApp(token) {
         google.script.run
           .withSuccessHandler(function (payload) {
             user = payload.user;
