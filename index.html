@@ -1407,7 +1407,7 @@
           </div>
         </div>
 
-        <div class="right-block">
+        <div id="userInfoBlock" class="right-block">
           <div>
             <span>Signed in:</span>
             <div class="user-pill">
@@ -2431,6 +2431,13 @@
           (user && user.profile) || "";
 
         document.title = (settings && settings.appName) || "Catalogue";
+
+        // Hide user info and logout button in public mode
+        const isPublicMode = settings && settings.appMode === "Public all in Viewer";
+        const userInfoBlock = document.getElementById("userInfoBlock");
+        if (userInfoBlock) {
+          userInfoBlock.style.display = isPublicMode ? "none" : "flex";
+        }
       }
 
       function canEditItem(item) {
