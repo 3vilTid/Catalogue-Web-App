@@ -2,33 +2,73 @@
  * Constants & Helpers
  **************************************************/
 
+// Map human-readable item places to internal codes
+var ITEM_PLACE_MAP = {
+  "Primary Identifier": "name",
+  "Main Image": "image",
+  "SubId1": "category",
+  "SubId2": "place",
+  "Top Corner": "topcorner",
+  "Long text Up": "longtextup",
+  "Detail Left": "detailleft",
+  "Detail Right": "detailright",
+  "Long text Down": "longtextdown",
+  "Bottom": "bottom"
+};
+
+// Reverse map for display
+var ITEM_PLACE_DISPLAY = {
+  "name": "Primary Identifier",
+  "image": "Main Image",
+  "category": "SubId1",
+  "place": "SubId2",
+  "topcorner": "Top Corner",
+  "longtextup": "Long text Up",
+  "detailleft": "Detail Left",
+  "detailright": "Detail Right",
+  "longtextdown": "Long text Down",
+  "bottom": "Bottom"
+};
+
 // Map human-readable special roles to internal codes
 var SPECIAL_ROLE_MAP = {
-  "Primary Identifier": "name",
-  "Description": "description",
-  "Image URL": "image",
-  "Category": "category",
-  "Location": "place",
-  "Date": "date",
+  "Auto-filled User Mail": "addedby",
   "External Link": "externallink",
-  "Auto-filled Creator": "addedby",
   "Formula (Read-only)": "formula"
 };
 
 // Reverse map for display
 var SPECIAL_ROLE_DISPLAY = {
-  "name": "Primary Identifier",
-  "description": "Description",
-  "image": "Image URL",
-  "category": "Category",
-  "place": "Location",
-  "date": "Date",
+  "addedby": "Auto-filled User Mail",
   "externallink": "External Link",
-  "addedby": "Auto-filled Creator",
   "formula": "Formula (Read-only)"
 };
 
-// Convert display name to internal code
+// Convert item place display name to internal code
+function normalizeItemPlace_(displayPlace) {
+  if (!displayPlace) return "";
+
+  var placeStr = String(displayPlace).trim();
+
+  // "None" means no item place
+  if (placeStr === "None" || placeStr === "NONE" || placeStr === "none") {
+    return "";
+  }
+
+  // If already internal code, return as-is
+  if (placeStr === "name" || placeStr === "image" ||
+      placeStr === "category" || placeStr === "place" ||
+      placeStr === "topcorner" || placeStr === "longtextup" ||
+      placeStr === "detailleft" || placeStr === "detailright" ||
+      placeStr === "longtextdown" || placeStr === "bottom") {
+    return placeStr;
+  }
+
+  // Convert display name to internal code
+  return ITEM_PLACE_MAP[placeStr] || "";
+}
+
+// Convert special role display name to internal code
 function normalizeSpecialRole_(displayRole) {
   if (!displayRole) return "";
 
@@ -40,11 +80,7 @@ function normalizeSpecialRole_(displayRole) {
   }
 
   // If already internal code, return as-is
-  if (roleStr === "name" || roleStr === "description" ||
-      roleStr === "image" || roleStr === "category" ||
-      roleStr === "place" || roleStr === "date" ||
-      roleStr === "externallink" || roleStr === "addedby" ||
-      roleStr === "formula") {
+  if (roleStr === "addedby" || roleStr === "externallink" || roleStr === "formula") {
     return roleStr;
   }
 
@@ -94,6 +130,7 @@ function getColumnConfig() {
 
     for (var i = 1; i < data.length; i++) {
       var row = data[i];
+      var rawItemPlace = String(row[5] || "").trim();
       var rawSpecialRole = String(row[6] || "").trim();
 
       configs.push({
@@ -102,7 +139,8 @@ function getColumnConfig() {
         type: row[2] || "text",
         showInFilter: row[3] === true || row[3] === "TRUE",
         showInSort: row[4] === true || row[4] === "TRUE",
-        showInDetail: row[5] === true || row[5] === "TRUE",
+        itemPlace: normalizeItemPlace_(rawItemPlace),
+        itemPlaceDisplay: rawItemPlace,
         specialRole: normalizeSpecialRole_(rawSpecialRole),
         specialRoleDisplay: rawSpecialRole
       });
@@ -190,19 +228,36 @@ function getSettings() {
     return {
       appName: "App",
       catalogName: "Catalogue",
-      imageBaseUrl: ""
+      sheetUrl: "",
+      deploymentUrl: "",
+      dateAdjustment: 0,
+      appMode: "Private with Profiles"
     };
   }
 
   var appName = sh.getRange("C2").getDisplayValue() || "App";
   var catalogName = sh.getRange("C3").getDisplayValue() || "Catalogue";
-  var imageBaseUrl = sh.getRange("C4").getDisplayValue() || "";
+  var sheetUrl = sh.getRange("C4").getDisplayValue() || "";
+  var deploymentUrl = sh.getRange("C5").getDisplayValue() || "";
+  var dateAdjustment = parseInt(sh.getRange("H2").getValue()) || 0;
+  var appMode = sh.getRange("J2").getDisplayValue() || "Private with Profiles";
 
   return {
     appName: appName,
     catalogName: catalogName,
-    imageBaseUrl: imageBaseUrl
+    sheetUrl: sheetUrl,
+    deploymentUrl: deploymentUrl,
+    dateAdjustment: dateAdjustment,
+    appMode: appMode
   };
+}
+
+/**
+ * Check if app is in public mode
+ */
+function isPublicMode_() {
+  var settings = getSettings();
+  return settings.appMode === "Public all in Viewer";
 }
 
 /**************************************************
@@ -444,7 +499,23 @@ function logout(token) {
  **************************************************/
 
 function getInitialData(token) {
-  // Verify session if token provided
+  // Check if app is in public mode
+  if (isPublicMode_()) {
+    // Public mode: Everyone is a Viewer, no authentication required
+    return {
+      user: {
+        email: "public@viewer",
+        name: "Public Viewer",
+        profile: "Viewer"
+      },
+      settings: getSettings(),
+      headers: getHeaders(),
+      items: getMainData(),
+      columnConfig: getColumnConfig()
+    };
+  }
+
+  // Private mode: Verify session if token provided
   var user = null;
   if (token) {
     var sessionResult = verifySession(token);
@@ -477,13 +548,42 @@ function getMainData() {
   var rows = data.slice(1);
   var out = [];
 
+  // Get column config to identify date columns
+  var configs = getColumnConfig();
+  var dateColumns = {};
+  for (var i = 0; i < configs.length; i++) {
+    if (configs[i].type === "date") {
+      dateColumns[configs[i].columnName] = true;
+    }
+  }
+
+  // Get date adjustment from settings (H2)
+  var settings = getSettings();
+  var dateAdjustment = settings.dateAdjustment || 0;
+
   for (var r = 0; r < rows.length; r++) {
     var row = rows[r];
     if (!row[0]) continue;
     var obj = {};
     for (var c = 0; c < headers.length; c++) {
       var h = headers[c];
-      if (h) obj[h] = row[c];
+      if (h) {
+        var val = row[c];
+        // Convert Date objects to YYYY-MM-DD strings using local methods
+        // Apply date adjustment from Settings H2
+        if (dateColumns[h] && val instanceof Date) {
+          // Apply date adjustment (add days)
+          var adjustedDate = new Date(val);
+          adjustedDate.setDate(adjustedDate.getDate() + dateAdjustment);
+
+          var year = adjustedDate.getFullYear();
+          var month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
+          var day = String(adjustedDate.getDate()).padStart(2, '0');
+          obj[h] = year + "-" + month + "-" + day;
+        } else {
+          obj[h] = val;
+        }
+      }
     }
     out.push(obj);
   }
@@ -522,11 +622,11 @@ function addMainRow(obj, token) {
     var sh = getMainSheet_();
     var headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
 
-    // Auto-fill "Added By" if column exists
-    for (var i = 0; i < headers.length; i++) {
-      if (headers[i] === "Added By") {
-        obj["Added By"] = user.email;
-        break;
+    // Auto-fill columns with "addedby" special role
+    var configs = getColumnConfig();
+    for (var i = 0; i < configs.length; i++) {
+      if (configs[i].specialRole === "addedby") {
+        obj[configs[i].columnName] = user.email;
       }
     }
 
@@ -556,12 +656,40 @@ function getItemByName(name, token) {
     var data = sh.getDataRange().getValues();
     if (data.length < 2) return null;
 
+    // Get column config to identify date columns
+    var configs = getColumnConfig();
+    var dateColumns = {};
+    for (var i = 0; i < configs.length; i++) {
+      if (configs[i].type === "date") {
+        dateColumns[configs[i].columnName] = true;
+      }
+    }
+
+    // Get date adjustment from settings (H2)
+    var settings = getSettings();
+    var dateAdjustment = settings.dateAdjustment || 0;
+
     var headers = data[0];
     for (var r = 1; r < data.length; r++) {
       if (data[r][0] === name) {
         var obj = {};
         for (var c = 0; c < headers.length; c++) {
-          obj[headers[c]] = data[r][c];
+          var h = headers[c];
+          var val = data[r][c];
+          // Convert Date objects to YYYY-MM-DD strings using local methods
+          // Apply date adjustment from Settings H2
+          if (dateColumns[h] && val instanceof Date) {
+            // Apply date adjustment (add days)
+            var adjustedDate = new Date(val);
+            adjustedDate.setDate(adjustedDate.getDate() + dateAdjustment);
+
+            var year = adjustedDate.getFullYear();
+            var month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
+            var day = String(adjustedDate.getDate()).padStart(2, '0');
+            obj[h] = year + "-" + month + "-" + day;
+          } else {
+            obj[h] = val;
+          }
         }
         return obj;
       }
@@ -690,7 +818,7 @@ function saveColumnConfig(configs, token) {
     }
 
     var sh = getColumnConfigSheet_();
-    var headers = ["Column Name", "Display Name", "Type", "Show in Filter", "Show in Sort", "Show in Detail", "Special Role"];
+    var headers = ["Column Name", "Display Name", "Type", "Show in Filter", "Show in Sort", "Item Place", "Special Role"];
 
     // Clear existing data (except header)
     var lastRow = sh.getLastRow();
@@ -702,14 +830,17 @@ function saveColumnConfig(configs, token) {
     var rows = [];
     for (var i = 0; i < configs.length; i++) {
       var config = configs[i];
+      var itemPlaceToSave = config.itemPlaceDisplay || config.itemPlace || "";
+      var specialRoleToSave = config.specialRoleDisplay || config.specialRole || "";
+
       rows.push([
         config.columnName || "",
         config.displayName || config.columnName || "",
         config.type || "text",
         config.showInFilter || false,
         config.showInSort || false,
-        config.showInDetail || false,
-        config.specialRole || ""
+        itemPlaceToSave,
+        specialRoleToSave
       ]);
     }
 
@@ -724,7 +855,7 @@ function saveColumnConfig(configs, token) {
   }
 }
 
-function addNewColumn(columnName, displayName, type, showInFilter, showInSort, showInDetail, specialRole, token) {
+function addNewColumn(columnName, displayName, type, showInFilter, showInSort, itemPlace, specialRole, token) {
   try {
     // Verify session
     var sessionResult = verifySession(token);
@@ -747,7 +878,7 @@ function addNewColumn(columnName, displayName, type, showInFilter, showInSort, s
       type || "text",
       showInFilter || false,
       showInSort || false,
-      showInDetail || false,
+      itemPlace || "",
       specialRole || ""
     ]);
 
@@ -832,4 +963,25 @@ function renameCatalogue(newName, token) {
   } catch (err) {
     throw new Error("Error renaming catalogue: " + err.message);
   }
+}
+
+/**************************************************
+ * Test Function - Use this to trigger authorization
+ **************************************************/
+
+// Run this function from the Apps Script editor to authorize email permissions
+function testEmailPermissions() {
+  Logger.log("Testing email permissions...");
+
+  // This will trigger the authorization prompt for MailApp
+  var recipient = Session.getActiveUser().getEmail();
+
+  MailApp.sendEmail({
+    to: recipient,
+    subject: "Test - Email Permission Authorization",
+    body: "This is a test email to authorize the email sending permission.\n\nYou can now deploy your Email OTP authentication app!"
+  });
+
+  Logger.log("Test email sent successfully to: " + recipient);
+  return "Authorization successful! Email sent.";
 }

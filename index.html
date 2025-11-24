@@ -29,11 +29,39 @@
         box-sizing: border-box;
       }
 
+      /* Hide or style scrollbars */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+      }
+
+      *::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      *::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      *::-webkit-scrollbar-thumb {
+        background-color: rgba(148, 163, 184, 0.3);
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+      }
+
+      *::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(148, 163, 184, 0.5);
+      }
+
       html, body {
         margin: 0;
         padding: 0;
         width: 100%;
         overflow-x: hidden;
+        border: none;
+        outline: none;
       }
 
       body {
@@ -47,12 +75,15 @@
           #eef2ff
         );
         color: var(--text-main);
+        min-height: 100vh;
       }
 
       .shell {
         max-width: 1160px;
         width: 100%;
         margin: 0 auto;
+        border: none;
+        outline: none;
       }
 
       /* Top header ----------------------------------------------------------- */
@@ -216,11 +247,11 @@
 
       .btn-primary {
         border: none;
+        border-radius: 999px;
         background: linear-gradient(135deg, #2563eb, #1d4ed8);
         color: white;
         font-weight: 500;
         padding: 0 16px;
-        box-shadow: 0 12px 25px rgba(37, 99, 235, 0.4);
       }
 
       .btn-primary:hover {
@@ -515,6 +546,7 @@
         display: grid;
         grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
         gap: 18px;
+        position: relative;
       }
 
       .detail-img-wrapper {
@@ -523,7 +555,10 @@
         max-height: 340px;
         overflow: hidden;
         border-radius: 16px;
-        background: #e5e7eb;
+        background: transparent;
+        box-shadow: none !important;
+        border: none !important;
+        outline: none !important;
       }
 
       .detail-img {
@@ -531,6 +566,10 @@
         max-height: 340px;
         object-fit: cover;
         border-radius: 16px;
+        box-shadow: none !important;
+        border: none !important;
+        outline: none !important;
+        display: block;
       }
 
       .detail-img.placeholder {
@@ -539,22 +578,30 @@
         position: absolute;
         top: 0;
         left: 0;
+        box-shadow: none !important;
       }
 
       .detail-img.full {
         position: relative;
         opacity: 0;
         transition: opacity 0.4s ease;
+        box-shadow: none !important;
       }
 
       .detail-img.full.loaded {
         opacity: 1;
       }
-      
+
       /* Hide placeholder when full image is loaded */
       .detail-img.full.loaded ~ .detail-img.placeholder {
         opacity: 0;
         transition: opacity 0.4s ease;
+      }
+
+      #detailImgContainer {
+        box-shadow: none !important;
+        border: none !important;
+        outline: none !important;
       }
 
       .detail-title-row {
@@ -640,7 +687,8 @@
         display: none;
         align-items: center;
         justify-content: center;
-        background: rgba(15, 23, 42, 0.32);
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(4px);
         z-index: 60;
       }
 
@@ -652,6 +700,16 @@
         border-radius: 16px;
         padding: 16px 18px 14px;
         box-shadow: 0 22px 55px rgba(15, 23, 42, 0.6);
+      }
+
+      .modal-box {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 24px 28px;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+        max-height: 90vh;
+        overflow-y: auto;
+        min-width: 480px;
       }
 
       .modal-card h3 {
@@ -680,11 +738,117 @@
         box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
       }
 
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .modal-header h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: #111827;
+      }
+
+      .modal-close-x {
+        background: transparent;
+        border: none;
+        font-size: 24px;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        transition: all 0.2s;
+      }
+
+      .modal-close-x:hover {
+        background: #f3f4f6;
+        color: #374151;
+      }
+
+      .modal-body {
+        margin-bottom: 20px;
+      }
+
+      .modal-body label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 6px;
+        margin-top: 16px;
+      }
+
+      .modal-body label:first-child {
+        margin-top: 0;
+      }
+
+      .modal-body input[type="text"],
+      .modal-body input[type="date"],
+      .modal-body select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #111827;
+        background: #ffffff;
+        transition: all 0.2s;
+        outline: none;
+      }
+
+      .modal-body input[type="text"]:focus,
+      .modal-body input[type="date"]:focus,
+      .modal-body select:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+      .modal-body input[type="date"]::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        opacity: 0.6;
+        padding: 4px;
+        border-radius: 4px;
+      }
+
+      .modal-body input[type="date"]::-webkit-calendar-picker-indicator:hover {
+        opacity: 1;
+        background-color: #f3f4f6;
+      }
+
+      .modal-body input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #2563eb;
+      }
+
+      .modal-body label.checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 12px;
+        cursor: pointer;
+        font-weight: 400;
+        color: #4b5563;
+      }
+
       .modal-footer {
-        margin-top: 6px;
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid #e5e7eb;
         display: flex;
         justify-content: flex-end;
-        gap: 8px;
+        gap: 10px;
       }
 
       .btn-text {
@@ -918,7 +1082,8 @@
       .prompt-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(15, 23, 42, 0.4);
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(4px);
         display: none;
         align-items: center;
         justify-content: center;
@@ -930,27 +1095,29 @@
         display: flex;
       }
 
+      .prompt-box,
       .prompt-dialog {
         background: white;
         border-radius: 16px;
-        padding: 24px;
-        max-width: 400px;
+        padding: 28px;
+        max-width: 440px;
         width: 90%;
-        box-shadow: 0 20px 60px rgba(15, 23, 42, 0.4);
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
         animation: scaleIn 0.2s ease;
       }
 
       .prompt-title {
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 600;
         margin-bottom: 12px;
         color: #111827;
       }
 
       .prompt-message {
-        font-size: 14px;
+        font-size: 15px;
         color: #6b7280;
-        margin-bottom: 12px;
+        line-height: 1.5;
+        margin-bottom: 20px;
       }
 
       .prompt-input {
@@ -970,27 +1137,31 @@
 
       .prompt-actions {
         display: flex;
-        gap: 10px;
+        gap: 12px;
         justify-content: flex-end;
+        margin-top: 24px;
       }
 
       .prompt-btn {
-        padding: 8px 16px;
+        padding: 10px 20px;
         border-radius: 8px;
         border: none;
-        font-size: 14px;
+        font-size: 15px;
         font-weight: 500;
         cursor: pointer;
-        transition: all 0.15s ease;
+        transition: all 0.2s ease;
+        min-width: 80px;
       }
 
       .prompt-btn.cancel {
         background: #f3f4f6;
         color: #374151;
+        border: 1px solid #e5e7eb;
       }
 
       .prompt-btn.cancel:hover {
         background: #e5e7eb;
+        border-color: #d1d5db;
       }
 
       .prompt-btn.confirm {
@@ -1000,6 +1171,7 @@
 
       .prompt-btn.confirm:hover {
         background: #1d4ed8;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
       }
 
       @keyframes fadeIn {
@@ -1252,8 +1424,13 @@
       <!-- Filters row -->
       <div class="filters-row">
         <div class="filters-left">
+          <!-- Back to list button (hidden by default, shown in detail view) -->
+          <button id="backToListBtn" class="btn-toolbar" onclick="backToList()" style="display: none;">
+            ← Back to list
+          </button>
+
           <!-- Filter button with dropdown -->
-          <div class="dropdown-wrapper">
+          <div id="filterWrapper" class="dropdown-wrapper">
             <button id="filterBtn" class="btn-toolbar">
               🔍 Filter
               <span id="filterBadge" class="btn-badge" style="display: none;">0</span>
@@ -1265,7 +1442,7 @@
           </div>
 
           <!-- Sort button with dropdown -->
-          <div class="dropdown-wrapper">
+          <div id="sortWrapper" class="dropdown-wrapper">
             <button id="sortBtn" class="btn-toolbar">
               ↕️ Sort
               <span id="sortLabel">None</span>
@@ -1309,12 +1486,12 @@
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="filters-right">
-            <button id="sheetLinkBtn" class="btn-toolbar" style="display: none;">📊 Sheet</button>
-            <button id="columnsBtn" class="btn-toolbar" style="display: none;">⚙ Columns</button>
-            <button id="addBtn" class="btn-toolbar btn-primary" style="display: none;">+ Add item</button>
-          </div>
+        <div class="filters-right">
+          <button id="sheetLinkBtn" class="btn-toolbar" style="display: none;">📊 Sheet</button>
+          <button id="columnsBtn" class="btn-toolbar" style="display: none;">⚙ Columns</button>
+          <button id="addBtn" class="btn-toolbar btn-primary" style="display: none;">+ Add item</button>
         </div>
       </div>
 
@@ -1382,8 +1559,8 @@
     </div>
 
     <!-- Edit Item Modal -->
-    <div id="editModal" class="modal-overlay">
-      <div class="modal-box">
+    <div id="editModal" class="modal">
+      <div class="modal-box" style="min-width: 520px;">
         <div class="modal-header">
           <h2 id="editModalTitle">Edit item</h2>
           <button class="modal-close-x" onclick="closeEditModal()">✕</button>
@@ -1424,7 +1601,7 @@
     </div>
 
     <!-- Manage Columns Modal -->
-    <div id="manageColumnsModal" class="modal-overlay">
+    <div id="manageColumnsModal" class="modal">
       <div class="modal-box" style="max-width: 900px;">
         <div class="modal-header">
           <h2>Manage Columns</h2>
@@ -1440,7 +1617,7 @@
                 <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Type</th>
                 <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Filter</th>
                 <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Sort</th>
-                <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Detail</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Item Place</th>
                 <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Special Role</th>
                 <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Actions</th>
               </tr>
@@ -1458,7 +1635,7 @@
     </div>
 
     <!-- Column Editor Modal -->
-    <div id="columnEditorModal" class="modal-overlay">
+    <div id="columnEditorModal" class="modal">
       <div class="modal-box">
         <div class="modal-header">
           <h2 id="columnEditorTitle">Edit Column</h2>
@@ -1476,34 +1653,40 @@
             <option value="text">Text</option>
             <option value="number">Number</option>
             <option value="date">Date</option>
+            <option value="image">Image</option>
+            <option value="url">URL</option>
           </select>
 
-          <label style="display: flex; align-items: center; gap: 8px;">
+          <label class="checkbox-label">
             <input type="checkbox" id="editColShowInFilter">
             Show in Filter
           </label>
 
-          <label style="display: flex; align-items: center; gap: 8px;">
+          <label class="checkbox-label">
             <input type="checkbox" id="editColShowInSort">
             Show in Sort
           </label>
 
-          <label style="display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" id="editColShowInDetail">
-            Show in Detail
-          </label>
+          <label>Item Place</label>
+          <select id="editColItemPlace">
+            <option value="Primary Identifier">Primary Identifier</option>
+            <option value="Main Image">Main Image</option>
+            <option value="SubId1">SubId1</option>
+            <option value="SubId2">SubId2</option>
+            <option value="Top Corner">Top Corner</option>
+            <option value="Long text Up">Long text Up</option>
+            <option value="Detail Left">Detail Left</option>
+            <option value="Detail Right">Detail Right</option>
+            <option value="Long text Down">Long text Down</option>
+            <option value="Bottom">Bottom</option>
+            <option value="">None</option>
+          </select>
 
           <label>Special Role</label>
           <select id="editColSpecialRole">
             <option value="">None</option>
-            <option value="Primary Identifier">Primary Identifier (Name)</option>
-            <option value="Description">Description</option>
-            <option value="Image URL">Image URL</option>
-            <option value="Category">Category</option>
-            <option value="Location">Location</option>
-            <option value="Date">Date</option>
+            <option value="Auto-filled User Mail">Auto-filled User Mail</option>
             <option value="External Link">External Link</option>
-            <option value="Auto-filled Creator">Auto-filled Creator</option>
             <option value="Formula (Read-only)">Formula (Read-only)</option>
           </select>
         </div>
@@ -1706,10 +1889,11 @@
 
               showLoginMessage(2, result.message, 'success');
 
-              // Reload the app with authentication
+              // Load the app with authentication (without full page reload)
               setTimeout(() => {
-                location.reload();
-              }, 1000);
+                hideLoginScreen();
+                init(); // Reinitialize the app
+              }, 800);
             } else {
               showLoginMessage(2, result.message, 'error');
             }
@@ -1977,6 +2161,50 @@
 
       // -------------------- Helpers --------------------
 
+      function formatDate(dateValue) {
+        if (!dateValue) return "";
+        try {
+          // If it's a string in YYYY-MM-DD format, parse it manually to avoid timezone issues
+          if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}/)) {
+            const parts = dateValue.split('-');
+            const year = parts[0];
+            const month = parts[1];
+            const day = parts[2].substring(0, 2); // Handle if there's time component
+            return `${day}/${month}/${year}`;
+          }
+
+          const date = new Date(dateValue);
+          if (isNaN(date.getTime())) return String(dateValue);
+
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${day}/${month}/${year}`;
+        } catch (e) {
+          return String(dateValue);
+        }
+      }
+
+      function formatDateForInput(dateValue) {
+        if (!dateValue) return "";
+        try {
+          // If already in YYYY-MM-DD format, return as-is
+          if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            return dateValue;
+          }
+
+          const date = new Date(dateValue);
+          if (isNaN(date.getTime())) return String(dateValue);
+
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        } catch (e) {
+          return String(dateValue);
+        }
+      }
+
       function loadColumnConfig() {
         // Reset column references
         nameColumn = null;
@@ -1992,24 +2220,27 @@
         // Build column references from config
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
+          const place = config.itemPlace;
           const role = config.specialRole;
 
-          if (role === "name") {
+          if (place === "name") {
             nameColumn = config;
-          } else if (role === "description") {
-            descriptionColumn = config;
-          } else if (role === "image") {
+          } else if (place === "image") {
             imageColumn = config;
-          } else if (role === "category") {
+          } else if (place === "category") {
             categoryColumn = config;
-          } else if (role === "place") {
+          } else if (place === "place") {
             placeColumn = config;
-          } else if (role === "date") {
-            dateColumn = config;
-          } else if (role === "externallink") {
-            externalLinkColumn = config;
-          } else if (role === "addedby") {
+          }
+
+          // Check special roles
+          if (role === "addedby") {
             addedByColumn = config;
+          }
+
+          // Find date column by type
+          if (config.type === "date" && !dateColumn) {
+            dateColumn = config;
           }
 
           // Build filter columns list
@@ -2121,10 +2352,13 @@
           const base = imageProxyBaseUrl || "";
           const url = base.replace(/\/$/, "") + "?img=" + encodeURIComponent(fileId);
 
+          console.log('Loading image from:', url);
+
           const response = await fetch(url);
           const json = await response.json();
 
           if (!json.ok) {
+            console.error('Image fetch failed:', json.error || 'Unknown error', 'FileID:', fileId);
             wrapper.innerHTML = '<div style="width:100%;height:100%;background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px);"></div>';
             return;
           }
@@ -2418,8 +2652,12 @@
         det.style.display = "block";
         grid.innerHTML = "";
 
+        // Show back button, hide filter and sort
+        document.getElementById("backToListBtn").style.display = "inline-flex";
+        document.getElementById("filterWrapper").style.display = "none";
+        document.getElementById("sortWrapper").style.display = "none";
+
         let html =
-          '<button class="back-btn" onclick="backToList()">← Back to list</button>' +
           '<div class="detail-layout">' +
           '<div id="detailImgContainer">';
 
@@ -2436,60 +2674,175 @@
           '<div class="detail-name">' +
           (nameColumn ? (item[nameColumn.columnName] || "") : "") +
           "</div>" +
-          "</div>" +
-          '<div class="detail-meta">';
+          "</div>";
 
-        const bits = [];
-        if (categoryColumn && item[categoryColumn.columnName]) bits.push(item[categoryColumn.columnName]);
-        if (placeColumn && item[placeColumn.columnName]) bits.push(item[placeColumn.columnName]);
-        if (dateColumn && item[dateColumn.columnName]) bits.push(item[dateColumn.columnName]);
-        html += bits.join(" • ") + "</div>";
+        // Add SubID1 and SubID2 under the Primary Identifier (like in card view)
+        const subBits = [];
+        if (categoryColumn && item[categoryColumn.columnName]) subBits.push(item[categoryColumn.columnName]);
+        if (placeColumn && item[placeColumn.columnName]) subBits.push(item[placeColumn.columnName]);
 
-        // Show fields configured with showInDetail
+        if (subBits.length > 0) {
+          html += '<div style="font-size: 14px; color: #6b7280; margin-top: 4px;">' +
+            subBits.join(" • ") +
+            '</div>';
+        }
+
+        // Top Corner fields - collect all values with same styling as SubId
+        const topCornerBits = [];
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
-          if (!config.showInDetail) continue;
-
-          // Skip special columns that are shown elsewhere
-          if (config.specialRole === "name" ||
-              config.specialRole === "category" ||
-              config.specialRole === "image" ||
-              config.specialRole === "place" ||
-              config.specialRole === "date" ||
-              config.specialRole === "addedby" ||
-              config.specialRole === "externallink") {
-            continue;
-          }
+          if (config.itemPlace !== "topcorner") continue;
 
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
+            const displayVal = config.type === "date" ? formatDate(val) : val;
+            topCornerBits.push(displayVal);
+          }
+        }
+
+        if (topCornerBits.length > 0) {
+          html += '<div style="position: absolute; top: 4px; right: 16px; font-size: 14px; color: #6b7280;">' +
+            topCornerBits.join(" • ") +
+            '</div>';
+        }
+
+        // Long text Up fields (before two-column grid)
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "longtextup") continue;
+
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            const displayVal = config.type === "date" ? formatDate(val) : val;
             html +=
-              '<div class="detail-field"><span class="detail-label">' +
+              '<div class="detail-field" style="margin-top: 16px;"><span class="detail-label">' +
               (config.displayName || config.columnName) +
               ":</span> " +
-              val +
+              displayVal +
               "</div>";
           }
         }
 
-        if (externalLinkColumn && item[externalLinkColumn.columnName]) {
-          const url = item[externalLinkColumn.columnName];
-          html +=
-            '<div class="detail-field">' +
-            '<a href="' +
-            url +
-            '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
-            "🔗 Open external link" +
-            "</a>" +
-            "</div>";
+        // Create two-column layout for detail fields
+        html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px;">';
+
+        // Left column
+        html += '<div>';
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "detailleft") continue;
+
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            // Check if it's a URL type or external link
+            if (config.type === "url" || config.specialRole === "externallink") {
+              const linkLabel = config.displayName || config.columnName;
+              html +=
+                '<div class="detail-field">' +
+                '<a href="' +
+                val +
+                '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
+                "🔗 " + linkLabel +
+                "</a>" +
+                "</div>";
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              html +=
+                '<div class="detail-field"><span class="detail-label">' +
+                (config.displayName || config.columnName) +
+                ":</span> " +
+                displayVal +
+                "</div>";
+            }
+          }
+        }
+        html += '</div>';
+
+        // Right column
+        html += '<div>';
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "detailright") continue;
+
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            // Check if it's a URL type or external link
+            if (config.type === "url" || config.specialRole === "externallink") {
+              const linkLabel = config.displayName || config.columnName;
+              html +=
+                '<div class="detail-field">' +
+                '<a href="' +
+                val +
+                '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
+                "🔗 " + linkLabel +
+                "</a>" +
+                "</div>";
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              html +=
+                '<div class="detail-field"><span class="detail-label">' +
+                (config.displayName || config.columnName) +
+                ":</span> " +
+                displayVal +
+                "</div>";
+            }
+          }
+        }
+        html += '</div>';
+
+        html += '</div>'; // Close grid
+
+        // Long text Down fields (after two-column grid)
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "longtextdown") continue;
+
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            const displayVal = config.type === "date" ? formatDate(val) : val;
+            html +=
+              '<div class="detail-field" style="margin-top: 16px;"><span class="detail-label">' +
+              (config.displayName || config.columnName) +
+              ":</span> " +
+              displayVal +
+              "</div>";
+          }
         }
 
-        if (addedByColumn && item[addedByColumn.columnName]) {
-          html +=
-            '<div class="detail-field" style="margin-top:10px;font-size:11px;color:#9ca3af;">' +
-            "Added by: " +
-            item[addedByColumn.columnName] +
-            "</div>";
+        // External Link fields that don't have an itemPlace (special role only)
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.specialRole !== "externallink") continue;
+          // Skip if it already has an itemPlace and was rendered above
+          if (config.itemPlace && config.itemPlace !== "") continue;
+
+          const url = item[config.columnName];
+          if (url && String(url).trim() !== "") {
+            const linkLabel = config.displayName || config.columnName;
+            html +=
+              '<div class="detail-field" style="margin-top: 12px;">' +
+              '<a href="' +
+              url +
+              '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
+              "🔗 " + linkLabel +
+              "</a>" +
+              "</div>";
+          }
+        }
+
+        // Bottom fields (like "Added by" placement)
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "bottom") continue;
+
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            const displayVal = config.type === "date" ? formatDate(val) : val;
+            html +=
+              '<div class="detail-field" style="margin-top:10px;font-size:11px;color:#9ca3af;">' +
+              displayVal +
+              "</div>";
+          }
         }
 
         if (user && user.profile !== "Viewer") {
@@ -2618,6 +2971,12 @@
 
       function backToList() {
         document.getElementById("detailView").style.display = "none";
+
+        // Hide back button, show filter and sort
+        document.getElementById("backToListBtn").style.display = "none";
+        document.getElementById("filterWrapper").style.display = "inline-block";
+        document.getElementById("sortWrapper").style.display = "inline-block";
+
         applyFiltersAndSorting();
       }
 
@@ -2894,17 +3253,18 @@
           }
 
           const displayName = config.displayName || config.columnName;
+          const inputType = config.type === "date" ? "date" : "text";
           body.innerHTML +=
             "<label>" +
             displayName +
             "</label>" +
-            '<input id="field_' +
+            '<input type="' + inputType + '" id="field_' +
             config.columnName +
             '" value="' +
             (val || "") +
             '" data-column="' +
             config.columnName +
-            '">';
+            '" placeholder="' + (config.type === "date" ? "" : "Enter " + displayName.toLowerCase()) + '">';
         }
 
         modal.style.display = "flex";
@@ -2915,16 +3275,23 @@
         editingItemName = name;
         const token = getSessionToken();
 
+        // Open modal immediately with loading state
+        const modal = document.getElementById("editModal");
+        const title = document.getElementById("editModalTitle");
+        const body = document.getElementById("editModalBody");
+        title.textContent = "Edit item";
+        body.innerHTML = '<div style="text-align: center; padding: 40px; color: #9ca3af;">Loading...</div>';
+        modal.style.display = "flex";
+
+        // Fetch data
         google.script.run
           .withSuccessHandler(function (item) {
             if (!item) {
+              closeEditModal();
               showToast("Item not found.", "error");
               return;
             }
-            const modal = document.getElementById("editModal");
-            const title = document.getElementById("editModalTitle");
-            const body = document.getElementById("editModalBody");
-            title.textContent = "Edit item";
+
             body.innerHTML = "";
 
             // Show only columns that are not "addedby" or "formula" (read-only)
@@ -2936,26 +3303,32 @@
                 continue;
               }
 
-              const val = item[config.columnName] || "";
+              let val = item[config.columnName] || "";
               const displayName = config.displayName || config.columnName;
+              const inputType = config.type === "date" ? "date" : "text";
+
+              // Format date for input[type="date"] (YYYY-MM-DD)
+              if (config.type === "date" && val) {
+                val = formatDateForInput(val);
+              }
 
               body.innerHTML +=
                 "<label>" +
                 displayName +
                 "</label>" +
-                '<input id="field_' +
+                '<input type="' + inputType + '" id="field_' +
                 config.columnName +
                 '" value="' +
                 String(val).replace(/"/g, "&quot;") +
                 '" data-column="' +
                 config.columnName +
-                '">';
+                '" placeholder="' + (config.type === "date" ? "" : "Enter " + displayName.toLowerCase()) + '">';
             }
 
-            modal.style.display = "flex";
             document.getElementById("editSaveBtn").onclick = saveAddOrEdit;
           })
           .withFailureHandler(function(error) {
+            closeEditModal();
             showToast("Error: " + error.message, "error");
           })
           .getItemByName(name, token);
@@ -3091,7 +3464,7 @@
             <td style="padding: 8px;">${config.type || 'text'}</td>
             <td style="padding: 8px; text-align: center;">${config.showInFilter ? '✓' : '—'}</td>
             <td style="padding: 8px; text-align: center;">${config.showInSort ? '✓' : '—'}</td>
-            <td style="padding: 8px; text-align: center;">${config.showInDetail ? '✓' : '—'}</td>
+            <td style="padding: 8px;">${config.itemPlaceDisplay || '—'}</td>
             <td style="padding: 8px;">${config.specialRoleDisplay || '—'}</td>
             <td style="padding: 8px; text-align: center;">
               <button class="btn-text" onclick="openEditColumn(${i})" style="font-size: 11px; padding: 4px 8px;">Edit</button>
@@ -3116,7 +3489,7 @@
         document.getElementById("editColType").value = "text";
         document.getElementById("editColShowInFilter").checked = false;
         document.getElementById("editColShowInSort").checked = false;
-        document.getElementById("editColShowInDetail").checked = true;
+        document.getElementById("editColItemPlace").value = "";
         document.getElementById("editColSpecialRole").value = "";
 
         // Enable column name field (only for new columns)
@@ -3139,7 +3512,7 @@
         document.getElementById("editColType").value = config.type || "text";
         document.getElementById("editColShowInFilter").checked = config.showInFilter || false;
         document.getElementById("editColShowInSort").checked = config.showInSort || false;
-        document.getElementById("editColShowInDetail").checked = config.showInDetail || false;
+        document.getElementById("editColItemPlace").value = config.itemPlaceDisplay || "";
         document.getElementById("editColSpecialRole").value = config.specialRoleDisplay || "";
 
         // Disable column name field (can't rename existing columns)
@@ -3158,7 +3531,7 @@
         const type = document.getElementById("editColType").value;
         const showInFilter = document.getElementById("editColShowInFilter").checked;
         const showInSort = document.getElementById("editColShowInSort").checked;
-        const showInDetail = document.getElementById("editColShowInDetail").checked;
+        const itemPlace = document.getElementById("editColItemPlace").value;
         const specialRole = document.getElementById("editColSpecialRole").value;
         const token = getSessionToken();
 
@@ -3178,7 +3551,7 @@
             .withFailureHandler(function(error) {
               showToast("Error: " + error.message, "error");
             })
-            .addNewColumn(columnName, displayName, type, showInFilter, showInSort, showInDetail, specialRole, token);
+            .addNewColumn(columnName, displayName, type, showInFilter, showInSort, itemPlace, specialRole, token);
         } else {
           // Editing existing column
           const updatedConfig = columnConfig.slice();
@@ -3188,8 +3561,10 @@
             type: type,
             showInFilter: showInFilter,
             showInSort: showInSort,
-            showInDetail: showInDetail,
-            specialRole: specialRole
+            itemPlace: itemPlace,
+            itemPlaceDisplay: itemPlace,
+            specialRole: specialRole,
+            specialRoleDisplay: specialRole
           };
 
           google.script.run
@@ -3336,19 +3711,86 @@
         // Setup lazy loading
         setupLazyLoading();
 
-        // Check for existing session
-        const token = getSessionToken();
-        const storedUser = getStoredUser();
+        // First, check app mode (public or private)
+        google.script.run
+          .withSuccessHandler(function (appSettings) {
+            console.log('App mode:', appSettings.appMode);
 
-        // If no token, show login screen
-        if (!token) {
-          showLoginScreen();
-          console.log('No session token - showing login screen');
-          return;
-        }
+            // If public mode, skip login and load data directly
+            if (appSettings.appMode === "Public all in Viewer") {
+              console.log('Public mode - loading app without authentication...');
+              loadPublicApp();
+              return;
+            }
 
-        console.log('Session token found - loading app...');
+            // Private mode - check for existing session
+            const token = getSessionToken();
 
+            // If no token, show login screen
+            if (!token) {
+              showLoginScreen();
+              console.log('No session token - showing login screen');
+              return;
+            }
+
+            console.log('Session token found - loading app...');
+            loadPrivateApp(token);
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error checking app mode:', error);
+            showToast('Error loading app settings', 'error');
+          })
+          .getSettings();
+      }
+
+      function loadPublicApp() {
+        google.script.run
+          .withSuccessHandler(function (payload) {
+            user = payload.user;
+            settings = payload.settings;
+            headers = payload.headers || [];
+            allItems = payload.items || [];
+            columnConfig = payload.columnConfig || [];
+
+            console.log('Public viewer loaded:', user.email, user.profile);
+
+            if (settings) {
+              // Use deployment URL from Settings C5
+              imageProxyBaseUrl = settings.deploymentUrl || "";
+
+              if (!imageProxyBaseUrl) {
+                console.warn('⚠️ No deployment URL configured in Settings C5! Images may not load correctly.');
+                console.warn('Please add your /exec URL to Settings sheet cell C5');
+              } else {
+                console.log('✓ Image proxy URL set to:', imageProxyBaseUrl);
+              }
+
+              // Update app title
+              if (settings.appName) {
+                document.title = settings.appName;
+                document.getElementById('loginAppName').textContent = settings.appName;
+              }
+            }
+
+            // Load column configuration
+            loadColumnConfig();
+            computeUniqueValues();
+            updateHeaderUI();
+            applyRoleVisibility();
+            updateChipsUI();
+            applyFiltersAndSorting();
+
+            // Hide login screen and show app
+            hideLoginScreen();
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error loading public app:', error);
+            showToast('Error loading catalogue: ' + error.message, 'error');
+          })
+          .getInitialData(null);  // No token needed in public mode
+      }
+
+      function loadPrivateApp(token) {
         google.script.run
           .withSuccessHandler(function (payload) {
             user = payload.user;
@@ -3368,10 +3810,15 @@
             console.log('User authenticated:', user.email, user.profile);
 
             if (settings) {
-              imageProxyBaseUrl =
-                settings.imageBaseUrl ||
-                settings.deploymentUrl ||
-                "";
+              // Use deployment URL from Settings C5
+              imageProxyBaseUrl = settings.deploymentUrl || "";
+
+              if (!imageProxyBaseUrl) {
+                console.warn('⚠️ No deployment URL configured in Settings C5! Images may not load correctly.');
+                console.warn('Please add your /exec URL to Settings sheet cell C5');
+              } else {
+                console.log('✓ Image proxy URL set to:', imageProxyBaseUrl);
+              }
 
               // Update app title
               if (settings.appName) {

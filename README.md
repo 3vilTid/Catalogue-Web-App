@@ -1,6 +1,6 @@
 # Catalogue Web App
 
-A dynamic web application built with Google Apps Script for managing catalogues with customizable columns, role-based access control, and image caching.
+A dynamic, customizable catalogue management system built with Google Apps Script. Features email authentication, role-based access control, flexible column configuration with visual layout control, and optimized image handling.
 
 ---
 
@@ -12,51 +12,102 @@ A dynamic web application built with Google Apps Script for managing catalogues 
 - [File Structure](#file-structure)
 - [Technical Details](#technical-details)
 - [Troubleshooting](#troubleshooting)
-- [Aborted Features](#aborted-features)
 - [Browser Support](#browser-support)
 
 ---
 
 ## Features
 
-### Dynamic Column System
-- **Fully Configurable Columns**: Define columns dynamically through the ColumnConfig sheet
-- **Special Column Roles**: Assign special behaviors to columns:
-  - `Primary Identifier`: Main item name (required)
-  - `Description`: Item description
-  - `Image URL`: URL to item image (Google Drive)
-  - `Category`: Classification/category
-  - `Location`: Place/location information
-  - `Date`: Date field
-  - `External Link`: External URL
-  - `Auto-filled Creator`: Automatically filled with user's email
-  - `Formula (Read-only)`: Formula-based columns
-- **Column Management UI**: Add, edit, delete, and reorder columns (Creator only)
-- **Import/Export**: Export column configuration as JSON and import it back
+### Email-Based Authentication
+- **OTP Verification**: Secure email-based one-time password authentication
+- **Session Management**: Persistent sessions with automatic token validation
+- **No Password Required**: Simple, secure access via email verification codes
+
+### Dynamic Column System with Visual Layout Control
+
+**Item Places** - Control where fields appear in the detail view:
+- **Primary Identifier**: Main item name (required)
+- **Main Image**: Primary item image from Google Drive
+- **SubId1**: First subtitle field (displayed under main title)
+- **SubId2**: Second subtitle field (displayed under main title)
+- **Top Corner**: Badge-style display in top-right corner
+- **Long text Up**: Full-width field before the two-column grid
+- **Detail Left**: Left column of two-column grid
+- **Detail Right**: Right column of two-column grid
+- **Long text Down**: Full-width field after the two-column grid
+- **Bottom**: Small gray text at bottom (e.g., metadata)
+
+**Special Roles** - Add special behaviors to columns:
+- **Auto-filled User Mail**: Automatically filled with creator's email
+- **External Link**: Clickable link display
+- **Formula (Read-only)**: Formula-based columns excluded from forms
+
+**Column Configuration** (7 columns):
+1. Column Name
+2. Display Name
+3. Type (text, date, number, url)
+4. Show in Filter (boolean)
+5. Show in Sort (boolean)
+6. Item Place (dropdown)
+7. Special Role (dropdown)
+
+**Column Management** (Creator only):
+- Add, edit, delete, and reorder columns
+- Export/Import column configuration as JSON
+- Real-time preview of layout changes
 
 ### Role-Based Access Control
+
 Three user roles with different permissions:
 
 | Role | Permissions |
 |------|-------------|
 | **Viewer** | Read-only access to catalogue items |
 | **Editor** | Add items, edit/delete own items |
-| **Creator** | Full access: manage columns, edit all items, access Google Sheet |
+| **Creator** | Full access: manage columns, settings, edit all items, access Google Sheet |
 
 ### User Interface
-- **Grid View**: Visual card-based display with images
-- **Detail View**: Expandable cards showing all configured fields
-- **Dynamic Filters**: Filter by any column marked as filterable (radio buttons)
-- **Dynamic Sorting**: Sort by any column marked as sortable (ascending/descending)
-- **Search**: Quick search across items
-- **Image Caching**: IndexedDB-based caching for faster image loading
-- **Responsive**: Works on desktop and mobile browsers
+
+**Grid View**:
+- Visual card-based display with lazy-loaded images
+- Responsive grid layout
+- SubId1 and SubId2 displayed under item name
+
+**Detail View**:
+- Two-column layout with configurable field placement
+- Top corner badge display
+- Long text sections (before and after grid)
+- Bottom metadata section
+- Progressive image loading with blur placeholder
+- Clickable external links
+- Clean, minimal design
+
+**Navigation & Controls**:
+- Filter and Sort buttons (hidden in detail view)
+- Back to List button (replaces Filter/Sort in detail view)
+- Sheet, Columns, and Add Item buttons (right-aligned)
+- Styled scrollbars that blend with design
+
+**Dynamic Filters & Sorting**:
+- Filter by any column marked as filterable
+- Sort by any column marked as sortable (ascending/descending)
+- Client-side filtering and sorting (instant results)
 
 ### Data Management
+
 - **Add Items**: Dynamic forms generated from column configuration
 - **Edit Items**: Permission-based editing (Editors: own items, Creators: all items)
 - **Delete Items**: Permission-based deletion with confirmation
 - **Auto-tracking**: Automatically records who added each item
+- **Date Handling**: Date adjustment setting for timezone correction
+- **Image Caching**: IndexedDB-based caching for faster loading
+
+### Visual Improvements
+
+- **Smooth Date Inputs**: Enhanced date picker styling with hover effects
+- **Styled Scrollbars**: Thin, semi-transparent scrollbars that blend with background
+- **Clean Images**: No shadows or borders on detail view images
+- **Optimized Layout**: No delimitation borders, seamless page transitions
 
 ---
 
@@ -69,60 +120,64 @@ Three user roles with different permissions:
 ┌─────────────────────┐
 │ Main Sheet          │  ← Catalogue data
 ├─────────────────────┤
-│ ColumnConfig        │  ← Column definitions
+│ ColumnConfig        │  ← Column definitions (7 columns)
 ├─────────────────────┤
-│ Settings            │  ← App configuration
+│ Settings            │  ← App configuration + date adjustment (H2)
 ├─────────────────────┤
 │ Users               │  ← Access control
+├─────────────────────┤
+│ EmailOTP            │  ← OTP verification codes
 └─────────────────────┘
 ```
 
-**Apps Script (Backend)**
-- `Code.gs`: Server-side logic
-  - User authentication via People API
-  - Access control enforcement
-  - CRUD operations for items
-  - Column configuration management
-  - Image serving (base64 encoded JSON)
+**Apps Script (Backend)** - `Code.gs`
+- Email OTP authentication system
+- Session management and validation
+- Access control enforcement
+- CRUD operations for items
+- Column configuration management
+- Image serving (Drive file proxy)
+- Settings management
 
-**HTML/CSS/JS (Frontend)**
-- `index.html`: Single-page application
-  - UI rendering and interactions
-  - Dynamic form generation
-  - IndexedDB image cache
-  - Filter and sort logic
+**HTML/CSS/JS (Frontend)** - `index.html`
+- Single-page application
+- Email login interface
+- Dynamic form generation based on Item Place and Special Role
+- Two-column detail view layout
+- IndexedDB image cache with lazy loading
+- Filter and sort logic
+- Responsive button visibility (Filter/Sort ↔ Back to List)
 
 ### Data Flow
 
 ```
-User Request
+User visits app URL
     ↓
-Google Apps Script (doGet)
+Enter email address
     ↓
-Access Control Check (Users sheet)
+Receive OTP via email
     ↓
-Serve index.html
+Enter OTP code
+    ↓
+Session token created
+    ↓
+Access control check (Users sheet)
+    ↓
+Load app with user's role
     ↓
 Frontend loads data via google.script.run
     ↓
 IndexedDB cache for images
     ↓
-Render UI
+Render UI based on Item Places
 ```
 
-### Deployments Required
+### Deployment
 
-**Two separate deployments are needed:**
-
-1. **Image Server** (Execute as "Me")
-   - Purpose: Serve images from your Google Drive
-   - Why: Allows all users to view images without Drive permissions
-   - Settings cell C4: Paste this deployment URL
-
-2. **Main App** (Execute as "User accessing")
-   - Purpose: Main application with user authentication
-   - Why: Runs with user's identity for access control
-   - Share this URL with users
+**Single deployment required:**
+- **Execute as**: "Me" (your email)
+- **Who has access**: "Anyone"
+- Purpose: Handles both authentication and image serving
 
 ---
 
@@ -137,47 +192,61 @@ Example:
 ```
 Name        | Description      | Picture url          | Category | Place  | Date       | Added By
 ------------|------------------|----------------------|----------|--------|------------|------------------
-Darth Vader | Movie character  | https://drive.../... | Movies   | Space  | 2024-01-15 | user@example.com
+Darth Vader | Movie character  | https://drive.../... | Star Wars| Bali   | 2024-01-15 | user@example.com
 ```
 
 #### ColumnConfig Sheet
-**Headers:** `Column Name | Display Name | Type | Show in Filter | Show in Sort | Show in Detail | Special Role`
+**Headers:** `Column Name | Display Name | Type | Show in Filter | Show in Sort | Item Place | Special Role`
 
 Example configuration:
 ```
-Column Name   | Display Name | Type | Filter | Sort  | Detail | Special Role
---------------|--------------|------|--------|-------|--------|------------------
-Name          | Name         | text | FALSE  | TRUE  | TRUE   | Primary Identifier
-Description   | Description  | text | FALSE  | FALSE | TRUE   | Description
-Picture url   | Picture      | text | FALSE  | FALSE | TRUE   | Image URL
-Category      | Category     | text | TRUE   | TRUE  | TRUE   | Category
-Place         | Location     | text | TRUE   | TRUE  | TRUE   | Location
-Date          | Date         | date | FALSE  | TRUE  | TRUE   | Date
-ExternalLink  | Link         | text | FALSE  | FALSE | TRUE   | External Link
-Added By      | Added By     | text | FALSE  | FALSE | TRUE   | Auto-filled Creator
+Column Name   | Display Name | Type | Filter | Sort  | Item Place        | Special Role
+--------------|--------------|------|--------|-------|-------------------|------------------
+Name          | Name         | text | FALSE  | TRUE  | Primary Identifier|
+Description   | Description  | text | FALSE  | FALSE | Long text Up      |
+Picture url   | Picture      | text | FALSE  | FALSE | Main Image        |
+Category      | Category     | text | TRUE   | TRUE  | SubId1            |
+Place         | Location     | text | TRUE   | TRUE  | SubId2            |
+Date          | Date         | date | FALSE  | TRUE  | Top Corner        |
+ExternalLink  | Link         | text | FALSE  | FALSE | Detail Left       | External Link
+Info1         | Info 1       | text | FALSE  | FALSE | Detail Left       |
+Info2         | Info 2       | text | FALSE  | FALSE | Detail Right      |
+Added By      | Added By     | text | FALSE  | FALSE | Bottom            | Auto-filled User Mail
 ```
 
 **Column Types:**
 - `text`: Text input
-- `date`: Date picker
+- `date`: Date picker with dd/mm/yyyy display (locale-dependent)
 - `number`: Numeric input
 - `url`: URL input
 
+**Item Places:**
+- `Primary Identifier`: Main item name (required, only one)
+- `Main Image`: Primary image (only one)
+- `SubId1`: First subtitle (only one)
+- `SubId2`: Second subtitle (only one)
+- `Top Corner`: Top-right badge display
+- `Long text Up`: Full-width before grid
+- `Detail Left`: Left column of grid
+- `Detail Right`: Right column of grid
+- `Long text Down`: Full-width after grid
+- `Bottom`: Bottom metadata section
+
 **Special Roles:**
-- Use exact names from the table above
-- `None` or empty for regular columns
-- Only one column should have `Primary Identifier`
+- `Auto-filled User Mail`: Automatically filled with user's email
+- `External Link`: Renders as clickable link
+- `Formula (Read-only)`: Excluded from add/edit forms
+- Leave empty for regular columns
 
 #### Settings Sheet
-Configure in column C:
+Configure in column C and H:
 
 | Cell | Setting | Example | Description |
 |------|---------|---------|-------------|
-| C2 | App Name | "Catalogue" | Shown in browser title |
-| C3 | Catalogue Name | "My Underwater Pics" | Shown in header |
-| C4 | Image Base URL | (deployment URL) | URL from Image Server deployment |
-| C6 | App Icon URL | (Google Drive link) | Icon for app (not currently used) |
-| C7 | Sheet URL | (sheet URL) | Link to this sheet (shown to Creators) |
+| C2 | App Name | "Catalogue" | Browser title |
+| C3 | Catalogue Name | "My Underwater Pics" | Header title (can be renamed from UI) |
+| C4 | Sheet URL | (auto-filled) | Link to this sheet |
+| H2 | Date Adjustment | 1 | Days to add to all dates (0 = no adjustment, 1 = +1 day) |
 
 #### Users Sheet
 **Headers:** `Email | Name | Profile`
@@ -193,6 +262,10 @@ viewer@example.com   | Viewer User | Viewer
 
 **Important:** Only emails listed here can access the app.
 
+#### EmailOTP Sheet (Auto-created)
+Created automatically on first login. Stores temporary OTP codes.
+**Do not modify manually.**
+
 ### 2. Apps Script Setup
 
 1. Open your Google Sheet
@@ -201,101 +274,107 @@ viewer@example.com   | Viewer User | Viewer
 4. Copy contents of `Code.gs` from this repository
 5. Create new HTML file: **File > New > HTML file**, name it `index`
 6. Paste contents of `index.html` from this repository
-7. Enable **People API**:
-   - Click **Services** (+ icon) in left sidebar
-   - Find "People API"
-   - Click "Add"
-8. Save the project (Ctrl+S or Cmd+S)
+7. Save the project (Ctrl+S or Cmd+S)
 
-### 3. Create Deployments
-
-#### Deployment 1: Image Server
+### 3. Deploy
 
 1. Click **Deploy > New deployment**
 2. Click gear icon ⚙️ next to "Select type"
 3. Choose **Web app**
 4. Configure:
-   - **Description**: `Image Server`
+   - **Description**: `Catalogue App`
    - **Execute as**: **Me (your-email@example.com)**
-   - **Who has access**: **Anyone**
-5. Click **Deploy**
-6. **Copy the Web app URL**
-7. Paste this URL into Settings sheet **cell C4**
-
-#### Deployment 2: Main Application
-
-1. Click **Deploy > New deployment** (again)
-2. Click gear icon ⚙️ next to "Select type"
-3. Choose **Web app**
-4. Configure:
-   - **Description**: `Catalogue Main App`
-   - **Execute as**: **User accessing the web app**
    - **Who has access**: **Anyone**
 5. Click **Deploy**
 6. Click **Authorize access** and complete OAuth flow
 7. **Copy the Web app URL**
 8. **Share this URL with your users**
-9. Optionally paste into Settings sheet **cell C7**
 
 ### 4. First Access
 
-1. Visit the Main App URL
-2. Sign in with your Google account
-3. Grant permissions when prompted
-4. Ensure your email is in the Users sheet
+1. Visit the app URL
+2. Enter your email address
+3. Check your email for the OTP code
+4. Enter the OTP code
+5. You're logged in!
+
+**Note:** Your email must be in the Users sheet to receive access.
 
 ---
 
 ## Usage Guide
 
-### For Creators
+### For All Users
 
-#### Manage Columns
-1. Click **⚙ Columns** button
-2. Add new columns with "➕ Add Column"
-3. Edit column properties (name, type, visibility, special role)
-4. Reorder with ▲▼ arrows
-5. Delete columns with ✖ button
-6. Export/Import configuration with buttons at bottom
+#### Login
+1. Enter your email address
+2. Click "Send Verification Code"
+3. Check your email for the 6-digit code
+4. Enter the code within 10 minutes
+5. You're logged in for this session
 
-#### Access Google Sheet
-- Click **📊 Sheet** button to open Google Sheet directly
+#### Browse & View
+- View items in grid layout
+- Click any item to see full details
+- Click image in detail view for fullscreen
+- Use "Back to List" button to return to grid
 
-#### Rename Catalogue
-- Click pencil icon ✏ next to catalogue name in header
-
-#### Edit All Items
-- Can edit/delete any item, regardless of who created it
+#### Filter & Sort
+- **Filter**: Click 🔍 Filter, select criteria, click Apply
+- **Sort**: Click ↕️ Sort, choose field and direction
+- **Note**: Filter and Sort buttons are hidden in detail view
 
 ### For Editors
 
 #### Add Items
 1. Click **+ Add item** button
-2. Fill in the form (auto-filled fields are automatic)
-3. Click **Save**
+2. Fill in the form (fields with "Auto-filled User Mail" role are automatic)
+3. Date fields show enhanced date picker
+4. Click **Save**
 
 #### Edit Your Items
 1. Click an item card you created
-2. Click **Edit** in detail view
+2. Click **✏ Edit** in detail view
 3. Modify fields
 4. Click **Save**
 
 #### Delete Your Items
 1. Open detail view for your item
-2. Click **Delete**
+2. Click **🗑 Delete**
 3. Confirm deletion
 
-### For Viewers
+### For Creators
 
-#### Browse
-- View items in grid layout
-- Click any item to see full details
-- Use filters and sorting to find items
+#### Manage Columns
+1. Click **⚙ Columns** button
+2. **Add Column**:
+   - Click "➕ Add Column"
+   - Set Column Name, Display Name, Type
+   - Choose Item Place for visual positioning
+   - Choose Special Role for special behaviors
+   - Set Filter/Sort visibility
+3. **Edit Column**: Click Edit button on any column
+4. **Reorder**: Use ▲▼ arrows to change order
+5. **Delete**: Click ✖ button (with confirmation)
+6. **Export/Import**: Use buttons at bottom to backup/restore configuration
 
-#### Filter & Sort
-- **Filter**: Click 🔍 Filter, select criteria, click Apply
-- **Sort**: Click ↕️ Sort, choose field and direction
-- **Reset**: Click ↻ Reset to clear all filters and sorting
+#### Access Google Sheet
+- Click **📊 Sheet** button to open source Google Sheet
+
+#### Rename Catalogue
+- Click pencil icon ✏ next to catalogue name in header
+- Enter new name
+- Changes immediately
+
+#### Edit All Items
+- Can edit/delete any item, regardless of creator
+- Full access to all data
+
+#### Adjust Dates
+- Open Settings sheet
+- Set cell H2 to number of days to adjust
+- Example: `1` adds 1 day to all dates
+- Use to compensate for timezone issues
 
 ---
 
@@ -304,19 +383,24 @@ viewer@example.com   | Viewer User | Viewer
 ```
 Tid-Codes/
 ├── Code.gs           # Backend logic (Google Apps Script)
+│   ├── Email OTP authentication
+│   ├── Session management
+│   ├── Item Place & Special Role maps
 │   ├── Column management functions
 │   ├── User authentication and access control
-│   ├── CRUD operations (getMainData, addMainRow, editItem, deleteItem)
-│   ├── Settings management
-│   ├── Image serving (serveImage_)
-│   └── UI serving (serveUi_)
+│   ├── CRUD operations
+│   ├── Settings management (including date adjustment)
+│   ├── Image serving
+│   └── UI serving
 │
 ├── index.html        # Frontend (HTML + CSS + JavaScript)
-│   ├── UI Layout
+│   ├── Email login interface
+│   ├── UI Layout with Item Places
 │   ├── Dynamic form generation
 │   ├── Filter and sort logic
 │   ├── IndexedDB image cache
 │   ├── Modal dialogs
+│   ├── Button visibility management (Filter/Sort ↔ Back to List)
 │   └── Event handlers
 │
 └── README.md         # This file
@@ -327,50 +411,135 @@ Tid-Codes/
 | Function | Purpose |
 |----------|---------|
 | `doGet(e)` | Entry point for web app requests |
-| `serveImage_(fileId)` | Serve images as base64 JSON |
-| `serveUi_(e)` | Serve HTML with access control |
-| `getUserInfo()` | Get current user's role |
-| `getInitialData()` | Load all data for frontend |
-| `getColumnConfig()` | Get column configuration |
-| `saveColumnConfig(configs)` | Save column configuration |
-| `addMainRow(obj)` | Add new item |
-| `editItem(name, updates)` | Edit existing item |
-| `deleteItem(name)` | Delete item |
-| `getSettings()` | Get app settings |
+| `sendOTP(email)` | Send verification code via email |
+| `verifyOTP(email, code)` | Verify OTP and create session |
+| `verifySession(token)` | Validate session token |
+| `getUserInfo(token)` | Get current user's role |
+| `getInitialData(token)` | Load all data for frontend |
+| `getColumnConfig()` | Get column configuration with Item Places and Special Roles |
+| `saveColumnConfig(configs, token)` | Save column configuration |
+| `addMainRow(obj, token)` | Add new item (auto-fills Special Role columns) |
+| `editItem(name, updates, token)` | Edit existing item |
+| `deleteItem(name, token)` | Delete item |
+| `getSettings()` | Get app settings including date adjustment |
+| `getMainData()` | Get all items with date adjustment applied |
 
 ### Key Components in index.html
 
 | Component | Purpose |
 |-----------|---------|
-| `init()` | Initialize app, load data |
-| `renderGrid()` | Render card grid |
-| `showDetailView(item)` | Show item details |
+| `showLoginScreen()` | Display email login form |
+| `sendVerificationCode()` | Request OTP via email |
+| `verifyCode()` | Submit OTP for verification |
+| `init()` | Initialize app after successful login |
+| `renderGrid()` | Render card grid with SubId1/SubId2 |
+| `showDetails(item)` | Show item details with Item Place layout |
+| `backToList()` | Return to grid, toggle button visibility |
 | `renderFilters()` | Generate filter UI |
 | `applyFiltersAndSorting()` | Apply filters and sorting |
 | `imageCacheDB` | IndexedDB cache manager |
-| `setupLazyLoading()` | Lazy load images |
-| `showAddItemModal()` | Show add item form |
-| `showEditItemModal(item)` | Show edit item form |
+| `loadImageViaProxy()` | Lazy load images with progressive enhancement |
+| `formatDate()` | Format dates as dd/mm/yyyy |
+| `openColumnManager()` | Open column management modal |
 
 ---
 
 ## Technical Details
 
-### Authentication
-- Uses Google People API for user email
-- Fallback to Session.getActiveUser()
-- Email matched against Users sheet
+### Authentication System
+
+**OTP Flow:**
+1. User enters email
+2. Backend generates 6-digit code
+3. Code stored in EmailOTP sheet with timestamp
+4. Code emailed to user
+5. User enters code within 10 minutes
+6. Backend validates code
+7. Session token created and returned
+8. Token stored in localStorage
+9. Token validated on each backend call
+
+**Session Management:**
+- Tokens are UUIDs stored in browser localStorage
+- Backend validates token on every call
+- Sessions don't expire (until logout)
+- No password required
+
+### Item Place System
+
+**Backend (Code.gs):**
+```javascript
+ITEM_PLACE_MAP = {
+  "Primary Identifier": "name",
+  "Main Image": "image",
+  "SubId1": "category",
+  "SubId2": "place",
+  "Top Corner": "topcorner",
+  "Long text Up": "longtextup",
+  "Detail Left": "detailleft",
+  "Detail Right": "detailright",
+  "Long text Down": "longtextdown",
+  "Bottom": "bottom"
+}
+
+SPECIAL_ROLE_MAP = {
+  "Auto-filled User Mail": "addedby",
+  "External Link": "externallink",
+  "Formula (Read-only)": "formula"
+}
+```
+
+**Frontend Layout:**
+```
+┌─────────────────────────────────────────┐
+│ Top Corner (badge, top-right)          │
+│                                         │
+│ Primary Identifier (large title)       │
+│ SubId1 • SubId2 (gray text)            │
+├─────────────────────────────────────────┤
+│ Long text Up (full width)              │
+├──────────────────┬──────────────────────┤
+│ Detail Left      │ Detail Right         │
+│ (column 1)       │ (column 2)           │
+├──────────────────┴──────────────────────┤
+│ Long text Down (full width)            │
+├─────────────────────────────────────────┤
+│ Bottom (small gray text)               │
+└─────────────────────────────────────────┘
+```
 
 ### Image Handling
+
 1. Images stored in Google Drive
-2. Image Server deployment serves them via `doGet(e)` with `?img=fileId`
-3. Returns JSON: `{ok: true, mime: "image/png", data: "base64..."}`
-4. Frontend caches in IndexedDB
-5. Lazy loading for performance
+2. Image URLs in Main sheet (format: `https://drive.google.com/file/d/FILE_ID/view`)
+3. Backend extracts FILE_ID and serves via `serveImage_(fileId)`
+4. Returns JSON: `{ok: true, mime: "image/png", data: "base64..."}`
+5. Frontend caches in IndexedDB
+6. Lazy loading with IntersectionObserver
+7. Progressive enhancement: blur placeholder → full image
+
+### Date Handling
+
+**Timezone Adjustment:**
+- Set in Settings sheet cell H2
+- Applied in `getMainData()` and `getItemByName()`
+- Example: H2 = `1` adds 1 day to all dates
+- Compensates for timezone display issues
+
+**Display Format:**
+- Browser determines format based on locale
+- Usually dd/mm/yyyy in Europe, mm/dd/yyyy in US
+- Internal storage always YYYY-MM-DD
+
+**Enhanced Date Inputs:**
+- Styled with rounded corners and smooth transitions
+- Hover effects on calendar picker icon
+- Consistent with other form inputs
 
 ### Access Control Logic
 
 ```javascript
+// Login: Anyone can request OTP, only Users sheet emails can verify
 // Viewing items: All authenticated users
 // Adding items: Editors and Creators
 // Editing items:
@@ -378,6 +547,7 @@ Tid-Codes/
 //   - Creators: All items
 // Deleting items: Same as editing
 // Managing columns: Creators only
+// Accessing sheet: Creators only
 ```
 
 ### IndexedDB Schema
@@ -389,29 +559,58 @@ Key: fileId (Google Drive file ID)
 Value: {
   data: "base64...",
   mime: "image/png",
-  timestamp: 1234567890
+  timestamp: Date.now()
 }
 ```
 
 ### Performance Optimizations
-- IndexedDB image caching (reduces Drive API calls)
-- Lazy loading images (only load visible images)
-- Client-side filtering and sorting (no server round-trip)
-- Single data load on init
+
+- **IndexedDB image caching** - Reduces Drive API calls
+- **Lazy loading images** - Only loads visible images
+- **Client-side filtering/sorting** - No server round-trip
+- **Single data load on init** - Minimizes backend calls
+- **Progressive image loading** - Blur placeholder while loading
+- **Styled scrollbars** - Thin, transparent, performant
+
+### Visual Enhancements
+
+- **No delimitation borders** - Seamless page background
+- **Clean images** - No shadows or borders on detail images
+- **Smooth scrollbars** - 8px thin, semi-transparent
+- **Enhanced date pickers** - Better padding, rounded corners, hover effects
+- **Button visibility toggle** - Filter/Sort hidden in detail view, Back to List shown
 
 ---
 
 ## Troubleshooting
 
+### Cannot Login
+
+**Problem:** Not receiving OTP email
+
+**Solutions:**
+1. Check spam/junk folder
+2. Verify email is in Users sheet (exact match, case-sensitive)
+3. Check Apps Script quotas (max 100 emails/day for free accounts)
+4. Wait 10 minutes and try again if multiple failed attempts
+
+**Problem:** "Invalid code" error
+
+**Solutions:**
+1. Check code is exactly 6 digits
+2. Verify code hasn't expired (10 minute limit)
+3. Request new code if expired
+4. Ensure no spaces before/after code
+
 ### Access Denied Error
 
-**Problem:** "Access Denied" message when visiting app
+**Problem:** "Access Denied" after successful OTP verification
 
 **Solutions:**
 1. Check your email is in Users sheet (exact match)
-2. Verify you're signed in with correct Google account
-3. Check Users sheet has "Email" column header (case-sensitive)
-4. Try signing out and signing back in
+2. Verify Users sheet has "Email" column header (case-sensitive)
+3. Check for typos in email address
+4. Ensure Users sheet is in same spreadsheet
 
 ### Images Not Loading
 
@@ -421,18 +620,17 @@ Value: {
 1. **Check image URLs** in Main sheet:
    - Must be Google Drive URLs
    - Format: `https://drive.google.com/file/d/FILE_ID/view`
+   - Extract FILE_ID from URL
 2. **Check Drive permissions**:
    - Open image in Drive
-   - Click Share
-   - Set to "Anyone with the link can view"
-3. **Verify Image Server deployment**:
-   - Settings cell C4 should have Image Server URL
-   - URL should end with `/exec`
-   - Test: Visit `IMAGE_URL?img=FILE_ID` (should return JSON)
-4. **Clear cache**:
+   - Click Share → "Anyone with the link can view"
+3. **Clear cache**:
    - Open browser DevTools (F12)
    - Application tab → IndexedDB → Delete "ImageCache"
    - Refresh page
+4. **Check deployment**:
+   - Verify "Execute as: Me"
+   - Verify "Who has access: Anyone"
 
 ### Changes Not Appearing
 
@@ -440,15 +638,15 @@ Value: {
 
 **Solutions:**
 1. **Hard refresh**: Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac)
-2. **Clear browser cache**
-3. **Check deployment**:
+2. **Clear browser cache completely**
+3. **Create new deployment version**:
    - Apps Script: Deploy → Manage deployments
-   - Click Edit (pencil icon) on Main App
+   - Click Edit (pencil icon)
    - Change version to "New version"
    - Click Deploy
-4. **Verify you're editing correct deployment**:
-   - You may have multiple "Untitled" deployments
-   - Check the URL you're visiting matches active deployment
+4. **Clear session**:
+   - Logout and login again
+   - Or clear localStorage
 
 ### Column Changes Not Saving
 
@@ -456,185 +654,130 @@ Value: {
 
 **Solutions:**
 1. Verify you're signed in as Creator
-2. Check ColumnConfig sheet exists and is spelled correctly
-3. Open Apps Script → Executions to see error logs
-4. Make sure Main sheet has matching column headers
+2. Check ColumnConfig sheet has exactly 7 columns:
+   - Column Name | Display Name | Type | Show in Filter | Show in Sort | Item Place | Special Role
+3. Check Apps Script → Executions for error logs
+4. Ensure Main sheet has matching column headers
 
-### Permission Errors in Logs
+### Dates Are Wrong
 
-**Problem:** "You do not have permission..." errors in Apps Script logs
+**Problem:** Dates showing 1 day off
 
 **Solutions:**
-1. **Image Server deployment**: Must be "Execute as: Me"
-2. **Main App deployment**: Must be "Execute as: User accessing the web app"
-3. **Re-authorize**: Deploy → Manage deployments → Edit → Deploy (triggers re-auth)
+1. Open Settings sheet
+2. Set cell H2 to `1` (to add 1 day)
+3. Or set to `-1` (to subtract 1 day)
+4. Adjust until dates display correctly
+5. This compensates for timezone differences
 
----
+### Layout Issues
 
-## Aborted Features
+**Problem:** Fields not appearing in correct positions
 
-This section documents features that were attempted but ultimately removed due to technical limitations with Google Apps Script.
-
-### ❌ PWA (Progressive Web App) Installation
-
-**What was attempted:**
-- Add "Install App" button
-- Create PWA manifest endpoint (`?manifest=true`)
-- Create service worker endpoint (`?sw=true`)
-- Enable installation on mobile and desktop
-
-**Why it failed:**
-1. **Google Apps Script URL Issues:**
-   - Apps Script serves content from `script.googleusercontent.com` domain
-   - Browser redirects through OAuth layer create multiple URLs
-   - Actual deployment URL differs from served URL
-   - PWA manifest `start_url` must match exact domain
-
-2. **Service Worker Limitations:**
-   - Service workers require consistent origin
-   - Apps Script OAuth flow changes the origin mid-session
-   - Can't reliably register service worker due to redirect chain
-
-3. **Manifest Detection Problems:**
-   - Chrome DevTools showed "No manifest detected"
-   - Even with valid manifest JSON at endpoint
-   - Browser couldn't match manifest URL to app URL due to OAuth redirects
-
-**Code removed:**
-- ~74 lines from `Code.gs`: `serveManifest_()`, `serveServiceWorker_()`
-- ~88 lines from `index.html`: PWA meta tags, manifest link, PWA initialization code
-- Test endpoints and error handling
-- `updatePWAWithSettings()` function
-
-**Conclusion:** PWA installation is not feasible with Google Apps Script web apps due to OAuth redirection architecture. Apps remain accessible via browser bookmarks or standard browser "Add to Home Screen" (which just creates a bookmark, not a true PWA).
-
-### ❌ Mobile-Specific Responsive Design
-
-**What was attempted:**
-- Create `@media (max-width: 780px)` CSS rules
-- Increase button sizes to 48px for touch targets
-- Larger fonts (14-15px for buttons, 15px for card names)
-- Simplified layouts (single column, full-width dropdowns)
-- Prevent input zoom with 16px font minimum
-
-**Why it failed:**
-1. **Viewport Reporting Issues:**
-   - Some mobile browsers reported incorrect viewport width (980px instead of actual device width like 360px)
-   - This prevented media queries from activating
-   - Even with correct viewport meta tag: `<meta name="viewport" content="width=device-width, initial-scale=1">`
-
-2. **Google Apps Script iframe wrapping:**
-   - Apps Script sometimes wraps content in iframes for OAuth
-   - This interferes with viewport detection
-   - Causes inconsistent behavior across different mobile browsers
-
-3. **User Preference:**
-   - User preferred consistent desktop layout on all devices
-   - Easier to maintain single layout vs. responsive breakpoints
-   - Zooming in on mobile is acceptable alternative
-
-**Code removed:**
-- ~180 lines of mobile-specific CSS rules
-- Viewport debug display
-- Media query variations
-
-**Conclusion:** Removed all mobile-specific styling. App now uses same layout on desktop and mobile. Users can zoom/pan on mobile as needed.
-
-### Lessons Learned
-
-1. **Google Apps Script Limitations:**
-   - Web apps are served through complex OAuth redirect chain
-   - Not suitable for PWA or other features requiring consistent URL origin
-   - iframe wrapping can interfere with frontend features
-
-2. **Simplicity is Better:**
-   - Removing 200+ lines of unused code made codebase more maintainable
-   - Single layout easier to test and debug
-   - Fewer browser compatibility issues
-
-3. **Alternative Approaches:**
-   - For true PWA: Deploy frontend separately (GitHub Pages, Netlify, etc.) with Apps Script as API
-   - For mobile: Consider native Google Drive sharing instead of custom solution
-   - For installation: Browser bookmarks sufficient for most users
+**Solutions:**
+1. Check Item Place values in ColumnConfig
+2. Verify only ONE column has "Primary Identifier"
+3. Verify only ONE column has "Main Image"
+4. Check spelling of Item Place values (case-sensitive)
+5. Refresh page after changing ColumnConfig
 
 ---
 
 ## Browser Support
 
 **Recommended:**
-- Chrome (desktop and mobile)
+- Chrome/Chromium (desktop and mobile)
 - Safari (desktop and iOS)
 - Edge
-
-**Supported:**
 - Firefox
-- Opera
-- Samsung Internet
 
 **Requirements:**
 - JavaScript enabled
-- Cookies enabled (for Google OAuth)
+- Cookies enabled (for session storage)
+- LocalStorage enabled (for session tokens)
 - IndexedDB support (optional, for image caching)
 
 **Known Issues:**
 - Older browsers (IE11, etc.) not supported
-- Private/Incognito mode may have session issues
+- Private/Incognito mode works but session is lost on close
+- Date format depends on browser locale settings
 
 ---
 
 ## Limitations
 
 ### Google Apps Script Quotas
-- **Execution time**: Max 6 minutes per request
-- **Triggers**: 90 minutes of runtime per day (for triggers, not applicable here)
-- **URL Fetch calls**: 20,000 per day
+
+Free tier limits (per day):
+- **Email sends**: 100 emails/day
+- **Execution time**: 6 minutes per execution
+- **Script runtime**: 90 minutes total per day
 
 ### Functional Limitations
+
 - **Online only**: Requires internet connection
-- **No offline mode**: Cannot work without connection to Google servers
+- **No offline mode**: Cannot work without Google servers
 - **Image formats**: Limited by Google Drive supported formats
 - **Concurrent users**: Limited by Apps Script quotas
 - **Sheet size**: Performance degrades with 1000+ rows
+- **OTP expiration**: Codes expire after 10 minutes
+- **Email-based only**: Requires Google account with email access
 
 ### Security Limitations
+
 - **Email-based access**: Only works with Google accounts
-- **No API authentication**: All access through OAuth
+- **OTP delivery**: Dependent on email delivery (check spam)
 - **No rate limiting**: Subject to Apps Script quotas only
+- **Session tokens**: Stored in browser localStorage (clear on logout)
 
 ---
 
 ## Version History
 
-### Current Version (2025-11-22)
-- ✅ Removed all PWA code (~160 lines)
-- ✅ Removed mobile-specific responsive styling
-- ✅ Cleaned up Code.gs (removed test endpoints)
-- ✅ Simplified to essential functionality only
+### Current Version (2025-11-24)
+- ✅ Moved Back to List button to filters bar
+- ✅ Hide Filter/Sort buttons in detail view
+- ✅ Remove shadow edge from detail view images
+- ✅ Improve scrollbar styling (thin, semi-transparent)
+- ✅ Remove delimitation borders throughout app
+- ✅ Enhanced date input styling
 
-### Previous Updates
-- Added Google Sheet link for Creator users
-- Attempted PWA functionality (aborted)
-- Attempted mobile-responsive design (aborted)
-- Implemented dynamic column management with import/export
-- Added column reordering and deletion
-- Implemented radio button filters and sorting
-- Initial dynamic column configuration system
+### Recent Updates (2025-11-23)
+- ✅ Added Bottom item place for metadata display
+- ✅ Removed automatic "Added By" display
+- ✅ Fixed date timezone issues with adjustment setting (Settings H2)
+- ✅ Added Top Corner item place for badge-style display
+- ✅ Improved date format display (dd/mm/yyyy)
+
+### Previous Updates (2025-11-22)
+- ✅ Restructured column system: Item Place + Special Role
+- ✅ Split layout control (Item Place) from behavior (Special Role)
+- ✅ Reduced ColumnConfig from 8 to 7 columns
+- ✅ Implemented two-column detail view layout
+- ✅ Added Long text Up/Down sections
+- ✅ Email OTP authentication system
+- ✅ Session management with tokens
+- ✅ Removed PWA code (~160 lines)
+- ✅ Removed mobile-specific responsive styling
 
 ---
 
 ## Future Development Ideas
 
 **Possible Enhancements:**
-- Export catalogue data to CSV
-- Bulk import items from CSV
+- CSV import/export for bulk operations
 - Image upload to Drive from app
 - More column types (checkbox, dropdown, multi-select)
-- Search within specific columns
 - Advanced filtering (AND/OR logic, date ranges)
 - User activity logs
 - Email notifications for changes
+- Remember me / persistent sessions
+- 2FA options beyond email OTP
 
-**Note:** PWA and mobile-specific features are not recommended due to Apps Script limitations (see Aborted Features section).
+**Not Recommended:**
+- PWA features (Apps Script limitations)
+- Offline mode (requires different architecture)
+- Mobile-specific layouts (single layout is simpler)
 
 ---
 
@@ -647,12 +790,15 @@ This section documents features that were attempted but ultimately removed due t
 4. Look for red ❌ icons
 
 **For questions:**
-- Review this README carefully
+- Review this README
 - Check Troubleshooting section
 - Review code comments in Code.gs and index.html
+- Check Settings sheet configuration
+- Verify ColumnConfig structure (7 columns)
 
 ---
 
 **Built with Google Apps Script**
 
-Last Updated: 2025-11-22
+Repository: https://github.com/3vilTid/Tid-Codes
+Last Updated: 2025-11-24
