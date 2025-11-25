@@ -23,6 +23,15 @@ A dynamic, customizable catalogue management system built with Google Apps Scrip
 - **Session Management**: Persistent sessions with automatic token validation
 - **No Password Required**: Simple, secure access via email verification codes
 
+### Public/Private Access Modes
+- **Private Mode**: Full authentication required with email OTP
+- **Public Mode**: Open access for everyone as Viewer role
+  - No login required - instant access to catalogue
+  - All users automatically set as "Viewer" (read-only)
+  - Clean interface: logout button and user email hidden
+  - Perfect for public-facing catalogues or demos
+- **Easy Toggle**: Switch modes via Settings sheet (cell J2)
+
 ### Dynamic Column System with Visual Layout Control
 
 **Item Places** - Control where fields appear in the detail view:
@@ -239,14 +248,16 @@ Added By      | Added By     | text | FALSE  | FALSE | Bottom            | Auto-
 - Leave empty for regular columns
 
 #### Settings Sheet
-Configure in column C and H:
+Configure in columns C, H, and J:
 
 | Cell | Setting | Example | Description |
 |------|---------|---------|-------------|
 | C2 | App Name | "Catalogue" | Browser title |
 | C3 | Catalogue Name | "My Underwater Pics" | Header title (can be renamed from UI) |
 | C4 | Sheet URL | (auto-filled) | Link to this sheet |
+| C5 | Deployment URL | "https://script.google.com/.../exec" | Web app deployment URL for image loading |
 | H2 | Date Adjustment | 1 | Days to add to all dates (0 = no adjustment, 1 = +1 day) |
+| J2 | App Mode | "Public all in Viewer" or "Private" | Access mode: Public (no login) or Private (OTP required) |
 
 #### Users Sheet
 **Headers:** `Email | Name | Profile`
@@ -734,7 +745,14 @@ Free tier limits (per day):
 
 ## Version History
 
-### Current Version (2025-11-24)
+### Current Version (2025-11-25)
+- ✅ Hide logout button and user email in Public mode
+- ✅ Clean public-facing interface for viewer-only access
+
+### Recent Updates (2025-11-24)
+- ✅ Add Public/Private mode toggle (Settings J2)
+- ✅ Add deployment URL setting (Settings C5) for image loading
+- ✅ Fix image loading in public mode
 - ✅ Moved Back to List button to filters bar
 - ✅ Hide Filter/Sort buttons in detail view
 - ✅ Remove shadow edge from detail view images
@@ -800,5 +818,5 @@ Free tier limits (per day):
 
 **Built with Google Apps Script**
 
-Repository: https://github.com/3vilTid/Tid-Codes
-Last Updated: 2025-11-24
+Repository: https://github.com/3vilTid/Catalogue-Web-App
+Last Updated: 2025-11-25
