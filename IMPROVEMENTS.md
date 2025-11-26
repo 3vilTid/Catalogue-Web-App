@@ -15,6 +15,11 @@ This document tracks planned features and improvements for the Catalogue Web App
 - [ ] **Add installation capability for phone/desktop**
   - PWA (Progressive Web App) functionality
   - Install prompts for mobile and desktop
+- [ ] **Add touch gestures for mobile**
+  - Swipe left/right to navigate between items
+  - Pull to refresh to reload data
+  - Pinch to zoom on images
+  - Long press for context menus
 
 ### Hierarchical Navigation (Layers)
 - [ ] **Add "Layer" possibility**
