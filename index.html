@@ -1474,47 +1474,62 @@
           gap: 14px;
         }
 
-        /* EXCESSIVELY HUGE BUTTONS FOR TESTING - 80px height */
+        /* MOBILE BUTTONS - Good size for 980px phones in portrait */
         .btn-toolbar,
         .btn-primary,
         .btn-secondary {
-          height: 80px !important;
-          min-height: 80px !important;
-          padding: 20px 30px !important;
-          font-size: 24px !important;
-          font-weight: 700 !important;
-          border: 4px solid #ef4444 !important; /* Red border to be obvious */
+          height: 60px !important;
+          min-height: 60px !important;
+          padding: 16px 24px !important;
+          font-size: 18px !important;
+          font-weight: 600 !important;
         }
 
-        /* Logout button touch-friendly */
+        /* Logout button */
         #logoutBtn {
-          height: 80px !important;
-          min-height: 80px !important;
-          padding: 0 30px !important;
-          font-size: 22px !important;
-          border: 4px solid #ef4444 !important;
+          height: 60px !important;
+          min-height: 60px !important;
+          padding: 0 24px !important;
+          font-size: 17px !important;
         }
 
         /* Filter/Sort buttons */
         #filterBtn,
         #sortBtn,
         #backToListBtn {
-          height: 80px !important;
-          min-height: 80px !important;
-          padding: 20px 30px !important;
-          font-size: 24px !important;
-          border: 4px solid #ef4444 !important;
+          height: 60px !important;
+          min-height: 60px !important;
+          padding: 16px 24px !important;
+          font-size: 18px !important;
         }
 
         /* Right toolbar buttons */
         #sheetBtn,
         #columnsBtn,
         #addBtn {
-          height: 80px !important;
-          min-height: 80px !important;
-          padding: 20px 30px !important;
-          font-size: 24px !important;
-          border: 4px solid #ef4444 !important;
+          height: 60px !important;
+          min-height: 60px !important;
+          padding: 16px 24px !important;
+          font-size: 18px !important;
+        }
+
+        /* LANDSCAPE MODE - Smaller buttons when in landscape */
+        @media (orientation: landscape) {
+          .btn-toolbar,
+          .btn-primary,
+          .btn-secondary,
+          #logoutBtn,
+          #filterBtn,
+          #sortBtn,
+          #backToListBtn,
+          #sheetBtn,
+          #columnsBtn,
+          #addBtn {
+            height: 48px !important;
+            min-height: 48px !important;
+            padding: 12px 20px !important;
+            font-size: 16px !important;
+          }
         }
 
         /* Stack filters row on phones */
@@ -1674,18 +1689,6 @@
   </head>
 
   <body>
-    <!-- DEBUG: Screen Width Indicator -->
-    <div id="screenWidth" style="position: fixed; top: 0; left: 0; background: #ef4444; color: white; padding: 10px 20px; font-size: 18px; font-weight: bold; z-index: 99999;">
-      Width: <span id="widthValue">0</span>px
-    </div>
-    <script>
-      function updateWidth() {
-        document.getElementById('widthValue').textContent = window.innerWidth;
-      }
-      updateWidth();
-      window.addEventListener('resize', updateWidth);
-    </script>
-
     <div class="shell">
       <!-- Top header -->
       <div class="top-header">
