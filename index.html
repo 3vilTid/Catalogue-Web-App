@@ -1673,6 +1673,18 @@
   </head>
 
   <body>
+    <!-- DEBUG: Screen Width Indicator -->
+    <div id="screenWidth" style="position: fixed; top: 0; left: 0; background: #ef4444; color: white; padding: 10px 20px; font-size: 18px; font-weight: bold; z-index: 99999;">
+      Width: <span id="widthValue">0</span>px
+    </div>
+    <script>
+      function updateWidth() {
+        document.getElementById('widthValue').textContent = window.innerWidth;
+      }
+      updateWidth();
+      window.addEventListener('resize', updateWidth);
+    </script>
+
     <div class="shell">
       <!-- Top header -->
       <div class="top-header">
