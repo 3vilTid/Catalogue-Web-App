@@ -1,0 +1,92 @@
+# Catalogue Web App - Planned Improvements
+
+This document tracks planned features and improvements for the Catalogue Web App.
+
+---
+
+## Priority 1: Core Features
+
+### Mobile & Desktop Experience
+- [ ] **Explore best ways to add phone visual**
+  - Linked to user screen size detection?
+  - Or detect Android / iPhone specifically?
+- [ ] **Add phone visual interface**
+  - Optimize layout for mobile devices
+- [ ] **Add installation capability for phone/desktop**
+  - PWA (Progressive Web App) functionality
+  - Install prompts for mobile and desktop
+
+### Hierarchical Navigation (Layers)
+- [ ] **Add "Layer" possibility**
+  - Not direct click → detail view
+  - Example: Click "Category" → Click Item → Show Detail View
+  - Multi-level navigation system
+- [ ] **Set up image support for layers**
+  - Category images
+  - Layer thumbnail support
+
+### Multi-Table & Column Configuration
+- [ ] **Add possibility of multiple Tables**
+  - Each with separate column configurations
+  - Table switching/selection UI
+- [ ] **Multiple column configs per table**
+  - Different layouts for different data types
+
+### Alternative Visual Layouts
+- [ ] **Different catalogue list views**
+  - **Cards** (current default - keep as option)
+  - **List view** (compact rows)
+  - **Table view** with filter and sort options
+  - **Map view** with GPS pins
+- [ ] **Horizontal card scrolling**
+  - Option for cards to go left/right instead of down
+  - Carousel-style navigation
+
+### Advanced Layout Options
+- [ ] **Multiple tabs support**
+  - Tab-based navigation
+  - Organize content across tabs
+- [ ] **Multiple catalogues per page**
+  - Display several lists/catalogues simultaneously
+  - Grid or split-screen layouts
+
+### User-Specific Data
+- [ ] **Hidden columns with user-specific values**
+  - Stored in script properties
+  - Can differ between users
+  - Personal notes, ratings, etc.
+
+### Data Visualization
+- [ ] **Add graph/chart capability**
+  - Visualize catalogue data
+  - Charts, graphs, statistics
+  - Filter-based analytics
+
+---
+
+## Priority 2: Advanced Features
+
+### Visual Builder
+- [ ] **Add drag-and-drop interface for Creators**
+  - Similar to Glide or low-code platforms
+  - Visual layout editor
+  - No-code configuration
+
+### Interactive Actions
+- [ ] **Add custom buttons with actions**
+  - Configurable button placement
+  - Custom action triggers
+  - Workflow automation
+
+---
+
+## Notes
+
+- Features are organized by priority
+- Check items off as they're implemented
+- Some features may require architecture changes
+- Consider Google Apps Script limitations for each feature
+
+---
+
+**Last Updated:** 2025-11-25
