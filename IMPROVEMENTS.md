@@ -1,10 +1,10 @@
 # Catalogue Web App - Planned Improvements
 
-This document tracks planned features and improvements for the Catalogue Web App.
+This document tracks planned features and improvements for the Catalogue Web App, organized in implementation order.
 
 ---
 
-## Priority 1: Core Features
+## First - Implement These Features
 
 ### Mobile & Desktop Experience
 - [ ] **Explore best ways to add phone visual**
@@ -15,6 +15,11 @@ This document tracks planned features and improvements for the Catalogue Web App
 - [ ] **Add installation capability for phone/desktop**
   - PWA (Progressive Web App) functionality
   - Install prompts for mobile and desktop
+- [ ] **Add touch gestures for mobile**
+  - Swipe left/right to navigate between items
+  - Pull to refresh to reload data
+  - Pinch to zoom on images
+  - Long press for context menus
 
 ### Hierarchical Navigation (Layers)
 - [ ] **Add "Layer" possibility**
@@ -64,7 +69,7 @@ This document tracks planned features and improvements for the Catalogue Web App
 
 ---
 
-## Priority 2: Advanced Features
+## Then - Implement After First Phase
 
 ### Visual Builder
 - [ ] **Add drag-and-drop interface for Creators**
@@ -82,7 +87,10 @@ This document tracks planned features and improvements for the Catalogue Web App
 
 ## Notes
 
-- Features are organized by priority
+- Features are organized in **chronological implementation order**
+  - Work through "First" section completely before "Then" section
+  - Within each section, implement features in the order listed (top to bottom)
+  - Each feature builds context for the next
 - Check items off as they're implemented
 - Some features may require architecture changes
 - Consider Google Apps Script limitations for each feature

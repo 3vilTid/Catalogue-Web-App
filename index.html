@@ -2,7 +2,8 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="description" content="Catalogue web application">
 
     <title>Catalogue</title>
@@ -1387,6 +1388,348 @@
 
       @keyframes spin {
         to { transform: rotate(360deg); }
+      }
+
+      /* ==================== RESPONSIVE DESIGN ==================== */
+
+      /* Tablet and below (768px) */
+      @media (max-width: 768px) {
+        .shell {
+          padding: 0 12px;
+        }
+
+        /* Stack header blocks vertically on tablets */
+        .top-header {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 12px;
+        }
+
+        .right-block {
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+        }
+
+        /* Detail view: single column on tablets */
+        .detail-layout {
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+
+        /* Adjust grid for tablets: 3-4 columns */
+        .grid {
+          grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+          gap: 16px;
+        }
+
+        /* Make modals more mobile-friendly */
+        .modal-box {
+          max-width: 90vw !important;
+          min-width: auto !important;
+        }
+      }
+
+      /* Phone and Tablet (1024px and below) - Catches phones reporting 980px like Samsung Galaxy A31 */
+      @media (max-width: 1024px) {
+        /* Larger padding on phones */
+        .shell {
+          padding: 0 12px;
+        }
+
+        .top-header {
+          padding: 20px 20px;
+          margin-bottom: 20px;
+        }
+
+        /* LARGER TEXT SIZES FOR MOBILE - PORTRAIT */
+        .app-name {
+          font-size: 30px !important;
+          font-weight: 700 !important;
+        }
+
+        .catalog-name {
+          font-size: 25px !important;
+          font-weight: 600 !important;
+        }
+
+        .catalog-label,
+        .user-role {
+          font-size: 18px !important;
+        }
+
+        .user-email {
+          font-size: 18px !important;
+        }
+
+        .profile-badge {
+          font-size: 16px !important;
+          padding: 2px 10px !important;
+        }
+
+        /* Grid: 3 columns in PORTRAIT */
+        .grid {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px;
+        }
+
+        /* BIGGER BUTTONS FOR PORTRAIT - 68px height */
+        .btn-toolbar,
+        .btn-primary,
+        .btn-secondary {
+          height: 68px !important;
+          min-height: 68px !important;
+          padding: 20px 28px !important;
+          font-size: 19px !important;
+          font-weight: 600 !important;
+        }
+
+        /* Logout button */
+        #logoutBtn {
+          height: 68px !important;
+          min-height: 68px !important;
+          padding: 0 28px !important;
+          font-size: 18px !important;
+        }
+
+        /* Filter/Sort buttons */
+        #filterBtn,
+        #sortBtn,
+        #backToListBtn {
+          height: 68px !important;
+          min-height: 68px !important;
+          padding: 20px 28px !important;
+          font-size: 19px !important;
+        }
+
+        /* Right toolbar buttons */
+        #sheetBtn,
+        #columnsBtn,
+        #addBtn {
+          height: 68px !important;
+          min-height: 68px !important;
+          padding: 20px 28px !important;
+          font-size: 19px !important;
+        }
+
+        /* Card text bigger */
+        .item-card {
+          min-height: 180px;
+          padding: 12px !important;
+        }
+
+        .item-name {
+          font-size: 22px !important;
+          line-height: 1.4;
+          font-weight: 600 !important;
+        }
+
+        .item-subtitle {
+          font-size: 20px !important;
+          margin-top: 6px !important;
+        }
+
+        /* LANDSCAPE MODE - Smaller buttons, smaller text, 4 columns */
+        @media (orientation: landscape) {
+          /* Grid: 4 columns in LANDSCAPE */
+          .grid {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+          }
+
+          /* SMALLER BUTTONS FOR LANDSCAPE - 40px */
+          .btn-toolbar,
+          .btn-primary,
+          .btn-secondary,
+          #logoutBtn,
+          #filterBtn,
+          #sortBtn,
+          #backToListBtn,
+          #sheetBtn,
+          #columnsBtn,
+          #addBtn {
+            height: 40px !important;
+            min-height: 40px !important;
+            padding: 8px 16px !important;
+            font-size: 14px !important;
+          }
+
+          /* Smaller header text in landscape */
+          .app-name {
+            font-size: 20px !important;
+          }
+
+          .catalog-name {
+            font-size: 16px !important;
+          }
+
+          /* Smaller card text in landscape */
+          .item-name {
+            font-size: 15px !important;
+          }
+
+          .item-subtitle {
+            font-size: 14px !important;
+          }
+
+          .item-card {
+            min-height: 150px;
+          }
+        }
+
+        /* Stack filters row on phones */
+        .filters-row {
+          flex-direction: column;
+          gap: 8px;
+          align-items: stretch;
+        }
+
+        .filters-left,
+        .filters-right {
+          width: 100%;
+          justify-content: flex-start;
+        }
+
+        /* Dropdown menus full width on mobile */
+        .dropdown-menu {
+          left: 0;
+          right: 0;
+          width: 100%;
+        }
+
+        /* Modal adjustments for phones */
+        .modal-box {
+          padding: 20px;
+          max-width: 95vw !important;
+        }
+
+        .modal-header {
+          font-size: 18px;
+        }
+
+        /* Form inputs touch-friendly */
+        input[type="text"],
+        input[type="email"],
+        input[type="number"],
+        input[type="date"],
+        input[type="url"],
+        textarea,
+        select {
+          min-height: 44px;
+          font-size: 16px; /* Prevents zoom on iOS */
+        }
+
+        /* Detail view adjustments */
+        .detail-container {
+          padding: 16px;
+        }
+
+        .detail-name {
+          font-size: 28px !important;
+        }
+
+        .detail-field-label {
+          font-size: 15px !important;
+        }
+
+        .detail-field-value {
+          font-size: 16px !important;
+        }
+
+        /* Card adjustments - MUCH LARGER TEXT */
+        .item-card {
+          min-height: 180px;
+          padding: 12px !important;
+        }
+
+        .item-name {
+          font-size: 17px !important;
+          line-height: 1.4;
+          font-weight: 600 !important;
+        }
+
+        .item-subtitle {
+          font-size: 16px !important;
+          margin-top: 6px !important;
+        }
+
+        /* Login screen adjustments */
+        .login-box {
+          padding: 32px 24px;
+          max-width: 95vw;
+        }
+
+        .login-title {
+          font-size: 24px;
+        }
+      }
+
+      /* Very small phones (600px and below) - Even more compact for actual small phones */
+      @media (max-width: 600px) {
+        /* Even smaller spacing */
+        .shell {
+          padding: 0 4px;
+        }
+
+        .top-header {
+          padding: 10px 12px;
+        }
+
+        /* Grid: might go to 1 column on very small phones */
+        .grid {
+          grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+          gap: 10px;
+        }
+
+        /* Smaller text on tiny screens */
+        .app-name {
+          font-size: 18px;
+        }
+
+        .catalog-name {
+          font-size: 14px;
+        }
+
+        /* Compact buttons but still touch-friendly */
+        .btn-toolbar,
+        .btn-primary,
+        .btn-secondary {
+          height: 44px !important;
+          min-height: 44px !important;
+          font-size: 13px !important;
+          padding: 10px 12px !important;
+        }
+
+        /* Modal even more compact */
+        .modal-box {
+          padding: 16px;
+        }
+      }
+
+      /* Large desktop (1440px and up) - optimize for big screens */
+      @media (min-width: 1440px) {
+        .shell {
+          max-width: 1400px;
+        }
+
+        /* More columns on large screens */
+        .grid {
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 20px;
+        }
+      }
+
+      /* Ultra-wide (1920px and up) */
+      @media (min-width: 1920px) {
+        .shell {
+          max-width: 1600px;
+        }
+
+        .grid {
+          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+          gap: 24px;
+        }
       }
     </style>
   </head>
