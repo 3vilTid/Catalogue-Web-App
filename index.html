@@ -1391,6 +1391,18 @@
 
       /* ==================== RESPONSIVE DESIGN ==================== */
 
+      /* TEMPORARY TEST - ALL SCREENS - This makes buttons HUGE everywhere */
+      .btn-toolbar,
+      .btn-primary,
+      .btn-secondary {
+        height: 60px !important;
+        min-height: 60px !important;
+        padding: 16px 24px !important;
+        font-size: 20px !important;
+        font-weight: 600 !important;
+        background: linear-gradient(135deg, #ef4444, #dc2626) !important; /* Red so it's OBVIOUS */
+      }
+
       /* Tablet and below (768px) */
       @media (max-width: 768px) {
         .shell {
