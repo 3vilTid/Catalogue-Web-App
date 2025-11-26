@@ -1,10 +1,10 @@
 # Catalogue Web App - Planned Improvements
 
-This document tracks planned features and improvements for the Catalogue Web App.
+This document tracks planned features and improvements for the Catalogue Web App, organized in implementation order.
 
 ---
 
-## Priority 1: Core Features
+## First - Implement These Features
 
 ### Mobile & Desktop Experience
 - [ ] **Explore best ways to add phone visual**
@@ -64,7 +64,7 @@ This document tracks planned features and improvements for the Catalogue Web App
 
 ---
 
-## Priority 2: Advanced Features
+## Then - Implement After First Phase
 
 ### Visual Builder
 - [ ] **Add drag-and-drop interface for Creators**
@@ -82,7 +82,8 @@ This document tracks planned features and improvements for the Catalogue Web App
 
 ## Notes
 
-- Features are organized by priority
+- Features are organized in **implementation order** (First → Then)
+- Work through features sequentially in each phase
 - Check items off as they're implemented
 - Some features may require architecture changes
 - Consider Google Apps Script limitations for each feature
