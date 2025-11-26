@@ -1452,13 +1452,15 @@
         .btn-toolbar,
         .btn-primary,
         .btn-secondary {
-          min-height: 44px;
-          padding: 10px 16px;
-          font-size: 14px;
+          height: 44px !important;
+          min-height: 44px !important;
+          padding: 10px 16px !important;
+          font-size: 14px !important;
         }
 
         /* Logout button touch-friendly */
         #logoutBtn {
+          height: 44px !important;
           min-height: 44px !important;
           padding: 0 16px !important;
         }
@@ -1467,8 +1469,18 @@
         #filterBtn,
         #sortBtn,
         #backToListBtn {
-          min-height: 44px;
-          padding: 10px 16px;
+          height: 44px !important;
+          min-height: 44px !important;
+          padding: 10px 16px !important;
+        }
+
+        /* Right toolbar buttons */
+        #sheetBtn,
+        #columnsBtn,
+        #addBtn {
+          height: 44px !important;
+          min-height: 44px !important;
+          padding: 10px 16px !important;
         }
 
         /* Stack filters row on phones */
@@ -1568,12 +1580,14 @@
           font-size: 14px;
         }
 
-        /* Compact buttons */
+        /* Compact buttons but still touch-friendly */
         .btn-toolbar,
         .btn-primary,
         .btn-secondary {
-          font-size: 13px;
-          padding: 10px 12px;
+          height: 44px !important;
+          min-height: 44px !important;
+          font-size: 13px !important;
+          padding: 10px 12px !important;
         }
 
         /* Modal even more compact */
