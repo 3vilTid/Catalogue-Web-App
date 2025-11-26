@@ -1430,8 +1430,8 @@
         }
       }
 
-      /* Phone (480px and below) */
-      @media (max-width: 480px) {
+      /* Phone and Tablet (1024px and below) - Catches phones reporting 980px like Samsung Galaxy A31 */
+      @media (max-width: 1024px) {
         /* Larger padding on phones */
         .shell {
           padding: 0 12px;
@@ -1603,8 +1603,8 @@
         }
       }
 
-      /* Small phones (360px and below) */
-      @media (max-width: 360px) {
+      /* Very small phones (600px and below) - Even more compact for actual small phones */
+      @media (max-width: 600px) {
         /* Even smaller spacing */
         .shell {
           padding: 0 4px;
