@@ -82,8 +82,10 @@ This document tracks planned features and improvements for the Catalogue Web App
 
 ## Notes
 
-- Features are organized in **implementation order** (First → Then)
-- Work through features sequentially in each phase
+- Features are organized in **chronological implementation order**
+  - Work through "First" section completely before "Then" section
+  - Within each section, implement features in the order listed (top to bottom)
+  - Each feature builds context for the next
 - Check items off as they're implemented
 - Some features may require architecture changes
 - Consider Google Apps Script limitations for each feature
