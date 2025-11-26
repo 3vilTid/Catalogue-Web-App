@@ -1432,80 +1432,84 @@
 
       /* Phone (480px and below) */
       @media (max-width: 480px) {
-        /* Smaller padding on phones */
+        /* Larger padding on phones */
         .shell {
-          padding: 0 8px;
+          padding: 0 12px;
         }
 
         .top-header {
-          padding: 16px 18px;
-          margin-bottom: 16px;
+          padding: 20px 20px;
+          margin-bottom: 20px;
         }
 
-        /* LARGER TEXT SIZES FOR MOBILE */
+        /* MUCH LARGER TEXT SIZES FOR MOBILE */
         .app-name {
-          font-size: 24px !important;
+          font-size: 28px !important;
+          font-weight: 700 !important;
         }
 
         .catalog-name {
-          font-size: 17px !important;
+          font-size: 20px !important;
+          font-weight: 600 !important;
         }
 
         .catalog-label,
         .user-role {
-          font-size: 15px !important;
+          font-size: 17px !important;
         }
 
         .user-email {
-          font-size: 15px !important;
+          font-size: 17px !important;
         }
 
         .profile-badge {
-          font-size: 13px !important;
+          font-size: 15px !important;
+          padding: 2px 10px !important;
         }
 
         /* Grid: 2 columns on phones */
         .grid {
           grid-template-columns: repeat(2, 1fr);
-          gap: 12px;
+          gap: 14px;
         }
 
-        /* Touch-friendly buttons: BIGGER SIZE */
+        /* MUCH BIGGER BUTTONS - 56px height */
         .btn-toolbar,
         .btn-primary,
         .btn-secondary {
-          height: 48px !important;
-          min-height: 48px !important;
-          padding: 12px 18px !important;
-          font-size: 16px !important;
+          height: 56px !important;
+          min-height: 56px !important;
+          padding: 14px 20px !important;
+          font-size: 18px !important;
+          font-weight: 500 !important;
         }
 
         /* Logout button touch-friendly */
         #logoutBtn {
-          height: 48px !important;
-          min-height: 48px !important;
-          padding: 0 18px !important;
-          font-size: 15px !important;
+          height: 56px !important;
+          min-height: 56px !important;
+          padding: 0 20px !important;
+          font-size: 17px !important;
         }
 
         /* Filter/Sort buttons */
         #filterBtn,
         #sortBtn,
         #backToListBtn {
-          height: 48px !important;
-          min-height: 48px !important;
-          padding: 12px 18px !important;
-          font-size: 16px !important;
+          height: 56px !important;
+          min-height: 56px !important;
+          padding: 14px 20px !important;
+          font-size: 18px !important;
         }
 
         /* Right toolbar buttons */
         #sheetBtn,
         #columnsBtn,
         #addBtn {
-          height: 48px !important;
-          min-height: 48px !important;
-          padding: 12px 18px !important;
-          font-size: 16px !important;
+          height: 56px !important;
+          min-height: 56px !important;
+          padding: 14px 20px !important;
+          font-size: 18px !important;
         }
 
         /* Stack filters row on phones */
@@ -1567,18 +1571,21 @@
           font-size: 16px !important;
         }
 
-        /* Card adjustments - LARGER TEXT */
+        /* Card adjustments - MUCH LARGER TEXT */
         .item-card {
-          min-height: 160px;
+          min-height: 180px;
+          padding: 12px !important;
         }
 
         .item-name {
-          font-size: 15px !important;
+          font-size: 17px !important;
           line-height: 1.4;
+          font-weight: 600 !important;
         }
 
         .item-subtitle {
-          font-size: 14px !important;
+          font-size: 16px !important;
+          margin-top: 6px !important;
         }
 
         /* Login screen adjustments */
