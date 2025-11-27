@@ -1699,6 +1699,7 @@
             margin-right: 0;
             width: 100%;
             box-sizing: border-box;
+            overflow: hidden; /* Clip anything that tries to go outside */
           }
 
           /* Detail view layout - PORTRAIT: Stack image above details */
@@ -1706,21 +1707,27 @@
             grid-template-columns: 1fr !important;
             gap: 16px;
             width: 100%;
+            max-width: 100%;
             box-sizing: border-box;
+            overflow: hidden;
           }
 
           .detail-img-wrapper {
-            width: 100%;
-            max-width: 100%;
+            width: 100% !important;
+            max-width: 100% !important;
             max-height: 400px;
-            box-sizing: border-box;
+            box-sizing: border-box !important;
+            overflow: hidden;
+            margin: 0 !important;
           }
 
           .detail-img {
-            width: 100%;
-            max-width: 100%;
+            width: 100% !important;
+            max-width: 100% !important;
             max-height: 400px;
             display: block;
+            object-fit: cover;
+            margin: 0 !important;
           }
 
           /* Detail view text sizes - PORTRAIT */
