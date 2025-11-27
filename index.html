@@ -1687,22 +1687,35 @@
 
         /* PORTRAIT MODE ONLY - Wrap in orientation query */
         @media (orientation: portrait) {
+          /* Ensure symmetrical margins - adjust container padding */
+          #detailView {
+            padding: 16px !important;
+            margin-left: 0;
+            margin-right: 0;
+            width: 100%;
+            box-sizing: border-box;
+          }
+
           /* Detail view layout - PORTRAIT: Stack image above details */
           .detail-layout {
             grid-template-columns: 1fr !important;
             gap: 16px;
+            width: 100%;
+            box-sizing: border-box;
           }
 
           .detail-img-wrapper {
             width: 100%;
             max-width: 100%;
             max-height: 400px;
+            box-sizing: border-box;
           }
 
           .detail-img {
             width: 100%;
             max-width: 100%;
             max-height: 400px;
+            display: block;
           }
 
           /* Detail view text sizes - PORTRAIT */
