@@ -1687,6 +1687,11 @@
 
         /* PORTRAIT MODE ONLY - Wrap in orientation query */
         @media (orientation: portrait) {
+          /* Increase shell padding for more margin from screen edges */
+          .shell {
+            padding: 0 20px !important;
+          }
+
           /* Ensure symmetrical margins - adjust container padding */
           #detailView {
             padding: 16px !important;
