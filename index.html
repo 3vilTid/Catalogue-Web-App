@@ -1455,9 +1455,9 @@
 
       /* Phone and Tablet (1024px and below) - Catches phones reporting 980px like Samsung Galaxy A31 */
       @media (max-width: 1024px) {
-        /* Larger padding on phones */
+        /* Larger padding on phones for comfortable margins */
         .shell {
-          padding: 0 12px;
+          padding: 0 16px;
         }
 
         .top-header {
@@ -1683,6 +1683,12 @@
         select {
           min-height: 44px;
           font-size: 16px; /* Prevents zoom on iOS */
+        }
+
+        /* Detail view container - PORTRAIT: Comfortable padding */
+        #detailView {
+          padding: 16px !important;
+          margin-top: 16px;
         }
 
         /* Detail view layout - PORTRAIT: Stack image above details */
