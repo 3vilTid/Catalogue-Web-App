@@ -615,28 +615,39 @@
       .detail-name {
         font-size: 20px;
         font-weight: 700;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
       }
 
       .detail-subtitle {
         font-size: 14px;
         color: #6b7280;
         margin-top: 4px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
       }
 
       .detail-topcorner {
         font-size: 14px;
         color: #6b7280;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
       }
 
       .detail-meta {
         font-size: 12px;
         color: var(--text-soft);
         margin-bottom: 8px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
       }
 
       .detail-field {
         margin-bottom: 6px;
         font-size: 13px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
       }
 
       .detail-label {
@@ -1588,7 +1599,21 @@
             min-height: 150px;
           }
 
-          /* Detail view - LANDSCAPE */
+          /* Detail view layout - LANDSCAPE: Restore side-by-side */
+          .detail-layout {
+            grid-template-columns: minmax(0, 280px) minmax(0, 1fr) !important;
+            gap: 16px;
+          }
+
+          .detail-img-wrapper {
+            max-height: 300px;
+          }
+
+          .detail-img {
+            max-height: 300px;
+          }
+
+          /* Detail view text sizes - LANDSCAPE */
           .detail-name {
             font-size: 20px !important;
           }
@@ -1660,7 +1685,25 @@
           font-size: 16px; /* Prevents zoom on iOS */
         }
 
-        /* Detail view adjustments - PORTRAIT */
+        /* Detail view layout - PORTRAIT: Stack image above details */
+        .detail-layout {
+          grid-template-columns: 1fr !important;
+          gap: 16px;
+        }
+
+        .detail-img-wrapper {
+          width: 100%;
+          max-width: 100%;
+          max-height: 400px;
+        }
+
+        .detail-img {
+          width: 100%;
+          max-width: 100%;
+          max-height: 400px;
+        }
+
+        /* Detail view text sizes - PORTRAIT */
         .detail-container {
           padding: 16px;
         }
