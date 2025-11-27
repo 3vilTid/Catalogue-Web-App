@@ -1699,7 +1699,6 @@
             margin-right: 0;
             width: 100%;
             box-sizing: border-box;
-            overflow: hidden; /* Clip anything that tries to go outside */
           }
 
           /* Detail view layout - PORTRAIT: Stack image above details */
@@ -1709,25 +1708,33 @@
             width: 100%;
             max-width: 100%;
             box-sizing: border-box;
-            overflow: hidden;
           }
 
           .detail-img-wrapper {
             width: 100% !important;
             max-width: 100% !important;
-            max-height: 400px;
+            height: auto !important;
             box-sizing: border-box !important;
-            overflow: hidden;
             margin: 0 !important;
           }
 
           .detail-img {
             width: 100% !important;
             max-width: 100% !important;
-            max-height: 400px;
+            height: auto !important;
             display: block;
-            object-fit: cover;
+            object-fit: contain;
             margin: 0 !important;
+          }
+
+          /* Ensure text wraps properly */
+          .detail-field,
+          .detail-name,
+          .detail-subtitle,
+          .detail-topcorner,
+          .detail-meta {
+            word-break: break-word !important;
+            overflow-wrap: break-word !important;
           }
 
           /* Detail view text sizes - PORTRAIT */
