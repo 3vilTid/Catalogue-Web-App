@@ -1685,55 +1685,58 @@
           font-size: 16px; /* Prevents zoom on iOS */
         }
 
-        /* Detail view layout - PORTRAIT: Stack image above details */
-        .detail-layout {
-          grid-template-columns: 1fr !important;
-          gap: 16px;
-        }
+        /* PORTRAIT MODE ONLY - Wrap in orientation query */
+        @media (orientation: portrait) {
+          /* Detail view layout - PORTRAIT: Stack image above details */
+          .detail-layout {
+            grid-template-columns: 1fr !important;
+            gap: 16px;
+          }
 
-        .detail-img-wrapper {
-          width: 100%;
-          max-width: 100%;
-          max-height: 400px;
-        }
+          .detail-img-wrapper {
+            width: 100%;
+            max-width: 100%;
+            max-height: 400px;
+          }
 
-        .detail-img {
-          width: 100%;
-          max-width: 100%;
-          max-height: 400px;
-        }
+          .detail-img {
+            width: 100%;
+            max-width: 100%;
+            max-height: 400px;
+          }
 
-        /* Detail view text sizes - PORTRAIT */
-        .detail-container {
-          padding: 16px;
-        }
+          /* Detail view text sizes - PORTRAIT */
+          .detail-container {
+            padding: 16px;
+          }
 
-        .detail-name {
-          font-size: 30px !important;
-        }
+          .detail-name {
+            font-size: 30px !important;
+          }
 
-        .detail-subtitle {
-          font-size: 25px !important;
-        }
+          .detail-subtitle {
+            font-size: 25px !important;
+          }
 
-        .detail-topcorner {
-          font-size: 25px !important;
-        }
+          .detail-topcorner {
+            font-size: 25px !important;
+          }
 
-        .detail-meta {
-          font-size: 25px !important;
-        }
+          .detail-meta {
+            font-size: 25px !important;
+          }
 
-        .detail-field {
-          font-size: 22px !important;
-        }
+          .detail-field {
+            font-size: 22px !important;
+          }
 
-        .detail-field-label {
-          font-size: 22px !important;
-        }
+          .detail-field-label {
+            font-size: 22px !important;
+          }
 
-        .detail-field-value {
-          font-size: 22px !important;
+          .detail-field-value {
+            font-size: 22px !important;
+          }
         }
 
         /* Card adjustments - MUCH LARGER TEXT */
