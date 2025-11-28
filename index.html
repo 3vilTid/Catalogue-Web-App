@@ -3219,13 +3219,26 @@
 
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
-            const displayVal = config.type === "date" ? formatDate(val) : val;
-            html +=
-              '<div class="detail-field" style="margin-top: 16px;"><span class="detail-label">' +
-              (config.displayName || config.columnName) +
-              ":</span> " +
-              displayVal +
-              "</div>";
+            // Check if it's a URL type or external link
+            if (config.type === "url" || config.specialRole === "externallink") {
+              const linkLabel = config.displayName || config.columnName;
+              html +=
+                '<div class="detail-field" style="margin-top: 16px;">' +
+                '<a href="' +
+                val +
+                '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
+                "🔗 " + linkLabel +
+                "</a>" +
+                "</div>";
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              html +=
+                '<div class="detail-field" style="margin-top: 16px;"><span class="detail-label">' +
+                (config.displayName || config.columnName) +
+                ":</span> " +
+                displayVal +
+                "</div>";
+            }
           }
         }
 
@@ -3305,13 +3318,26 @@
 
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
-            const displayVal = config.type === "date" ? formatDate(val) : val;
-            html +=
-              '<div class="detail-field" style="margin-top: 16px;"><span class="detail-label">' +
-              (config.displayName || config.columnName) +
-              ":</span> " +
-              displayVal +
-              "</div>";
+            // Check if it's a URL type or external link
+            if (config.type === "url" || config.specialRole === "externallink") {
+              const linkLabel = config.displayName || config.columnName;
+              html +=
+                '<div class="detail-field" style="margin-top: 16px;">' +
+                '<a href="' +
+                val +
+                '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
+                "🔗 " + linkLabel +
+                "</a>" +
+                "</div>";
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              html +=
+                '<div class="detail-field" style="margin-top: 16px;"><span class="detail-label">' +
+                (config.displayName || config.columnName) +
+                ":</span> " +
+                displayVal +
+                "</div>";
+            }
           }
         }
 
