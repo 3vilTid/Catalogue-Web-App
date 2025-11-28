@@ -2938,6 +2938,14 @@
 
         document.title = (settings && settings.appName) || "Catalogue";
 
+        // Apply background image if set in Settings I5
+        if (settings && settings.backgroundImageUrl && settings.backgroundImageUrl.trim() !== "") {
+          document.body.style.backgroundImage = 'url("' + settings.backgroundImageUrl + '")';
+          document.body.style.backgroundSize = 'cover';
+          document.body.style.backgroundPosition = 'center';
+          document.body.style.backgroundAttachment = 'fixed';
+        }
+
         // Hide user info and logout button in public mode
         const isPublicMode = settings && settings.appMode === "Public all in Viewer";
         const userInfoBlock = document.getElementById("userInfoBlock");

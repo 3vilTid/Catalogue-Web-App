@@ -241,6 +241,7 @@ function getSettings() {
   var deploymentUrl = sh.getRange("C5").getDisplayValue() || "";
   var dateAdjustment = parseInt(sh.getRange("F2").getValue()) || 0;
   var appMode = sh.getRange("I2").getDisplayValue() || "Private with Profiles";
+  var backgroundImageUrl = sh.getRange("I5").getDisplayValue() || "";
 
   return {
     appName: appName,
@@ -248,7 +249,8 @@ function getSettings() {
     sheetUrl: sheetUrl,
     deploymentUrl: deploymentUrl,
     dateAdjustment: dateAdjustment,
-    appMode: appMode
+    appMode: appMode,
+    backgroundImageUrl: backgroundImageUrl
   };
 }
 
