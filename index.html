@@ -3266,7 +3266,7 @@
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
             // Check if it's a URL type or external link
-            if (config.type === "url" || config.specialRole === "externallink") {
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
               const linkLabel = config.displayName || config.columnName;
               html +=
                 '<div class="detail-field" style="margin-top: 16px;">' +
@@ -3300,7 +3300,7 @@
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
             // Check if it's a URL type or external link
-            if (config.type === "url" || config.specialRole === "externallink") {
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
               const linkLabel = config.displayName || config.columnName;
               html +=
                 '<div class="detail-field">' +
@@ -3332,7 +3332,7 @@
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
             // Check if it's a URL type or external link
-            if (config.type === "url" || config.specialRole === "externallink") {
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
               const linkLabel = config.displayName || config.columnName;
               html +=
                 '<div class="detail-field">' +
@@ -3365,7 +3365,7 @@
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
             // Check if it's a URL type or external link
-            if (config.type === "url" || config.specialRole === "externallink") {
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
               const linkLabel = config.displayName || config.columnName;
               html +=
                 '<div class="detail-field" style="margin-top: 16px;">' +
@@ -3390,7 +3390,7 @@
         // External Link fields that don't have an itemPlace (special role only)
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
-          if (config.specialRole !== "externallink") continue;
+          if (config.specialRole !== "externallink" && config.specialRole !== "formulaexternallink") continue;
           // Skip if it already has an itemPlace and was rendered above
           if (config.itemPlace && config.itemPlace !== "") continue;
 
@@ -3820,7 +3820,7 @@
           const config = columnConfig[i];
 
           // Skip auto-filled and read-only columns
-          if (config.specialRole === "addedby" || config.specialRole === "formula") {
+          if (config.specialRole === "addedby" || config.specialRole === "formula" || config.specialRole === "formulaexternallink") {
             continue;
           }
 
@@ -3877,7 +3877,7 @@
               const config = columnConfig[i];
 
               // Skip auto-filled and read-only columns
-              if (config.specialRole === "addedby" || config.specialRole === "formula") {
+              if (config.specialRole === "addedby" || config.specialRole === "formula" || config.specialRole === "formulaexternallink") {
                 continue;
               }
 
@@ -3925,7 +3925,7 @@
           const config = columnConfig[i];
 
           // Skip auto-filled and read-only columns
-          if (config.specialRole === "addedby" || config.specialRole === "formula") {
+          if (config.specialRole === "addedby" || config.specialRole === "formula" || config.specialRole === "formulaexternallink") {
             continue;
           }
 
