@@ -239,8 +239,8 @@ function getSettings() {
   var catalogName = sh.getRange("C3").getDisplayValue() || "Catalogue";
   var sheetUrl = sh.getRange("C4").getDisplayValue() || "";
   var deploymentUrl = sh.getRange("C5").getDisplayValue() || "";
-  var dateAdjustment = parseInt(sh.getRange("H2").getValue()) || 0;
-  var appMode = sh.getRange("J2").getDisplayValue() || "Private with Profiles";
+  var dateAdjustment = parseInt(sh.getRange("F1").getValue()) || 0;
+  var appMode = sh.getRange("I2").getDisplayValue() || "Private with Profiles";
 
   return {
     appName: appName,
@@ -557,7 +557,7 @@ function getMainData() {
     }
   }
 
-  // Get date adjustment from settings (H2)
+  // Get date adjustment from settings (F1)
   var settings = getSettings();
   var dateAdjustment = settings.dateAdjustment || 0;
 
@@ -570,7 +570,7 @@ function getMainData() {
       if (h) {
         var val = row[c];
         // Convert Date objects to YYYY-MM-DD strings using local methods
-        // Apply date adjustment from Settings H2
+        // Apply date adjustment from Settings F1
         if (dateColumns[h] && val instanceof Date) {
           // Apply date adjustment (add days)
           var adjustedDate = new Date(val);
@@ -665,7 +665,7 @@ function getItemByName(name, token) {
       }
     }
 
-    // Get date adjustment from settings (H2)
+    // Get date adjustment from settings (F1)
     var settings = getSettings();
     var dateAdjustment = settings.dateAdjustment || 0;
 
@@ -677,7 +677,7 @@ function getItemByName(name, token) {
           var h = headers[c];
           var val = data[r][c];
           // Convert Date objects to YYYY-MM-DD strings using local methods
-          // Apply date adjustment from Settings H2
+          // Apply date adjustment from Settings F1
           if (dateColumns[h] && val instanceof Date) {
             // Apply date adjustment (add days)
             var adjustedDate = new Date(val);
