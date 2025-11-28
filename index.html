@@ -3317,9 +3317,11 @@
           if (config.itemPlace !== "longtextdown") continue;
 
           const val = item[config.columnName];
+          console.log("Long text Down:", config.columnName, "type:", config.type, "specialRole:", config.specialRole, "value:", val);
           if (val != null && String(val).trim() !== "") {
             // Check if it's a URL type or external link
             if (config.type === "url" || config.specialRole === "externallink") {
+              console.log("  -> Rendering as URL/External Link");
               const linkLabel = config.displayName || config.columnName;
               html +=
                 '<div class="detail-field" style="margin-top: 16px;">' +
@@ -3330,6 +3332,7 @@
                 "</a>" +
                 "</div>";
             } else {
+              console.log("  -> Rendering as text field");
               const displayVal = config.type === "date" ? formatDate(val) : val;
               html +=
                 '<div class="detail-field" style="margin-top: 16px;"><span class="detail-label">' +
