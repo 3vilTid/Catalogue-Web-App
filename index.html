@@ -1713,7 +1713,8 @@
           .detail-img-wrapper {
             width: 100% !important;
             max-width: 100% !important;
-            height: auto !important;
+            max-height: none !important;
+            min-height: 300px;
             box-sizing: border-box !important;
             margin: 0 !important;
           }
@@ -1722,8 +1723,9 @@
             width: 100% !important;
             max-width: 100% !important;
             height: auto !important;
+            max-height: none !important;
             display: block;
-            object-fit: contain;
+            object-fit: cover;
             margin: 0 !important;
           }
 
