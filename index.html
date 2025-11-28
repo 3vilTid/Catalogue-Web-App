@@ -2922,6 +2922,40 @@
         wrapper.appendChild(img);
       }
 
+      // Apply background image (supports both regular URLs and Drive URLs)
+      async function applyBackgroundImage(url) {
+        if (!url) return;
+
+        const fileId = extractDriveFileId(url);
+
+        if (fileId) {
+          // It's a Drive URL - fetch via proxy
+          try {
+            const base = imageProxyBaseUrl || "";
+            const proxyUrl = base.replace(/\/$/, "") + "?img=" + encodeURIComponent(fileId);
+
+            const response = await fetch(proxyUrl);
+            const json = await response.json();
+
+            if (json.ok) {
+              const dataUrl = "data:" + json.mime + ";base64," + json.data;
+              document.body.style.backgroundImage = 'url("' + dataUrl + '")';
+              document.body.style.backgroundSize = 'cover';
+              document.body.style.backgroundPosition = 'center';
+              document.body.style.backgroundAttachment = 'fixed';
+            }
+          } catch (err) {
+            console.error("Error loading background image from Drive:", err);
+          }
+        } else {
+          // Regular URL - apply directly
+          document.body.style.backgroundImage = 'url("' + url + '")';
+          document.body.style.backgroundSize = 'cover';
+          document.body.style.backgroundPosition = 'center';
+          document.body.style.backgroundAttachment = 'fixed';
+        }
+      }
+
       // -------------------- Rendering --------------------
 
       function updateHeaderUI() {
@@ -2940,10 +2974,7 @@
 
         // Apply background image if set in Settings I5
         if (settings && settings.backgroundImageUrl && settings.backgroundImageUrl.trim() !== "") {
-          document.body.style.backgroundImage = 'url("' + settings.backgroundImageUrl + '")';
-          document.body.style.backgroundSize = 'cover';
-          document.body.style.backgroundPosition = 'center';
-          document.body.style.backgroundAttachment = 'fixed';
+          applyBackgroundImage(settings.backgroundImageUrl);
         }
 
         // Hide user info and logout button in public mode
