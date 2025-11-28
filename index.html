@@ -66,7 +66,7 @@
       }
 
       body {
-        padding: 18px 20px 32px;
+        padding: 18px 12px 32px;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter",
           "Segoe UI", sans-serif;
         background: radial-gradient(
@@ -1685,61 +1685,112 @@
           font-size: 16px; /* Prevents zoom on iOS */
         }
 
-        /* Detail view container - PORTRAIT: Comfortable padding */
-        #detailView {
-          padding: 16px !important;
-          margin-top: 16px;
-        }
+        /* PORTRAIT MODE ONLY - Wrap in orientation query */
+        @media (orientation: portrait) {
+          /* Portrait mode shell padding */
+          .shell {
+            padding: 0 12px !important;
+          }
 
-        /* Detail view layout - PORTRAIT: Stack image above details */
-        .detail-layout {
-          grid-template-columns: 1fr !important;
-          gap: 16px;
-        }
+          /* Ensure symmetrical margins - adjust container padding */
+          #detailView {
+            padding: 16px !important;
+            margin-left: 0;
+            margin-right: 0;
+            width: 100%;
+            box-sizing: border-box;
+          }
 
-        .detail-img-wrapper {
-          width: 100%;
-          max-width: 100%;
-          max-height: 400px;
-        }
+          /* Detail view layout - PORTRAIT: Stack image above details */
+          .detail-layout {
+            grid-template-columns: 1fr !important;
+            gap: 16px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+          }
 
-        .detail-img {
-          width: 100%;
-          max-width: 100%;
-          max-height: 400px;
-        }
+          .detail-img-wrapper {
+            width: 100% !important;
+            max-width: 100% !important;
+            max-height: none !important;
+            min-height: 300px;
+            box-sizing: border-box !important;
+            margin: 0 !important;
+          }
 
-        /* Detail view text sizes - PORTRAIT */
-        .detail-container {
-          padding: 16px;
-        }
+          .detail-img {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            max-height: none !important;
+            display: block;
+            object-fit: cover;
+            margin: 0 !important;
+          }
 
-        .detail-name {
-          font-size: 30px !important;
-        }
+          /* Ensure text wraps properly */
+          .detail-field,
+          .detail-name,
+          .detail-subtitle,
+          .detail-topcorner,
+          .detail-meta {
+            word-break: break-word !important;
+            overflow-wrap: break-word !important;
+          }
 
-        .detail-subtitle {
-          font-size: 25px !important;
-        }
+          /* Make image zoom close button MUCH bigger for portrait */
+          #imgOverlayClose {
+            font-size: 32px !important;
+            padding: 8px 14px !important;
+            top: 20px !important;
+            right: 20px !important;
+            min-width: 48px;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
 
-        .detail-topcorner {
-          font-size: 25px !important;
-        }
+          /* Detail view text sizes - PORTRAIT */
+          .detail-container {
+            padding: 16px;
+          }
 
-        .detail-meta {
-          font-size: 25px !important;
-        }
+          .detail-name {
+            font-size: 30px !important;
+          }
 
-        .detail-field {
-          font-size: 22px !important;
-        }
+          .detail-subtitle {
+            font-size: 25px !important;
+          }
 
-        .detail-field-label {
-          font-size: 22px !important;
-        }
+          /* Make the text container positioned so Top Corner positions relative to it */
+          .detail-layout > div:not(#detailImgContainer) {
+            position: relative;
+          }
 
-        .detail-field-value {
-          font-size: 22px !important;
+          .detail-topcorner {
+            font-size: 25px !important;
+            top: 0 !important;
+            right: 0 !important;
+          }
+
+          .detail-meta {
+            font-size: 25px !important;
+          }
+
+          .detail-field {
+            font-size: 22px !important;
+          }
+
+          .detail-field-label {
+            font-size: 22px !important;
+          }
+
+          .detail-field-value {
+            font-size: 22px !important;
+          }
         }
 
         /* Card adjustments - MUCH LARGER TEXT */
