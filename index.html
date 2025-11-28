@@ -3312,13 +3312,16 @@
         html += '</div>'; // Close grid
 
         // Long text Down fields (after two-column grid)
+        html += '<div style="background: yellow; padding: 10px; margin: 10px 0;">🔍 DEBUG: Long text Down section starting...</div>';
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
           if (config.itemPlace !== "longtextdown") continue;
 
+          html += '<div style="background: lime; padding: 5px; margin: 5px 0;">Found longtextdown field: ' + config.columnName + '</div>';
           const val = item[config.columnName];
           console.log("Long text Down:", config.columnName, "type:", config.type, "specialRole:", config.specialRole, "value:", val);
           if (val != null && String(val).trim() !== "") {
+            html += '<div style="background: cyan; padding: 5px;">Value exists: ' + val + '</div>';
             // Check if it's a URL type or external link
             if (config.type === "url" || config.specialRole === "externallink") {
               console.log("  -> Rendering as URL/External Link");
@@ -3341,6 +3344,8 @@
                 displayVal +
                 "</div>";
             }
+          } else {
+            html += '<div style="background: orange; padding: 5px;">No value or empty</div>';
           }
         }
 
