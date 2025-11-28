@@ -1765,10 +1765,15 @@
             font-size: 25px !important;
           }
 
+          /* Make the text container positioned so Top Corner positions relative to it */
+          .detail-layout > div:not(#detailImgContainer) {
+            position: relative;
+          }
+
           .detail-topcorner {
             font-size: 25px !important;
             top: 0 !important;
-            line-height: 1.2;
+            right: 0 !important;
           }
 
           .detail-meta {
