@@ -1739,14 +1739,17 @@
             overflow-wrap: break-word !important;
           }
 
-          /* Make back button bigger and touch-friendly */
-          .back-btn {
-            font-size: 18px !important;
-            padding: 12px 20px !important;
-            min-height: 44px;
-            display: inline-flex;
+          /* Make image zoom close button MUCH bigger for portrait */
+          #imgOverlayClose {
+            font-size: 32px !important;
+            padding: 8px 14px !important;
+            top: 20px !important;
+            right: 20px !important;
+            min-width: 48px;
+            min-height: 48px;
+            display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
           }
 
           /* Detail view text sizes - PORTRAIT */
