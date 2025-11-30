@@ -34,14 +34,16 @@ var ITEM_PLACE_DISPLAY = {
 var SPECIAL_ROLE_MAP = {
   "Auto-filled User Mail": "addedby",
   "External Link": "externallink",
-  "Formula (Read-only)": "formula"
+  "Formula (Read-only)": "formula",
+  "Formula/External Link (Read-only)": "formulaexternallink"
 };
 
 // Reverse map for display
 var SPECIAL_ROLE_DISPLAY = {
   "addedby": "Auto-filled User Mail",
   "externallink": "External Link",
-  "formula": "Formula (Read-only)"
+  "formula": "Formula (Read-only)",
+  "formulaexternallink": "Formula/External Link (Read-only)"
 };
 
 // Convert item place display name to internal code
@@ -80,7 +82,7 @@ function normalizeSpecialRole_(displayRole) {
   }
 
   // If already internal code, return as-is
-  if (roleStr === "addedby" || roleStr === "externallink" || roleStr === "formula") {
+  if (roleStr === "addedby" || roleStr === "externallink" || roleStr === "formula" || roleStr === "formulaexternallink") {
     return roleStr;
   }
 
@@ -241,6 +243,7 @@ function getSettings() {
   var deploymentUrl = sh.getRange("C5").getDisplayValue() || "";
   var dateAdjustment = parseInt(sh.getRange("F2").getValue()) || 0;
   var appMode = sh.getRange("I2").getDisplayValue() || "Private with Profiles";
+  var backgroundImageUrl = sh.getRange("I5").getDisplayValue() || "";
 
   return {
     appName: appName,
@@ -248,7 +251,8 @@ function getSettings() {
     sheetUrl: sheetUrl,
     deploymentUrl: deploymentUrl,
     dateAdjustment: dateAdjustment,
-    appMode: appMode
+    appMode: appMode,
+    backgroundImageUrl: backgroundImageUrl
   };
 }
 
