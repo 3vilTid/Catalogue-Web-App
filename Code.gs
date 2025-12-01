@@ -260,7 +260,7 @@ function getSettings() {
 
 /**
  * Get layer configuration from Settings sheet
- * Searches flexibly for "Column Layers" table anywhere in the sheet
+ * Hardcoded to read from B12:C14 (Layer 1, 2, 3)
  */
 function getLayerConfig() {
   try {
@@ -268,48 +268,27 @@ function getLayerConfig() {
     var settingsSheet = ss.getSheetByName("Settings");
 
     if (!settingsSheet) {
-      Logger.log("Settings sheet not found");
+      Logger.log("✗ Settings sheet not found");
       return [];
     }
-
-    // Get all data from Settings sheet
-    var data = settingsSheet.getDataRange().getValues();
-    var tableStartRow = -1;
-    var tableStartCol = -1;
-
-    // Search for "Column Layers" anywhere in the sheet
-    for (var i = 0; i < data.length; i++) {
-      for (var j = 0; j < data[i].length; j++) {
-        var cellValue = String(data[i][j]).trim();
-        if (cellValue === "Column Layers") {
-          tableStartRow = i;
-          tableStartCol = j;
-          Logger.log("✓ Found 'Column Layers' at row " + (i + 1) + ", col " + (j + 1));
-          break;
-        }
-      }
-      if (tableStartRow !== -1) break;
-    }
-
-    if (tableStartRow === -1) {
-      Logger.log("✗ 'Column Layers' not found in Settings sheet");
-      return [];
-    }
-
-    // Skip the header row (Layer | Main Column Name)
-    var dataStartRow = tableStartRow + 2;
 
     var layers = [];
 
-    // Read up to 10 rows of layer data (flexible for future expansion)
-    for (var i = dataStartRow; i < dataStartRow + 10 && i < data.length; i++) {
-      var layerName = String(data[i][tableStartCol] || "").trim();
-      var mainColumnName = String(data[i][tableStartCol + 1] || "").trim();
+    // Hardcoded positions: B12:C14
+    // B12: Layer 1, C12: Ex Cat
+    // B13: Layer 2, C13: Category
+    // B14: Layer 3, C14: (blank)
+    var layerRows = [12, 13, 14]; // Rows for Layer 1, 2, 3
+    var layerCol = 2;  // Column B (1-indexed)
+    var mainCol = 3;   // Column C (1-indexed)
 
-      // Stop if we hit an empty row
-      if (layerName === "" && mainColumnName === "") {
-        break;
-      }
+    for (var i = 0; i < layerRows.length; i++) {
+      var row = layerRows[i];
+      var layerName = settingsSheet.getRange(row, layerCol).getValue();
+      var mainColumnName = settingsSheet.getRange(row, mainCol).getValue();
+
+      layerName = String(layerName || "").trim();
+      mainColumnName = String(mainColumnName || "").trim();
 
       // Only include layers that have both name and main column
       if (layerName !== "" && mainColumnName !== "") {
