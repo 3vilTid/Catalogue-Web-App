@@ -2913,6 +2913,9 @@
 
       let searchQuery = ""; // Search query for Primary Identifier
 
+      // Navigation state for back button handling
+      let currentView = "list"; // "list" or "detail"
+
       let editingItemName = null;
       let imageProxyBaseUrl = "";
 
@@ -3575,6 +3578,10 @@
           currentDetailIndex = index;
         }
 
+        // Update navigation state and push history for back button
+        currentView = "detail";
+        history.pushState({ view: "detail", index: index }, "", "");
+
         // Show back button, hide filter and sort
         document.getElementById("backToListBtn").style.display = "inline-flex";
         document.getElementById("filterWrapper").style.display = "none";
@@ -4008,6 +4015,9 @@
 
       function backToList() {
         document.getElementById("detailView").style.display = "none";
+
+        // Update navigation state
+        currentView = "list";
 
         // Hide back button, show filter and sort
         document.getElementById("backToListBtn").style.display = "none";
@@ -5082,6 +5092,22 @@
             clearBtn.style.display = "none";
           }
         };
+
+        // Handle browser back button
+        window.addEventListener("popstate", function(e) {
+          if (currentView === "detail") {
+            // User pressed back while in detail view - go back to list
+            e.preventDefault();
+            backToList();
+          } else if (currentView === "list") {
+            // User pressed back while in list view - prevent navigation, stay in app
+            e.preventDefault();
+            history.pushState({ view: "list" }, "", "");
+          }
+        });
+
+        // Initialize home state for back button handling
+        history.replaceState({ view: "list" }, "", "");
 
         const overlay = document.getElementById("imgOverlay");
         const closeBtn = document.getElementById("imgOverlayClose");
