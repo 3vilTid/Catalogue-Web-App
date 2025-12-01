@@ -618,6 +618,47 @@
         outline: none !important;
       }
 
+      /* Navigation arrow buttons for detail view */
+      .nav-arrow-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.95);
+        border: 2px solid #e2e8f0;
+        color: #1e293b;
+        font-size: 24px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: all 0.2s ease;
+      }
+
+      .nav-arrow-btn:hover {
+        background: #ffffff;
+        border-color: #cbd5e1;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        transform: translateY(-50%) scale(1.05);
+      }
+
+      .nav-arrow-btn:active {
+        transform: translateY(-50%) scale(0.95);
+      }
+
+      .nav-arrow-left {
+        left: -80px;
+      }
+
+      .nav-arrow-right {
+        right: -80px;
+      }
+
       .detail-title-row {
         display: flex;
         justify-content: space-between;
@@ -1477,6 +1518,11 @@
         .top-header {
           padding: 20px 20px;
           margin-bottom: 20px;
+        }
+
+        /* Hide navigation arrow buttons on mobile - use swipe instead */
+        .nav-arrow-btn {
+          display: none !important;
         }
 
         /* LARGER TEXT SIZES FOR MOBILE - PORTRAIT */
@@ -2782,6 +2828,10 @@
       let editingItemName = null;
       let imageProxyBaseUrl = "";
 
+      // Detail view navigation tracking
+      let currentDisplayedItems = [];
+      let currentDetailIndex = -1;
+
       // -------------------- Helpers --------------------
 
       function formatDate(dateValue) {
@@ -3340,6 +3390,10 @@
         det.style.display = "none";
         grid.innerHTML = "";
 
+        // Store items for detail view navigation
+        currentDisplayedItems = items;
+        currentDetailIndex = -1;
+
         if (!items.length) {
           grid.innerHTML =
             "<p style='color:#6b7280;font-size:13px;'>No items for this selection.</p>";
@@ -3402,21 +3456,26 @@
 
           card.appendChild(body);
 
-          card.onclick = (function (it) {
+          card.onclick = (function (it, idx) {
             return function () {
-              showDetails(it);
+              showDetails(it, idx);
             };
-          })(item);
+          })(item, i);
 
           grid.appendChild(card);
         }
       }
 
-      function showDetails(item) {
+      function showDetails(item, index) {
         const det = document.getElementById("detailView");
         const grid = document.getElementById("gridView");
         det.style.display = "block";
         grid.innerHTML = "";
+
+        // Store current detail index for navigation
+        if (index !== undefined) {
+          currentDetailIndex = index;
+        }
 
         // Show back button, hide filter and sort
         document.getElementById("backToListBtn").style.display = "inline-flex";
@@ -3425,6 +3484,8 @@
 
         let html =
           '<div class="detail-layout">' +
+          '<button id="prevItemBtn" class="nav-arrow-btn nav-arrow-left" onclick="navigateToPrevious()" title="Previous item">&lt;</button>' +
+          '<button id="nextItemBtn" class="nav-arrow-btn nav-arrow-right" onclick="navigateToNext()" title="Next item">&gt;</button>' +
           '<div id="detailImgContainer">';
 
         if (imageColumn && item[imageColumn.columnName]) {
@@ -3664,6 +3725,9 @@
         html += "</div></div>";
         det.innerHTML = html;
 
+        // Update navigation button visibility
+        updateNavigationButtons();
+
         // Load detail image with progressive loading
         const imgWrapper = document.getElementById("detailImgWrapper");
         if (imgWrapper && imageColumn && item[imageColumn.columnName]) {
@@ -3674,6 +3738,89 @@
             loadDetailImage(fileId, imgWrapper);
           } else if (rawUrl) {
             loadDetailImageDirect(rawUrl, imgWrapper);
+          }
+        }
+      }
+
+      // Navigate to next item in detail view
+      function navigateToNext() {
+        if (currentDetailIndex < 0 || currentDetailIndex >= currentDisplayedItems.length - 1) {
+          return; // Already at last item or invalid index
+        }
+        const nextIndex = currentDetailIndex + 1;
+        const nextItem = currentDisplayedItems[nextIndex];
+        showDetails(nextItem, nextIndex);
+      }
+
+      // Navigate to previous item in detail view
+      function navigateToPrevious() {
+        if (currentDetailIndex <= 0) {
+          return; // Already at first item or invalid index
+        }
+        const prevIndex = currentDetailIndex - 1;
+        const prevItem = currentDisplayedItems[prevIndex];
+        showDetails(prevItem, prevIndex);
+      }
+
+      // Update navigation button visibility based on current position
+      function updateNavigationButtons() {
+        const prevBtn = document.getElementById("prevItemBtn");
+        const nextBtn = document.getElementById("nextItemBtn");
+
+        if (!prevBtn || !nextBtn) return;
+
+        // Hide previous button if at first item
+        if (currentDetailIndex <= 0) {
+          prevBtn.style.display = "none";
+        } else {
+          prevBtn.style.display = "flex";
+        }
+
+        // Hide next button if at last item
+        if (currentDetailIndex >= currentDisplayedItems.length - 1) {
+          nextBtn.style.display = "none";
+        } else {
+          nextBtn.style.display = "flex";
+        }
+      }
+
+      // Swipe detection for mobile navigation
+      let touchStartX = 0;
+      let touchEndX = 0;
+      let touchStartY = 0;
+      let touchEndY = 0;
+
+      function initializeSwipeDetection() {
+        const detailView = document.getElementById("detailView");
+        if (!detailView) return;
+
+        detailView.addEventListener('touchstart', function(e) {
+          touchStartX = e.changedTouches[0].screenX;
+          touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        detailView.addEventListener('touchend', function(e) {
+          touchEndX = e.changedTouches[0].screenX;
+          touchEndY = e.changedTouches[0].screenY;
+          handleSwipe();
+        }, { passive: true });
+      }
+
+      function handleSwipe() {
+        const swipeThreshold = 50; // Minimum distance for swipe
+        const swipeDistanceX = touchEndX - touchStartX;
+        const swipeDistanceY = touchEndY - touchStartY;
+
+        // Only trigger if horizontal swipe is more dominant than vertical
+        if (Math.abs(swipeDistanceX) > Math.abs(swipeDistanceY)) {
+          if (Math.abs(swipeDistanceX) > swipeThreshold) {
+            if (swipeDistanceX < 0) {
+              // Swiped left - go to next
+              navigateToNext();
+            } else {
+              // Swiped right - go to previous
+              navigateToPrevious();
+            }
           }
         }
       }
@@ -4770,6 +4917,9 @@
         });
 
         init();
+
+        // Initialize swipe detection for mobile detail view navigation
+        initializeSwipeDetection();
 
         // Filter dropdown
         document.getElementById("filterBtn").onclick = function(e) {
