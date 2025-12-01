@@ -331,7 +331,7 @@ function getLayerConfig() {
 
 /**
  * Get layer data from Layers sheet
- * Searches flexibly for layer table by name
+ * Searches flexibly for layer table by name in ANY column
  */
 function getLayerData(layerName) {
   try {
@@ -345,17 +345,22 @@ function getLayerData(layerName) {
 
     var data = layersSheet.getDataRange().getValues();
     var startRow = -1;
+    var startCol = -1;
     var headers = [];
 
-    // Find the layer table by name (search in first column)
+    // Search for layer name in ANY column (not just first column)
     for (var i = 0; i < data.length; i++) {
-      var cellValue = String(data[i][0]).trim();
-      if (cellValue === layerName) {
-        startRow = i;
-        headers = data[i + 1]; // Next row is headers
-        Logger.log("✓ Found '" + layerName + "' table at row " + (i + 1));
-        break;
+      for (var j = 0; j < data[i].length; j++) {
+        var cellValue = String(data[i][j]).trim();
+        if (cellValue === layerName) {
+          startRow = i;
+          startCol = j;
+          headers = data[i + 1]; // Next row is headers
+          Logger.log("✓ Found '" + layerName + "' table at row " + (i + 1) + ", col " + (j + 1));
+          break;
+        }
       }
+      if (startRow !== -1) break;
     }
 
     if (startRow === -1) {
@@ -370,11 +375,14 @@ function getLayerData(layerName) {
     for (var i = dataStartRow; i < data.length; i++) {
       var row = data[i];
 
+      // Check first column of table for empty or new layer
+      var firstCell = String(row[startCol] || "").trim();
+
       // Stop if empty row or new layer table
-      if (!row[0] || String(row[0]).trim() === "" ||
-          String(row[0]).trim() === "Layer 1" ||
-          String(row[0]).trim() === "Layer 2" ||
-          String(row[0]).trim() === "Layer 3") {
+      if (firstCell === "" ||
+          firstCell === "Layer 1" ||
+          firstCell === "Layer 2" ||
+          firstCell === "Layer 3") {
         break;
       }
 
