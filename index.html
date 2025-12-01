@@ -108,6 +108,13 @@
         gap: 2px;
       }
 
+      .app-logo {
+        height: 48px;
+        width: auto;
+        object-fit: contain;
+        margin-bottom: 8px;
+      }
+
       .app-name {
         font-weight: 700;
         font-size: 22px;
@@ -2003,6 +2010,7 @@
       <!-- Top header -->
       <div class="top-header">
         <div class="left-block">
+          <img id="appLogo" class="app-logo" src="" alt="" style="display: none;">
           <div id="appName" class="app-name">App name</div>
 
           <div class="catalog-row">
@@ -3057,6 +3065,45 @@
         }
       }
 
+      async function applyLogoImage(url) {
+        const logoEl = document.getElementById("appLogo");
+        if (!logoEl) return;
+
+        if (!url || url.trim() === "") {
+          logoEl.style.display = "none";
+          logoEl.src = "";
+          return;
+        }
+
+        const fileId = extractDriveFileId(url);
+
+        if (fileId) {
+          // It's a Drive URL - fetch via proxy
+          try {
+            const base = imageProxyBaseUrl || "";
+            const proxyUrl = base.replace(/\/$/, "") + "?img=" + encodeURIComponent(fileId);
+
+            const response = await fetch(proxyUrl);
+            const json = await response.json();
+
+            if (json.ok) {
+              const dataUrl = "data:" + json.mime + ";base64," + json.data;
+              logoEl.src = dataUrl;
+              logoEl.style.display = "block";
+            } else {
+              logoEl.style.display = "none";
+            }
+          } catch (err) {
+            console.error("Error loading logo from Drive:", err);
+            logoEl.style.display = "none";
+          }
+        } else {
+          // Regular URL - apply directly
+          logoEl.src = url;
+          logoEl.style.display = "block";
+        }
+      }
+
       // -------------------- Rendering --------------------
 
       function updateHeaderUI() {
@@ -3072,6 +3119,11 @@
           (user && user.profile) || "";
 
         document.title = (settings && settings.appName) || "Catalogue";
+
+        // Apply logo if set in Settings C6
+        if (settings && settings.logoUrl) {
+          applyLogoImage(settings.logoUrl);
+        }
 
         // Apply background image if set in Settings I5
         if (settings && settings.backgroundImageUrl && settings.backgroundImageUrl.trim() !== "") {

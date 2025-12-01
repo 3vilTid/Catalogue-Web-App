@@ -241,6 +241,7 @@ function getSettings() {
   var catalogName = sh.getRange("C3").getDisplayValue() || "Catalogue";
   var sheetUrl = sh.getRange("C4").getDisplayValue() || "";
   var deploymentUrl = sh.getRange("C5").getDisplayValue() || "";
+  var logoUrl = sh.getRange("C6").getDisplayValue() || "";
   var dateAdjustment = parseInt(sh.getRange("F2").getValue()) || 0;
   var appMode = sh.getRange("I2").getDisplayValue() || "Private with Profiles";
   var backgroundImageUrl = sh.getRange("I5").getDisplayValue() || "";
@@ -250,6 +251,7 @@ function getSettings() {
     catalogName: catalogName,
     sheetUrl: sheetUrl,
     deploymentUrl: deploymentUrl,
+    logoUrl: logoUrl,
     dateAdjustment: dateAdjustment,
     appMode: appMode,
     backgroundImageUrl: backgroundImageUrl
