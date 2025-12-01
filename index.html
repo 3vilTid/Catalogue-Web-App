@@ -4924,6 +4924,15 @@
             allItems = payload.items || [];
             columnConfig = payload.columnConfig || [];
 
+            // Store layer configuration and data
+            layerConfig = payload.layerConfig || [];
+            layersData = payload.layersData || {};
+
+            // Debug: Log layer data
+            console.log('📊 Layer Config:', layerConfig);
+            console.log('📊 Layers Data:', layersData);
+            console.log('📊 Has Layers:', layerConfig.length > 0);
+
             // Check if user is still authenticated
             if (!user) {
               console.log('Session expired - showing login screen');
