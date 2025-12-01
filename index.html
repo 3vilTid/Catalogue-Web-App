@@ -104,15 +104,21 @@
 
       .left-block {
         display: flex;
-        flex-direction: column;
-        gap: 2px;
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
       }
 
       .app-logo {
         height: 48px;
         width: auto;
         object-fit: contain;
-        margin-bottom: 8px;
+      }
+
+      .app-text-block {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
       }
 
       .app-name {
@@ -2011,14 +2017,16 @@
       <div class="top-header">
         <div class="left-block">
           <img id="appLogo" class="app-logo" src="" alt="" style="display: none;">
-          <div id="appName" class="app-name">App name</div>
+          <div class="app-text-block">
+            <div id="appName" class="app-name">App name</div>
 
-          <div class="catalog-row">
-            <span class="catalog-label"></span>
-            <span id="catalogName" class="catalog-name">Catalogue</span>
-            <button id="editCatalogBtn" class="catalog-edit-btn" title="Rename catalogue" style="display: none">
-              ✏
-            </button>
+            <div class="catalog-row">
+              <span class="catalog-label"></span>
+              <span id="catalogName" class="catalog-name">Catalogue</span>
+              <button id="editCatalogBtn" class="catalog-edit-btn" title="Rename catalogue" style="display: none">
+                ✏
+              </button>
+            </div>
           </div>
         </div>
 
