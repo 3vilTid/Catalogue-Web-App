@@ -241,6 +241,13 @@ select {
    - Filter/Sort buttons: 88px font
    - Clear Filters: 20px font
 
+6. **Added logo support from Settings C6**
+   - Commit: a6652c7
+   - Logo displayed in header before app name
+   - Supports both regular URLs and Google Drive URLs
+   - Auto-hides if no logo URL is set
+   - Sized at 48px height for optimal display
+
 ---
 
 ## 🎯 Quick Reference
