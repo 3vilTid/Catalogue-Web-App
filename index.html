@@ -2172,6 +2172,11 @@
             ← Back to list
           </button>
 
+          <!-- Breadcrumb navigation (for layers) -->
+          <div id="breadcrumbNav" style="display: none; margin-left: 8px; font-size: 13px; color: #64748b; align-items: center;">
+            <!-- Breadcrumb items will be dynamically populated here -->
+          </div>
+
           <!-- Search input -->
           <div id="searchWrapper" class="search-wrapper">
             <input
@@ -3573,6 +3578,311 @@
         }
       }
 
+      // --- LAYER NAVIGATION FUNCTIONS ---
+
+      // Get filtered layer items based on parent layer selection
+      function getFilteredLayerItems(layerName, parentFilterName) {
+        const layerItems = layersData[layerName] || [];
+
+        if (!parentFilterName) {
+          // No parent filter - return all items
+          return layerItems;
+        }
+
+        // Filter by "Part of Layer X" column
+        // Find which parent layer this is (Layer 1, Layer 2, etc.)
+        const currentLayerIndex = layerConfig.findIndex(lc => lc.layerName === layerName);
+        if (currentLayerIndex <= 0) {
+          // This is Layer 1 or not found - no parent filtering
+          return layerItems;
+        }
+
+        // Get parent layer name
+        const parentLayerName = layerConfig[currentLayerIndex - 1].layerName;
+        const partOfColumnName = "Part of " + parentLayerName;
+
+        // Filter items where "Part of Layer X" matches the parent item's Name
+        return layerItems.filter(item => {
+          const partOfValue = item[partOfColumnName];
+          return partOfValue && String(partOfValue).trim() === parentFilterName;
+        });
+      }
+
+      // Render a layer view with cards
+      function renderLayerView(layerIndex, parentFilterName) {
+        const grid = document.getElementById("gridView");
+        const det = document.getElementById("detailView");
+        det.style.display = "none";
+        grid.innerHTML = "";
+
+        // Store navigation state
+        currentView = "layer";
+        currentLayerIndex = layerIndex;
+
+        if (layerIndex < 0 || layerIndex >= layerConfig.length) {
+          grid.innerHTML = "<p style='color:#6b7280;font-size:13px;'>Invalid layer.</p>";
+          return;
+        }
+
+        const layerName = layerConfig[layerIndex].layerName;
+        const layerItems = getFilteredLayerItems(layerName, parentFilterName);
+
+        // Hide empty layers
+        if (!layerItems.length) {
+          grid.innerHTML = "<p style='color:#6b7280;font-size:13px;'>No items in this layer.</p>";
+          return;
+        }
+
+        // Render each layer item as a card
+        for (let i = 0; i < layerItems.length; i++) {
+          const item = layerItems[i];
+          const card = document.createElement("div");
+          card.className = "card";
+
+          // Create image wrapper for lazy loading
+          const imgWrapper = document.createElement("div");
+          imgWrapper.className = "card-img-wrapper";
+
+          // Layer items have "Picture Link" column
+          if (item["Picture Link"]) {
+            const rawUrl = item["Picture Link"];
+            const fileId = extractDriveFileId(rawUrl);
+
+            if (fileId) {
+              // LAZY LOADING: Store fileId and observe
+              imgWrapper.dataset.fileId = fileId;
+              if (imageObserver) {
+                imageObserver.observe(imgWrapper);
+              } else {
+                loadImageViaProxy(fileId, imgWrapper);
+              }
+            } else if (rawUrl) {
+              // Direct HTTPS image
+              imgWrapper.dataset.rawUrl = rawUrl;
+              if (imageObserver) {
+                imageObserver.observe(imgWrapper);
+              } else {
+                loadDirectImage(rawUrl, imgWrapper);
+              }
+            } else {
+              imgWrapper.innerHTML = '<div style="width:100%;height:100%;background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px);"></div>';
+            }
+          } else {
+            imgWrapper.innerHTML = '<div style="width:100%;height:100%;background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px);"></div>';
+          }
+
+          card.appendChild(imgWrapper);
+
+          const body = document.createElement("div");
+          body.className = "card-body";
+
+          const nameEl = document.createElement("div");
+          nameEl.className = "card-name";
+          nameEl.textContent = item["Names"] || "(no name)";
+          body.appendChild(nameEl);
+
+          // Show description if available
+          if (item["Description"]) {
+            const descEl = document.createElement("div");
+            descEl.className = "card-sub";
+            descEl.textContent = item["Description"];
+            body.appendChild(descEl);
+          }
+
+          card.appendChild(body);
+
+          // Add click handler
+          card.onclick = (function (layerIdx, itm) {
+            return function () {
+              onLayerItemClick(layerIdx, itm);
+            };
+          })(layerIndex, item);
+
+          grid.appendChild(card);
+        }
+      }
+
+      // Handle layer item click - navigate to next layer or show filtered main items
+      function onLayerItemClick(layerIndex, item) {
+        const itemName = item["Names"];
+
+        // Add to navigation stack
+        navigationStack.push({
+          type: "layer",
+          layerIndex: layerIndex,
+          itemName: itemName
+        });
+
+        // Check if there's a next layer
+        if (layerIndex + 1 < layerConfig.length) {
+          // Navigate to next layer, filtered by this item
+          const nextLayerName = layerConfig[layerIndex + 1].layerName;
+          const filteredItems = getFilteredLayerItems(nextLayerName, itemName);
+
+          // Hide empty layers - if no items, skip to main items
+          if (filteredItems.length === 0) {
+            console.log('Layer', nextLayerName, 'is empty, showing main items filtered by', itemName);
+            showMainItemsFilteredByLayer(layerIndex, itemName);
+          } else {
+            // Show next layer
+            renderLayerView(layerIndex + 1, itemName);
+
+            // Update UI for back button
+            updateLayerNavigationUI();
+
+            // Push history state
+            history.pushState({
+              view: "layer",
+              layerIndex: layerIndex + 1,
+              parentFilter: itemName
+            }, "", "");
+          }
+        } else {
+          // This is the last layer - show filtered main items
+          showMainItemsFilteredByLayer(layerIndex, itemName);
+        }
+      }
+
+      // Show main items filtered by the selected layer item
+      function showMainItemsFilteredByLayer(layerIndex, itemName) {
+        // Get the column name to filter by from layerConfig
+        const mainColumnName = layerConfig[layerIndex].mainColumnName;
+
+        // Filter main items where the column matches the selected layer item name
+        const filteredItems = allItems.filter(item => {
+          const colValue = item[mainColumnName];
+          return colValue && String(colValue).trim() === itemName;
+        });
+
+        // Store for detail navigation
+        currentDisplayedItems = filteredItems;
+        currentDetailIndex = -1;
+
+        // Render the filtered items
+        currentView = "list";
+        renderList(filteredItems);
+
+        // Update UI for back button
+        updateLayerNavigationUI();
+
+        // Push history state
+        history.pushState({
+          view: "list",
+          layerFiltered: true
+        }, "", "");
+      }
+
+      // Update UI elements for layer navigation
+      function updateLayerNavigationUI() {
+        // Show back button
+        document.getElementById("backToListBtn").style.display = "inline-flex";
+
+        // Hide filter and sort when in layer view (show when in final filtered list)
+        if (currentView === "layer") {
+          document.getElementById("filterWrapper").style.display = "none";
+          document.getElementById("sortWrapper").style.display = "none";
+        } else {
+          document.getElementById("filterWrapper").style.display = "inline-block";
+          document.getElementById("sortWrapper").style.display = "inline-block";
+        }
+
+        // Update breadcrumb (TODO: implement breadcrumb UI)
+        updateBreadcrumb();
+      }
+
+      // Update breadcrumb navigation
+      function updateBreadcrumb() {
+        const breadcrumbNav = document.getElementById("breadcrumbNav");
+
+        if (navigationStack.length === 0 && currentView !== "layer") {
+          // No breadcrumb needed
+          breadcrumbNav.style.display = "none";
+          return;
+        }
+
+        // Build breadcrumb path
+        let breadcrumbHTML = '<a href="#" onclick="navigateToHome(); return false;" style="color: #64748b; text-decoration: none; font-weight: 500;">Home</a>';
+
+        for (let i = 0; i < navigationStack.length; i++) {
+          const nav = navigationStack[i];
+          breadcrumbHTML += ' <span style="color: #cbd5e1; margin: 0 6px;">›</span> ';
+          breadcrumbHTML += '<a href="#" onclick="navigateToBreadcrumb(' + i + '); return false;" style="color: #64748b; text-decoration: none;">' + nav.itemName + '</a>';
+        }
+
+        breadcrumbNav.innerHTML = breadcrumbHTML;
+        breadcrumbNav.style.display = "flex";
+      }
+
+      // Navigate to a specific breadcrumb level
+      function navigateToBreadcrumb(stackIndex) {
+        // Trim navigation stack to the clicked level
+        navigationStack = navigationStack.slice(0, stackIndex + 1);
+
+        const nav = navigationStack[stackIndex];
+        if (nav.type === "layer") {
+          // Navigate to the next layer after this item
+          if (nav.layerIndex + 1 < layerConfig.length) {
+            const parentFilter = nav.itemName;
+            renderLayerView(nav.layerIndex + 1, parentFilter);
+            updateLayerNavigationUI();
+          } else {
+            // This was the last layer - show filtered main items
+            showMainItemsFilteredByLayer(nav.layerIndex, nav.itemName);
+          }
+        }
+      }
+
+      // Navigate back from layer or filtered view
+      function backFromLayer() {
+        if (navigationStack.length === 0) {
+          // No history - go to home (Layer 1 or main list)
+          navigateToHome();
+          return;
+        }
+
+        // Pop last navigation
+        navigationStack.pop();
+
+        if (navigationStack.length === 0) {
+          // Back to home
+          navigateToHome();
+        } else {
+          // Go back to previous layer
+          const lastNav = navigationStack[navigationStack.length - 1];
+          if (lastNav.type === "layer") {
+            // Reconstruct parent filter from navigation stack
+            const parentFilter = navigationStack.length >= 2
+              ? navigationStack[navigationStack.length - 2].itemName
+              : null;
+            renderLayerView(lastNav.layerIndex, parentFilter);
+            updateLayerNavigationUI();
+          }
+        }
+      }
+
+      // Navigate to home (Layer 1 or main list)
+      function navigateToHome() {
+        navigationStack = [];
+        currentLayerIndex = -1;
+
+        if (layerConfig.length > 0) {
+          // Show Layer 1
+          renderLayerView(0, null);
+          document.getElementById("backToListBtn").style.display = "none";
+          document.getElementById("filterWrapper").style.display = "none";
+          document.getElementById("sortWrapper").style.display = "none";
+        } else {
+          // No layers - show main list
+          currentView = "list";
+          applyFiltersAndSorting();
+          document.getElementById("backToListBtn").style.display = "none";
+          document.getElementById("filterWrapper").style.display = "inline-block";
+          document.getElementById("sortWrapper").style.display = "inline-block";
+        }
+
+        updateBreadcrumb();
+      }
+
       function showDetails(item, index) {
         const det = document.getElementById("detailView");
         const grid = document.getElementById("gridView");
@@ -4021,6 +4331,13 @@
 
       function backToList() {
         document.getElementById("detailView").style.display = "none";
+
+        // Check if we're in layer navigation
+        if (navigationStack.length > 0 || currentLayerIndex >= 0) {
+          // Navigate back through layers
+          backFromLayer();
+          return;
+        }
 
         // Update navigation state
         currentView = "list";
@@ -4967,7 +5284,9 @@
             updateHeaderUI();
             applyRoleVisibility();
             updateChipsUI();
-            applyFiltersAndSorting();
+
+            // Show layers if configured, otherwise show main list
+            navigateToHome();
 
             // Hide login screen and show app
             hideLoginScreen();
@@ -5111,13 +5430,24 @@
         // Handle browser back button
         window.addEventListener("popstate", function(e) {
           if (currentView === "detail") {
-            // User pressed back while in detail view - go back to list
+            // User pressed back while in detail view - go back to list or layer
             e.preventDefault();
             backToList();
-          } else if (currentView === "list") {
-            // User pressed back while in list view - prevent navigation, stay in app
+          } else if (currentView === "layer") {
+            // User pressed back while in layer view - go to previous layer or home
             e.preventDefault();
-            history.pushState({ view: "list" }, "", "");
+            backFromLayer();
+          } else if (currentView === "list") {
+            // User pressed back while in list view
+            if (navigationStack.length > 0) {
+              // We're in a filtered list from layers - go back to layer
+              e.preventDefault();
+              backFromLayer();
+            } else {
+              // Prevent navigation, stay in app
+              e.preventDefault();
+              history.pushState({ view: "list" }, "", "");
+            }
           }
         });
 
