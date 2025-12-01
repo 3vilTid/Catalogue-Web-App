@@ -260,76 +260,108 @@ function getSettings() {
 
 /**
  * Get layer configuration from Settings sheet
+ * Searches flexibly for "Column Layers" table anywhere in the sheet
  */
 function getLayerConfig() {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var settingsSheet = ss.getSheetByName("Settings");
 
-    if (!settingsSheet) return [];
-
-    // Find "Column Layers" table (starts around row 10-12)
-    var data = settingsSheet.getDataRange().getValues();
-    var startRow = -1;
-
-    // Find the "Column Layers" header
-    for (var i = 0; i < data.length; i++) {
-      if (data[i][0] === "Column Layers") {
-        startRow = i + 2; // Skip header row and column header row
-        break;
-      }
+    if (!settingsSheet) {
+      Logger.log("Settings sheet not found");
+      return [];
     }
 
-    if (startRow === -1) return [];
+    // Get all data from Settings sheet
+    var data = settingsSheet.getDataRange().getValues();
+    var tableStartRow = -1;
+    var tableStartCol = -1;
+
+    // Search for "Column Layers" anywhere in the sheet
+    for (var i = 0; i < data.length; i++) {
+      for (var j = 0; j < data[i].length; j++) {
+        var cellValue = String(data[i][j]).trim();
+        if (cellValue === "Column Layers") {
+          tableStartRow = i;
+          tableStartCol = j;
+          Logger.log("✓ Found 'Column Layers' at row " + (i + 1) + ", col " + (j + 1));
+          break;
+        }
+      }
+      if (tableStartRow !== -1) break;
+    }
+
+    if (tableStartRow === -1) {
+      Logger.log("✗ 'Column Layers' not found in Settings sheet");
+      return [];
+    }
+
+    // Skip the header row (Layer | Main Column Name)
+    var dataStartRow = tableStartRow + 2;
 
     var layers = [];
-    // Read Layer 1, 2, 3 configuration
-    for (var i = startRow; i < startRow + 3; i++) {
-      if (i >= data.length) break;
 
-      var layerName = data[i][0]; // e.g., "Layer 1"
-      var mainColumnName = data[i][1]; // e.g., "Ex Cat"
+    // Read up to 10 rows of layer data (flexible for future expansion)
+    for (var i = dataStartRow; i < dataStartRow + 10 && i < data.length; i++) {
+      var layerName = String(data[i][tableStartCol] || "").trim();
+      var mainColumnName = String(data[i][tableStartCol + 1] || "").trim();
 
-      // Only include layers that have a Main Column Name
-      if (layerName && mainColumnName && String(mainColumnName).trim() !== "") {
+      // Stop if we hit an empty row
+      if (layerName === "" && mainColumnName === "") {
+        break;
+      }
+
+      // Only include layers that have both name and main column
+      if (layerName !== "" && mainColumnName !== "") {
         layers.push({
           layerName: layerName,
           mainColumnName: mainColumnName
         });
+        Logger.log("✓ Found layer: " + layerName + " -> " + mainColumnName);
       }
     }
 
+    Logger.log("✓ Total layers configured: " + layers.length);
     return layers;
   } catch (e) {
-    Logger.log("Error getting layer config: " + e.toString());
+    Logger.log("✗ Error getting layer config: " + e.toString());
     return [];
   }
 }
 
 /**
  * Get layer data from Layers sheet
+ * Searches flexibly for layer table by name
  */
 function getLayerData(layerName) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var layersSheet = ss.getSheetByName("Layers");
 
-    if (!layersSheet) return [];
+    if (!layersSheet) {
+      Logger.log("✗ Layers sheet not found");
+      return [];
+    }
 
     var data = layersSheet.getDataRange().getValues();
     var startRow = -1;
     var headers = [];
 
-    // Find the layer table by name
+    // Find the layer table by name (search in first column)
     for (var i = 0; i < data.length; i++) {
-      if (data[i][0] === layerName) {
+      var cellValue = String(data[i][0]).trim();
+      if (cellValue === layerName) {
         startRow = i;
         headers = data[i + 1]; // Next row is headers
+        Logger.log("✓ Found '" + layerName + "' table at row " + (i + 1));
         break;
       }
     }
 
-    if (startRow === -1) return [];
+    if (startRow === -1) {
+      Logger.log("✗ '" + layerName + "' table not found in Layers sheet");
+      return [];
+    }
 
     var items = [];
     var dataStartRow = startRow + 2; // Skip layer name and headers
@@ -338,9 +370,11 @@ function getLayerData(layerName) {
     for (var i = dataStartRow; i < data.length; i++) {
       var row = data[i];
 
-      // Stop if empty row or new layer
+      // Stop if empty row or new layer table
       if (!row[0] || String(row[0]).trim() === "" ||
-          row[0] === "Layer 1" || row[0] === "Layer 2" || row[0] === "Layer 3") {
+          String(row[0]).trim() === "Layer 1" ||
+          String(row[0]).trim() === "Layer 2" ||
+          String(row[0]).trim() === "Layer 3") {
         break;
       }
 
@@ -353,9 +387,10 @@ function getLayerData(layerName) {
       items.push(item);
     }
 
+    Logger.log("✓ Loaded " + items.length + " items from '" + layerName + "'");
     return items;
   } catch (e) {
-    Logger.log("Error getting layer data for " + layerName + ": " + e.toString());
+    Logger.log("✗ Error getting layer data for " + layerName + ": " + e.toString());
     return [];
   }
 }
