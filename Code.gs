@@ -259,6 +259,116 @@ function getSettings() {
 }
 
 /**
+ * Get layer configuration from Settings sheet
+ */
+function getLayerConfig() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var settingsSheet = ss.getSheetByName("Settings");
+
+    if (!settingsSheet) return [];
+
+    // Find "Column Layers" table (starts around row 10-12)
+    var data = settingsSheet.getDataRange().getValues();
+    var startRow = -1;
+
+    // Find the "Column Layers" header
+    for (var i = 0; i < data.length; i++) {
+      if (data[i][0] === "Column Layers") {
+        startRow = i + 2; // Skip header row and column header row
+        break;
+      }
+    }
+
+    if (startRow === -1) return [];
+
+    var layers = [];
+    // Read Layer 1, 2, 3 configuration
+    for (var i = startRow; i < startRow + 3; i++) {
+      if (i >= data.length) break;
+
+      var layerName = data[i][0]; // e.g., "Layer 1"
+      var mainColumnName = data[i][1]; // e.g., "Ex Cat"
+
+      // Only include layers that have a Main Column Name
+      if (layerName && mainColumnName && String(mainColumnName).trim() !== "") {
+        layers.push({
+          layerName: layerName,
+          mainColumnName: mainColumnName
+        });
+      }
+    }
+
+    return layers;
+  } catch (e) {
+    Logger.log("Error getting layer config: " + e.toString());
+    return [];
+  }
+}
+
+/**
+ * Get layer data from Layers sheet
+ */
+function getLayerData(layerName) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var layersSheet = ss.getSheetByName("Layers");
+
+    if (!layersSheet) return [];
+
+    var data = layersSheet.getDataRange().getValues();
+    var startRow = -1;
+    var headers = [];
+
+    // Find the layer table by name
+    for (var i = 0; i < data.length; i++) {
+      if (data[i][0] === layerName) {
+        startRow = i;
+        headers = data[i + 1]; // Next row is headers
+        break;
+      }
+    }
+
+    if (startRow === -1) return [];
+
+    var items = [];
+    var dataStartRow = startRow + 2; // Skip layer name and headers
+
+    // Read until we hit an empty row or another layer
+    for (var i = dataStartRow; i < data.length; i++) {
+      var row = data[i];
+
+      // Stop if empty row or new layer
+      if (!row[0] || String(row[0]).trim() === "" ||
+          row[0] === "Layer 1" || row[0] === "Layer 2" || row[0] === "Layer 3") {
+        break;
+      }
+
+      var item = {};
+      for (var j = 0; j < headers.length; j++) {
+        if (headers[j]) {
+          item[headers[j]] = row[j] || "";
+        }
+      }
+      items.push(item);
+    }
+
+    return items;
+  } catch (e) {
+    Logger.log("Error getting layer data for " + layerName + ": " + e.toString());
+    return [];
+  }
+}
+
+/**
+ * Check if app uses layers
+ */
+function hasLayers() {
+  var config = getLayerConfig();
+  return config && config.length > 0;
+}
+
+/**
  * Check if app is in public mode
  */
 function isPublicMode_() {
@@ -505,6 +615,18 @@ function logout(token) {
  **************************************************/
 
 function getInitialData(token) {
+  // Get layer configuration
+  var layerConfig = getLayerConfig();
+  var layersData = {};
+
+  // Load data for each configured layer
+  if (layerConfig && layerConfig.length > 0) {
+    for (var i = 0; i < layerConfig.length; i++) {
+      var layerName = layerConfig[i].layerName;
+      layersData[layerName] = getLayerData(layerName);
+    }
+  }
+
   // Check if app is in public mode
   if (isPublicMode_()) {
     // Public mode: Everyone is a Viewer, no authentication required
@@ -517,7 +639,9 @@ function getInitialData(token) {
       settings: getSettings(),
       headers: getHeaders(),
       items: getMainData(),
-      columnConfig: getColumnConfig()
+      columnConfig: getColumnConfig(),
+      layerConfig: layerConfig,
+      layersData: layersData
     };
   }
 
@@ -535,7 +659,9 @@ function getInitialData(token) {
     settings: getSettings(),
     headers: getHeaders(),
     items: getMainData(),
-    columnConfig: getColumnConfig()
+    columnConfig: getColumnConfig(),
+    layerConfig: layerConfig,
+    layersData: layersData
   };
 }
 
