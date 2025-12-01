@@ -3087,6 +3087,9 @@
         if (!userInfoBlock) return;
 
         const appMode = window.currentAppMode || (settings && settings.appMode);
+        const userEmailEl = document.getElementById("userEmail");
+        const userProfilePill = document.getElementById("userProfilePill");
+        const logoutBtn = document.getElementById("logoutBtn");
 
         // "Public all in Viewer" - hide login/logout completely
         if (appMode === "Public all in Viewer") {
@@ -3097,12 +3100,38 @@
         // "Private with Profiles" - always show (user must be logged in)
         if (appMode === "Private with Profiles") {
           userInfoBlock.style.display = "flex";
+          // User info is already set by loadPrivateApp
+          if (logoutBtn) {
+            logoutBtn.textContent = "Logout";
+            logoutBtn.onclick = logout;
+          }
           return;
         }
 
         // "Public with Login" - show login button if not logged in, logout if logged in
         if (appMode === "Public with Login") {
           userInfoBlock.style.display = "flex";
+
+          if (!user || !user.email) {
+            // Not logged in - show "Viewer" and "Login" button
+            if (userEmailEl) userEmailEl.textContent = "Viewer";
+            if (userProfilePill) userProfilePill.style.display = "none";
+            if (logoutBtn) {
+              logoutBtn.textContent = "Login";
+              logoutBtn.onclick = showLoginScreen;
+            }
+          } else {
+            // Logged in - show user email and "Logout" button
+            if (userEmailEl) userEmailEl.textContent = user.email;
+            if (userProfilePill) {
+              userProfilePill.textContent = user.profile || "Viewer";
+              userProfilePill.style.display = "inline";
+            }
+            if (logoutBtn) {
+              logoutBtn.textContent = "Logout";
+              logoutBtn.onclick = logout;
+            }
+          }
           return;
         }
 
