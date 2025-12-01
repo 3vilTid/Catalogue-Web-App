@@ -259,6 +259,138 @@ function getSettings() {
 }
 
 /**
+ * Get layer configuration from Settings sheet
+ * Hardcoded to read from B12:C14 (Layer 1, 2, 3)
+ */
+function getLayerConfig() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var settingsSheet = ss.getSheetByName("Settings");
+
+    if (!settingsSheet) {
+      Logger.log("✗ Settings sheet not found");
+      return [];
+    }
+
+    var layers = [];
+
+    // Hardcoded positions: B12:C14
+    // B12: Layer 1, C12: Ex Cat
+    // B13: Layer 2, C13: Category
+    // B14: Layer 3, C14: (blank)
+    var layerRows = [12, 13, 14]; // Rows for Layer 1, 2, 3
+    var layerCol = 2;  // Column B (1-indexed)
+    var mainCol = 3;   // Column C (1-indexed)
+
+    for (var i = 0; i < layerRows.length; i++) {
+      var row = layerRows[i];
+      var layerName = settingsSheet.getRange(row, layerCol).getValue();
+      var mainColumnName = settingsSheet.getRange(row, mainCol).getValue();
+
+      layerName = String(layerName || "").trim();
+      mainColumnName = String(mainColumnName || "").trim();
+
+      // Only include layers that have both name and main column
+      if (layerName !== "" && mainColumnName !== "") {
+        layers.push({
+          layerName: layerName,
+          mainColumnName: mainColumnName
+        });
+        Logger.log("✓ Found layer: " + layerName + " -> " + mainColumnName);
+      }
+    }
+
+    Logger.log("✓ Total layers configured: " + layers.length);
+    return layers;
+  } catch (e) {
+    Logger.log("✗ Error getting layer config: " + e.toString());
+    return [];
+  }
+}
+
+/**
+ * Get layer data from Layers sheet
+ * Searches flexibly for layer table by name in ANY column
+ */
+function getLayerData(layerName) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var layersSheet = ss.getSheetByName("Layers");
+
+    if (!layersSheet) {
+      Logger.log("✗ Layers sheet not found");
+      return [];
+    }
+
+    var data = layersSheet.getDataRange().getValues();
+    var startRow = -1;
+    var startCol = -1;
+    var headers = [];
+
+    // Search for layer name in ANY column (not just first column)
+    for (var i = 0; i < data.length; i++) {
+      for (var j = 0; j < data[i].length; j++) {
+        var cellValue = String(data[i][j]).trim();
+        if (cellValue === layerName) {
+          startRow = i;
+          startCol = j;
+          headers = data[i + 1]; // Next row is headers
+          Logger.log("✓ Found '" + layerName + "' table at row " + (i + 1) + ", col " + (j + 1));
+          break;
+        }
+      }
+      if (startRow !== -1) break;
+    }
+
+    if (startRow === -1) {
+      Logger.log("✗ '" + layerName + "' table not found in Layers sheet");
+      return [];
+    }
+
+    var items = [];
+    var dataStartRow = startRow + 2; // Skip layer name and headers
+
+    // Read until we hit an empty row or another layer
+    for (var i = dataStartRow; i < data.length; i++) {
+      var row = data[i];
+
+      // Check first column of table for empty or new layer
+      var firstCell = String(row[startCol] || "").trim();
+
+      // Stop if empty row or new layer table
+      if (firstCell === "" ||
+          firstCell === "Layer 1" ||
+          firstCell === "Layer 2" ||
+          firstCell === "Layer 3") {
+        break;
+      }
+
+      var item = {};
+      for (var j = 0; j < headers.length; j++) {
+        if (headers[j]) {
+          item[headers[j]] = row[j] || "";
+        }
+      }
+      items.push(item);
+    }
+
+    Logger.log("✓ Loaded " + items.length + " items from '" + layerName + "'");
+    return items;
+  } catch (e) {
+    Logger.log("✗ Error getting layer data for " + layerName + ": " + e.toString());
+    return [];
+  }
+}
+
+/**
+ * Check if app uses layers
+ */
+function hasLayers() {
+  var config = getLayerConfig();
+  return config && config.length > 0;
+}
+
+/**
  * Check if app is in public mode
  */
 function isPublicMode_() {
@@ -505,6 +637,18 @@ function logout(token) {
  **************************************************/
 
 function getInitialData(token) {
+  // Get layer configuration
+  var layerConfig = getLayerConfig();
+  var layersData = {};
+
+  // Load data for each configured layer
+  if (layerConfig && layerConfig.length > 0) {
+    for (var i = 0; i < layerConfig.length; i++) {
+      var layerName = layerConfig[i].layerName;
+      layersData[layerName] = getLayerData(layerName);
+    }
+  }
+
   // Check if app is in public mode
   if (isPublicMode_()) {
     // Public mode: Everyone is a Viewer, no authentication required
@@ -517,7 +661,9 @@ function getInitialData(token) {
       settings: getSettings(),
       headers: getHeaders(),
       items: getMainData(),
-      columnConfig: getColumnConfig()
+      columnConfig: getColumnConfig(),
+      layerConfig: layerConfig,
+      layersData: layersData
     };
   }
 
@@ -535,7 +681,9 @@ function getInitialData(token) {
     settings: getSettings(),
     headers: getHeaders(),
     items: getMainData(),
-    columnConfig: getColumnConfig()
+    columnConfig: getColumnConfig(),
+    layerConfig: layerConfig,
+    layersData: layersData
   };
 }
 
