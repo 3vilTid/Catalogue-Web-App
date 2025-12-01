@@ -2914,7 +2914,13 @@
       let searchQuery = ""; // Search query for Primary Identifier
 
       // Navigation state for back button handling
-      let currentView = "list"; // "list" or "detail"
+      let currentView = "list"; // "list", "layer", or "detail"
+
+      // Layer navigation state
+      let layerConfig = []; // Layer configuration from backend
+      let layersData = {}; // All layer data by layer name
+      let navigationStack = []; // Stack of navigation history: [{type: "layer", layerName: "Layer 1", item: {...}}, ...]
+      let currentLayerIndex = -1; // Index in layerConfig (-1 = home, 0 = Layer 1, 1 = Layer 2, etc.)
 
       let editingItemName = null;
       let imageProxyBaseUrl = "";
