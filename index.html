@@ -260,6 +260,59 @@
         border-color: #93c5fd;
       }
 
+      /* Search input */
+      .search-wrapper {
+        position: relative;
+        display: inline-block;
+      }
+
+      .search-input {
+        height: 34px;
+        border-radius: 999px;
+        border: 1px solid var(--border-soft);
+        background: #ffffff;
+        font-size: 13px;
+        padding: 0 35px 0 14px;
+        outline: none;
+        width: 200px;
+        transition: all 0.2s ease;
+      }
+
+      .search-input:focus {
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.35);
+        border-color: #93c5fd;
+        width: 250px;
+      }
+
+      .search-input::placeholder {
+        color: #9ca3af;
+      }
+
+      .clear-search-btn {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: none;
+        background: #e5e7eb;
+        color: #6b7280;
+        font-size: 12px;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        line-height: 1;
+      }
+
+      .clear-search-btn:hover {
+        background: #d1d5db;
+        color: #374151;
+      }
+
       .btn-primary {
         border: none;
         border-radius: 999px;
@@ -1595,6 +1648,27 @@
           font-size: 19px !important;
         }
 
+        /* Search input on mobile */
+        .search-input {
+          height: 68px !important;
+          font-size: 19px !important;
+          width: 100% !important;
+          max-width: 300px;
+          padding: 0 50px 0 20px !important;
+        }
+
+        .search-input:focus {
+          width: 100% !important;
+          max-width: 350px;
+        }
+
+        .clear-search-btn {
+          width: 32px !important;
+          height: 32px !important;
+          font-size: 18px !important;
+          right: 12px !important;
+        }
+
         /* Card text bigger */
         .item-card {
           min-height: 180px;
@@ -2097,6 +2171,18 @@
           <button id="backToListBtn" class="btn-toolbar" onclick="backToList()" style="display: none;">
             ← Back to list
           </button>
+
+          <!-- Search input -->
+          <div id="searchWrapper" class="search-wrapper">
+            <input
+              type="text"
+              id="searchInput"
+              class="search-input"
+              placeholder="🔍 Search..."
+              autocomplete="off"
+            >
+            <button id="clearSearchBtn" class="clear-search-btn" style="display: none;" onclick="clearSearch()">✕</button>
+          </div>
 
           <!-- Filter button with dropdown -->
           <div id="filterWrapper" class="dropdown-wrapper">
@@ -2825,6 +2911,8 @@
       let sortField = "none";
       let sortOrder = "asc";
 
+      let searchQuery = ""; // Search query for Primary Identifier
+
       let editingItemName = null;
       let imageProxyBaseUrl = "";
 
@@ -3345,6 +3433,16 @@
               return selected.indexOf(itemValue) !== -1;
             });
           }
+        }
+
+        // Apply search filter (Primary Identifier only)
+        if (searchQuery && searchQuery.trim() !== "") {
+          const query = searchQuery.toLowerCase().trim();
+          items = items.filter(function (it) {
+            if (!nameColumn) return true; // If no name column defined, show all
+            const itemName = String(it[nameColumn.columnName] || "").toLowerCase();
+            return itemName.indexOf(query) !== -1;
+          });
         }
 
         // Sorting
@@ -3916,6 +4014,13 @@
         document.getElementById("filterWrapper").style.display = "inline-block";
         document.getElementById("sortWrapper").style.display = "inline-block";
 
+        applyFiltersAndSorting();
+      }
+
+      function clearSearch() {
+        searchQuery = "";
+        document.getElementById("searchInput").value = "";
+        document.getElementById("clearSearchBtn").style.display = "none";
         applyFiltersAndSorting();
       }
 
@@ -4963,6 +5068,20 @@
             }
           };
         });
+
+        // Real-time search input
+        document.getElementById("searchInput").oninput = function() {
+          searchQuery = this.value;
+          applyFiltersAndSorting();
+
+          // Show/hide clear button
+          const clearBtn = document.getElementById("clearSearchBtn");
+          if (searchQuery && searchQuery.trim() !== "") {
+            clearBtn.style.display = "block";
+          } else {
+            clearBtn.style.display = "none";
+          }
+        };
 
         const overlay = document.getElementById("imgOverlay");
         const closeBtn = document.getElementById("imgOverlayClose");
