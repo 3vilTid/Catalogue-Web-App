@@ -3078,12 +3078,36 @@
           applyBackgroundImage(settings.backgroundImageUrl);
         }
 
-        // Hide user info and logout button in public mode
-        const isPublicMode = settings && settings.appMode === "Public all in Viewer";
+        // Update login/logout button visibility based on mode
+        updateLoginButtonVisibility();
+      }
+
+      function updateLoginButtonVisibility() {
         const userInfoBlock = document.getElementById("userInfoBlock");
-        if (userInfoBlock) {
-          userInfoBlock.style.display = isPublicMode ? "none" : "flex";
+        if (!userInfoBlock) return;
+
+        const appMode = window.currentAppMode || (settings && settings.appMode);
+
+        // "Public all in Viewer" - hide login/logout completely
+        if (appMode === "Public all in Viewer") {
+          userInfoBlock.style.display = "none";
+          return;
         }
+
+        // "Private with Profiles" - always show (user must be logged in)
+        if (appMode === "Private with Profiles") {
+          userInfoBlock.style.display = "flex";
+          return;
+        }
+
+        // "Public with Login" - show login button if not logged in, logout if logged in
+        if (appMode === "Public with Login") {
+          userInfoBlock.style.display = "flex";
+          return;
+        }
+
+        // Default - show login/logout
+        userInfoBlock.style.display = "flex";
       }
 
       function canEditItem(item) {
@@ -4395,10 +4419,30 @@
           .withSuccessHandler(function (appSettings) {
             console.log('App mode:', appSettings.appMode);
 
-            // If public mode, skip login and load data directly
+            // Store app mode globally
+            window.currentAppMode = appSettings.appMode;
+
+            // If public mode (no login at all), skip login and load data directly
             if (appSettings.appMode === "Public all in Viewer") {
               console.log('Public mode - loading app without authentication...');
               loadPublicApp();
+              return;
+            }
+
+            // If public with login option
+            if (appSettings.appMode === "Public with Login") {
+              console.log('Public with Login mode...');
+
+              // Check if user has a session token (previously logged in)
+              const token = getSessionToken();
+
+              if (token) {
+                console.log('Session token found - loading as authenticated user...');
+                loadPrivateApp(token);
+              } else {
+                console.log('No session - loading as public viewer with login option...');
+                loadPublicAppWithLoginOption();
+              }
               return;
             }
 
@@ -4467,6 +4511,51 @@
             showToast('Error loading catalogue: ' + error.message, 'error');
           })
           .getInitialData(null);  // No token needed in public mode
+      }
+
+      function loadPublicAppWithLoginOption() {
+        // Load app in public mode but keep login UI visible
+        google.script.run
+          .withSuccessHandler(function (payload) {
+            user = payload.user;  // Will be null since no token
+            settings = payload.settings;
+            headers = payload.headers || [];
+            allItems = payload.items || [];
+            columnConfig = payload.columnConfig || [];
+
+            // Setup image proxy if available
+            if (settings && settings.deploymentUrl) {
+              imageProxyBaseUrl = settings.deploymentUrl;
+              if (!imageProxyBaseUrl.endsWith('/')) {
+                imageProxyBaseUrl += '/';
+              }
+              imageProxyBaseUrl += 'exec?img=';
+
+              if (settings.appName) {
+                document.title = settings.appName;
+                document.getElementById('loginAppName').textContent = settings.appName;
+              }
+            }
+
+            // Load column configuration
+            loadColumnConfig();
+            computeUniqueValues();
+            updateHeaderUI();
+            applyRoleVisibility();
+            updateChipsUI();
+            applyFiltersAndSorting();
+
+            // Hide login screen and show app
+            hideLoginScreen();
+
+            // Show login button in header for "Public with Login" mode
+            updateLoginButtonVisibility();
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error loading public app with login option:', error);
+            showToast('Error loading catalogue: ' + error.message, 'error');
+          })
+          .getInitialData(null);  // No token needed initially
       }
 
       function loadPrivateApp(token) {
