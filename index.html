@@ -80,9 +80,10 @@
       }
 
       .shell {
-        max-width: 1160px;
+        max-width: 100%;
         width: 100%;
         margin: 0 auto;
+        padding: 0 12px;
         border: none;
         outline: none;
       }
@@ -102,6 +103,19 @@
       }
 
       .left-block {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .app-logo {
+        height: 48px;
+        width: auto;
+        object-fit: contain;
+      }
+
+      .app-text-block {
         display: flex;
         flex-direction: column;
         gap: 2px;
@@ -553,7 +567,6 @@
       .detail-img-wrapper {
         position: relative;
         width: 100%;
-        max-height: 340px;
         overflow: hidden;
         border-radius: 16px;
         background: transparent;
@@ -564,8 +577,8 @@
 
       .detail-img {
         width: 100%;
-        max-height: 340px;
-        object-fit: cover;
+        height: auto;
+        object-fit: contain;
         border-radius: 16px;
         box-shadow: none !important;
         border: none !important;
@@ -603,6 +616,47 @@
         box-shadow: none !important;
         border: none !important;
         outline: none !important;
+      }
+
+      /* Navigation arrow buttons for detail view */
+      .nav-arrow-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.95);
+        border: 2px solid #e2e8f0;
+        color: #1e293b;
+        font-size: 24px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: all 0.2s ease;
+      }
+
+      .nav-arrow-btn:hover {
+        background: #ffffff;
+        border-color: #cbd5e1;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        transform: translateY(-50%) scale(1.05);
+      }
+
+      .nav-arrow-btn:active {
+        transform: translateY(-50%) scale(0.95);
+      }
+
+      .nav-arrow-left {
+        left: -80px;
+      }
+
+      .nav-arrow-right {
+        right: -80px;
       }
 
       .detail-title-row {
@@ -1466,6 +1520,11 @@
           margin-bottom: 20px;
         }
 
+        /* Hide navigation arrow buttons on mobile - use swipe instead */
+        .nav-arrow-btn {
+          display: none !important;
+        }
+
         /* LARGER TEXT SIZES FOR MOBILE - PORTRAIT */
         .app-name {
           font-size: 30px !important;
@@ -1607,11 +1666,12 @@
           }
 
           .detail-img-wrapper {
-            max-height: 300px;
+            /* No max-height - show full image */
           }
 
           .detail-img {
-            max-height: 300px;
+            height: auto !important;
+            object-fit: contain !important;
           }
 
           /* Detail view text sizes - LANDSCAPE */
@@ -1798,35 +1858,135 @@
             font-size: 24px !important;
             padding: 10px 18px !important;
           }
-        }
 
-        /* Card adjustments - MUCH LARGER TEXT */
-        .item-card {
-          min-height: 180px;
-          padding: 12px !important;
-        }
+          /* Card adjustments - MUCH LARGER TEXT */
+          .item-card {
+            min-height: 180px;
+            padding: 12px !important;
+          }
 
-        .item-name {
-          font-size: 17px !important;
-          line-height: 1.4;
-          font-weight: 600 !important;
-        }
+          /* Make card images square in portrait */
+          .card-img-wrapper {
+            height: auto !important;
+            aspect-ratio: 1 / 1 !important;
+          }
 
-        .item-subtitle {
-          font-size: 16px !important;
-          margin-top: 6px !important;
-        }
+          .card-name {
+            font-size: 26px !important;
+            line-height: 1.4;
+            font-weight: 600 !important;
+          }
 
-        /* Login screen adjustments */
-        .login-box {
-          padding: 32px 24px;
-          max-width: 95vw;
-        }
+          .card-sub {
+            font-size: 22px !important;
+          }
 
-        .login-title {
-          font-size: 24px;
+          /* Make all buttons bigger in portrait */
+          button,
+          .btn,
+          .btn-primary,
+          .btn-secondary,
+          .btn-danger,
+          .back-btn,
+          .sort-btn,
+          .filter-pill {
+            min-height: 80px !important;
+            font-size: 28px !important;
+            padding: 12px 24px !important;
+          }
+
+          /* Make Filter and Sort button text even bigger */
+          .btn-toolbar,
+          #filterBtn,
+          #sortBtn,
+          #backToListBtn,
+          #sheetBtn,
+          #columnsBtn,
+          #addBtn {
+            font-size: 28px !important;
+            min-height: 80px !important;
+            padding: 12px 24px !important;
+          }
+
+          /* Exception: Keep Image Zoom Close Button at original size */
+          #imgOverlayClose {
+            font-size: 32px !important;
+            padding: 8px 14px !important;
+            min-width: 48px !important;
+            min-height: 48px !important;
+          }
+
+          /* Form inputs bigger in portrait */
+          input[type="text"],
+          input[type="email"],
+          input[type="password"],
+          input[type="date"],
+          input[type="url"],
+          textarea {
+            font-size: 22px !important;
+            min-height: 80px !important;
+          }
+
+          /* Dropdown menus bigger in portrait */
+          select {
+            font-size: 88px !important;
+            min-height: 80px !important;
+          }
+
+          /* Dropdown menu content bigger in portrait */
+          .dropdown-menu {
+            padding: 16px !important;
+            max-height: 600px !important;
+            min-width: 500px !important;
+            width: auto !important;
+          }
+
+          .dropdown-section-title {
+            font-size: 28px !important;
+            padding: 12px 16px !important;
+          }
+
+          .dropdown-item {
+            font-size: 36px !important;
+            padding: 16px 20px !important;
+            gap: 16px !important;
+          }
+
+          .dropdown-item input[type="checkbox"],
+          .dropdown-item input[type="radio"] {
+            width: 36px !important;
+            height: 36px !important;
+            min-width: 36px !important;
+            min-height: 36px !important;
+          }
+
+          .dropdown-item input[type="checkbox"]:checked::after {
+            top: 6px !important;
+            left: 6px !important;
+            width: 20px !important;
+            height: 20px !important;
+          }
+
+          .dropdown-item span {
+            font-size: 36px !important;
+          }
+
+          /* Make Clear Filters button smaller */
+          .dropdown-btn {
+            font-size: 34px !important;
+            padding: 8px 16px !important;
+          }
+
+          /* Login screen adjustments */
+          .login-box {
+            padding: 32px 24px;
+            max-width: 95vw;
+          }
+
+          .login-title {
+            font-size: 24px;
+          }
         }
-      }
 
       /* Very small phones (600px and below) - Even more compact for actual small phones */
       @media (max-width: 600px) {
@@ -1902,14 +2062,17 @@
       <!-- Top header -->
       <div class="top-header">
         <div class="left-block">
-          <div id="appName" class="app-name">App name</div>
+          <img id="appLogo" class="app-logo" src="" alt="" style="display: none;">
+          <div class="app-text-block">
+            <div id="appName" class="app-name">App name</div>
 
-          <div class="catalog-row">
-            <span class="catalog-label"></span>
-            <span id="catalogName" class="catalog-name">Catalogue</span>
-            <button id="editCatalogBtn" class="catalog-edit-btn" title="Rename catalogue" style="display: none">
-              ✏
-            </button>
+            <div class="catalog-row">
+              <span class="catalog-label"></span>
+              <span id="catalogName" class="catalog-name">Catalogue</span>
+              <button id="editCatalogBtn" class="catalog-edit-btn" title="Rename catalogue" style="display: none">
+                ✏
+              </button>
+            </div>
           </div>
         </div>
 
@@ -2665,6 +2828,10 @@
       let editingItemName = null;
       let imageProxyBaseUrl = "";
 
+      // Detail view navigation tracking
+      let currentDisplayedItems = [];
+      let currentDetailIndex = -1;
+
       // -------------------- Helpers --------------------
 
       function formatDate(dateValue) {
@@ -2956,6 +3123,45 @@
         }
       }
 
+      async function applyLogoImage(url) {
+        const logoEl = document.getElementById("appLogo");
+        if (!logoEl) return;
+
+        if (!url || url.trim() === "") {
+          logoEl.style.display = "none";
+          logoEl.src = "";
+          return;
+        }
+
+        const fileId = extractDriveFileId(url);
+
+        if (fileId) {
+          // It's a Drive URL - fetch via proxy
+          try {
+            const base = imageProxyBaseUrl || "";
+            const proxyUrl = base.replace(/\/$/, "") + "?img=" + encodeURIComponent(fileId);
+
+            const response = await fetch(proxyUrl);
+            const json = await response.json();
+
+            if (json.ok) {
+              const dataUrl = "data:" + json.mime + ";base64," + json.data;
+              logoEl.src = dataUrl;
+              logoEl.style.display = "block";
+            } else {
+              logoEl.style.display = "none";
+            }
+          } catch (err) {
+            console.error("Error loading logo from Drive:", err);
+            logoEl.style.display = "none";
+          }
+        } else {
+          // Regular URL - apply directly
+          logoEl.src = url;
+          logoEl.style.display = "block";
+        }
+      }
+
       // -------------------- Rendering --------------------
 
       function updateHeaderUI() {
@@ -2972,17 +3178,75 @@
 
         document.title = (settings && settings.appName) || "Catalogue";
 
+        // Apply logo if set in Settings C6
+        if (settings && settings.logoUrl) {
+          applyLogoImage(settings.logoUrl);
+        }
+
         // Apply background image if set in Settings I5
         if (settings && settings.backgroundImageUrl && settings.backgroundImageUrl.trim() !== "") {
           applyBackgroundImage(settings.backgroundImageUrl);
         }
 
-        // Hide user info and logout button in public mode
-        const isPublicMode = settings && settings.appMode === "Public all in Viewer";
+        // Update login/logout button visibility based on mode
+        updateLoginButtonVisibility();
+      }
+
+      function updateLoginButtonVisibility() {
         const userInfoBlock = document.getElementById("userInfoBlock");
-        if (userInfoBlock) {
-          userInfoBlock.style.display = isPublicMode ? "none" : "flex";
+        if (!userInfoBlock) return;
+
+        const appMode = window.currentAppMode || (settings && settings.appMode);
+        const userEmailEl = document.getElementById("userEmail");
+        const userProfilePill = document.getElementById("userProfilePill");
+        const logoutBtn = document.getElementById("logoutBtn");
+
+        // "Public all in Viewer" - hide login/logout completely
+        if (appMode === "Public all in Viewer") {
+          userInfoBlock.style.display = "none";
+          return;
         }
+
+        // "Private with Profiles" - always show (user must be logged in)
+        if (appMode === "Private with Profiles") {
+          userInfoBlock.style.display = "flex";
+          // User info is already set by loadPrivateApp
+          if (logoutBtn) {
+            logoutBtn.textContent = "Logout";
+            logoutBtn.onclick = logout;
+          }
+          return;
+        }
+
+        // "Public with Login" - show login button if not logged in, logout if logged in
+        if (appMode === "Public with Login") {
+          userInfoBlock.style.display = "flex";
+
+          if (!user || !user.email) {
+            // Not logged in - show "Viewer" and "Login" button
+            if (userEmailEl) userEmailEl.textContent = "Viewer";
+            if (userProfilePill) userProfilePill.style.display = "none";
+            if (logoutBtn) {
+              logoutBtn.textContent = "Login";
+              logoutBtn.onclick = showLoginScreen;
+            }
+          } else {
+            // Logged in - show user email and "Logout" button
+            if (userEmailEl) userEmailEl.textContent = user.email;
+            if (userProfilePill) {
+              userProfilePill.textContent = user.profile || "Viewer";
+              userProfilePill.style.display = "inline";
+            }
+            if (logoutBtn) {
+              logoutBtn.textContent = "Logout";
+              logoutBtn.onclick = logout;
+            }
+          }
+          return;
+        }
+
+        // Default - show login/logout
+        userInfoBlock.style.display = "flex";
       }
 
       function canEditItem(item) {
@@ -3126,6 +3390,10 @@
         det.style.display = "none";
         grid.innerHTML = "";
 
+        // Store items for detail view navigation
+        currentDisplayedItems = items;
+        currentDetailIndex = -1;
+
         if (!items.length) {
           grid.innerHTML =
             "<p style='color:#6b7280;font-size:13px;'>No items for this selection.</p>";
@@ -3188,21 +3456,26 @@
 
           card.appendChild(body);
 
-          card.onclick = (function (it) {
+          card.onclick = (function (it, idx) {
             return function () {
-              showDetails(it);
+              showDetails(it, idx);
             };
-          })(item);
+          })(item, i);
 
           grid.appendChild(card);
         }
       }
 
-      function showDetails(item) {
+      function showDetails(item, index) {
         const det = document.getElementById("detailView");
         const grid = document.getElementById("gridView");
         det.style.display = "block";
         grid.innerHTML = "";
+
+        // Store current detail index for navigation
+        if (index !== undefined) {
+          currentDetailIndex = index;
+        }
 
         // Show back button, hide filter and sort
         document.getElementById("backToListBtn").style.display = "inline-flex";
@@ -3211,6 +3484,8 @@
 
         let html =
           '<div class="detail-layout">' +
+          '<button id="prevItemBtn" class="nav-arrow-btn nav-arrow-left" onclick="navigateToPrevious()" title="Previous item">&lt;</button>' +
+          '<button id="nextItemBtn" class="nav-arrow-btn nav-arrow-right" onclick="navigateToNext()" title="Next item">&gt;</button>' +
           '<div id="detailImgContainer">';
 
         if (imageColumn && item[imageColumn.columnName]) {
@@ -3450,6 +3725,9 @@
         html += "</div></div>";
         det.innerHTML = html;
 
+        // Update navigation button visibility
+        updateNavigationButtons();
+
         // Load detail image with progressive loading
         const imgWrapper = document.getElementById("detailImgWrapper");
         if (imgWrapper && imageColumn && item[imageColumn.columnName]) {
@@ -3460,6 +3738,89 @@
             loadDetailImage(fileId, imgWrapper);
           } else if (rawUrl) {
             loadDetailImageDirect(rawUrl, imgWrapper);
+          }
+        }
+      }
+
+      // Navigate to next item in detail view
+      function navigateToNext() {
+        if (currentDetailIndex < 0 || currentDetailIndex >= currentDisplayedItems.length - 1) {
+          return; // Already at last item or invalid index
+        }
+        const nextIndex = currentDetailIndex + 1;
+        const nextItem = currentDisplayedItems[nextIndex];
+        showDetails(nextItem, nextIndex);
+      }
+
+      // Navigate to previous item in detail view
+      function navigateToPrevious() {
+        if (currentDetailIndex <= 0) {
+          return; // Already at first item or invalid index
+        }
+        const prevIndex = currentDetailIndex - 1;
+        const prevItem = currentDisplayedItems[prevIndex];
+        showDetails(prevItem, prevIndex);
+      }
+
+      // Update navigation button visibility based on current position
+      function updateNavigationButtons() {
+        const prevBtn = document.getElementById("prevItemBtn");
+        const nextBtn = document.getElementById("nextItemBtn");
+
+        if (!prevBtn || !nextBtn) return;
+
+        // Hide previous button if at first item
+        if (currentDetailIndex <= 0) {
+          prevBtn.style.display = "none";
+        } else {
+          prevBtn.style.display = "flex";
+        }
+
+        // Hide next button if at last item
+        if (currentDetailIndex >= currentDisplayedItems.length - 1) {
+          nextBtn.style.display = "none";
+        } else {
+          nextBtn.style.display = "flex";
+        }
+      }
+
+      // Swipe detection for mobile navigation
+      let touchStartX = 0;
+      let touchEndX = 0;
+      let touchStartY = 0;
+      let touchEndY = 0;
+
+      function initializeSwipeDetection() {
+        const detailView = document.getElementById("detailView");
+        if (!detailView) return;
+
+        detailView.addEventListener('touchstart', function(e) {
+          touchStartX = e.changedTouches[0].screenX;
+          touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        detailView.addEventListener('touchend', function(e) {
+          touchEndX = e.changedTouches[0].screenX;
+          touchEndY = e.changedTouches[0].screenY;
+          handleSwipe();
+        }, { passive: true });
+      }
+
+      function handleSwipe() {
+        const swipeThreshold = 50; // Minimum distance for swipe
+        const swipeDistanceX = touchEndX - touchStartX;
+        const swipeDistanceY = touchEndY - touchStartY;
+
+        // Only trigger if horizontal swipe is more dominant than vertical
+        if (Math.abs(swipeDistanceX) > Math.abs(swipeDistanceY)) {
+          if (Math.abs(swipeDistanceX) > swipeThreshold) {
+            if (swipeDistanceX < 0) {
+              // Swiped left - go to next
+              navigateToNext();
+            } else {
+              // Swiped right - go to previous
+              navigateToPrevious();
+            }
           }
         }
       }
@@ -4294,10 +4655,30 @@
           .withSuccessHandler(function (appSettings) {
             console.log('App mode:', appSettings.appMode);
 
-            // If public mode, skip login and load data directly
+            // Store app mode globally
+            window.currentAppMode = appSettings.appMode;
+
+            // If public mode (no login at all), skip login and load data directly
             if (appSettings.appMode === "Public all in Viewer") {
               console.log('Public mode - loading app without authentication...');
               loadPublicApp();
+              return;
+            }
+
+            // If public with login option
+            if (appSettings.appMode === "Public with Login") {
+              console.log('Public with Login mode...');
+
+              // Check if user has a session token (previously logged in)
+              const token = getSessionToken();
+
+              if (token) {
+                console.log('Session token found - loading as authenticated user...');
+                loadPrivateApp(token);
+              } else {
+                console.log('No session - loading as public viewer with login option...');
+                loadPublicAppWithLoginOption();
+              }
               return;
             }
 
@@ -4366,6 +4747,51 @@
             showToast('Error loading catalogue: ' + error.message, 'error');
           })
           .getInitialData(null);  // No token needed in public mode
+      }
+
+      function loadPublicAppWithLoginOption() {
+        // Load app in public mode but keep login UI visible
+        google.script.run
+          .withSuccessHandler(function (payload) {
+            user = payload.user;  // Will be null since no token
+            settings = payload.settings;
+            headers = payload.headers || [];
+            allItems = payload.items || [];
+            columnConfig = payload.columnConfig || [];
+
+            // Setup image proxy if available
+            if (settings && settings.deploymentUrl) {
+              imageProxyBaseUrl = settings.deploymentUrl;
+              if (!imageProxyBaseUrl.endsWith('/')) {
+                imageProxyBaseUrl += '/';
+              }
+              imageProxyBaseUrl += 'exec?img=';
+
+              if (settings.appName) {
+                document.title = settings.appName;
+                document.getElementById('loginAppName').textContent = settings.appName;
+              }
+            }
+
+            // Load column configuration
+            loadColumnConfig();
+            computeUniqueValues();
+            updateHeaderUI();
+            applyRoleVisibility();
+            updateChipsUI();
+            applyFiltersAndSorting();
+
+            // Hide login screen and show app
+            hideLoginScreen();
+
+            // Show login button in header for "Public with Login" mode
+            updateLoginButtonVisibility();
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error loading public app with login option:', error);
+            showToast('Error loading catalogue: ' + error.message, 'error');
+          })
+          .getInitialData(null);  // No token needed initially
       }
 
       function loadPrivateApp(token) {
@@ -4491,6 +4917,9 @@
         });
 
         init();
+
+        // Initialize swipe detection for mobile detail view navigation
+        initializeSwipeDetection();
 
         // Filter dropdown
         document.getElementById("filterBtn").onclick = function(e) {
