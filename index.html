@@ -5149,6 +5149,15 @@
             allItems = payload.items || [];
             columnConfig = payload.columnConfig || [];
 
+            // Store layer configuration and data
+            layerConfig = payload.layerConfig || [];
+            layersData = payload.layersData || {};
+
+            // Debug: Log layer data
+            console.log('📊 Layer Config:', layerConfig);
+            console.log('📊 Layers Data:', layersData);
+            console.log('📊 Has Layers:', layerConfig.length > 0);
+
             console.log('Public viewer loaded:', user.email, user.profile);
 
             if (settings) {
@@ -5175,7 +5184,9 @@
             updateHeaderUI();
             applyRoleVisibility();
             updateChipsUI();
-            applyFiltersAndSorting();
+
+            // Show layers if configured, otherwise show main list
+            navigateToHome();
 
             // Hide login screen and show app
             hideLoginScreen();
@@ -5197,6 +5208,15 @@
             allItems = payload.items || [];
             columnConfig = payload.columnConfig || [];
 
+            // Store layer configuration and data
+            layerConfig = payload.layerConfig || [];
+            layersData = payload.layersData || {};
+
+            // Debug: Log layer data
+            console.log('📊 Layer Config:', layerConfig);
+            console.log('📊 Layers Data:', layersData);
+            console.log('📊 Has Layers:', layerConfig.length > 0);
+
             // Setup image proxy if available
             if (settings && settings.deploymentUrl) {
               imageProxyBaseUrl = settings.deploymentUrl;
@@ -5217,7 +5237,9 @@
             updateHeaderUI();
             applyRoleVisibility();
             updateChipsUI();
-            applyFiltersAndSorting();
+
+            // Show layers if configured, otherwise show main list
+            navigateToHome();
 
             // Hide login screen and show app
             hideLoginScreen();
