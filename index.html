@@ -620,7 +620,7 @@
 
       /* Navigation arrow buttons for detail view */
       .nav-arrow-btn {
-        position: absolute;
+        position: fixed;
         top: 50%;
         transform: translateY(-50%);
         width: 60px;
@@ -635,7 +635,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 10;
+        z-index: 1000;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         transition: all 0.2s ease;
       }
@@ -652,11 +652,11 @@
       }
 
       .nav-arrow-left {
-        left: 20px;
+        left: 12px;
       }
 
       .nav-arrow-right {
-        right: 20px;
+        right: 12px;
       }
 
       .detail-title-row {
