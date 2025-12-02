@@ -2927,6 +2927,11 @@
       let navigationStack = []; // Stack of navigation history: [{type: "layer", layerName: "Layer 1", item: {...}}, ...]
       let currentLayerIndex = -1; // Index in layerConfig (-1 = home, 0 = Layer 1, 1 = Layer 2, etc.)
 
+      // Save state before searching to restore when search is cleared
+      let preSearchNavigationStack = [];
+      let preSearchLayerIndex = -1;
+      let preSearchView = "list";
+
       let editingItemName = null;
       let imageProxyBaseUrl = "";
 
@@ -4355,11 +4360,37 @@
         document.getElementById("searchInput").value = "";
         document.getElementById("clearSearchBtn").style.display = "none";
 
-        // If layers are configured, go back to layer navigation
-        if (layerConfig.length > 0) {
-          navigateToHome();
-        } else {
+        // Restore pre-search state
+        restorePreSearchState();
+      }
+
+      // Restore navigation state from before search
+      function restorePreSearchState() {
+        if (layerConfig.length === 0) {
+          // No layers - just show all items
           applyFiltersAndSorting();
+          return;
+        }
+
+        // Restore layer navigation state
+        navigationStack = [...preSearchNavigationStack];
+        currentLayerIndex = preSearchLayerIndex;
+        currentView = preSearchView;
+
+        if (currentView === "layer") {
+          // Restore layer view
+          const parentFilter = navigationStack.length > 0
+            ? navigationStack[navigationStack.length - 1].itemName
+            : null;
+          renderLayerView(currentLayerIndex, parentFilter);
+          updateLayerNavigationUI();
+        } else if (currentView === "list" && navigationStack.length > 0) {
+          // Restore filtered list from layer
+          const lastNav = navigationStack[navigationStack.length - 1];
+          showMainItemsFilteredByLayer(lastNav.layerIndex, lastNav.itemName);
+        } else {
+          // No saved state - go to home
+          navigateToHome();
         }
       }
 
@@ -5226,10 +5257,6 @@
             // Setup image proxy if available
             if (settings && settings.deploymentUrl) {
               imageProxyBaseUrl = settings.deploymentUrl;
-              if (!imageProxyBaseUrl.endsWith('/')) {
-                imageProxyBaseUrl += '/';
-              }
-              imageProxyBaseUrl += 'exec?img=';
 
               if (settings.appName) {
                 document.title = settings.appName;
@@ -5443,21 +5470,25 @@
 
         // Real-time search input
         document.getElementById("searchInput").oninput = function() {
+          const previousSearchQuery = searchQuery;
           searchQuery = this.value;
 
           // Show/hide clear button
           const clearBtn = document.getElementById("clearSearchBtn");
           if (searchQuery && searchQuery.trim() !== "") {
+            // Save state before first search character
+            if (!previousSearchQuery || previousSearchQuery.trim() === "") {
+              preSearchNavigationStack = [...navigationStack];
+              preSearchLayerIndex = currentLayerIndex;
+              preSearchView = currentView;
+            }
+
             clearBtn.style.display = "block";
             applyFiltersAndSorting(); // Show search results
           } else {
             clearBtn.style.display = "none";
-            // If search is cleared and layers are configured, go back to layers
-            if (layerConfig.length > 0) {
-              navigateToHome();
-            } else {
-              applyFiltersAndSorting();
-            }
+            // Search cleared - restore previous layer state
+            restorePreSearchState();
           }
         };
 
