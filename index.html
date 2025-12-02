@@ -2104,6 +2104,26 @@
         }
       }
 
+      /* Mobile Portrait Mode - Make breadcrumb 2x bigger for easier touch navigation */
+      @media (max-width: 600px) and (orientation: portrait) {
+        #breadcrumbNav {
+          font-size: 26px !important; /* 2x bigger than default 13px */
+          margin: 12px 0 !important;
+          padding: 8px 0 !important;
+          line-height: 1.5 !important;
+        }
+
+        #breadcrumbNav a {
+          padding: 8px 4px !important;
+          font-size: 26px !important;
+        }
+
+        #breadcrumbNav span {
+          margin: 0 12px !important; /* More spacing between separators */
+          font-size: 26px !important;
+        }
+      }
+
       /* Large desktop (1440px and up) - optimize for big screens */
       @media (min-width: 1440px) {
         .shell {
@@ -2167,15 +2187,10 @@
       <!-- Filters row -->
       <div class="filters-row">
         <div class="filters-left">
-          <!-- Back to list button (hidden by default, shown in detail view) -->
+          <!-- Back to list button (hidden by default, shown in detail view when no layers) -->
           <button id="backToListBtn" class="btn-toolbar" onclick="backToList()" style="display: none;">
             ← Back to list
           </button>
-
-          <!-- Breadcrumb navigation (for layers) -->
-          <div id="breadcrumbNav" style="display: none; margin-left: 8px; font-size: 13px; color: #64748b; align-items: center;">
-            <!-- Breadcrumb items will be dynamically populated here -->
-          </div>
 
           <!-- Search input -->
           <div id="searchWrapper" class="search-wrapper">
@@ -2187,6 +2202,11 @@
               autocomplete="off"
             >
             <button id="clearSearchBtn" class="clear-search-btn" style="display: none;" onclick="clearSearch()">✕</button>
+          </div>
+
+          <!-- Breadcrumb navigation (for layers) -->
+          <div id="breadcrumbNav" style="display: none; margin-left: 8px; font-size: 13px; color: #64748b; align-items: center;">
+            <!-- Breadcrumb items will be dynamically populated here -->
           </div>
 
           <!-- Filter button with dropdown -->
@@ -2931,6 +2951,8 @@
       let preSearchNavigationStack = [];
       let preSearchLayerIndex = -1;
       let preSearchView = "list";
+      let preSearchDetailItem = null;
+      let preSearchDetailIndex = -1;
 
       let editingItemName = null;
       let imageProxyBaseUrl = "";
@@ -3779,8 +3801,8 @@
 
       // Update UI elements for layer navigation
       function updateLayerNavigationUI() {
-        // Show back button
-        document.getElementById("backToListBtn").style.display = "inline-flex";
+        // Hide back button when layers exist (breadcrumb handles navigation)
+        document.getElementById("backToListBtn").style.display = "none";
 
         // Hide filter and sort when in layer view (show when in final filtered list)
         if (currentView === "layer") {
@@ -3791,7 +3813,7 @@
           document.getElementById("sortWrapper").style.display = "inline-block";
         }
 
-        // Update breadcrumb (TODO: implement breadcrumb UI)
+        // Update breadcrumb
         updateBreadcrumb();
       }
 
@@ -4377,7 +4399,21 @@
         currentLayerIndex = preSearchLayerIndex;
         currentView = preSearchView;
 
-        if (currentView === "layer") {
+        if (currentView === "detail" && preSearchDetailItem) {
+          // Restore detail view - first restore the list, then show detail
+          if (navigationStack.length > 0) {
+            // Was viewing detail from filtered list
+            const lastNav = navigationStack[navigationStack.length - 1];
+            showMainItemsFilteredByLayer(lastNav.layerIndex, lastNav.itemName);
+          } else {
+            // Was viewing detail from home layer
+            navigateToHome();
+          }
+          // Show the detail view after a brief delay to let list render
+          setTimeout(() => {
+            showDetails(preSearchDetailItem, preSearchDetailIndex);
+          }, 50);
+        } else if (currentView === "layer") {
           // Restore layer view
           const parentFilter = navigationStack.length > 0
             ? navigationStack[navigationStack.length - 1].itemName
@@ -5481,6 +5517,13 @@
               preSearchNavigationStack = [...navigationStack];
               preSearchLayerIndex = currentLayerIndex;
               preSearchView = currentView;
+              preSearchDetailIndex = currentDetailIndex;
+              // Save reference to current displayed items for detail view restoration
+              if (currentView === "detail" && currentDetailIndex >= 0) {
+                preSearchDetailItem = currentDisplayedItems[currentDetailIndex];
+              } else {
+                preSearchDetailItem = null;
+              }
             }
 
             clearBtn.style.display = "block";
