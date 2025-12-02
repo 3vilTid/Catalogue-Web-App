@@ -1520,6 +1520,60 @@
         to { transform: rotate(360deg); }
       }
 
+      /* ==================== LOADING SCREEN ==================== */
+
+      .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: white;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .loading-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 20px;
+      }
+
+      .loading-image {
+        max-height: 25vh;
+        max-width: 80vw;
+        object-fit: contain;
+      }
+
+      .loading-text {
+        font-size: 18px;
+        color: #374151;
+        font-weight: 500;
+        margin-top: 10px;
+      }
+
+      .loading-spinner-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .loading-spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid #e5e7eb;
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
       /* ==================== RESPONSIVE DESIGN ==================== */
 
       /* Tablet and below (768px) */
@@ -2060,6 +2114,24 @@
           .login-title {
             font-size: 24px;
           }
+
+          /* Breadcrumb navigation - 2x bigger for easier touch navigation */
+          #breadcrumbNav {
+            font-size: 26px !important;
+            margin: 12px 0 !important;
+            padding: 8px 0 !important;
+            line-height: 1.5 !important;
+          }
+
+          #breadcrumbNav a {
+            padding: 8px 4px !important;
+            font-size: 26px !important;
+          }
+
+          #breadcrumbNav span {
+            margin: 0 12px !important;
+            font-size: 26px !important;
+          }
         }
 
       /* Very small phones (600px and below) - Even more compact for actual small phones */
@@ -2132,6 +2204,16 @@
   </head>
 
   <body>
+    <!-- Loading Screen Overlay -->
+    <div id="loadingScreen" class="loading-screen">
+      <div class="loading-content">
+        <div id="loadingText" class="loading-text">Patience discipline young Padawan !</div>
+        <div class="loading-spinner-container">
+          <div class="loading-spinner"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="shell">
       <!-- Top header -->
       <div class="top-header">
@@ -2167,15 +2249,10 @@
       <!-- Filters row -->
       <div class="filters-row">
         <div class="filters-left">
-          <!-- Back to list button (hidden by default, shown in detail view) -->
+          <!-- Back to list button (hidden by default, shown in detail view when no layers) -->
           <button id="backToListBtn" class="btn-toolbar" onclick="backToList()" style="display: none;">
             ← Back to list
           </button>
-
-          <!-- Breadcrumb navigation (for layers) -->
-          <div id="breadcrumbNav" style="display: none; margin-left: 8px; font-size: 13px; color: #64748b; align-items: center;">
-            <!-- Breadcrumb items will be dynamically populated here -->
-          </div>
 
           <!-- Search input -->
           <div id="searchWrapper" class="search-wrapper">
@@ -2188,6 +2265,15 @@
             >
             <button id="clearSearchBtn" class="clear-search-btn" style="display: none;" onclick="clearSearch()">✕</button>
           </div>
+
+          <!-- Breadcrumb navigation (for layers) -->
+          <div id="breadcrumbNav" style="display: none; margin-left: 8px; font-size: 13px; color: #64748b; align-items: center;">
+            <!-- Breadcrumb items will be dynamically populated here -->
+          </div>
+        </div>
+
+        <div class="filters-right">
+          <button id="sheetLinkBtn" class="btn-toolbar" style="display: none;">📊 Sheet</button>
 
           <!-- Filter button with dropdown -->
           <div id="filterWrapper" class="dropdown-wrapper">
@@ -2246,11 +2332,7 @@
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="filters-right">
-          <button id="sheetLinkBtn" class="btn-toolbar" style="display: none;">📊 Sheet</button>
-          <button id="columnsBtn" class="btn-toolbar" style="display: none;">⚙ Columns</button>
           <button id="addBtn" class="btn-toolbar btn-primary" style="display: none;">+ Add item</button>
         </div>
       </div>
@@ -2508,6 +2590,19 @@
             toast.parentElement.removeChild(toast);
           }
         }, 300);
+      }
+
+      // ==================== LOADING SCREEN ====================
+
+      function hideLoadingScreen() {
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen) {
+          loadingScreen.style.opacity = '0';
+          loadingScreen.style.transition = 'opacity 0.3s ease-out';
+          setTimeout(() => {
+            loadingScreen.style.display = 'none';
+          }, 300);
+        }
       }
 
       // ==================== AUTHENTICATION & SESSION MANAGEMENT ====================
@@ -2927,6 +3022,13 @@
       let navigationStack = []; // Stack of navigation history: [{type: "layer", layerName: "Layer 1", item: {...}}, ...]
       let currentLayerIndex = -1; // Index in layerConfig (-1 = home, 0 = Layer 1, 1 = Layer 2, etc.)
 
+      // Save state before searching to restore when search is cleared
+      let preSearchNavigationStack = [];
+      let preSearchLayerIndex = -1;
+      let preSearchView = "list";
+      let preSearchDetailItem = null;
+      let preSearchDetailIndex = -1;
+
       let editingItemName = null;
       let imageProxyBaseUrl = "";
 
@@ -2935,6 +3037,20 @@
       let currentDetailIndex = -1;
 
       // -------------------- Helpers --------------------
+
+      // Update filter and sort button visibility based on available columns
+      function updateFilterSortVisibility() {
+        const hasFilterColumns = filterColumns && filterColumns.length > 0;
+
+        // Show/hide based on whether there are filterable columns
+        if (hasFilterColumns) {
+          document.getElementById("filterWrapper").style.display = "inline-block";
+          document.getElementById("sortWrapper").style.display = "inline-block";
+        } else {
+          document.getElementById("filterWrapper").style.display = "none";
+          document.getElementById("sortWrapper").style.display = "none";
+        }
+      }
 
       function formatDate(dateValue) {
         if (!dateValue) return "";
@@ -3031,16 +3147,22 @@
         if (!nameColumn && headers.length > 0) {
           nameColumn = { columnName: headers[0], displayName: headers[0], specialRole: "name" };
         }
+
+        // Update filter/sort button visibility based on configured columns
+        updateFilterSortVisibility();
       }
 
-      function computeUniqueValues() {
+      function computeUniqueValues(items) {
         // Compute unique values for all filter columns
+        // Use provided items or default to allItems
+        const sourceItems = items || allItems;
+
         for (let i = 0; i < filterColumns.length; i++) {
           const config = filterColumns[i];
           const valueSet = new Set();
 
-          for (let j = 0; j < allItems.length; j++) {
-            const item = allItems[j];
+          for (let j = 0; j < sourceItems.length; j++) {
+            const item = sourceItems[j];
             const value = item[config.columnName];
             if (value != null && String(value).trim() !== "") {
               valueSet.add(String(value).trim());
@@ -3368,23 +3490,19 @@
         if (!user) return;
 
         const addBtn = document.getElementById("addBtn");
-        const columnsBtn = document.getElementById("columnsBtn");
         const editCatalogBtn = document.getElementById("editCatalogBtn");
         const sheetLinkBtn = document.getElementById("sheetLinkBtn");
 
         if (user.profile === "Viewer") {
           addBtn.style.display = "none";
-          columnsBtn.style.display = "none";
           editCatalogBtn.style.display = "none";
           sheetLinkBtn.style.display = "none";
         } else if (user.profile === "Editor") {
           addBtn.style.display = "inline-flex";
-          columnsBtn.style.display = "none";
           editCatalogBtn.style.display = "none";
           sheetLinkBtn.style.display = "none";
         } else if (user.profile === "Creator") {
           addBtn.style.display = "inline-flex";
-          columnsBtn.style.display = "inline-flex";
           editCatalogBtn.style.display = "inline-block";
           sheetLinkBtn.style.display = "inline-flex";
         }
@@ -3436,7 +3554,30 @@
       }
 
       function applyFiltersAndSorting() {
-        let items = allItems.slice();
+        // Get base items depending on current context
+        let items;
+
+        if (currentView === "layer") {
+          // If in layer view, don't apply filters/sorting - just re-render current layer
+          if (currentLayerIndex >= 0 && currentLayerIndex < layerConfig.length) {
+            const layerName = layerConfig[currentLayerIndex].layerName;
+            const parentFilterName = navigationStack.length > 0 ? navigationStack[navigationStack.length - 1].itemName : null;
+            renderLayerView(currentLayerIndex, parentFilterName);
+            return;
+          }
+        } else if (navigationStack.length > 0 && currentView === "list") {
+          // If viewing Main items after layer navigation, start with those filtered items
+          // Reconstruct the base filtered items from layer navigation
+          const lastNav = navigationStack[navigationStack.length - 1];
+          const mainColumnName = layerConfig[lastNav.layerIndex].mainColumnName;
+          items = allItems.filter(item => {
+            const colValue = item[mainColumnName];
+            return colValue && String(colValue).trim() === lastNav.itemName;
+          }).slice();
+        } else {
+          // Normal view - use all items
+          items = allItems.slice();
+        }
 
         // Apply all filters (items must match ALL selected filters)
         for (const columnName in filterValues) {
@@ -3774,19 +3915,19 @@
 
       // Update UI elements for layer navigation
       function updateLayerNavigationUI() {
-        // Show back button
-        document.getElementById("backToListBtn").style.display = "inline-flex";
+        // Hide back button when layers exist (breadcrumb handles navigation)
+        document.getElementById("backToListBtn").style.display = "none";
 
         // Hide filter and sort when in layer view (show when in final filtered list)
         if (currentView === "layer") {
           document.getElementById("filterWrapper").style.display = "none";
           document.getElementById("sortWrapper").style.display = "none";
         } else {
-          document.getElementById("filterWrapper").style.display = "inline-block";
-          document.getElementById("sortWrapper").style.display = "inline-block";
+          // Show filter/sort only if columns are configured
+          updateFilterSortVisibility();
         }
 
-        // Update breadcrumb (TODO: implement breadcrumb UI)
+        // Update breadcrumb
         updateBreadcrumb();
       }
 
@@ -3876,8 +4017,8 @@
           currentView = "list";
           applyFiltersAndSorting();
           document.getElementById("backToListBtn").style.display = "none";
-          document.getElementById("filterWrapper").style.display = "inline-block";
-          document.getElementById("sortWrapper").style.display = "inline-block";
+          // Show filter/sort only if columns are configured
+          updateFilterSortVisibility();
         }
 
         updateBreadcrumb();
@@ -3898,8 +4039,12 @@
         currentView = "detail";
         history.pushState({ view: "detail", index: index }, "", "");
 
-        // Show back button, hide filter and sort
-        document.getElementById("backToListBtn").style.display = "inline-flex";
+        // Show back button only if no layers (breadcrumb handles navigation when layers exist)
+        if (layerConfig.length === 0) {
+          document.getElementById("backToListBtn").style.display = "inline-flex";
+        } else {
+          document.getElementById("backToListBtn").style.display = "none";
+        }
         document.getElementById("filterWrapper").style.display = "none";
         document.getElementById("sortWrapper").style.display = "none";
 
@@ -4342,10 +4487,9 @@
         // Update navigation state
         currentView = "list";
 
-        // Hide back button, show filter and sort
+        // Hide back button, show filter/sort only if columns configured
         document.getElementById("backToListBtn").style.display = "none";
-        document.getElementById("filterWrapper").style.display = "inline-block";
-        document.getElementById("sortWrapper").style.display = "inline-block";
+        updateFilterSortVisibility();
 
         applyFiltersAndSorting();
       }
@@ -4354,7 +4498,53 @@
         searchQuery = "";
         document.getElementById("searchInput").value = "";
         document.getElementById("clearSearchBtn").style.display = "none";
-        applyFiltersAndSorting();
+
+        // Restore pre-search state
+        restorePreSearchState();
+      }
+
+      // Restore navigation state from before search
+      function restorePreSearchState() {
+        if (layerConfig.length === 0) {
+          // No layers - just show all items
+          applyFiltersAndSorting();
+          return;
+        }
+
+        // Restore layer navigation state
+        navigationStack = [...preSearchNavigationStack];
+        currentLayerIndex = preSearchLayerIndex;
+        currentView = preSearchView;
+
+        if (currentView === "detail" && preSearchDetailItem) {
+          // Restore detail view - first restore the list, then show detail
+          if (navigationStack.length > 0) {
+            // Was viewing detail from filtered list
+            const lastNav = navigationStack[navigationStack.length - 1];
+            showMainItemsFilteredByLayer(lastNav.layerIndex, lastNav.itemName);
+          } else {
+            // Was viewing detail from home layer
+            navigateToHome();
+          }
+          // Show the detail view after a brief delay to let list render
+          setTimeout(() => {
+            showDetails(preSearchDetailItem, preSearchDetailIndex);
+          }, 50);
+        } else if (currentView === "layer") {
+          // Restore layer view
+          const parentFilter = navigationStack.length > 0
+            ? navigationStack[navigationStack.length - 1].itemName
+            : null;
+          renderLayerView(currentLayerIndex, parentFilter);
+          updateLayerNavigationUI();
+        } else if (currentView === "list" && navigationStack.length > 0) {
+          // Restore filtered list from layer
+          const lastNav = navigationStack[navigationStack.length - 1];
+          showMainItemsFilteredByLayer(lastNav.layerIndex, lastNav.itemName);
+        } else {
+          // No saved state - go to home
+          navigateToHome();
+        }
       }
 
       // -------------------- Fullscreen viewer --------------------
@@ -4580,12 +4770,25 @@
         // Toggle current dropdown
         if (!isShowing) {
           dropdown.classList.add("show");
-          
+
           // Populate filter dropdown when opened
           if (dropdownId === "filterDropdown") {
+            // If in layer view, recompute unique values from current layer items
+            if (currentView === "layer" && currentLayerIndex >= 0 && currentLayerIndex < layerConfig.length) {
+              const layerName = layerConfig[currentLayerIndex].layerName;
+              const parentFilterName = navigationStack.length > 0 ? navigationStack[navigationStack.length - 1].itemName : null;
+              const layerItems = getFilteredLayerItems(layerName, parentFilterName);
+              computeUniqueValues(layerItems);
+            } else if (navigationStack.length > 0 && currentDisplayedItems && currentDisplayedItems.length > 0) {
+              // If we navigated through layers and viewing filtered Main items, use currentDisplayedItems
+              computeUniqueValues(currentDisplayedItems);
+            } else {
+              // Otherwise use all items
+              computeUniqueValues(allItems);
+            }
             populateFilterDropdown();
           }
-          
+
           // Populate sort dropdown when opened
           if (dropdownId === "sortDropdown") {
             populateSortDropdown();
@@ -5149,6 +5352,15 @@
             allItems = payload.items || [];
             columnConfig = payload.columnConfig || [];
 
+            // Store layer configuration and data
+            layerConfig = payload.layerConfig || [];
+            layersData = payload.layersData || {};
+
+            // Debug: Log layer data
+            console.log('📊 Layer Config:', layerConfig);
+            console.log('📊 Layers Data:', layersData);
+            console.log('📊 Has Layers:', layerConfig.length > 0);
+
             console.log('Public viewer loaded:', user.email, user.profile);
 
             if (settings) {
@@ -5175,10 +5387,15 @@
             updateHeaderUI();
             applyRoleVisibility();
             updateChipsUI();
-            applyFiltersAndSorting();
+
+            // Show layers if configured, otherwise show main list
+            navigateToHome();
 
             // Hide login screen and show app
             hideLoginScreen();
+
+            // Hide loading screen - app is ready
+            hideLoadingScreen();
           })
           .withFailureHandler(function(error) {
             console.error('Error loading public app:', error);
@@ -5197,13 +5414,18 @@
             allItems = payload.items || [];
             columnConfig = payload.columnConfig || [];
 
+            // Store layer configuration and data
+            layerConfig = payload.layerConfig || [];
+            layersData = payload.layersData || {};
+
+            // Debug: Log layer data
+            console.log('📊 Layer Config:', layerConfig);
+            console.log('📊 Layers Data:', layersData);
+            console.log('📊 Has Layers:', layerConfig.length > 0);
+
             // Setup image proxy if available
             if (settings && settings.deploymentUrl) {
               imageProxyBaseUrl = settings.deploymentUrl;
-              if (!imageProxyBaseUrl.endsWith('/')) {
-                imageProxyBaseUrl += '/';
-              }
-              imageProxyBaseUrl += 'exec?img=';
 
               if (settings.appName) {
                 document.title = settings.appName;
@@ -5217,10 +5439,15 @@
             updateHeaderUI();
             applyRoleVisibility();
             updateChipsUI();
-            applyFiltersAndSorting();
+
+            // Show layers if configured, otherwise show main list
+            navigateToHome();
 
             // Hide login screen and show app
             hideLoginScreen();
+
+            // Hide loading screen - app is ready
+            hideLoadingScreen();
 
             // Show login button in header for "Public with Login" mode
             updateLoginButtonVisibility();
@@ -5290,6 +5517,9 @@
 
             // Hide login screen and show app
             hideLoginScreen();
+
+            // Hide loading screen - app is ready
+            hideLoadingScreen();
           })
           .withFailureHandler(function(error) {
             console.error('Error loading app:', error);
@@ -5328,13 +5558,6 @@
           openAdd();
         };
         document.getElementById("editCancelBtn").onclick = closeEditModal;
-
-        // Column management event handlers (Creator only)
-        document.getElementById("columnsBtn").onclick = openManageColumnsModal;
-        document.getElementById("manageColsCancelBtn").onclick = closeManageColumnsModal;
-        document.getElementById("addColumnBtn").onclick = openAddColumn;
-        document.getElementById("columnEditorCancelBtn").onclick = closeColumnEditor;
-        document.getElementById("columnEditorSaveBtn").onclick = saveColumnEditor;
         document.getElementById("editCatalogBtn").onclick = promptRenameCatalogue;
 
         // Sheet link button (Creator only)
@@ -5351,19 +5574,6 @@
             }
           }
         };
-
-        // Close column modals on overlay click
-        document.getElementById("manageColumnsModal").addEventListener("click", function(e) {
-          if (e.target.id === "manageColumnsModal") {
-            closeManageColumnsModal();
-          }
-        });
-
-        document.getElementById("columnEditorModal").addEventListener("click", function(e) {
-          if (e.target.id === "columnEditorModal") {
-            closeColumnEditor();
-          }
-        });
 
         init();
 
@@ -5415,15 +5625,32 @@
 
         // Real-time search input
         document.getElementById("searchInput").oninput = function() {
+          const previousSearchQuery = searchQuery;
           searchQuery = this.value;
-          applyFiltersAndSorting();
 
           // Show/hide clear button
           const clearBtn = document.getElementById("clearSearchBtn");
           if (searchQuery && searchQuery.trim() !== "") {
+            // Save state before first search character
+            if (!previousSearchQuery || previousSearchQuery.trim() === "") {
+              preSearchNavigationStack = [...navigationStack];
+              preSearchLayerIndex = currentLayerIndex;
+              preSearchView = currentView;
+              preSearchDetailIndex = currentDetailIndex;
+              // Save reference to current displayed items for detail view restoration
+              if (currentView === "detail" && currentDetailIndex >= 0) {
+                preSearchDetailItem = currentDisplayedItems[currentDetailIndex];
+              } else {
+                preSearchDetailItem = null;
+              }
+            }
+
             clearBtn.style.display = "block";
+            applyFiltersAndSorting(); // Show search results
           } else {
             clearBtn.style.display = "none";
+            // Search cleared - restore previous layer state
+            restorePreSearchState();
           }
         };
 
