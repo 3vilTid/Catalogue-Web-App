@@ -1821,8 +1821,8 @@
         }
 
         /* PORTRAIT MODE ONLY - Wrap in orientation query */
-        @media (orientation: portrait) {
-          /* Portrait mode shell padding */
+        @media (max-width: 768px) and (orientation: portrait) {
+          /* Portrait mode on mobile devices only - NOT on resized desktop windows */
           .shell {
             padding: 0 12px !important;
           }
