@@ -2206,6 +2206,10 @@
           <div id="breadcrumbNav" style="display: none; margin-left: 8px; font-size: 13px; color: #64748b; align-items: center;">
             <!-- Breadcrumb items will be dynamically populated here -->
           </div>
+        </div>
+
+        <div class="filters-right">
+          <button id="sheetLinkBtn" class="btn-toolbar" style="display: none;">📊 Sheet</button>
 
           <!-- Filter button with dropdown -->
           <div id="filterWrapper" class="dropdown-wrapper">
@@ -2264,11 +2268,7 @@
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="filters-right">
-          <button id="sheetLinkBtn" class="btn-toolbar" style="display: none;">📊 Sheet</button>
-          <button id="columnsBtn" class="btn-toolbar" style="display: none;">⚙ Columns</button>
           <button id="addBtn" class="btn-toolbar btn-primary" style="display: none;">+ Add item</button>
         </div>
       </div>
@@ -3410,23 +3410,19 @@
         if (!user) return;
 
         const addBtn = document.getElementById("addBtn");
-        const columnsBtn = document.getElementById("columnsBtn");
         const editCatalogBtn = document.getElementById("editCatalogBtn");
         const sheetLinkBtn = document.getElementById("sheetLinkBtn");
 
         if (user.profile === "Viewer") {
           addBtn.style.display = "none";
-          columnsBtn.style.display = "none";
           editCatalogBtn.style.display = "none";
           sheetLinkBtn.style.display = "none";
         } else if (user.profile === "Editor") {
           addBtn.style.display = "inline-flex";
-          columnsBtn.style.display = "none";
           editCatalogBtn.style.display = "none";
           sheetLinkBtn.style.display = "none";
         } else if (user.profile === "Creator") {
           addBtn.style.display = "inline-flex";
-          columnsBtn.style.display = "inline-flex";
           editCatalogBtn.style.display = "inline-block";
           sheetLinkBtn.style.display = "inline-flex";
         }
@@ -5437,13 +5433,6 @@
           openAdd();
         };
         document.getElementById("editCancelBtn").onclick = closeEditModal;
-
-        // Column management event handlers (Creator only)
-        document.getElementById("columnsBtn").onclick = openManageColumnsModal;
-        document.getElementById("manageColsCancelBtn").onclick = closeManageColumnsModal;
-        document.getElementById("addColumnBtn").onclick = openAddColumn;
-        document.getElementById("columnEditorCancelBtn").onclick = closeColumnEditor;
-        document.getElementById("columnEditorSaveBtn").onclick = saveColumnEditor;
         document.getElementById("editCatalogBtn").onclick = promptRenameCatalogue;
 
         // Sheet link button (Creator only)
@@ -5460,19 +5449,6 @@
             }
           }
         };
-
-        // Close column modals on overlay click
-        document.getElementById("manageColumnsModal").addEventListener("click", function(e) {
-          if (e.target.id === "manageColumnsModal") {
-            closeManageColumnsModal();
-          }
-        });
-
-        document.getElementById("columnEditorModal").addEventListener("click", function(e) {
-          if (e.target.id === "columnEditorModal") {
-            closeColumnEditor();
-          }
-        });
 
         init();
 
