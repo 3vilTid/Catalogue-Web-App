@@ -2961,6 +2961,20 @@
 
       // -------------------- Helpers --------------------
 
+      // Update filter and sort button visibility based on available columns
+      function updateFilterSortVisibility() {
+        const hasFilterColumns = filterColumns && filterColumns.length > 0;
+
+        // Show/hide based on whether there are filterable columns
+        if (hasFilterColumns) {
+          document.getElementById("filterWrapper").style.display = "inline-block";
+          document.getElementById("sortWrapper").style.display = "inline-block";
+        } else {
+          document.getElementById("filterWrapper").style.display = "none";
+          document.getElementById("sortWrapper").style.display = "none";
+        }
+      }
+
       function formatDate(dateValue) {
         if (!dateValue) return "";
         try {
@@ -3056,6 +3070,9 @@
         if (!nameColumn && headers.length > 0) {
           nameColumn = { columnName: headers[0], displayName: headers[0], specialRole: "name" };
         }
+
+        // Update filter/sort button visibility based on configured columns
+        updateFilterSortVisibility();
       }
 
       function computeUniqueValues() {
@@ -3807,8 +3824,8 @@
           document.getElementById("filterWrapper").style.display = "none";
           document.getElementById("sortWrapper").style.display = "none";
         } else {
-          document.getElementById("filterWrapper").style.display = "inline-block";
-          document.getElementById("sortWrapper").style.display = "inline-block";
+          // Show filter/sort only if columns are configured
+          updateFilterSortVisibility();
         }
 
         // Update breadcrumb
@@ -3901,8 +3918,8 @@
           currentView = "list";
           applyFiltersAndSorting();
           document.getElementById("backToListBtn").style.display = "none";
-          document.getElementById("filterWrapper").style.display = "inline-block";
-          document.getElementById("sortWrapper").style.display = "inline-block";
+          // Show filter/sort only if columns are configured
+          updateFilterSortVisibility();
         }
 
         updateBreadcrumb();
@@ -4371,10 +4388,9 @@
         // Update navigation state
         currentView = "list";
 
-        // Hide back button, show filter and sort
+        // Hide back button, show filter/sort only if columns configured
         document.getElementById("backToListBtn").style.display = "none";
-        document.getElementById("filterWrapper").style.display = "inline-block";
-        document.getElementById("sortWrapper").style.display = "inline-block";
+        updateFilterSortVisibility();
 
         applyFiltersAndSorting();
       }
