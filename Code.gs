@@ -322,54 +322,49 @@ function getLayerData(layerName) {
       return [];
     }
 
-    var data = layersSheet.getDataRange().getValues();
-    var startRow = -1;
-    var startCol = -1;
-    var headers = [];
-
-    // Search for layer name in ANY column (not just first column)
-    for (var i = 0; i < data.length; i++) {
-      for (var j = 0; j < data[i].length; j++) {
-        var cellValue = String(data[i][j]).trim();
-        if (cellValue === layerName) {
-          startRow = i;
-          startCol = j;
-          headers = data[i + 1]; // Next row is headers
-          Logger.log("✓ Found '" + layerName + "' table at row " + (i + 1) + ", col " + (j + 1));
-          break;
-        }
-      }
-      if (startRow !== -1) break;
-    }
-
-    if (startRow === -1) {
-      Logger.log("✗ '" + layerName + "' table not found in Layers sheet");
+    // Hardcoded positions for each layer table
+    // Layer 1: B1 (column 2), Layer 2: F1 (column 6), Layer 3: K1 (column 11)
+    var startCol;
+    if (layerName === "Layer 1") {
+      startCol = 2; // Column B (1-indexed)
+    } else if (layerName === "Layer 2") {
+      startCol = 6; // Column F (1-indexed)
+    } else if (layerName === "Layer 3") {
+      startCol = 11; // Column K (1-indexed)
+    } else {
+      Logger.log("✗ Unknown layer: " + layerName);
       return [];
     }
 
-    var items = [];
-    var dataStartRow = startRow + 2; // Skip layer name and headers
+    var data = layersSheet.getDataRange().getValues();
+    var headerRow = 0; // Row 1 (0-indexed)
+    var headers = [];
 
-    // Read until we hit an empty row or another layer
+    // Read headers from row 1, starting at startCol
+    // Convert 1-indexed to 0-indexed
+    var colIndex = startCol - 1;
+    for (var j = colIndex; j < data[headerRow].length; j++) {
+      var headerValue = String(data[headerRow][j] || "").trim();
+      if (headerValue === "") break; // Stop at first empty header
+      headers.push(headerValue);
+    }
+
+    Logger.log("✓ Found " + headers.length + " headers for '" + layerName + "': " + headers.join(", "));
+
+    var items = [];
+    var dataStartRow = 1; // Row 2 (0-indexed)
+
+    // Read data rows until we hit an empty row
     for (var i = dataStartRow; i < data.length; i++) {
       var row = data[i];
+      var firstCell = String(row[colIndex] || "").trim();
 
-      // Check first column of table for empty or new layer
-      var firstCell = String(row[startCol] || "").trim();
-
-      // Stop if empty row or new layer table
-      if (firstCell === "" ||
-          firstCell === "Layer 1" ||
-          firstCell === "Layer 2" ||
-          firstCell === "Layer 3") {
-        break;
-      }
+      // Stop at empty row (indicates end of this table)
+      if (firstCell === "") break;
 
       var item = {};
       for (var j = 0; j < headers.length; j++) {
-        if (headers[j]) {
-          item[headers[j]] = row[j] || "";
-        }
+        item[headers[j]] = row[colIndex + j] || "";
       }
       items.push(item);
     }
