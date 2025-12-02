@@ -3477,7 +3477,30 @@
       }
 
       function applyFiltersAndSorting() {
-        let items = allItems.slice();
+        // Get base items depending on current context
+        let items;
+
+        if (currentView === "layer") {
+          // If in layer view, don't apply filters/sorting - just re-render current layer
+          if (currentLayerIndex >= 0 && currentLayerIndex < layerConfig.length) {
+            const layerName = layerConfig[currentLayerIndex].layerName;
+            const parentFilterName = navigationStack.length > 0 ? navigationStack[navigationStack.length - 1].itemName : null;
+            renderLayerView(currentLayerIndex, parentFilterName);
+            return;
+          }
+        } else if (navigationStack.length > 0 && currentView === "list") {
+          // If viewing Main items after layer navigation, start with those filtered items
+          // Reconstruct the base filtered items from layer navigation
+          const lastNav = navigationStack[navigationStack.length - 1];
+          const mainColumnName = layerConfig[lastNav.layerIndex].mainColumnName;
+          items = allItems.filter(item => {
+            const colValue = item[mainColumnName];
+            return colValue && String(colValue).trim() === lastNav.itemName;
+          }).slice();
+        } else {
+          // Normal view - use all items
+          items = allItems.slice();
+        }
 
         // Apply all filters (items must match ALL selected filters)
         for (const columnName in filterValues) {
