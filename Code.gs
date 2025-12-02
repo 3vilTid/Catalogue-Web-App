@@ -245,8 +245,6 @@ function getSettings() {
   var dateAdjustment = parseInt(sh.getRange("F2").getValue()) || 0;
   var appMode = sh.getRange("I2").getDisplayValue() || "Private with Profiles";
   var backgroundImageUrl = sh.getRange("I5").getDisplayValue() || "";
-  var loadingImageUrl = sh.getRange("H5").getDisplayValue() || "";
-  var loadingText = sh.getRange("H6").getDisplayValue() || "Loading...";
 
   return {
     appName: appName,
@@ -256,9 +254,7 @@ function getSettings() {
     logoUrl: logoUrl,
     dateAdjustment: dateAdjustment,
     appMode: appMode,
-    backgroundImageUrl: backgroundImageUrl,
-    loadingImageUrl: loadingImageUrl,
-    loadingText: loadingText
+    backgroundImageUrl: backgroundImageUrl
   };
 }
 

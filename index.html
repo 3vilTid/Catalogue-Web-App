@@ -1574,13 +1574,6 @@
         animation: spin 0.8s linear infinite;
       }
 
-      .loading-dots {
-        font-size: 24px;
-        color: #3b82f6;
-        font-weight: bold;
-        letter-spacing: 2px;
-      }
-
       /* ==================== RESPONSIVE DESIGN ==================== */
 
       /* Tablet and below (768px) */
@@ -2217,7 +2210,6 @@
         <div id="loadingText" class="loading-text">Patience discipline young Padawan !</div>
         <div class="loading-spinner-container">
           <div class="loading-spinner"></div>
-          <div id="loadingDots" class="loading-dots">.</div>
         </div>
       </div>
     </div>
@@ -2602,23 +2594,7 @@
 
       // ==================== LOADING SCREEN ====================
 
-      let loadingDotsInterval;
-
-      // Start dots animation immediately
-      function startLoadingAnimation() {
-        const loadingDots = document.getElementById('loadingDots');
-        let dotCount = 1;
-
-        loadingDotsInterval = setInterval(() => {
-          dotCount = (dotCount % 3) + 1;
-          loadingDots.textContent = '.'.repeat(dotCount);
-        }, 400);
-      }
-
       function hideLoadingScreen() {
-        if (loadingDotsInterval) {
-          clearInterval(loadingDotsInterval);
-        }
         const loadingScreen = document.getElementById('loadingScreen');
         if (loadingScreen) {
           loadingScreen.style.opacity = '0';
@@ -2627,13 +2603,6 @@
             loadingScreen.style.display = 'none';
           }, 300);
         }
-      }
-
-      // Start animation immediately when page loads
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', startLoadingAnimation);
-      } else {
-        startLoadingAnimation();
       }
 
       // ==================== AUTHENTICATION & SESSION MANAGEMENT ====================
