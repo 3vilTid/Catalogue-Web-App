@@ -4354,7 +4354,13 @@
         searchQuery = "";
         document.getElementById("searchInput").value = "";
         document.getElementById("clearSearchBtn").style.display = "none";
-        applyFiltersAndSorting();
+
+        // If layers are configured, go back to layer navigation
+        if (layerConfig.length > 0) {
+          navigateToHome();
+        } else {
+          applyFiltersAndSorting();
+        }
       }
 
       // -------------------- Fullscreen viewer --------------------
@@ -5438,14 +5444,20 @@
         // Real-time search input
         document.getElementById("searchInput").oninput = function() {
           searchQuery = this.value;
-          applyFiltersAndSorting();
 
           // Show/hide clear button
           const clearBtn = document.getElementById("clearSearchBtn");
           if (searchQuery && searchQuery.trim() !== "") {
             clearBtn.style.display = "block";
+            applyFiltersAndSorting(); // Show search results
           } else {
             clearBtn.style.display = "none";
+            // If search is cleared and layers are configured, go back to layers
+            if (layerConfig.length > 0) {
+              navigateToHome();
+            } else {
+              applyFiltersAndSorting();
+            }
           }
         };
 
