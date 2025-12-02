@@ -1562,8 +1562,8 @@
       }
 
       /* Phone and Tablet (1024px and below) - Catches phones reporting 980px like Samsung Galaxy A31 */
-      /* pointer: coarse = touch devices only, prevents desktop resized windows from getting mobile styles */
-      @media (max-width: 1024px) and (pointer: coarse) {
+      /* hover: none = touch devices only, prevents desktop resized windows from getting mobile styles */
+      @media (max-width: 1024px) and (hover: none) {
         /* Larger padding on phones for comfortable margins */
         .shell {
           padding: 0 20px;
@@ -1822,7 +1822,7 @@
         }
 
         /* PORTRAIT MODE ONLY - Wrap in orientation query */
-        @media (max-width: 768px) and (orientation: portrait) and (pointer: coarse) {
+        @media (max-width: 768px) and (orientation: portrait) and (hover: none) {
           /* Portrait mode on TOUCH DEVICES only - NOT on desktop browsers */
           .shell {
             padding: 0 12px !important;
