@@ -1821,9 +1821,9 @@
           font-size: 16px; /* Prevents zoom on iOS */
         }
 
-        /* PORTRAIT MODE ONLY - Wrap in orientation query */
-        @media (max-width: 768px) and (orientation: portrait) and (hover: none) {
-          /* Portrait mode on TOUCH DEVICES only - NOT on desktop browsers */
+        /* PORTRAIT MODE ONLY - Narrow width + portrait orientation */
+        @media (max-width: 768px) and (orientation: portrait) {
+          /* Portrait mode styles - applies to devices in portrait orientation at narrow width */
           .shell {
             padding: 0 12px !important;
           }
