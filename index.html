@@ -2214,8 +2214,7 @@
     <!-- Loading Screen Overlay -->
     <div id="loadingScreen" class="loading-screen">
       <div class="loading-content">
-        <img id="loadingImage" class="loading-image" src="" alt="" style="display: none;">
-        <div id="loadingText" class="loading-text">Loading...</div>
+        <div id="loadingText" class="loading-text">Patience discipline young Padawan !</div>
         <div class="loading-spinner-container">
           <div class="loading-spinner"></div>
           <div id="loadingDots" class="loading-dots">.</div>
@@ -2614,28 +2613,6 @@
           dotCount = (dotCount % 3) + 1;
           loadingDots.textContent = '.'.repeat(dotCount);
         }, 400);
-      }
-
-      // Update loading screen with custom settings (called when settings arrive)
-      function updateLoadingScreen(settings) {
-        if (!settings) return;
-
-        const loadingImage = document.getElementById('loadingImage');
-        const loadingText = document.getElementById('loadingText');
-
-        // Update loading text if provided
-        if (settings.loadingText && settings.loadingText.trim()) {
-          loadingText.textContent = settings.loadingText;
-        }
-
-        // Set loading image if available
-        if (settings.loadingImageUrl && settings.loadingImageUrl.trim()) {
-          const fileId = extractDriveFileId(settings.loadingImageUrl);
-          if (fileId && imageProxyBaseUrl) {
-            loadingImage.src = imageProxyBaseUrl + '?img=' + fileId;
-            loadingImage.style.display = 'block';
-          }
-        }
       }
 
       function hideLoadingScreen() {
@@ -5433,9 +5410,6 @@
                 document.title = settings.appName;
                 document.getElementById('loginAppName').textContent = settings.appName;
               }
-
-              // Update loading screen with custom settings
-              updateLoadingScreen(settings);
             }
 
             // Load column configuration
@@ -5488,9 +5462,6 @@
                 document.title = settings.appName;
                 document.getElementById('loginAppName').textContent = settings.appName;
               }
-
-              // Update loading screen with custom settings
-              updateLoadingScreen(settings);
             }
 
             // Load column configuration
@@ -5563,9 +5534,6 @@
                 document.title = settings.appName;
                 document.getElementById('loginAppName').textContent = settings.appName;
               }
-
-              // Update loading screen with custom settings
-              updateLoadingScreen(settings);
             }
 
             // Load column configuration
