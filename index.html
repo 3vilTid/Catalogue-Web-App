@@ -1520,6 +1520,67 @@
         to { transform: rotate(360deg); }
       }
 
+      /* ==================== LOADING SCREEN ==================== */
+
+      .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: white;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .loading-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 20px;
+      }
+
+      .loading-image {
+        max-height: 25vh;
+        max-width: 80vw;
+        object-fit: contain;
+      }
+
+      .loading-text {
+        font-size: 18px;
+        color: #374151;
+        font-weight: 500;
+        margin-top: 10px;
+      }
+
+      .loading-spinner-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .loading-spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid #e5e7eb;
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      .loading-dots {
+        font-size: 24px;
+        color: #3b82f6;
+        font-weight: bold;
+        letter-spacing: 2px;
+      }
+
       /* ==================== RESPONSIVE DESIGN ==================== */
 
       /* Tablet and below (768px) */
@@ -2150,6 +2211,18 @@
   </head>
 
   <body>
+    <!-- Loading Screen Overlay -->
+    <div id="loadingScreen" class="loading-screen">
+      <div class="loading-content">
+        <img id="loadingImage" class="loading-image" src="" alt="" style="display: none;">
+        <div id="loadingText" class="loading-text"></div>
+        <div class="loading-spinner-container">
+          <div class="loading-spinner"></div>
+          <div id="loadingDots" class="loading-dots"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="shell">
       <!-- Top header -->
       <div class="top-header">
@@ -2526,6 +2599,56 @@
             toast.parentElement.removeChild(toast);
           }
         }, 300);
+      }
+
+      // ==================== LOADING SCREEN ====================
+
+      let loadingDotsInterval;
+
+      function initLoadingScreen(settings) {
+        const loadingImage = document.getElementById('loadingImage');
+        const loadingText = document.getElementById('loadingText');
+        const loadingDots = document.getElementById('loadingDots');
+
+        // Set loading text
+        if (settings && settings.loadingText) {
+          loadingText.textContent = settings.loadingText;
+        } else {
+          loadingText.textContent = 'Loading...';
+        }
+
+        // Set loading image if available
+        if (settings && settings.loadingImageUrl) {
+          const fileId = extractDriveFileId(settings.loadingImageUrl);
+          if (fileId && imageProxyBaseUrl) {
+            loadingImage.src = imageProxyBaseUrl + '?img=' + fileId;
+            loadingImage.style.display = 'block';
+          }
+        }
+
+        // Animate dots: . → .. → ...
+        let dotCount = 0;
+        loadingDots.textContent = '.';
+        loadingDotsInterval = setInterval(() => {
+          dotCount = (dotCount + 1) % 4;
+          if (dotCount === 0) {
+            loadingDots.textContent = '';
+          } else {
+            loadingDots.textContent = '.'.repeat(dotCount);
+          }
+        }, 500);
+      }
+
+      function hideLoadingScreen() {
+        clearInterval(loadingDotsInterval);
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen) {
+          loadingScreen.style.opacity = '0';
+          loadingScreen.style.transition = 'opacity 0.3s ease-out';
+          setTimeout(() => {
+            loadingScreen.style.display = 'none';
+          }, 300);
+        }
       }
 
       // ==================== AUTHENTICATION & SESSION MANAGEMENT ====================
@@ -5302,6 +5425,9 @@
                 document.title = settings.appName;
                 document.getElementById('loginAppName').textContent = settings.appName;
               }
+
+              // Initialize loading screen with settings
+              initLoadingScreen(settings);
             }
 
             // Load column configuration
@@ -5316,6 +5442,9 @@
 
             // Hide login screen and show app
             hideLoginScreen();
+
+            // Hide loading screen - app is ready
+            hideLoadingScreen();
           })
           .withFailureHandler(function(error) {
             console.error('Error loading public app:', error);
@@ -5351,6 +5480,9 @@
                 document.title = settings.appName;
                 document.getElementById('loginAppName').textContent = settings.appName;
               }
+
+              // Initialize loading screen with settings
+              initLoadingScreen(settings);
             }
 
             // Load column configuration
@@ -5365,6 +5497,9 @@
 
             // Hide login screen and show app
             hideLoginScreen();
+
+            // Hide loading screen - app is ready
+            hideLoadingScreen();
 
             // Show login button in header for "Public with Login" mode
             updateLoginButtonVisibility();
@@ -5420,6 +5555,9 @@
                 document.title = settings.appName;
                 document.getElementById('loginAppName').textContent = settings.appName;
               }
+
+              // Initialize loading screen with settings
+              initLoadingScreen(settings);
             }
 
             // Load column configuration
@@ -5434,6 +5572,9 @@
 
             // Hide login screen and show app
             hideLoginScreen();
+
+            // Hide loading screen - app is ready
+            hideLoadingScreen();
           })
           .withFailureHandler(function(error) {
             console.error('Error loading app:', error);
