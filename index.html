@@ -1562,7 +1562,8 @@
       }
 
       /* Phone and Tablet (1024px and below) - Catches phones reporting 980px like Samsung Galaxy A31 */
-      @media (max-width: 1024px) {
+      /* pointer: coarse = touch devices only, prevents desktop resized windows from getting mobile styles */
+      @media (max-width: 1024px) and (pointer: coarse) {
         /* Larger padding on phones for comfortable margins */
         .shell {
           padding: 0 20px;
