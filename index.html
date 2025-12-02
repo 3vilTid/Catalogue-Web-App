@@ -2122,6 +2122,65 @@
         }
       }
 
+      /* STANDALONE PORTRAIT MODE - applies to ANY device in portrait orientation regardless of width */
+      @media (orientation: portrait) {
+        /* Detail view layout - PORTRAIT: Stack image above details */
+        .detail-layout {
+          grid-template-columns: 1fr !important;
+          gap: 16px;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+        }
+
+        .detail-img-wrapper {
+          width: 100% !important;
+          max-width: 100% !important;
+          max-height: none !important;
+          min-height: 300px;
+          box-sizing: border-box !important;
+          margin: 0 !important;
+        }
+
+        .detail-img {
+          width: 100% !important;
+          max-width: 100% !important;
+          height: auto !important;
+          max-height: none !important;
+          display: block;
+          object-fit: cover;
+          margin: 0 !important;
+        }
+
+        /* Larger buttons for portrait touch targets */
+        .btn-toolbar,
+        .btn-primary,
+        .btn-secondary {
+          height: 68px !important;
+          min-height: 68px !important;
+          padding: 20px 28px !important;
+          font-size: 19px !important;
+          font-weight: 600 !important;
+        }
+
+        /* Search input larger in portrait */
+        .search-input {
+          height: 68px !important;
+          font-size: 19px !important;
+          padding: 0 50px 0 20px !important;
+        }
+
+        /* Larger breadcrumbs for portrait */
+        #breadcrumbNav {
+          font-size: 26px !important;
+        }
+
+        #breadcrumbNav a,
+        #breadcrumbNav span {
+          font-size: 26px !important;
+        }
+      }
+
       /* Large desktop (1440px and up) - optimize for big screens */
       @media (min-width: 1440px) {
         .shell {
