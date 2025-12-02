@@ -3075,14 +3075,17 @@
         updateFilterSortVisibility();
       }
 
-      function computeUniqueValues() {
+      function computeUniqueValues(items) {
         // Compute unique values for all filter columns
+        // Use provided items or default to allItems
+        const sourceItems = items || allItems;
+
         for (let i = 0; i < filterColumns.length; i++) {
           const config = filterColumns[i];
           const valueSet = new Set();
 
-          for (let j = 0; j < allItems.length; j++) {
-            const item = allItems[j];
+          for (let j = 0; j < sourceItems.length; j++) {
+            const item = sourceItems[j];
             const value = item[config.columnName];
             if (value != null && String(value).trim() !== "") {
               valueSet.add(String(value).trim());
@@ -4667,12 +4670,22 @@
         // Toggle current dropdown
         if (!isShowing) {
           dropdown.classList.add("show");
-          
+
           // Populate filter dropdown when opened
           if (dropdownId === "filterDropdown") {
+            // If in layer view, recompute unique values from current layer items
+            if (currentView === "layer" && currentLayerIndex >= 0 && currentLayerIndex < layerConfig.length) {
+              const layerName = layerConfig[currentLayerIndex].layerName;
+              const parentFilterName = navigationStack.length > 0 ? navigationStack[navigationStack.length - 1].itemName : null;
+              const layerItems = getFilteredLayerItems(layerName, parentFilterName);
+              computeUniqueValues(layerItems);
+            } else {
+              // Otherwise use all items
+              computeUniqueValues(allItems);
+            }
             populateFilterDropdown();
           }
-          
+
           // Populate sort dropdown when opened
           if (dropdownId === "sortDropdown") {
             populateSortDropdown();
