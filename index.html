@@ -2060,6 +2060,24 @@
           .login-title {
             font-size: 24px;
           }
+
+          /* Breadcrumb navigation - 2x bigger for easier touch navigation */
+          #breadcrumbNav {
+            font-size: 26px !important;
+            margin: 12px 0 !important;
+            padding: 8px 0 !important;
+            line-height: 1.5 !important;
+          }
+
+          #breadcrumbNav a {
+            padding: 8px 4px !important;
+            font-size: 26px !important;
+          }
+
+          #breadcrumbNav span {
+            margin: 0 12px !important;
+            font-size: 26px !important;
+          }
         }
 
       /* Very small phones (600px and below) - Even more compact for actual small phones */
@@ -2101,26 +2119,6 @@
         /* Modal even more compact */
         .modal-box {
           padding: 16px;
-        }
-      }
-
-      /* Mobile Portrait Mode - Make breadcrumb 2x bigger for easier touch navigation */
-      @media (max-width: 600px) and (orientation: portrait) {
-        #breadcrumbNav {
-          font-size: 26px !important; /* 2x bigger than default 13px */
-          margin: 12px 0 !important;
-          padding: 8px 0 !important;
-          line-height: 1.5 !important;
-        }
-
-        #breadcrumbNav a {
-          padding: 8px 4px !important;
-          font-size: 26px !important;
-        }
-
-        #breadcrumbNav span {
-          margin: 0 12px !important; /* More spacing between separators */
-          font-size: 26px !important;
         }
       }
 
@@ -3925,8 +3923,12 @@
         currentView = "detail";
         history.pushState({ view: "detail", index: index }, "", "");
 
-        // Show back button, hide filter and sort
-        document.getElementById("backToListBtn").style.display = "inline-flex";
+        // Show back button only if no layers (breadcrumb handles navigation when layers exist)
+        if (layerConfig.length === 0) {
+          document.getElementById("backToListBtn").style.display = "inline-flex";
+        } else {
+          document.getElementById("backToListBtn").style.display = "none";
+        }
         document.getElementById("filterWrapper").style.display = "none";
         document.getElementById("sortWrapper").style.display = "none";
 
