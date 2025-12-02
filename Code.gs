@@ -34,16 +34,14 @@ var ITEM_PLACE_DISPLAY = {
 var SPECIAL_ROLE_MAP = {
   "Auto-filled User Mail": "addedby",
   "External Link": "externallink",
-  "Formula (Read-only)": "formula",
-  "Formula/External Link (Read-only)": "formulaexternallink"
+  "Formula (Read-only)": "formula"
 };
 
 // Reverse map for display
 var SPECIAL_ROLE_DISPLAY = {
   "addedby": "Auto-filled User Mail",
   "externallink": "External Link",
-  "formula": "Formula (Read-only)",
-  "formulaexternallink": "Formula/External Link (Read-only)"
+  "formula": "Formula (Read-only)"
 };
 
 // Convert item place display name to internal code
@@ -82,7 +80,7 @@ function normalizeSpecialRole_(displayRole) {
   }
 
   // If already internal code, return as-is
-  if (roleStr === "addedby" || roleStr === "externallink" || roleStr === "formula" || roleStr === "formulaexternallink") {
+  if (roleStr === "addedby" || roleStr === "externallink" || roleStr === "formula") {
     return roleStr;
   }
 
@@ -241,148 +239,17 @@ function getSettings() {
   var catalogName = sh.getRange("C3").getDisplayValue() || "Catalogue";
   var sheetUrl = sh.getRange("C4").getDisplayValue() || "";
   var deploymentUrl = sh.getRange("C5").getDisplayValue() || "";
-  var logoUrl = sh.getRange("C6").getDisplayValue() || "";
-  var dateAdjustment = parseInt(sh.getRange("F2").getValue()) || 0;
-  var appMode = sh.getRange("I2").getDisplayValue() || "Private with Profiles";
-  var backgroundImageUrl = sh.getRange("I5").getDisplayValue() || "";
+  var dateAdjustment = parseInt(sh.getRange("H2").getValue()) || 0;
+  var appMode = sh.getRange("J2").getDisplayValue() || "Private with Profiles";
 
   return {
     appName: appName,
     catalogName: catalogName,
     sheetUrl: sheetUrl,
     deploymentUrl: deploymentUrl,
-    logoUrl: logoUrl,
     dateAdjustment: dateAdjustment,
-    appMode: appMode,
-    backgroundImageUrl: backgroundImageUrl
+    appMode: appMode
   };
-}
-
-/**
- * Get layer configuration from Settings sheet
- * Hardcoded to read from B12:C14 (Layer 1, 2, 3)
- */
-function getLayerConfig() {
-  try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var settingsSheet = ss.getSheetByName("Settings");
-
-    if (!settingsSheet) {
-      Logger.log("✗ Settings sheet not found");
-      return [];
-    }
-
-    var layers = [];
-
-    // Hardcoded positions: B12:C14
-    // B12: Layer 1, C12: Ex Cat
-    // B13: Layer 2, C13: Category
-    // B14: Layer 3, C14: (blank)
-    var layerRows = [12, 13, 14]; // Rows for Layer 1, 2, 3
-    var layerCol = 2;  // Column B (1-indexed)
-    var mainCol = 3;   // Column C (1-indexed)
-
-    for (var i = 0; i < layerRows.length; i++) {
-      var row = layerRows[i];
-      var layerName = settingsSheet.getRange(row, layerCol).getValue();
-      var mainColumnName = settingsSheet.getRange(row, mainCol).getValue();
-
-      layerName = String(layerName || "").trim();
-      mainColumnName = String(mainColumnName || "").trim();
-
-      // Only include layers that have both name and main column
-      if (layerName !== "" && mainColumnName !== "") {
-        layers.push({
-          layerName: layerName,
-          mainColumnName: mainColumnName
-        });
-        Logger.log("✓ Found layer: " + layerName + " -> " + mainColumnName);
-      }
-    }
-
-    Logger.log("✓ Total layers configured: " + layers.length);
-    return layers;
-  } catch (e) {
-    Logger.log("✗ Error getting layer config: " + e.toString());
-    return [];
-  }
-}
-
-/**
- * Get layer data from Layers sheet
- * Searches flexibly for layer table by name in ANY column
- */
-function getLayerData(layerName) {
-  try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var layersSheet = ss.getSheetByName("Layers");
-
-    if (!layersSheet) {
-      Logger.log("✗ Layers sheet not found");
-      return [];
-    }
-
-    // Hardcoded positions for each layer table
-    // Layer 1: B1 (column 2), Layer 2: F1 (column 6), Layer 3: K1 (column 11)
-    var startCol;
-    if (layerName === "Layer 1") {
-      startCol = 2; // Column B (1-indexed)
-    } else if (layerName === "Layer 2") {
-      startCol = 6; // Column F (1-indexed)
-    } else if (layerName === "Layer 3") {
-      startCol = 11; // Column K (1-indexed)
-    } else {
-      Logger.log("✗ Unknown layer: " + layerName);
-      return [];
-    }
-
-    var data = layersSheet.getDataRange().getValues();
-    var headerRow = 0; // Row 1 (0-indexed)
-    var headers = [];
-
-    // Read headers from row 1, starting at startCol
-    // Convert 1-indexed to 0-indexed
-    var colIndex = startCol - 1;
-    for (var j = colIndex; j < data[headerRow].length; j++) {
-      var headerValue = String(data[headerRow][j] || "").trim();
-      if (headerValue === "") break; // Stop at first empty header
-      headers.push(headerValue);
-    }
-
-    Logger.log("✓ Found " + headers.length + " headers for '" + layerName + "': " + headers.join(", "));
-
-    var items = [];
-    var dataStartRow = 1; // Row 2 (0-indexed)
-
-    // Read data rows until we hit an empty row
-    for (var i = dataStartRow; i < data.length; i++) {
-      var row = data[i];
-      var firstCell = String(row[colIndex] || "").trim();
-
-      // Stop at empty row (indicates end of this table)
-      if (firstCell === "") break;
-
-      var item = {};
-      for (var j = 0; j < headers.length; j++) {
-        item[headers[j]] = row[colIndex + j] || "";
-      }
-      items.push(item);
-    }
-
-    Logger.log("✓ Loaded " + items.length + " items from '" + layerName + "'");
-    return items;
-  } catch (e) {
-    Logger.log("✗ Error getting layer data for " + layerName + ": " + e.toString());
-    return [];
-  }
-}
-
-/**
- * Check if app uses layers
- */
-function hasLayers() {
-  var config = getLayerConfig();
-  return config && config.length > 0;
 }
 
 /**
@@ -632,18 +499,6 @@ function logout(token) {
  **************************************************/
 
 function getInitialData(token) {
-  // Get layer configuration
-  var layerConfig = getLayerConfig();
-  var layersData = {};
-
-  // Load data for each configured layer
-  if (layerConfig && layerConfig.length > 0) {
-    for (var i = 0; i < layerConfig.length; i++) {
-      var layerName = layerConfig[i].layerName;
-      layersData[layerName] = getLayerData(layerName);
-    }
-  }
-
   // Check if app is in public mode
   if (isPublicMode_()) {
     // Public mode: Everyone is a Viewer, no authentication required
@@ -656,9 +511,7 @@ function getInitialData(token) {
       settings: getSettings(),
       headers: getHeaders(),
       items: getMainData(),
-      columnConfig: getColumnConfig(),
-      layerConfig: layerConfig,
-      layersData: layersData
+      columnConfig: getColumnConfig()
     };
   }
 
@@ -676,9 +529,7 @@ function getInitialData(token) {
     settings: getSettings(),
     headers: getHeaders(),
     items: getMainData(),
-    columnConfig: getColumnConfig(),
-    layerConfig: layerConfig,
-    layersData: layersData
+    columnConfig: getColumnConfig()
   };
 }
 
@@ -706,7 +557,7 @@ function getMainData() {
     }
   }
 
-  // Get date adjustment from settings (F2)
+  // Get date adjustment from settings (H2)
   var settings = getSettings();
   var dateAdjustment = settings.dateAdjustment || 0;
 
@@ -719,7 +570,7 @@ function getMainData() {
       if (h) {
         var val = row[c];
         // Convert Date objects to YYYY-MM-DD strings using local methods
-        // Apply date adjustment from Settings F2
+        // Apply date adjustment from Settings H2
         if (dateColumns[h] && val instanceof Date) {
           // Apply date adjustment (add days)
           var adjustedDate = new Date(val);
@@ -814,7 +665,7 @@ function getItemByName(name, token) {
       }
     }
 
-    // Get date adjustment from settings (F2)
+    // Get date adjustment from settings (H2)
     var settings = getSettings();
     var dateAdjustment = settings.dateAdjustment || 0;
 
@@ -826,7 +677,7 @@ function getItemByName(name, token) {
           var h = headers[c];
           var val = data[r][c];
           // Convert Date objects to YYYY-MM-DD strings using local methods
-          // Apply date adjustment from Settings F2
+          // Apply date adjustment from Settings H2
           if (dateColumns[h] && val instanceof Date) {
             // Apply date adjustment (add days)
             var adjustedDate = new Date(val);
@@ -950,6 +801,138 @@ function deleteItem(name, token) {
 /**************************************************
  * Column Management (Creator Only)
  **************************************************/
+
+function saveColumnConfig(configs, token) {
+  try {
+    // Verify session
+    var sessionResult = verifySession(token);
+    if (!sessionResult.success) {
+      throw new Error("Authentication required.");
+    }
+
+    var user = sessionResult.user;
+
+    // Only Creator can manage columns
+    if (user.profile !== "Creator") {
+      throw new Error("Only Creator can manage columns.");
+    }
+
+    var sh = getColumnConfigSheet_();
+    var headers = ["Column Name", "Display Name", "Type", "Show in Filter", "Show in Sort", "Item Place", "Special Role"];
+
+    // Clear existing data (except header)
+    var lastRow = sh.getLastRow();
+    if (lastRow > 1) {
+      sh.deleteRows(2, lastRow - 1);
+    }
+
+    // Write new config
+    var rows = [];
+    for (var i = 0; i < configs.length; i++) {
+      var config = configs[i];
+      var itemPlaceToSave = config.itemPlaceDisplay || config.itemPlace || "";
+      var specialRoleToSave = config.specialRoleDisplay || config.specialRole || "";
+
+      rows.push([
+        config.columnName || "",
+        config.displayName || config.columnName || "",
+        config.type || "text",
+        config.showInFilter || false,
+        config.showInSort || false,
+        itemPlaceToSave,
+        specialRoleToSave
+      ]);
+    }
+
+    if (rows.length > 0) {
+      sh.getRange(2, 1, rows.length, headers.length).setValues(rows);
+    }
+
+    return "Column configuration saved successfully.";
+
+  } catch (err) {
+    throw new Error("Error saving column config: " + err.message);
+  }
+}
+
+function addNewColumn(columnName, displayName, type, showInFilter, showInSort, itemPlace, specialRole, token) {
+  try {
+    // Verify session
+    var sessionResult = verifySession(token);
+    if (!sessionResult.success) {
+      throw new Error("Authentication required.");
+    }
+
+    var user = sessionResult.user;
+
+    // Only Creator can manage columns
+    if (user.profile !== "Creator") {
+      throw new Error("Only Creator can manage columns.");
+    }
+
+    // Add column to ColumnConfig sheet
+    var configSheet = getColumnConfigSheet_();
+    configSheet.appendRow([
+      columnName,
+      displayName || columnName,
+      type || "text",
+      showInFilter || false,
+      showInSort || false,
+      itemPlace || "",
+      specialRole || ""
+    ]);
+
+    // Add column to Main sheet
+    var mainSheet = getMainSheet_();
+    var lastCol = mainSheet.getLastColumn();
+    mainSheet.getRange(1, lastCol + 1).setValue(columnName);
+
+    return "Column added successfully.";
+
+  } catch (err) {
+    throw new Error("Error adding column: " + err.message);
+  }
+}
+
+function deleteColumn(columnName, token) {
+  try {
+    // Verify session
+    var sessionResult = verifySession(token);
+    if (!sessionResult.success) {
+      throw new Error("Authentication required.");
+    }
+
+    var user = sessionResult.user;
+
+    // Only Creator can manage columns
+    if (user.profile !== "Creator") {
+      throw new Error("Only Creator can manage columns.");
+    }
+
+    // Remove from ColumnConfig sheet
+    var configSheet = getColumnConfigSheet_();
+    var configData = configSheet.getDataRange().getValues();
+    for (var i = 1; i < configData.length; i++) {
+      if (configData[i][0] === columnName) {
+        configSheet.deleteRow(i + 1);
+        break;
+      }
+    }
+
+    // Remove from Main sheet
+    var mainSheet = getMainSheet_();
+    var headers = mainSheet.getRange(1, 1, 1, mainSheet.getLastColumn()).getValues()[0];
+    var colIndex = indexOfHeader_(headers, columnName);
+    if (colIndex !== -1) {
+      mainSheet.deleteColumn(colIndex + 1);
+    }
+
+    return "Column deleted successfully.";
+
+  } catch (err) {
+    throw new Error("Error deleting column: " + err.message);
+  }
+}
 
 /**************************************************
  * Settings Management (Creator Only)
