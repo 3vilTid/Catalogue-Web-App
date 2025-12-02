@@ -4679,6 +4679,9 @@
               const parentFilterName = navigationStack.length > 0 ? navigationStack[navigationStack.length - 1].itemName : null;
               const layerItems = getFilteredLayerItems(layerName, parentFilterName);
               computeUniqueValues(layerItems);
+            } else if (navigationStack.length > 0 && currentDisplayedItems && currentDisplayedItems.length > 0) {
+              // If we navigated through layers and viewing filtered Main items, use currentDisplayedItems
+              computeUniqueValues(currentDisplayedItems);
             } else {
               // Otherwise use all items
               computeUniqueValues(allItems);
