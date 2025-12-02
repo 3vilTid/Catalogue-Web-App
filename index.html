@@ -2176,6 +2176,39 @@
         }
       }
 
+      /* DESKTOP OVERRIDE - Reset mobile styles on desktop/laptop with hover capability */
+      @media (hover: hover) and (max-width: 1024px) {
+        /* Reset buttons to normal desktop size */
+        .btn-toolbar,
+        .btn-primary,
+        .btn-secondary {
+          height: 34px !important;
+          min-height: 34px !important;
+          padding: 0 14px !important;
+          font-size: 13px !important;
+          font-weight: 500 !important;
+        }
+
+        #logoutBtn {
+          height: 34px !important;
+          min-height: 34px !important;
+          padding: 0 14px !important;
+          font-size: 13px !important;
+        }
+
+        #filterBtn,
+        #sortBtn,
+        #backToListBtn,
+        #sheetBtn,
+        #columnsBtn,
+        #addBtn {
+          height: 34px !important;
+          min-height: 34px !important;
+          padding: 0 14px !important;
+          font-size: 13px !important;
+        }
+      }
+
       /* Large desktop (1440px and up) - optimize for big screens */
       @media (min-width: 1440px) {
         .shell {
