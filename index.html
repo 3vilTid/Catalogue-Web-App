@@ -1957,272 +1957,272 @@
         font-size: 16px; /* Prevents zoom on iOS */
       }
 
-      /* ==================== MOBILE & TABLET PORTRAIT ==================== */
-      body.mobile-device.portrait,
-      body.tablet-device.portrait {
-          /* Portrait mode compact padding */
-          .shell {
-            padding: 0 8px !important;
-          }
-
-          /* Compact header for portrait */
-          .top-header {
-            padding: 12px 14px !important;
-            margin-bottom: 12px !important;
-          }
-
-          /* Ensure symmetrical margins - adjust container padding */
-          #detailView {
-            padding: 16px !important;
-            margin-left: 0;
-            margin-right: 0;
-            width: 100%;
-            box-sizing: border-box;
-          }
-
-          /* Detail view layout - PORTRAIT: Stack image above details */
-          .detail-layout {
-            grid-template-columns: 1fr !important;
-            gap: 16px;
-            width: 100%;
-            max-width: 100%;
-            box-sizing: border-box;
-          }
-
-          .detail-img-wrapper {
-            width: 100% !important;
-            max-width: 100% !important;
-            max-height: none !important;
-            min-height: 300px;
-            box-sizing: border-box !important;
-            margin: 0 !important;
-          }
-
-          .detail-img {
-            width: 100% !important;
-            max-width: 100% !important;
-            height: auto !important;
-            max-height: none !important;
-            display: block;
-            object-fit: cover;
-            margin: 0 !important;
-          }
-
-          /* Ensure text wraps properly */
-          .detail-field,
-          .detail-name,
-          .detail-subtitle,
-          .detail-topcorner,
-          .detail-meta {
-            word-break: break-word !important;
-            overflow-wrap: break-word !important;
-          }
-
-          /* Make image zoom close button MUCH bigger for portrait */
-          #imgOverlayClose {
-            font-size: 32px !important;
-            padding: 8px 14px !important;
-            top: 20px !important;
-            right: 20px !important;
-            min-width: 48px;
-            min-height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-
-          /* Detail view text sizes - PORTRAIT */
-          .detail-container {
-            padding: 16px;
-          }
-
-          .detail-name {
-            font-size: 30px !important;
-          }
-
-          .detail-subtitle {
-            font-size: 25px !important;
-          }
-
-          /* Make the text container positioned so Top Corner positions relative to it */
-          .detail-layout > div:not(#detailImgContainer) {
-            position: relative;
-          }
-
-          .detail-topcorner {
-            font-size: 25px !important;
-            top: 0 !important;
-            right: 0 !important;
-          }
-
-          .detail-meta {
-            font-size: 25px !important;
-          }
-
-          .detail-field {
-            font-size: 22px !important;
-          }
-
-          .detail-field-label {
-            font-size: 22px !important;
-          }
-
-          .detail-field-value {
-            font-size: 22px !important;
-          }
-
-          /* Make external link buttons bigger in portrait */
-          .link-pill {
-            font-size: 24px !important;
-            padding: 10px 18px !important;
-          }
-
-          /* Card adjustments - MUCH LARGER TEXT */
-          .item-card {
-            min-height: 180px;
-            padding: 12px !important;
-          }
-
-          /* Make card images square in portrait */
-          .card-img-wrapper {
-            height: auto !important;
-            aspect-ratio: 1 / 1 !important;
-          }
-
-          .card-name {
-            font-size: 26px !important;
-            line-height: 1.4;
-            font-weight: 600 !important;
-          }
-
-          .card-sub {
-            font-size: 22px !important;
-          }
-
-          /* Make all buttons bigger in portrait */
-          button,
-          .btn,
-          .btn-primary,
-          .btn-secondary,
-          .btn-danger,
-          .back-btn,
-          .sort-btn,
-          .filter-pill {
-            min-height: 80px !important;
-            font-size: 28px !important;
-            padding: 12px 24px !important;
-          }
-
-          /* Make Filter and Sort button text even bigger */
-          .btn-toolbar,
-          #filterBtn,
-          #sortBtn,
-          #backToListBtn,
-          #sheetBtn,
-          #columnsBtn,
-          #addBtn {
-            font-size: 28px !important;
-            min-height: 80px !important;
-            padding: 12px 24px !important;
-          }
-
-          /* Exception: Keep Image Zoom Close Button at original size */
-          #imgOverlayClose {
-            font-size: 32px !important;
-            padding: 8px 14px !important;
-            min-width: 48px !important;
-            min-height: 48px !important;
-          }
-
-          /* Form inputs bigger in portrait */
-          input[type="text"],
-          input[type="email"],
-          input[type="password"],
-          input[type="date"],
-          input[type="url"],
-          textarea {
-            font-size: 22px !important;
-            min-height: 80px !important;
-          }
-
-          /* Dropdown menus bigger in portrait */
-          select {
-            font-size: 88px !important;
-            min-height: 80px !important;
-          }
-
-          /* Dropdown menu content bigger in portrait */
-          .dropdown-menu {
-            padding: 16px !important;
-            max-height: 600px !important;
-            min-width: 500px !important;
-            width: auto !important;
-          }
-
-          .dropdown-section-title {
-            font-size: 28px !important;
-            padding: 12px 16px !important;
-          }
-
-          .dropdown-item {
-            font-size: 36px !important;
-            padding: 16px 20px !important;
-            gap: 16px !important;
-          }
-
-          .dropdown-item input[type="checkbox"],
-          .dropdown-item input[type="radio"] {
-            width: 36px !important;
-            height: 36px !important;
-            min-width: 36px !important;
-            min-height: 36px !important;
-          }
-
-          .dropdown-item input[type="checkbox"]:checked::after {
-            top: 6px !important;
-            left: 6px !important;
-            width: 20px !important;
-            height: 20px !important;
-          }
-
-          .dropdown-item span {
-            font-size: 36px !important;
-          }
-
-          /* Make Clear Filters button smaller */
-          .dropdown-btn {
-            font-size: 34px !important;
-            padding: 8px 16px !important;
-          }
-
-          /* Login screen adjustments */
-          .login-box {
-            padding: 32px 24px;
-            max-width: 95vw;
-          }
-
-          .login-title {
-            font-size: 24px;
-          }
-
-          /* Breadcrumb navigation - 2x bigger for easier touch navigation */
-          #breadcrumbNav {
-            font-size: 26px !important;
-            margin: 12px 0 !important;
-            padding: 8px 0 !important;
-            line-height: 1.5 !important;
-          }
-
-          #breadcrumbNav a {
-            padding: 8px 4px !important;
-            font-size: 26px !important;
-          }
-
-          #breadcrumbNav span {
-            margin: 0 12px !important;
-            font-size: 26px !important;
-          }
-        }
+/* DISABLED:       /* ==================== MOBILE & TABLET PORTRAIT ==================== */
+/* DISABLED:       body.mobile-device.portrait,
+/* DISABLED:       body.tablet-device.portrait {
+/* DISABLED:           /* Portrait mode compact padding */
+/* DISABLED:           .shell {
+/* DISABLED:             padding: 0 8px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Compact header for portrait */
+/* DISABLED:           .top-header {
+/* DISABLED:             padding: 12px 14px !important;
+/* DISABLED:             margin-bottom: 12px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Ensure symmetrical margins - adjust container padding */
+/* DISABLED:           #detailView {
+/* DISABLED:             padding: 16px !important;
+/* DISABLED:             margin-left: 0;
+/* DISABLED:             margin-right: 0;
+/* DISABLED:             width: 100%;
+/* DISABLED:             box-sizing: border-box;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Detail view layout - PORTRAIT: Stack image above details */
+/* DISABLED:           .detail-layout {
+/* DISABLED:             grid-template-columns: 1fr !important;
+/* DISABLED:             gap: 16px;
+/* DISABLED:             width: 100%;
+/* DISABLED:             max-width: 100%;
+/* DISABLED:             box-sizing: border-box;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           .detail-img-wrapper {
+/* DISABLED:             width: 100% !important;
+/* DISABLED:             max-width: 100% !important;
+/* DISABLED:             max-height: none !important;
+/* DISABLED:             min-height: 300px;
+/* DISABLED:             box-sizing: border-box !important;
+/* DISABLED:             margin: 0 !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           .detail-img {
+/* DISABLED:             width: 100% !important;
+/* DISABLED:             max-width: 100% !important;
+/* DISABLED:             height: auto !important;
+/* DISABLED:             max-height: none !important;
+/* DISABLED:             display: block;
+/* DISABLED:             object-fit: cover;
+/* DISABLED:             margin: 0 !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Ensure text wraps properly */
+/* DISABLED:           .detail-field,
+/* DISABLED:           .detail-name,
+/* DISABLED:           .detail-subtitle,
+/* DISABLED:           .detail-topcorner,
+/* DISABLED:           .detail-meta {
+/* DISABLED:             word-break: break-word !important;
+/* DISABLED:             overflow-wrap: break-word !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Make image zoom close button MUCH bigger for portrait */
+/* DISABLED:           #imgOverlayClose {
+/* DISABLED:             font-size: 32px !important;
+/* DISABLED:             padding: 8px 14px !important;
+/* DISABLED:             top: 20px !important;
+/* DISABLED:             right: 20px !important;
+/* DISABLED:             min-width: 48px;
+/* DISABLED:             min-height: 48px;
+/* DISABLED:             display: flex;
+/* DISABLED:             align-items: center;
+/* DISABLED:             justify-content: center;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Detail view text sizes - PORTRAIT */
+/* DISABLED:           .detail-container {
+/* DISABLED:             padding: 16px;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           .detail-name {
+/* DISABLED:             font-size: 30px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           .detail-subtitle {
+/* DISABLED:             font-size: 25px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Make the text container positioned so Top Corner positions relative to it */
+/* DISABLED:           .detail-layout > div:not(#detailImgContainer) {
+/* DISABLED:             position: relative;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           .detail-topcorner {
+/* DISABLED:             font-size: 25px !important;
+/* DISABLED:             top: 0 !important;
+/* DISABLED:             right: 0 !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           .detail-meta {
+/* DISABLED:             font-size: 25px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           .detail-field {
+/* DISABLED:             font-size: 22px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           .detail-field-label {
+/* DISABLED:             font-size: 22px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           .detail-field-value {
+/* DISABLED:             font-size: 22px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Make external link buttons bigger in portrait */
+/* DISABLED:           .link-pill {
+/* DISABLED:             font-size: 24px !important;
+/* DISABLED:             padding: 10px 18px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Card adjustments - MUCH LARGER TEXT */
+/* DISABLED:           .item-card {
+/* DISABLED:             min-height: 180px;
+/* DISABLED:             padding: 12px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Make card images square in portrait */
+/* DISABLED:           .card-img-wrapper {
+/* DISABLED:             height: auto !important;
+/* DISABLED:             aspect-ratio: 1 / 1 !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           .card-name {
+/* DISABLED:             font-size: 26px !important;
+/* DISABLED:             line-height: 1.4;
+/* DISABLED:             font-weight: 600 !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           .card-sub {
+/* DISABLED:             font-size: 22px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Make all buttons bigger in portrait */
+/* DISABLED:           button,
+/* DISABLED:           .btn,
+/* DISABLED:           .btn-primary,
+/* DISABLED:           .btn-secondary,
+/* DISABLED:           .btn-danger,
+/* DISABLED:           .back-btn,
+/* DISABLED:           .sort-btn,
+/* DISABLED:           .filter-pill {
+/* DISABLED:             min-height: 80px !important;
+/* DISABLED:             font-size: 28px !important;
+/* DISABLED:             padding: 12px 24px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Make Filter and Sort button text even bigger */
+/* DISABLED:           .btn-toolbar,
+/* DISABLED:           #filterBtn,
+/* DISABLED:           #sortBtn,
+/* DISABLED:           #backToListBtn,
+/* DISABLED:           #sheetBtn,
+/* DISABLED:           #columnsBtn,
+/* DISABLED:           #addBtn {
+/* DISABLED:             font-size: 28px !important;
+/* DISABLED:             min-height: 80px !important;
+/* DISABLED:             padding: 12px 24px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Exception: Keep Image Zoom Close Button at original size */
+/* DISABLED:           #imgOverlayClose {
+/* DISABLED:             font-size: 32px !important;
+/* DISABLED:             padding: 8px 14px !important;
+/* DISABLED:             min-width: 48px !important;
+/* DISABLED:             min-height: 48px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Form inputs bigger in portrait */
+/* DISABLED:           input[type="text"],
+/* DISABLED:           input[type="email"],
+/* DISABLED:           input[type="password"],
+/* DISABLED:           input[type="date"],
+/* DISABLED:           input[type="url"],
+/* DISABLED:           textarea {
+/* DISABLED:             font-size: 22px !important;
+/* DISABLED:             min-height: 80px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Dropdown menus bigger in portrait */
+/* DISABLED:           select {
+/* DISABLED:             font-size: 88px !important;
+/* DISABLED:             min-height: 80px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Dropdown menu content bigger in portrait */
+/* DISABLED:           .dropdown-menu {
+/* DISABLED:             padding: 16px !important;
+/* DISABLED:             max-height: 600px !important;
+/* DISABLED:             min-width: 500px !important;
+/* DISABLED:             width: auto !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           .dropdown-section-title {
+/* DISABLED:             font-size: 28px !important;
+/* DISABLED:             padding: 12px 16px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           .dropdown-item {
+/* DISABLED:             font-size: 36px !important;
+/* DISABLED:             padding: 16px 20px !important;
+/* DISABLED:             gap: 16px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           .dropdown-item input[type="checkbox"],
+/* DISABLED:           .dropdown-item input[type="radio"] {
+/* DISABLED:             width: 36px !important;
+/* DISABLED:             height: 36px !important;
+/* DISABLED:             min-width: 36px !important;
+/* DISABLED:             min-height: 36px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           .dropdown-item input[type="checkbox"]:checked::after {
+/* DISABLED:             top: 6px !important;
+/* DISABLED:             left: 6px !important;
+/* DISABLED:             width: 20px !important;
+/* DISABLED:             height: 20px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           .dropdown-item span {
+/* DISABLED:             font-size: 36px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Make Clear Filters button smaller */
+/* DISABLED:           .dropdown-btn {
+/* DISABLED:             font-size: 34px !important;
+/* DISABLED:             padding: 8px 16px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Login screen adjustments */
+/* DISABLED:           .login-box {
+/* DISABLED:             padding: 32px 24px;
+/* DISABLED:             max-width: 95vw;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           .login-title {
+/* DISABLED:             font-size: 24px;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           /* Breadcrumb navigation - 2x bigger for easier touch navigation */
+/* DISABLED:           #breadcrumbNav {
+/* DISABLED:             font-size: 26px !important;
+/* DISABLED:             margin: 12px 0 !important;
+/* DISABLED:             padding: 8px 0 !important;
+/* DISABLED:             line-height: 1.5 !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           #breadcrumbNav a {
+/* DISABLED:             padding: 8px 4px !important;
+/* DISABLED:             font-size: 26px !important;
+/* DISABLED:           }
+/* DISABLED: 
+/* DISABLED:           #breadcrumbNav span {
+/* DISABLED:             margin: 0 12px !important;
+/* DISABLED:             font-size: 26px !important;
+/* DISABLED:           }
+/* DISABLED:         }
 
       /* Very small phones (600px and below) - Even more compact for actual small phones */
       @media (max-width: 600px) {
