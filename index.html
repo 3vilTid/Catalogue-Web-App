@@ -1772,14 +1772,15 @@
             padding: 0 40px 0 16px !important;
           }
 
-          /* Reset shell padding to match portrait mode */
+          /* Compact padding for landscape - maximize screen space */
           .shell {
-            padding: 0 12px !important;
+            padding: 0 6px !important;
           }
 
-          /* Reset header padding for landscape */
+          /* Very compact header for landscape */
           .top-header {
-            padding: 12px 16px !important;
+            padding: 8px 10px !important;
+            margin-bottom: 10px !important;
           }
 
           /* Smaller header text in landscape */
@@ -1893,9 +1894,15 @@
 
         /* PORTRAIT MODE ONLY - Wrap in orientation query */
         @media (orientation: portrait) {
-          /* Portrait mode shell padding */
+          /* Portrait mode compact padding */
           .shell {
-            padding: 0 12px !important;
+            padding: 0 8px !important;
+          }
+
+          /* Compact header for portrait */
+          .top-header {
+            padding: 12px 14px !important;
+            margin-bottom: 12px !important;
           }
 
           /* Ensure symmetrical margins - adjust container padding */
@@ -2246,6 +2253,50 @@
         /* Reset header padding to normal desktop size */
         .top-header {
           padding: 16px 20px 14px !important;
+          margin-bottom: 0 !important;
+        }
+
+        /* Reset text sizes to normal desktop size */
+        .app-name {
+          font-size: 28px !important;
+          font-weight: 700 !important;
+        }
+
+        .catalog-name {
+          font-size: 22px !important;
+          font-weight: 600 !important;
+        }
+
+        .catalog-label,
+        .user-role,
+        .user-email {
+          font-size: 13px !important;
+        }
+
+        .profile-badge {
+          font-size: 11px !important;
+          padding: 0 8px !important;
+        }
+
+        /* Reset grid to normal desktop layout */
+        .grid {
+          grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+          gap: 16px !important;
+        }
+
+        /* Reset card sizes */
+        .item-card {
+          min-height: 180px !important;
+          padding: 10px 11px 12px !important;
+        }
+
+        .item-name {
+          font-size: 16px !important;
+          font-weight: 600 !important;
+        }
+
+        .item-subtitle {
+          font-size: 14px !important;
         }
       }
 
