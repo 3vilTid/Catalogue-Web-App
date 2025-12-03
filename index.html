@@ -1765,6 +1765,13 @@
             font-size: 14px !important;
           }
 
+          /* Smaller search input for landscape - match button size */
+          .search-input {
+            height: 40px !important;
+            font-size: 14px !important;
+            padding: 0 40px 0 16px !important;
+          }
+
           /* Smaller header text in landscape */
           .app-name {
             font-size: 20px !important;
@@ -2173,6 +2180,52 @@
         /* Modal even more compact */
         .modal-box {
           padding: 16px;
+        }
+      }
+
+      /* DESKTOP OVERRIDE - Reset mobile styles on desktop/laptop with hover capability */
+      @media (hover: hover) and (max-width: 1024px) {
+        /* Reset buttons to normal desktop size */
+        .btn-toolbar,
+        .btn-primary,
+        .btn-secondary {
+          height: 34px !important;
+          min-height: 34px !important;
+          padding: 0 14px !important;
+          font-size: 13px !important;
+          font-weight: 500 !important;
+        }
+
+        #logoutBtn {
+          height: 34px !important;
+          min-height: 34px !important;
+          padding: 0 14px !important;
+          font-size: 13px !important;
+        }
+
+        #filterBtn,
+        #sortBtn,
+        #backToListBtn,
+        #sheetBtn,
+        #columnsBtn,
+        #addBtn {
+          height: 34px !important;
+          min-height: 34px !important;
+          padding: 0 14px !important;
+          font-size: 13px !important;
+        }
+
+        /* Reset search input to normal desktop size */
+        .search-input {
+          height: 34px !important;
+          font-size: 13px !important;
+          padding: 0 40px 0 16px !important;
+          width: 200px !important;
+          max-width: none !important;
+        }
+
+        .search-input:focus {
+          width: 250px !important;
         }
       }
 
