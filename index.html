@@ -2266,11 +2266,14 @@
 
       /* ==================== DESKTOP DEVICE STYLES ==================== */
       /* Desktop: 12px side borders total */
-      body.desktop-device {
+      /* Fallback: Also target html.desktop-device in case body class fails */
+      body.desktop-device,
+      html.desktop-device body {
         padding: 18px 0 32px !important;
       }
 
-      body.desktop-device .shell {
+      body.desktop-device .shell,
+      html.desktop-device .shell {
         padding: 0 12px;
       }
 
