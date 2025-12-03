@@ -15,8 +15,20 @@
         const isMobile = /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(ua);
         const isTablet = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(ua);
         const deviceClass = isMobile ? 'mobile-device' : (isTablet ? 'tablet-device' : 'desktop-device');
-        document.documentElement.className = deviceClass;
-        console.log('🔧 Device class added to HTML:', deviceClass);
+
+        // Force set using setAttribute (more reliable than className)
+        document.documentElement.setAttribute('class', deviceClass);
+        document.documentElement.setAttribute('data-device', deviceClass);
+        console.log('🔧 Device class set on HTML:', deviceClass);
+
+        // Also set when DOM is ready (in case something strips it)
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function() {
+            document.documentElement.setAttribute('class', deviceClass);
+            document.body.setAttribute('class', deviceClass);
+            console.log('🔧 Device class re-applied on DOMContentLoaded');
+          });
+        }
       })();
     </script>
 
@@ -2266,14 +2278,16 @@
 
       /* ==================== DESKTOP DEVICE STYLES ==================== */
       /* Desktop: 12px side borders total */
-      /* Fallback: Also target html.desktop-device in case body class fails */
+      /* Multiple selectors for maximum compatibility */
       body.desktop-device,
-      html.desktop-device body {
+      html.desktop-device body,
+      html[data-device="desktop-device"] body {
         padding: 18px 0 32px !important;
       }
 
       body.desktop-device .shell,
-      html.desktop-device .shell {
+      html.desktop-device .shell,
+      html[data-device="desktop-device"] .shell {
         padding: 0 12px;
       }
 
