@@ -8,6 +8,18 @@
 
     <title>Catalogue</title>
 
+    <!-- CRITICAL: Device Detection - Must run FIRST in head -->
+    <script>
+      (function() {
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const isMobile = /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(ua);
+        const isTablet = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(ua);
+        const deviceClass = isMobile ? 'mobile-device' : (isTablet ? 'tablet-device' : 'desktop-device');
+        document.documentElement.className = deviceClass;
+        console.log('🔧 Device class added to HTML:', deviceClass);
+      })();
+    </script>
+
     <style>
       :root {
         --bg: #f3f4fb;
@@ -2638,26 +2650,23 @@
 
     <script>
       // ==================== DEVICE DETECTION ====================
-      // Run immediately to detect device type and add class to body
+      // Add device class to body (already added to html in head)
 
-      (function detectDevice() {
-        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+      (function() {
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const isMobile = /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(ua);
+        const isTablet = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(ua);
 
-        // Check if mobile or tablet
-        const isMobile = /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
-        const isTablet = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(userAgent);
-        const isDesktop = !isMobile && !isTablet;
-
-        // Add appropriate device class to body
+        // Add same class to body that was added to html
         if (isMobile) {
-          document.body.classList.add('mobile-device');
-          console.log('✅ Device detected: Mobile');
+          document.body.className = 'mobile-device';
+          console.log('✅ Device: Mobile (body class set)');
         } else if (isTablet) {
-          document.body.classList.add('tablet-device');
-          console.log('✅ Device detected: Tablet');
+          document.body.className = 'tablet-device';
+          console.log('✅ Device: Tablet (body class set)');
         } else {
-          document.body.classList.add('desktop-device');
-          console.log('✅ Device detected: Desktop');
+          document.body.className = 'desktop-device';
+          console.log('✅ Device: Desktop (body class set)');
         }
 
         // Add initial orientation class
