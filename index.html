@@ -1929,12 +1929,19 @@
         right: 8px !important;
       }
 
-      /* Grid: 4 columns in LANDSCAPE - reduce top margin */
+      /* Breadcrumb styling for landscape - reduce margins */
+      body.mobile-device.landscape #breadcrumbNav,
+      body.tablet-device.landscape #breadcrumbNav {
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      /* Grid: 4 columns in LANDSCAPE */
       body.mobile-device.landscape .grid,
       body.tablet-device.landscape .grid {
         grid-template-columns: repeat(4, 1fr);
         gap: 10px;
-        margin-top: 2px;
+        margin-top: 8px;
       }
 
       /* Keep buttons at current size - already configured below */
