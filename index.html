@@ -1859,24 +1859,26 @@
         margin-bottom: 10px;
       }
 
-      /* Slightly bigger logo in landscape (was 32px, now 40px) */
+      /* Logo size in landscape: 60px */
       body.mobile-device.landscape .app-logo,
       body.tablet-device.landscape .app-logo {
-        width: 40px;
-        height: 40px;
+        width: 60px;
+        height: 60px;
       }
 
-      /* Hide "Signed in:" text to reduce padding in right-block */
-      body.mobile-device.landscape .right-block > div > span:first-child,
-      body.tablet-device.landscape .right-block > div > span:first-child {
-        display: none;
+      /* Right-block: Put everything on one line (Signed in: email badge + Login button) */
+      body.mobile-device.landscape .right-block,
+      body.tablet-device.landscape .right-block {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
       }
 
       /* Reduce filters-row padding and margin (search bar area) */
       body.mobile-device.landscape .filters-row,
       body.tablet-device.landscape .filters-row {
         padding: 8px 10px;
-        margin-bottom: 8px;
+        margin-bottom: 4px;
       }
 
       /* Smaller header text in landscape */
