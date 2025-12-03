@@ -2551,6 +2551,53 @@
     </div>
 
     <script>
+      // ==================== DEVICE DETECTION ====================
+      // Run immediately to detect device type and add class to body
+
+      (function detectDevice() {
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+        // Check if mobile or tablet
+        const isMobile = /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+        const isTablet = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(userAgent);
+        const isDesktop = !isMobile && !isTablet;
+
+        // Add appropriate device class to body
+        if (isMobile) {
+          document.body.classList.add('mobile-device');
+          console.log('✅ Device detected: Mobile');
+        } else if (isTablet) {
+          document.body.classList.add('tablet-device');
+          console.log('✅ Device detected: Tablet');
+        } else {
+          document.body.classList.add('desktop-device');
+          console.log('✅ Device detected: Desktop');
+        }
+
+        // Add initial orientation class
+        updateOrientation();
+      })();
+
+      function updateOrientation() {
+        // Remove existing orientation classes
+        document.body.classList.remove('landscape', 'portrait');
+
+        // Check orientation
+        const isLandscape = window.innerWidth > window.innerHeight;
+
+        if (isLandscape) {
+          document.body.classList.add('landscape');
+          console.log('📱 Orientation: Landscape');
+        } else {
+          document.body.classList.add('portrait');
+          console.log('📱 Orientation: Portrait');
+        }
+      }
+
+      // Update orientation on resize/orientation change
+      window.addEventListener('resize', updateOrientation);
+      window.addEventListener('orientationchange', updateOrientation);
+
       // ==================== TOAST NOTIFICATION SYSTEM ====================
       
       function showToast(message, type = 'info') {
