@@ -1624,6 +1624,634 @@
         padding: 0 20px;
       }
 
+      body.mobile-device .top-header,
+      body.tablet-device .top-header {
+        padding: 20px 20px;
+        margin-bottom: 20px;
+      }
+
+      /* Hide navigation arrow buttons on mobile - use swipe instead */
+      body.mobile-device .nav-arrow-btn,
+      body.tablet-device .nav-arrow-btn {
+        display: none !important;
+      }
+
+      /* LARGER TEXT SIZES FOR MOBILE - PORTRAIT */
+      body.mobile-device .app-name,
+      body.tablet-device .app-name {
+        font-size: 30px !important;
+        font-weight: 700 !important;
+      }
+
+      body.mobile-device .catalog-name,
+      body.tablet-device .catalog-name {
+        font-size: 25px !important;
+        font-weight: 600 !important;
+      }
+
+      body.mobile-device .catalog-label,
+      body.mobile-device .user-role,
+      body.tablet-device .catalog-label,
+      body.tablet-device .user-role {
+        font-size: 18px !important;
+      }
+
+      body.mobile-device .user-email,
+      body.tablet-device .user-email {
+        font-size: 18px !important;
+      }
+
+      body.mobile-device .profile-badge,
+      body.tablet-device .profile-badge {
+        font-size: 16px !important;
+        padding: 2px 10px !important;
+      }
+
+      /* Grid: 3 columns in PORTRAIT */
+      body.mobile-device .grid,
+      body.tablet-device .grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+
+      /* BIGGER BUTTONS FOR PORTRAIT - 68px height */
+      body.mobile-device .btn-toolbar,
+      body.mobile-device .btn-primary,
+      body.mobile-device .btn-secondary,
+      body.tablet-device .btn-toolbar,
+      body.tablet-device .btn-primary,
+      body.tablet-device .btn-secondary {
+        height: 68px !important;
+        min-height: 68px !important;
+        padding: 20px 28px !important;
+        font-size: 19px !important;
+        font-weight: 600 !important;
+      }
+
+      /* Logout button */
+      body.mobile-device #logoutBtn,
+      body.tablet-device #logoutBtn {
+        height: 68px !important;
+        min-height: 68px !important;
+        padding: 0 28px !important;
+        font-size: 18px !important;
+      }
+
+      /* Filter/Sort buttons */
+      body.mobile-device #filterBtn,
+      body.mobile-device #sortBtn,
+      body.mobile-device #backToListBtn,
+      body.tablet-device #filterBtn,
+      body.tablet-device #sortBtn,
+      body.tablet-device #backToListBtn {
+        height: 68px !important;
+        min-height: 68px !important;
+        padding: 20px 28px !important;
+        font-size: 19px !important;
+      }
+
+      /* Right toolbar buttons */
+      body.mobile-device #sheetBtn,
+      body.mobile-device #columnsBtn,
+      body.mobile-device #addBtn,
+      body.tablet-device #sheetBtn,
+      body.tablet-device #columnsBtn,
+      body.tablet-device #addBtn {
+        height: 68px !important;
+        min-height: 68px !important;
+        padding: 20px 28px !important;
+        font-size: 19px !important;
+      }
+
+      /* Search input on mobile */
+      body.mobile-device .search-input,
+      body.tablet-device .search-input {
+        height: 68px !important;
+        font-size: 19px !important;
+        width: 100% !important;
+        max-width: 300px;
+        padding: 0 50px 0 20px !important;
+      }
+
+      body.mobile-device .search-input:focus,
+      body.tablet-device .search-input:focus {
+        width: 100% !important;
+        max-width: 350px;
+      }
+
+      body.mobile-device .clear-search-btn,
+      body.tablet-device .clear-search-btn {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 18px !important;
+        right: 12px !important;
+      }
+
+      /* Card text bigger */
+      body.mobile-device .item-card,
+      body.tablet-device .item-card {
+        min-height: 180px;
+        padding: 12px !important;
+      }
+
+      body.mobile-device .item-name,
+      body.tablet-device .item-name {
+        font-size: 22px !important;
+        line-height: 1.4;
+        font-weight: 600 !important;
+      }
+
+      body.mobile-device .item-subtitle,
+      body.tablet-device .item-subtitle {
+        font-size: 20px !important;
+        margin-top: 6px !important;
+      }
+
+      /* Stack filters row on phones */
+      body.mobile-device .filters-row,
+      body.tablet-device .filters-row {
+        flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
+      }
+
+      body.mobile-device .filters-left,
+      body.mobile-device .filters-right,
+      body.tablet-device .filters-left,
+      body.tablet-device .filters-right {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      /* Dropdown menus full width on mobile */
+      body.mobile-device .dropdown-menu,
+      body.tablet-device .dropdown-menu {
+        left: 0;
+        right: 0;
+        width: 100%;
+      }
+
+      /* Modal adjustments for phones */
+      body.mobile-device .modal-box,
+      body.tablet-device .modal-box {
+        padding: 20px;
+        max-width: 95vw !important;
+      }
+
+      body.mobile-device .modal-header,
+      body.tablet-device .modal-header {
+        font-size: 18px;
+      }
+
+      /* Form inputs touch-friendly */
+      body.mobile-device input[type="text"],
+      body.mobile-device input[type="email"],
+      body.mobile-device input[type="number"],
+      body.mobile-device input[type="date"],
+      body.mobile-device input[type="url"],
+      body.mobile-device textarea,
+      body.mobile-device select,
+      body.tablet-device input[type="text"],
+      body.tablet-device input[type="email"],
+      body.tablet-device input[type="number"],
+      body.tablet-device input[type="date"],
+      body.tablet-device input[type="url"],
+      body.tablet-device textarea,
+      body.tablet-device select {
+        min-height: 44px;
+        font-size: 16px; /* Prevents zoom on iOS */
+      }
+
+      /* ==================== LANDSCAPE MODE - Smaller buttons, smaller text, 4 columns ==================== */
+      /* Grid: 4 columns in LANDSCAPE */
+      body.mobile-device.landscape .grid,
+      body.tablet-device.landscape .grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+
+      /* SMALLER BUTTONS FOR LANDSCAPE - 40px */
+      body.mobile-device.landscape .btn-toolbar,
+      body.mobile-device.landscape .btn-primary,
+      body.mobile-device.landscape .btn-secondary,
+      body.mobile-device.landscape #logoutBtn,
+      body.mobile-device.landscape #filterBtn,
+      body.mobile-device.landscape #sortBtn,
+      body.mobile-device.landscape #backToListBtn,
+      body.mobile-device.landscape #sheetBtn,
+      body.mobile-device.landscape #columnsBtn,
+      body.mobile-device.landscape #addBtn,
+      body.tablet-device.landscape .btn-toolbar,
+      body.tablet-device.landscape .btn-primary,
+      body.tablet-device.landscape .btn-secondary,
+      body.tablet-device.landscape #logoutBtn,
+      body.tablet-device.landscape #filterBtn,
+      body.tablet-device.landscape #sortBtn,
+      body.tablet-device.landscape #backToListBtn,
+      body.tablet-device.landscape #sheetBtn,
+      body.tablet-device.landscape #columnsBtn,
+      body.tablet-device.landscape #addBtn {
+        height: 40px !important;
+        min-height: 40px !important;
+        padding: 8px 16px !important;
+        font-size: 14px !important;
+      }
+
+      /* Smaller header text in landscape */
+      body.mobile-device.landscape .app-name,
+      body.tablet-device.landscape .app-name {
+        font-size: 20px !important;
+      }
+
+      body.mobile-device.landscape .catalog-name,
+      body.tablet-device.landscape .catalog-name {
+        font-size: 16px !important;
+      }
+
+      /* Smaller card text in landscape */
+      body.mobile-device.landscape .item-name,
+      body.tablet-device.landscape .item-name {
+        font-size: 15px !important;
+      }
+
+      body.mobile-device.landscape .item-subtitle,
+      body.tablet-device.landscape .item-subtitle {
+        font-size: 14px !important;
+      }
+
+      body.mobile-device.landscape .item-card,
+      body.tablet-device.landscape .item-card {
+        min-height: 150px;
+      }
+
+      /* Detail view layout - LANDSCAPE: Restore side-by-side */
+      body.mobile-device.landscape .detail-layout,
+      body.tablet-device.landscape .detail-layout {
+        grid-template-columns: minmax(0, 360px) minmax(0, 1fr) !important;
+        gap: 16px;
+      }
+
+      body.mobile-device.landscape .detail-img,
+      body.tablet-device.landscape .detail-img {
+        height: auto !important;
+        object-fit: contain !important;
+      }
+
+      /* Detail view text sizes - LANDSCAPE */
+      body.mobile-device.landscape .detail-name,
+      body.tablet-device.landscape .detail-name {
+        font-size: 20px !important;
+      }
+
+      body.mobile-device.landscape .detail-subtitle,
+      body.tablet-device.landscape .detail-subtitle {
+        font-size: 16px !important;
+      }
+
+      body.mobile-device.landscape .detail-topcorner,
+      body.tablet-device.landscape .detail-topcorner {
+        font-size: 16px !important;
+      }
+
+      body.mobile-device.landscape .detail-meta,
+      body.tablet-device.landscape .detail-meta {
+        font-size: 16px !important;
+      }
+
+      body.mobile-device.landscape .detail-field,
+      body.tablet-device.landscape .detail-field {
+        font-size: 15px !important;
+      }
+
+      body.mobile-device.landscape .detail-field-label,
+      body.tablet-device.landscape .detail-field-label {
+        font-size: 15px !important;
+      }
+
+      body.mobile-device.landscape .detail-field-value,
+      body.tablet-device.landscape .detail-field-value {
+        font-size: 15px !important;
+      }
+
+      /* ==================== PORTRAIT MODE - Larger text, bigger buttons ==================== */
+      /* Portrait mode shell padding */
+      body.mobile-device.portrait .shell,
+      body.tablet-device.portrait .shell {
+        padding: 0 12px !important;
+      }
+
+      /* Ensure symmetrical margins - adjust container padding */
+      body.mobile-device.portrait #detailView,
+      body.tablet-device.portrait #detailView {
+        padding: 16px !important;
+        margin-left: 0;
+        margin-right: 0;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      /* Detail view layout - PORTRAIT: Stack image above details */
+      body.mobile-device.portrait .detail-layout,
+      body.tablet-device.portrait .detail-layout {
+        grid-template-columns: 1fr !important;
+        gap: 16px;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+
+      body.mobile-device.portrait .detail-img-wrapper,
+      body.tablet-device.portrait .detail-img-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: none !important;
+        min-height: 300px;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+      }
+
+      body.mobile-device.portrait .detail-img,
+      body.tablet-device.portrait .detail-img {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        display: block;
+        object-fit: cover;
+        margin: 0 !important;
+      }
+
+      /* Ensure text wraps properly */
+      body.mobile-device.portrait .detail-field,
+      body.mobile-device.portrait .detail-name,
+      body.mobile-device.portrait .detail-subtitle,
+      body.mobile-device.portrait .detail-topcorner,
+      body.mobile-device.portrait .detail-meta,
+      body.tablet-device.portrait .detail-field,
+      body.tablet-device.portrait .detail-name,
+      body.tablet-device.portrait .detail-subtitle,
+      body.tablet-device.portrait .detail-topcorner,
+      body.tablet-device.portrait .detail-meta {
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+      }
+
+      /* Make image zoom close button MUCH bigger for portrait */
+      body.mobile-device.portrait #imgOverlayClose,
+      body.tablet-device.portrait #imgOverlayClose {
+        font-size: 32px !important;
+        padding: 8px 14px !important;
+        top: 20px !important;
+        right: 20px !important;
+        min-width: 48px;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Detail view text sizes - PORTRAIT */
+      body.mobile-device.portrait .detail-container,
+      body.tablet-device.portrait .detail-container {
+        padding: 16px;
+      }
+
+      body.mobile-device.portrait .detail-name,
+      body.tablet-device.portrait .detail-name {
+        font-size: 30px !important;
+      }
+
+      body.mobile-device.portrait .detail-subtitle,
+      body.tablet-device.portrait .detail-subtitle {
+        font-size: 25px !important;
+      }
+
+      /* Make the text container positioned so Top Corner positions relative to it */
+      body.mobile-device.portrait .detail-layout > div:not(#detailImgContainer),
+      body.tablet-device.portrait .detail-layout > div:not(#detailImgContainer) {
+        position: relative;
+      }
+
+      body.mobile-device.portrait .detail-topcorner,
+      body.tablet-device.portrait .detail-topcorner {
+        font-size: 25px !important;
+        top: 0 !important;
+        right: 0 !important;
+      }
+
+      body.mobile-device.portrait .detail-meta,
+      body.tablet-device.portrait .detail-meta {
+        font-size: 25px !important;
+      }
+
+      body.mobile-device.portrait .detail-field,
+      body.tablet-device.portrait .detail-field {
+        font-size: 22px !important;
+      }
+
+      body.mobile-device.portrait .detail-field-label,
+      body.tablet-device.portrait .detail-field-label {
+        font-size: 22px !important;
+      }
+
+      body.mobile-device.portrait .detail-field-value,
+      body.tablet-device.portrait .detail-field-value {
+        font-size: 22px !important;
+      }
+
+      /* Make external link buttons bigger in portrait */
+      body.mobile-device.portrait .link-pill,
+      body.tablet-device.portrait .link-pill {
+        font-size: 24px !important;
+        padding: 10px 18px !important;
+      }
+
+      /* Card adjustments - MUCH LARGER TEXT */
+      body.mobile-device.portrait .item-card,
+      body.tablet-device.portrait .item-card {
+        min-height: 180px;
+        padding: 12px !important;
+      }
+
+      /* Make card images square in portrait */
+      body.mobile-device.portrait .card-img-wrapper,
+      body.tablet-device.portrait .card-img-wrapper {
+        height: auto !important;
+        aspect-ratio: 1 / 1 !important;
+      }
+
+      body.mobile-device.portrait .card-name,
+      body.tablet-device.portrait .card-name {
+        font-size: 26px !important;
+        line-height: 1.4;
+        font-weight: 600 !important;
+      }
+
+      body.mobile-device.portrait .card-sub,
+      body.tablet-device.portrait .card-sub {
+        font-size: 22px !important;
+      }
+
+      /* Make all buttons bigger in portrait */
+      body.mobile-device.portrait button,
+      body.mobile-device.portrait .btn,
+      body.mobile-device.portrait .btn-primary,
+      body.mobile-device.portrait .btn-secondary,
+      body.mobile-device.portrait .btn-danger,
+      body.mobile-device.portrait .back-btn,
+      body.mobile-device.portrait .sort-btn,
+      body.mobile-device.portrait .filter-pill,
+      body.tablet-device.portrait button,
+      body.tablet-device.portrait .btn,
+      body.tablet-device.portrait .btn-primary,
+      body.tablet-device.portrait .btn-secondary,
+      body.tablet-device.portrait .btn-danger,
+      body.tablet-device.portrait .back-btn,
+      body.tablet-device.portrait .sort-btn,
+      body.tablet-device.portrait .filter-pill {
+        min-height: 80px !important;
+        font-size: 28px !important;
+        padding: 12px 24px !important;
+      }
+
+      /* Make Filter and Sort button text even bigger */
+      body.mobile-device.portrait .btn-toolbar,
+      body.mobile-device.portrait #filterBtn,
+      body.mobile-device.portrait #sortBtn,
+      body.mobile-device.portrait #backToListBtn,
+      body.mobile-device.portrait #sheetBtn,
+      body.mobile-device.portrait #columnsBtn,
+      body.mobile-device.portrait #addBtn,
+      body.tablet-device.portrait .btn-toolbar,
+      body.tablet-device.portrait #filterBtn,
+      body.tablet-device.portrait #sortBtn,
+      body.tablet-device.portrait #backToListBtn,
+      body.tablet-device.portrait #sheetBtn,
+      body.tablet-device.portrait #columnsBtn,
+      body.tablet-device.portrait #addBtn {
+        font-size: 28px !important;
+        min-height: 80px !important;
+        padding: 12px 24px !important;
+      }
+
+      /* Exception: Keep Image Zoom Close Button at original size */
+      body.mobile-device.portrait #imgOverlayClose,
+      body.tablet-device.portrait #imgOverlayClose {
+        font-size: 32px !important;
+        padding: 8px 14px !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
+      }
+
+      /* Form inputs bigger in portrait */
+      body.mobile-device.portrait input[type="text"],
+      body.mobile-device.portrait input[type="email"],
+      body.mobile-device.portrait input[type="password"],
+      body.mobile-device.portrait input[type="date"],
+      body.mobile-device.portrait input[type="url"],
+      body.mobile-device.portrait textarea,
+      body.tablet-device.portrait input[type="text"],
+      body.tablet-device.portrait input[type="email"],
+      body.tablet-device.portrait input[type="password"],
+      body.tablet-device.portrait input[type="date"],
+      body.tablet-device.portrait input[type="url"],
+      body.tablet-device.portrait textarea {
+        font-size: 22px !important;
+        min-height: 80px !important;
+      }
+
+      /* Dropdown menus bigger in portrait */
+      body.mobile-device.portrait select,
+      body.tablet-device.portrait select {
+        font-size: 88px !important;
+        min-height: 80px !important;
+      }
+
+      /* Dropdown menu content bigger in portrait */
+      body.mobile-device.portrait .dropdown-menu,
+      body.tablet-device.portrait .dropdown-menu {
+        padding: 16px !important;
+        max-height: 600px !important;
+        min-width: 500px !important;
+        width: auto !important;
+      }
+
+      body.mobile-device.portrait .dropdown-section-title,
+      body.tablet-device.portrait .dropdown-section-title {
+        font-size: 28px !important;
+        padding: 12px 16px !important;
+      }
+
+      body.mobile-device.portrait .dropdown-item,
+      body.tablet-device.portrait .dropdown-item {
+        font-size: 36px !important;
+        padding: 16px 20px !important;
+        gap: 16px !important;
+      }
+
+      body.mobile-device.portrait .dropdown-item input[type="checkbox"],
+      body.mobile-device.portrait .dropdown-item input[type="radio"],
+      body.tablet-device.portrait .dropdown-item input[type="checkbox"],
+      body.tablet-device.portrait .dropdown-item input[type="radio"] {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        min-height: 36px !important;
+      }
+
+      body.mobile-device.portrait .dropdown-item input[type="checkbox"]:checked::after,
+      body.tablet-device.portrait .dropdown-item input[type="checkbox"]:checked::after {
+        top: 6px !important;
+        left: 6px !important;
+        width: 20px !important;
+        height: 20px !important;
+      }
+
+      body.mobile-device.portrait .dropdown-item span,
+      body.tablet-device.portrait .dropdown-item span {
+        font-size: 36px !important;
+      }
+
+      /* Make Clear Filters button smaller */
+      body.mobile-device.portrait .dropdown-btn,
+      body.tablet-device.portrait .dropdown-btn {
+        font-size: 34px !important;
+        padding: 8px 16px !important;
+      }
+
+      /* Login screen adjustments */
+      body.mobile-device.portrait .login-box,
+      body.tablet-device.portrait .login-box {
+        padding: 32px 24px;
+        max-width: 95vw;
+      }
+
+      body.mobile-device.portrait .login-title,
+      body.tablet-device.portrait .login-title {
+        font-size: 24px;
+      }
+
+      /* Breadcrumb navigation - 2x bigger for easier touch navigation */
+      body.mobile-device.portrait #breadcrumbNav,
+      body.tablet-device.portrait #breadcrumbNav {
+        font-size: 26px !important;
+        margin: 12px 0 !important;
+        padding: 8px 0 !important;
+        line-height: 1.5 !important;
+      }
+
+      body.mobile-device.portrait #breadcrumbNav a,
+      body.tablet-device.portrait #breadcrumbNav a {
+        padding: 8px 4px !important;
+        font-size: 26px !important;
+      }
+
+      body.mobile-device.portrait #breadcrumbNav span,
+      body.tablet-device.portrait #breadcrumbNav span {
+        margin: 0 12px !important;
+        font-size: 26px !important;
+      }
+
       /* Phone and Tablet (1024px and below) - Catches phones reporting 980px like Samsung Galaxy A31 */
       @media (max-width: 1024px) {
         /* Larger padding on phones for comfortable margins */
