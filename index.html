@@ -1856,7 +1856,7 @@
       body.mobile-device.landscape .top-header,
       body.tablet-device.landscape .top-header {
         padding: 8px 10px;
-        margin-bottom: 4px;
+        margin-bottom: 10px;
       }
 
       /* Logo size in landscape: 60px */
@@ -1929,11 +1929,12 @@
         right: 8px !important;
       }
 
-      /* Grid: 4 columns in LANDSCAPE */
+      /* Grid: 4 columns in LANDSCAPE - reduce top margin */
       body.mobile-device.landscape .grid,
       body.tablet-device.landscape .grid {
         grid-template-columns: repeat(4, 1fr);
         gap: 10px;
+        margin-top: 2px;
       }
 
       /* Keep buttons at current size - already configured below */
