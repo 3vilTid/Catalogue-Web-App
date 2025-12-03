@@ -1616,7 +1616,9 @@
       }
 
       /* Phone and Tablet (1024px and below) - Catches phones reporting 980px like Samsung Galaxy A31 */
-      @media (max-width: 1024px) {
+      /* ==================== MOBILE & TABLET STYLES ==================== */
+      body.mobile-device,
+      body.tablet-device {
         /* Larger padding on phones for comfortable margins */
         .shell {
           padding: 0 20px;
@@ -1739,9 +1741,11 @@
           font-size: 20px !important;
           margin-top: 6px !important;
         }
+      }
 
-        /* LANDSCAPE MODE - Smaller buttons, smaller text, 4 columns */
-        @media (orientation: landscape) {
+      /* ==================== MOBILE & TABLET LANDSCAPE ==================== */
+      body.mobile-device.landscape,
+      body.tablet-device.landscape {
           /* Grid: 4 columns in LANDSCAPE */
           .grid {
             grid-template-columns: repeat(4, 1fr);
@@ -1848,8 +1852,11 @@
           .detail-field-value {
             font-size: 15px !important;
           }
-        }
+      }
 
+      /* ==================== MOBILE & TABLET GENERAL (all orientations) ==================== */
+      body.mobile-device,
+      body.tablet-device {
         /* Stack filters row on phones */
         .filters-row {
           flex-direction: column;
@@ -1891,9 +1898,11 @@
           min-height: 44px;
           font-size: 16px; /* Prevents zoom on iOS */
         }
+      }
 
-        /* PORTRAIT MODE ONLY - Wrap in orientation query */
-        @media (orientation: portrait) {
+      /* ==================== MOBILE & TABLET PORTRAIT ==================== */
+      body.mobile-device.portrait,
+      body.tablet-device.portrait {
           /* Portrait mode compact padding */
           .shell {
             padding: 0 8px !important;
@@ -2200,7 +2209,12 @@
         }
       }
 
-      /* DESKTOP OVERRIDE - Reset mobile styles on desktop/laptop with hover capability */
+      /* ==================== DESKTOP DEVICE STYLES ====================
+         Desktop devices use the base styles defined at the top of the file.
+         No mobile overrides are applied to desktop devices regardless of window size.
+         This section is kept for backward compatibility but is no longer needed. */
+
+      /* OLD: Desktop override (no longer needed with device detection)
       @media (hover: hover) and (max-width: 1024px) {
         /* Reset buttons to normal desktop size */
         .btn-toolbar,
@@ -2298,7 +2312,8 @@
         .item-subtitle {
           font-size: 14px !important;
         }
-      }
+      } */
+      /* END OLD desktop override */
 
       /* Large desktop (1440px and up) - optimize for big screens */
       @media (min-width: 1440px) {
@@ -2675,6 +2690,56 @@
     </div>
 
     <script>
+      // ==================== DEVICE DETECTION ====================
+
+      function detectDevice() {
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+        // Check if mobile or tablet
+        const isMobile = /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+        const isTablet = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(userAgent);
+        const isDesktop = !isMobile && !isTablet;
+
+        // Remove any existing device classes
+        document.body.classList.remove('mobile-device', 'tablet-device', 'desktop-device');
+
+        // Add appropriate device class
+        if (isMobile) {
+          document.body.classList.add('mobile-device');
+          console.log('Device detected: Mobile');
+        } else if (isTablet) {
+          document.body.classList.add('tablet-device');
+          console.log('Device detected: Tablet');
+        } else {
+          document.body.classList.add('desktop-device');
+          console.log('Device detected: Desktop');
+        }
+
+        // Add initial orientation class
+        updateOrientation();
+      }
+
+      function updateOrientation() {
+        // Remove existing orientation classes
+        document.body.classList.remove('landscape', 'portrait');
+
+        // Check orientation
+        const isLandscape = window.innerWidth > window.innerHeight;
+
+        if (isLandscape) {
+          document.body.classList.add('landscape');
+        } else {
+          document.body.classList.add('portrait');
+        }
+      }
+
+      // Run device detection immediately
+      detectDevice();
+
+      // Update orientation on resize/orientation change
+      window.addEventListener('resize', updateOrientation);
+      window.addEventListener('orientationchange', updateOrientation);
+
       // ==================== TOAST NOTIFICATION SYSTEM ====================
       
       function showToast(message, type = 'info') {
