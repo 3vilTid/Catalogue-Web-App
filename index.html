@@ -1617,130 +1617,154 @@
 
       /* Phone and Tablet (1024px and below) - Catches phones reporting 980px like Samsung Galaxy A31 */
       /* ==================== MOBILE & TABLET STYLES ==================== */
-      body.mobile-device,
-      body.tablet-device {
-        /* Larger padding on phones for comfortable margins */
-        .shell {
-          padding: 0 20px;
-        }
 
-        .top-header {
-          padding: 20px 20px;
-          margin-bottom: 20px;
-        }
+      /* Larger padding on phones for comfortable margins */
+      body.mobile-device .shell,
+      body.tablet-device .shell {
+        padding: 0 20px;
+      }
 
-        /* Hide navigation arrow buttons on mobile - use swipe instead */
-        .nav-arrow-btn {
-          display: none !important;
-        }
+      body.mobile-device .top-header,
+      body.tablet-device .top-header {
+        padding: 20px 20px;
+        margin-bottom: 20px;
+      }
 
-        /* LARGER TEXT SIZES FOR MOBILE - PORTRAIT */
-        .app-name {
-          font-size: 30px !important;
-          font-weight: 700 !important;
-        }
+      /* Hide navigation arrow buttons on mobile - use swipe instead */
+      body.mobile-device .nav-arrow-btn,
+      body.tablet-device .nav-arrow-btn {
+        display: none !important;
+      }
 
-        .catalog-name {
-          font-size: 25px !important;
-          font-weight: 600 !important;
-        }
+      /* LARGER TEXT SIZES FOR MOBILE - PORTRAIT */
+      body.mobile-device .app-name,
+      body.tablet-device .app-name {
+        font-size: 30px !important;
+        font-weight: 700 !important;
+      }
 
-        .catalog-label,
-        .user-role {
-          font-size: 18px !important;
-        }
+      body.mobile-device .catalog-name,
+      body.tablet-device .catalog-name {
+        font-size: 25px !important;
+        font-weight: 600 !important;
+      }
 
-        .user-email {
-          font-size: 18px !important;
-        }
+      body.mobile-device .catalog-label,
+      body.mobile-device .user-role,
+      body.tablet-device .catalog-label,
+      body.tablet-device .user-role {
+        font-size: 18px !important;
+      }
 
-        .profile-badge {
-          font-size: 16px !important;
-          padding: 2px 10px !important;
-        }
+      body.mobile-device .user-email,
+      body.tablet-device .user-email {
+        font-size: 18px !important;
+      }
 
-        /* Grid: 3 columns in PORTRAIT */
-        .grid {
-          grid-template-columns: repeat(3, 1fr);
-          gap: 12px;
-        }
+      body.mobile-device .profile-badge,
+      body.tablet-device .profile-badge {
+        font-size: 16px !important;
+        padding: 2px 10px !important;
+      }
 
-        /* BIGGER BUTTONS FOR PORTRAIT - 68px height */
-        .btn-toolbar,
-        .btn-primary,
-        .btn-secondary {
-          height: 68px !important;
-          min-height: 68px !important;
-          padding: 20px 28px !important;
-          font-size: 19px !important;
-          font-weight: 600 !important;
-        }
+      /* Grid: 3 columns in PORTRAIT */
+      body.mobile-device .grid,
+      body.tablet-device .grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
 
-        /* Logout button */
-        #logoutBtn {
-          height: 68px !important;
-          min-height: 68px !important;
-          padding: 0 28px !important;
-          font-size: 18px !important;
-        }
+      /* BIGGER BUTTONS FOR PORTRAIT - 68px height */
+      body.mobile-device .btn-toolbar,
+      body.mobile-device .btn-primary,
+      body.mobile-device .btn-secondary,
+      body.tablet-device .btn-toolbar,
+      body.tablet-device .btn-primary,
+      body.tablet-device .btn-secondary {
+        height: 68px !important;
+        min-height: 68px !important;
+        padding: 20px 28px !important;
+        font-size: 19px !important;
+        font-weight: 600 !important;
+      }
 
-        /* Filter/Sort buttons */
-        #filterBtn,
-        #sortBtn,
-        #backToListBtn {
-          height: 68px !important;
-          min-height: 68px !important;
-          padding: 20px 28px !important;
-          font-size: 19px !important;
-        }
+      /* Logout button */
+      body.mobile-device #logoutBtn,
+      body.tablet-device #logoutBtn {
+        height: 68px !important;
+        min-height: 68px !important;
+        padding: 0 28px !important;
+        font-size: 18px !important;
+      }
 
-        /* Right toolbar buttons */
-        #sheetBtn,
-        #columnsBtn,
-        #addBtn {
-          height: 68px !important;
-          min-height: 68px !important;
-          padding: 20px 28px !important;
-          font-size: 19px !important;
-        }
+      /* Filter/Sort buttons */
+      body.mobile-device #filterBtn,
+      body.mobile-device #sortBtn,
+      body.mobile-device #backToListBtn,
+      body.tablet-device #filterBtn,
+      body.tablet-device #sortBtn,
+      body.tablet-device #backToListBtn {
+        height: 68px !important;
+        min-height: 68px !important;
+        padding: 20px 28px !important;
+        font-size: 19px !important;
+      }
 
-        /* Search input on mobile */
-        .search-input {
-          height: 68px !important;
-          font-size: 19px !important;
-          width: 100% !important;
-          max-width: 300px;
-          padding: 0 50px 0 20px !important;
-        }
+      /* Right toolbar buttons */
+      body.mobile-device #sheetBtn,
+      body.mobile-device #columnsBtn,
+      body.mobile-device #addBtn,
+      body.tablet-device #sheetBtn,
+      body.tablet-device #columnsBtn,
+      body.tablet-device #addBtn {
+        height: 68px !important;
+        min-height: 68px !important;
+        padding: 20px 28px !important;
+        font-size: 19px !important;
+      }
 
-        .search-input:focus {
-          width: 100% !important;
-          max-width: 350px;
-        }
+      /* Search input on mobile */
+      body.mobile-device .search-input,
+      body.tablet-device .search-input {
+        height: 68px !important;
+        font-size: 19px !important;
+        width: 100% !important;
+        max-width: 300px;
+        padding: 0 50px 0 20px !important;
+      }
 
-        .clear-search-btn {
-          width: 32px !important;
-          height: 32px !important;
-          font-size: 18px !important;
-          right: 12px !important;
-        }
+      body.mobile-device .search-input:focus,
+      body.tablet-device .search-input:focus {
+        width: 100% !important;
+        max-width: 350px;
+      }
 
-        /* Card text bigger */
-        .item-card {
-          min-height: 180px;
-          padding: 12px !important;
-        }
+      body.mobile-device .clear-search-btn,
+      body.tablet-device .clear-search-btn {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 18px !important;
+        right: 12px !important;
+      }
 
-        .item-name {
-          font-size: 22px !important;
-          line-height: 1.4;
-          font-weight: 600 !important;
-        }
+      /* Card text bigger */
+      body.mobile-device .item-card,
+      body.tablet-device .item-card {
+        min-height: 180px;
+        padding: 12px !important;
+      }
 
-        .item-subtitle {
-          font-size: 20px !important;
-          margin-top: 6px !important;
-        }
+      body.mobile-device .item-name,
+      body.tablet-device .item-name {
+        font-size: 22px !important;
+        line-height: 1.4;
+        font-weight: 600 !important;
+      }
+
+      body.mobile-device .item-subtitle,
+      body.tablet-device .item-subtitle {
+        font-size: 20px !important;
+        margin-top: 6px !important;
       }
 
       /* ==================== MOBILE & TABLET LANDSCAPE ==================== */
