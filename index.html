@@ -1768,114 +1768,136 @@
       }
 
       /* ==================== MOBILE & TABLET LANDSCAPE ==================== */
-      body.mobile-device.landscape,
-      body.tablet-device.landscape {
-          /* Grid: 4 columns in LANDSCAPE */
-          .grid {
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-          }
 
-          /* SMALLER BUTTONS FOR LANDSCAPE - 40px */
-          .btn-toolbar,
-          .btn-primary,
-          .btn-secondary,
-          #logoutBtn,
-          #filterBtn,
-          #sortBtn,
-          #backToListBtn,
-          #sheetBtn,
-          #columnsBtn,
-          #addBtn {
-            height: 40px !important;
-            min-height: 40px !important;
-            padding: 8px 16px !important;
-            font-size: 14px !important;
-          }
+      /* Grid: 4 columns in LANDSCAPE */
+      body.mobile-device.landscape .grid,
+      body.tablet-device.landscape .grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
 
-          /* Smaller search input for landscape - match button size */
-          .search-input {
-            height: 40px !important;
-            font-size: 14px !important;
-            padding: 0 40px 0 16px !important;
-          }
+      /* SMALLER BUTTONS FOR LANDSCAPE - 40px */
+      body.mobile-device.landscape .btn-toolbar,
+      body.mobile-device.landscape .btn-primary,
+      body.mobile-device.landscape .btn-secondary,
+      body.mobile-device.landscape #logoutBtn,
+      body.mobile-device.landscape #filterBtn,
+      body.mobile-device.landscape #sortBtn,
+      body.mobile-device.landscape #backToListBtn,
+      body.mobile-device.landscape #sheetBtn,
+      body.mobile-device.landscape #columnsBtn,
+      body.mobile-device.landscape #addBtn,
+      body.tablet-device.landscape .btn-toolbar,
+      body.tablet-device.landscape .btn-primary,
+      body.tablet-device.landscape .btn-secondary,
+      body.tablet-device.landscape #logoutBtn,
+      body.tablet-device.landscape #filterBtn,
+      body.tablet-device.landscape #sortBtn,
+      body.tablet-device.landscape #backToListBtn,
+      body.tablet-device.landscape #sheetBtn,
+      body.tablet-device.landscape #columnsBtn,
+      body.tablet-device.landscape #addBtn {
+        height: 40px !important;
+        min-height: 40px !important;
+        padding: 8px 16px !important;
+        font-size: 14px !important;
+      }
 
-          /* Compact padding for landscape - maximize screen space */
-          .shell {
-            padding: 0 6px !important;
-          }
+      /* Smaller search input for landscape - match button size */
+      body.mobile-device.landscape .search-input,
+      body.tablet-device.landscape .search-input {
+        height: 40px !important;
+        font-size: 14px !important;
+        padding: 0 40px 0 16px !important;
+      }
 
-          /* Very compact header for landscape */
-          .top-header {
-            padding: 8px 10px !important;
-            margin-bottom: 10px !important;
-          }
+      /* Compact padding for landscape - maximize screen space */
+      body.mobile-device.landscape .shell,
+      body.tablet-device.landscape .shell {
+        padding: 0 6px !important;
+      }
 
-          /* Smaller header text in landscape */
-          .app-name {
-            font-size: 20px !important;
-          }
+      /* Very compact header for landscape */
+      body.mobile-device.landscape .top-header,
+      body.tablet-device.landscape .top-header {
+        padding: 8px 10px !important;
+        margin-bottom: 10px !important;
+      }
 
-          .catalog-name {
-            font-size: 16px !important;
-          }
+      /* Smaller header text in landscape */
+      body.mobile-device.landscape .app-name,
+      body.tablet-device.landscape .app-name {
+        font-size: 20px !important;
+      }
 
-          /* Smaller card text in landscape */
-          .item-name {
-            font-size: 15px !important;
-          }
+      body.mobile-device.landscape .catalog-name,
+      body.tablet-device.landscape .catalog-name {
+        font-size: 16px !important;
+      }
 
-          .item-subtitle {
-            font-size: 14px !important;
-          }
+      /* Smaller card text in landscape */
+      body.mobile-device.landscape .item-name,
+      body.tablet-device.landscape .item-name {
+        font-size: 15px !important;
+      }
 
-          .item-card {
-            min-height: 150px;
-          }
+      body.mobile-device.landscape .item-subtitle,
+      body.tablet-device.landscape .item-subtitle {
+        font-size: 14px !important;
+      }
 
-          /* Detail view layout - LANDSCAPE: Restore side-by-side */
-          .detail-layout {
-            grid-template-columns: minmax(0, 360px) minmax(0, 1fr) !important;
-            gap: 16px;
-          }
+      body.mobile-device.landscape .item-card,
+      body.tablet-device.landscape .item-card {
+        min-height: 150px;
+      }
 
-          .detail-img-wrapper {
-            /* No max-height - show full image */
-          }
+      /* Detail view layout - LANDSCAPE: Restore side-by-side */
+      body.mobile-device.landscape .detail-layout,
+      body.tablet-device.landscape .detail-layout {
+        grid-template-columns: minmax(0, 360px) minmax(0, 1fr) !important;
+        gap: 16px;
+      }
 
-          .detail-img {
-            height: auto !important;
-            object-fit: contain !important;
-          }
+      body.mobile-device.landscape .detail-img,
+      body.tablet-device.landscape .detail-img {
+        height: auto !important;
+        object-fit: contain !important;
+      }
 
-          /* Detail view text sizes - LANDSCAPE */
-          .detail-name {
-            font-size: 20px !important;
-          }
+      /* Detail view text sizes - LANDSCAPE */
+      body.mobile-device.landscape .detail-name,
+      body.tablet-device.landscape .detail-name {
+        font-size: 20px !important;
+      }
 
-          .detail-subtitle {
-            font-size: 16px !important;
-          }
+      body.mobile-device.landscape .detail-subtitle,
+      body.tablet-device.landscape .detail-subtitle {
+        font-size: 16px !important;
+      }
 
-          .detail-topcorner {
-            font-size: 16px !important;
-          }
+      body.mobile-device.landscape .detail-topcorner,
+      body.tablet-device.landscape .detail-topcorner {
+        font-size: 16px !important;
+      }
 
-          .detail-meta {
-            font-size: 16px !important;
-          }
+      body.mobile-device.landscape .detail-meta,
+      body.tablet-device.landscape .detail-meta {
+        font-size: 16px !important;
+      }
 
-          .detail-field {
-            font-size: 15px !important;
-          }
+      body.mobile-device.landscape .detail-field,
+      body.tablet-device.landscape .detail-field {
+        font-size: 15px !important;
+      }
 
-          .detail-field-label {
-            font-size: 15px !important;
-          }
+      body.mobile-device.landscape .detail-field-label,
+      body.tablet-device.landscape .detail-field-label {
+        font-size: 15px !important;
+      }
 
-          .detail-field-value {
-            font-size: 15px !important;
-          }
+      body.mobile-device.landscape .detail-field-value,
+      body.tablet-device.landscape .detail-field-value {
+        font-size: 15px !important;
       }
 
       /* ==================== MOBILE & TABLET GENERAL (all orientations) ==================== */
