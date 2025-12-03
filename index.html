@@ -1615,14 +1615,13 @@
         }
       }
 
-      /* ==================== TEST: Device-Based Mobile Styles ==================== */
-      /* Testing new approach - ONE selector only to verify it works */
+      /* ==================== DEVICE-BASED MOBILE & TABLET STYLES ==================== */
+      /* Using device detection instead of media queries */
+      /* These selectors apply ONLY to actual mobile/tablet devices */
 
       body.mobile-device .shell,
       body.tablet-device .shell {
         padding: 0 20px;
-        /* Test: Add red border to verify this rule is applying */
-        border: 2px solid red !important;
       }
 
       /* Phone and Tablet (1024px and below) - Catches phones reporting 980px like Samsung Galaxy A31 */
