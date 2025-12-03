@@ -1847,12 +1847,81 @@
       }
 
       /* ==================== LANDSCAPE MODE - Smaller buttons, smaller text, 4 columns ==================== */
+      /* Reduce paddings and header elements in landscape */
+      body.mobile-device.landscape .shell,
+      body.tablet-device.landscape .shell {
+        padding: 0 10px;
+      }
+
+      body.mobile-device.landscape .top-header,
+      body.tablet-device.landscape .top-header {
+        padding: 8px 10px;
+        margin-bottom: 10px;
+      }
+
+      /* Smaller logo in landscape */
+      body.mobile-device.landscape .app-logo,
+      body.tablet-device.landscape .app-logo {
+        width: 32px;
+        height: 32px;
+      }
+
+      /* Smaller header text in landscape */
+      body.mobile-device.landscape .app-name,
+      body.tablet-device.landscape .app-name {
+        font-size: 16px !important;
+      }
+
+      body.mobile-device.landscape .catalog-label,
+      body.tablet-device.landscape .catalog-label {
+        font-size: 12px !important;
+      }
+
+      body.mobile-device.landscape .catalog-name,
+      body.tablet-device.landscape .catalog-name {
+        font-size: 14px !important;
+      }
+
+      body.mobile-device.landscape .user-role,
+      body.tablet-device.landscape .user-role {
+        font-size: 12px !important;
+      }
+
+      body.mobile-device.landscape .user-email,
+      body.tablet-device.landscape .user-email {
+        font-size: 12px !important;
+      }
+
+      body.mobile-device.landscape .profile-badge,
+      body.tablet-device.landscape .profile-badge {
+        font-size: 11px !important;
+        padding: 2px 6px !important;
+      }
+
+      /* Smaller search bar in landscape */
+      body.mobile-device.landscape .search-input,
+      body.tablet-device.landscape .search-input {
+        height: 36px !important;
+        font-size: 14px !important;
+        padding: 0 40px 0 12px !important;
+      }
+
+      body.mobile-device.landscape .clear-search-btn,
+      body.tablet-device.landscape .clear-search-btn {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 14px !important;
+        right: 8px !important;
+      }
+
       /* Grid: 4 columns in LANDSCAPE */
       body.mobile-device.landscape .grid,
       body.tablet-device.landscape .grid {
         grid-template-columns: repeat(4, 1fr);
         gap: 10px;
       }
+
+      /* Keep buttons at current size - already configured below */
 
       /* SMALLER BUTTONS FOR LANDSCAPE - 40px */
       body.mobile-device.landscape .btn-toolbar,
@@ -1879,17 +1948,6 @@
         min-height: 40px !important;
         padding: 8px 16px !important;
         font-size: 14px !important;
-      }
-
-      /* Smaller header text in landscape */
-      body.mobile-device.landscape .app-name,
-      body.tablet-device.landscape .app-name {
-        font-size: 20px !important;
-      }
-
-      body.mobile-device.landscape .catalog-name,
-      body.tablet-device.landscape .catalog-name {
-        font-size: 16px !important;
       }
 
       /* Smaller card text in landscape */
