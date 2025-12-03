@@ -7,26 +7,26 @@ This document tracks planned features and improvements for the Catalogue Web App
 ## First - Implement These Features
 
 ### Mobile & Desktop Experience
-- [ ] **Explore best ways to add phone visual**
+- [x] **Explore best ways to add phone visual**
   - Linked to user screen size detection?
   - Or detect Android / iPhone specifically?
-- [ ] **Add phone visual interface**
+- [x] **Add phone visual interface**
   - Optimize layout for mobile devices
 - [ ] **Add installation capability for phone/desktop**
   - PWA (Progressive Web App) functionality
   - Install prompts for mobile and desktop
-- [ ] **Add touch gestures for mobile**
+- [x] **Add touch gestures for mobile**
   - Swipe left/right to navigate between items
   - Pull to refresh to reload data
   - Pinch to zoom on images
   - Long press for context menus
 
 ### Hierarchical Navigation (Layers)
-- [ ] **Add "Layer" possibility**
+- [x] **Add "Layer" possibility**
   - Not direct click → detail view
   - Example: Click "Category" → Click Item → Show Detail View
   - Multi-level navigation system
-- [ ] **Set up image support for layers**
+- [x] **Set up image support for layers**
   - Category images
   - Layer thumbnail support
 
