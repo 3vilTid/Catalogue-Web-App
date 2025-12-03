@@ -1901,49 +1901,60 @@
       }
 
       /* ==================== MOBILE & TABLET GENERAL (all orientations) ==================== */
-      body.mobile-device,
-      body.tablet-device {
-        /* Stack filters row on phones */
-        .filters-row {
-          flex-direction: column;
-          gap: 8px;
-          align-items: stretch;
-        }
 
-        .filters-left,
-        .filters-right {
-          width: 100%;
-          justify-content: flex-start;
-        }
+      /* Stack filters row on phones */
+      body.mobile-device .filters-row,
+      body.tablet-device .filters-row {
+        flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
+      }
 
-        /* Dropdown menus full width on mobile */
-        .dropdown-menu {
-          left: 0;
-          right: 0;
-          width: 100%;
-        }
+      body.mobile-device .filters-left,
+      body.mobile-device .filters-right,
+      body.tablet-device .filters-left,
+      body.tablet-device .filters-right {
+        width: 100%;
+        justify-content: flex-start;
+      }
 
-        /* Modal adjustments for phones */
-        .modal-box {
-          padding: 20px;
-          max-width: 95vw !important;
-        }
+      /* Dropdown menus full width on mobile */
+      body.mobile-device .dropdown-menu,
+      body.tablet-device .dropdown-menu {
+        left: 0;
+        right: 0;
+        width: 100%;
+      }
 
-        .modal-header {
-          font-size: 18px;
-        }
+      /* Modal adjustments for phones */
+      body.mobile-device .modal-box,
+      body.tablet-device .modal-box {
+        padding: 20px;
+        max-width: 95vw !important;
+      }
 
-        /* Form inputs touch-friendly */
-        input[type="text"],
-        input[type="email"],
-        input[type="number"],
-        input[type="date"],
-        input[type="url"],
-        textarea,
-        select {
-          min-height: 44px;
-          font-size: 16px; /* Prevents zoom on iOS */
-        }
+      body.mobile-device .modal-header,
+      body.tablet-device .modal-header {
+        font-size: 18px;
+      }
+
+      /* Form inputs touch-friendly */
+      body.mobile-device input[type="text"],
+      body.mobile-device input[type="email"],
+      body.mobile-device input[type="number"],
+      body.mobile-device input[type="date"],
+      body.mobile-device input[type="url"],
+      body.mobile-device textarea,
+      body.mobile-device select,
+      body.tablet-device input[type="text"],
+      body.tablet-device input[type="email"],
+      body.tablet-device input[type="number"],
+      body.tablet-device input[type="date"],
+      body.tablet-device input[type="url"],
+      body.tablet-device textarea,
+      body.tablet-device select {
+        min-height: 44px;
+        font-size: 16px; /* Prevents zoom on iOS */
       }
 
       /* ==================== MOBILE & TABLET PORTRAIT ==================== */
