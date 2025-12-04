@@ -620,8 +620,8 @@
         box-shadow: var(--shadow-soft);
       }
 
-      /* Reduce gap between search bar and detail content - exclude mobile/tablet landscape */
-      body:not(.landscape) .shell:has(#detailView[style*="display: block"]) .filters-row,
+      /* Reduce gap between search bar and detail content - only portrait and desktop */
+      body.portrait .shell:has(#detailView[style*="display: block"]) .filters-row,
       body.desktop-device .shell:has(#detailView[style*="display: block"]) .filters-row {
         margin-bottom: 8px !important;
       }
