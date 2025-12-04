@@ -173,20 +173,6 @@
         font-weight: 600;
       }
 
-      .catalog-edit-btn {
-        border: none;
-        background: transparent;
-        color: var(--text-soft);
-        cursor: pointer;
-        border-radius: 8px;
-        padding: 2px 6px;
-        font-size: 13px;
-      }
-
-      .catalog-edit-btn:hover {
-        background: var(--surface-soft);
-      }
-
       .right-block {
         display: flex;
         flex-direction: column;
@@ -2393,9 +2379,6 @@
             <div class="catalog-row">
               <span class="catalog-label"></span>
               <span id="catalogName" class="catalog-name">Catalogue</span>
-              <button id="editCatalogBtn" class="catalog-edit-btn" title="Rename catalogue" style="display: none">
-                ✏
-              </button>
             </div>
           </div>
         </div>
@@ -3606,20 +3589,16 @@
         if (!user) return;
 
         const addBtn = document.getElementById("addBtn");
-        const editCatalogBtn = document.getElementById("editCatalogBtn");
         const sheetLinkBtn = document.getElementById("sheetLinkBtn");
 
         if (user.profile === "Viewer") {
           addBtn.style.display = "none";
-          editCatalogBtn.style.display = "none";
           sheetLinkBtn.style.display = "none";
         } else if (user.profile === "Editor") {
           addBtn.style.display = "inline-flex";
-          editCatalogBtn.style.display = "none";
           sheetLinkBtn.style.display = "none";
         } else if (user.profile === "Creator") {
           addBtn.style.display = "inline-flex";
-          editCatalogBtn.style.display = "inline-block";
           sheetLinkBtn.style.display = "inline-flex";
         }
 
@@ -5119,34 +5098,6 @@
         );
       }
 
-      function promptRenameCatalogue() {
-        if (!user || user.profile !== "Creator") return;
-        const current = (settings && settings.catalogName) || "";
-
-        showPrompt(
-          "Rename Catalogue",
-          "Enter a new name for your catalogue:",
-          current,
-          function(name) {
-            const token = getSessionToken();
-            google.script.run
-              .withSuccessHandler(function (msg) {
-                showToast(msg, "success");
-                google.script.run
-                  .withSuccessHandler(function (s) {
-                    settings = s || settings;
-                    updateHeaderUI();
-                  })
-                  .getSettings();
-              })
-              .withFailureHandler(function(error) {
-                showToast("Error: " + error.message, "error");
-              })
-              .renameCatalogue(name, token);
-          }
-        );
-      }
-
       async function init() {
         console.log('=== App Initialization Starting ===');
 
@@ -5428,7 +5379,6 @@
           openAdd();
         };
         document.getElementById("editCancelBtn").onclick = closeEditModal;
-        document.getElementById("editCatalogBtn").onclick = promptRenameCatalogue;
 
         // Sheet link button (Creator only)
         document.getElementById("sheetLinkBtn").onclick = function() {
