@@ -8,6 +8,30 @@
 
     <title>Catalogue</title>
 
+    <!-- CRITICAL: Device Detection - Must run FIRST in head -->
+    <script>
+      (function() {
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const isMobile = /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(ua);
+        const isTablet = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(ua);
+        const deviceClass = isMobile ? 'mobile-device' : (isTablet ? 'tablet-device' : 'desktop-device');
+
+        // Force set using setAttribute (more reliable than className)
+        document.documentElement.setAttribute('class', deviceClass);
+        document.documentElement.setAttribute('data-device', deviceClass);
+        console.log('🔧 Device class set on HTML:', deviceClass);
+
+        // Also set when DOM is ready (in case something strips it)
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function() {
+            document.documentElement.setAttribute('class', deviceClass);
+            document.body.setAttribute('class', deviceClass);
+            console.log('🔧 Device class re-applied on DOMContentLoaded');
+          });
+        }
+      })();
+    </script>
+
     <style>
       :root {
         --bg: #f3f4fb;
@@ -66,7 +90,7 @@
       }
 
       body {
-        padding: 18px 12px 32px;
+        padding: 18px 0 32px;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter",
           "Segoe UI", sans-serif;
         background: radial-gradient(
@@ -83,7 +107,7 @@
         max-width: 100%;
         width: 100%;
         margin: 0 auto;
-        padding: 0 12px;
+        padding: 0 24px;
         border: none;
         outline: none;
       }
@@ -147,20 +171,6 @@
       .catalog-name {
         font-size: 15px;
         font-weight: 600;
-      }
-
-      .catalog-edit-btn {
-        border: none;
-        background: transparent;
-        color: var(--text-soft);
-        cursor: pointer;
-        border-radius: 8px;
-        padding: 2px 6px;
-        font-size: 13px;
-      }
-
-      .catalog-edit-btn:hover {
-        background: var(--surface-soft);
       }
 
       .right-block {
@@ -1321,29 +1331,6 @@
         }
       }
 
-      /* Column Management Table ----------------------------------------- */
-
-      #columnsTable {
-        font-size: 12px;
-      }
-
-      #columnsTable th {
-        font-weight: 600;
-        color: #374151;
-        position: sticky;
-        top: 0;
-        background: #f3f4f6;
-        z-index: 10;
-      }
-
-      #columnsTable tbody tr:hover {
-        background: #f9fafb;
-      }
-
-      #columnsTable input[type="checkbox"] {
-        cursor: pointer;
-      }
-
       /* Login Screen ---------------------------------------------------- */
 
       #loginScreen {
@@ -1615,626 +1602,762 @@
         }
       }
 
-      /* Phone and Tablet (1024px and below) - Catches phones reporting 980px like Samsung Galaxy A31 */
-      @media (max-width: 1024px) {
-        /* Larger padding on phones for comfortable margins */
-        .shell {
-          padding: 0 20px;
-        }
-
-        .top-header {
-          padding: 20px 20px;
-          margin-bottom: 20px;
-        }
-
-        /* Hide navigation arrow buttons on mobile - use swipe instead */
-        .nav-arrow-btn {
-          display: none !important;
-        }
-
-        /* LARGER TEXT SIZES FOR MOBILE - PORTRAIT */
-        .app-name {
-          font-size: 30px !important;
-          font-weight: 700 !important;
-        }
-
-        .catalog-name {
-          font-size: 25px !important;
-          font-weight: 600 !important;
-        }
-
-        .catalog-label,
-        .user-role {
-          font-size: 18px !important;
-        }
-
-        .user-email {
-          font-size: 18px !important;
-        }
-
-        .profile-badge {
-          font-size: 16px !important;
-          padding: 2px 10px !important;
-        }
-
-        /* Grid: 3 columns in PORTRAIT */
-        .grid {
-          grid-template-columns: repeat(3, 1fr);
-          gap: 12px;
-        }
-
-        /* BIGGER BUTTONS FOR PORTRAIT - 68px height */
-        .btn-toolbar,
-        .btn-primary,
-        .btn-secondary {
-          height: 68px !important;
-          min-height: 68px !important;
-          padding: 20px 28px !important;
-          font-size: 19px !important;
-          font-weight: 600 !important;
-        }
-
-        /* Logout button */
-        #logoutBtn {
-          height: 68px !important;
-          min-height: 68px !important;
-          padding: 0 28px !important;
-          font-size: 18px !important;
-        }
-
-        /* Filter/Sort buttons */
-        #filterBtn,
-        #sortBtn,
-        #backToListBtn {
-          height: 68px !important;
-          min-height: 68px !important;
-          padding: 20px 28px !important;
-          font-size: 19px !important;
-        }
-
-        /* Right toolbar buttons */
-        #sheetBtn,
-        #columnsBtn,
-        #addBtn {
-          height: 68px !important;
-          min-height: 68px !important;
-          padding: 20px 28px !important;
-          font-size: 19px !important;
-        }
-
-        /* Search input on mobile */
-        .search-input {
-          height: 68px !important;
-          font-size: 19px !important;
-          width: 100% !important;
-          max-width: 300px;
-          padding: 0 50px 0 20px !important;
-        }
-
-        .search-input:focus {
-          width: 100% !important;
-          max-width: 350px;
-        }
-
-        .clear-search-btn {
-          width: 32px !important;
-          height: 32px !important;
-          font-size: 18px !important;
-          right: 12px !important;
-        }
-
-        /* Card text bigger */
-        .item-card {
-          min-height: 180px;
-          padding: 12px !important;
-        }
-
-        .item-name {
-          font-size: 22px !important;
-          line-height: 1.4;
-          font-weight: 600 !important;
-        }
-
-        .item-subtitle {
-          font-size: 20px !important;
-          margin-top: 6px !important;
-        }
-
-        /* LANDSCAPE MODE - Smaller buttons, smaller text, 4 columns */
-        @media (orientation: landscape) {
-          /* Grid: 4 columns in LANDSCAPE */
-          .grid {
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-          }
-
-          /* SMALLER BUTTONS FOR LANDSCAPE - 40px */
-          .btn-toolbar,
-          .btn-primary,
-          .btn-secondary,
-          #logoutBtn,
-          #filterBtn,
-          #sortBtn,
-          #backToListBtn,
-          #sheetBtn,
-          #columnsBtn,
-          #addBtn {
-            height: 40px !important;
-            min-height: 40px !important;
-            padding: 8px 16px !important;
-            font-size: 14px !important;
-          }
-
-          /* Smaller search input for landscape - match button size */
-          .search-input {
-            height: 40px !important;
-            font-size: 14px !important;
-            padding: 0 40px 0 16px !important;
-          }
-
-          /* Smaller header text in landscape */
-          .app-name {
-            font-size: 20px !important;
-          }
-
-          .catalog-name {
-            font-size: 16px !important;
-          }
-
-          /* Smaller card text in landscape */
-          .item-name {
-            font-size: 15px !important;
-          }
-
-          .item-subtitle {
-            font-size: 14px !important;
-          }
-
-          .item-card {
-            min-height: 150px;
-          }
-
-          /* Detail view layout - LANDSCAPE: Restore side-by-side */
-          .detail-layout {
-            grid-template-columns: minmax(0, 360px) minmax(0, 1fr) !important;
-            gap: 16px;
-          }
-
-          .detail-img-wrapper {
-            /* No max-height - show full image */
-          }
-
-          .detail-img {
-            height: auto !important;
-            object-fit: contain !important;
-          }
-
-          /* Detail view text sizes - LANDSCAPE */
-          .detail-name {
-            font-size: 20px !important;
-          }
-
-          .detail-subtitle {
-            font-size: 16px !important;
-          }
-
-          .detail-topcorner {
-            font-size: 16px !important;
-          }
-
-          .detail-meta {
-            font-size: 16px !important;
-          }
-
-          .detail-field {
-            font-size: 15px !important;
-          }
-
-          .detail-field-label {
-            font-size: 15px !important;
-          }
-
-          .detail-field-value {
-            font-size: 15px !important;
-          }
-        }
-
-        /* Stack filters row on phones */
-        .filters-row {
-          flex-direction: column;
-          gap: 8px;
-          align-items: stretch;
-        }
-
-        .filters-left,
-        .filters-right {
-          width: 100%;
-          justify-content: flex-start;
-        }
-
-        /* Dropdown menus full width on mobile */
-        .dropdown-menu {
-          left: 0;
-          right: 0;
-          width: 100%;
-        }
-
-        /* Modal adjustments for phones */
-        .modal-box {
-          padding: 20px;
-          max-width: 95vw !important;
-        }
-
-        .modal-header {
-          font-size: 18px;
-        }
-
-        /* Form inputs touch-friendly */
-        input[type="text"],
-        input[type="email"],
-        input[type="number"],
-        input[type="date"],
-        input[type="url"],
-        textarea,
-        select {
-          min-height: 44px;
-          font-size: 16px; /* Prevents zoom on iOS */
-        }
-
-        /* PORTRAIT MODE ONLY - Wrap in orientation query */
-        @media (orientation: portrait) {
-          /* Portrait mode shell padding */
-          .shell {
-            padding: 0 12px !important;
-          }
-
-          /* Ensure symmetrical margins - adjust container padding */
-          #detailView {
-            padding: 16px !important;
-            margin-left: 0;
-            margin-right: 0;
-            width: 100%;
-            box-sizing: border-box;
-          }
-
-          /* Detail view layout - PORTRAIT: Stack image above details */
-          .detail-layout {
-            grid-template-columns: 1fr !important;
-            gap: 16px;
-            width: 100%;
-            max-width: 100%;
-            box-sizing: border-box;
-          }
-
-          .detail-img-wrapper {
-            width: 100% !important;
-            max-width: 100% !important;
-            max-height: none !important;
-            min-height: 300px;
-            box-sizing: border-box !important;
-            margin: 0 !important;
-          }
-
-          .detail-img {
-            width: 100% !important;
-            max-width: 100% !important;
-            height: auto !important;
-            max-height: none !important;
-            display: block;
-            object-fit: cover;
-            margin: 0 !important;
-          }
-
-          /* Ensure text wraps properly */
-          .detail-field,
-          .detail-name,
-          .detail-subtitle,
-          .detail-topcorner,
-          .detail-meta {
-            word-break: break-word !important;
-            overflow-wrap: break-word !important;
-          }
-
-          /* Make image zoom close button MUCH bigger for portrait */
-          #imgOverlayClose {
-            font-size: 32px !important;
-            padding: 8px 14px !important;
-            top: 20px !important;
-            right: 20px !important;
-            min-width: 48px;
-            min-height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-
-          /* Detail view text sizes - PORTRAIT */
-          .detail-container {
-            padding: 16px;
-          }
-
-          .detail-name {
-            font-size: 30px !important;
-          }
-
-          .detail-subtitle {
-            font-size: 25px !important;
-          }
-
-          /* Make the text container positioned so Top Corner positions relative to it */
-          .detail-layout > div:not(#detailImgContainer) {
-            position: relative;
-          }
-
-          .detail-topcorner {
-            font-size: 25px !important;
-            top: 0 !important;
-            right: 0 !important;
-          }
-
-          .detail-meta {
-            font-size: 25px !important;
-          }
-
-          .detail-field {
-            font-size: 22px !important;
-          }
-
-          .detail-field-label {
-            font-size: 22px !important;
-          }
-
-          .detail-field-value {
-            font-size: 22px !important;
-          }
-
-          /* Make external link buttons bigger in portrait */
-          .link-pill {
-            font-size: 24px !important;
-            padding: 10px 18px !important;
-          }
-
-          /* Card adjustments - MUCH LARGER TEXT */
-          .item-card {
-            min-height: 180px;
-            padding: 12px !important;
-          }
-
-          /* Make card images square in portrait */
-          .card-img-wrapper {
-            height: auto !important;
-            aspect-ratio: 1 / 1 !important;
-          }
-
-          .card-name {
-            font-size: 26px !important;
-            line-height: 1.4;
-            font-weight: 600 !important;
-          }
-
-          .card-sub {
-            font-size: 22px !important;
-          }
-
-          /* Make all buttons bigger in portrait */
-          button,
-          .btn,
-          .btn-primary,
-          .btn-secondary,
-          .btn-danger,
-          .back-btn,
-          .sort-btn,
-          .filter-pill {
-            min-height: 80px !important;
-            font-size: 28px !important;
-            padding: 12px 24px !important;
-          }
-
-          /* Make Filter and Sort button text even bigger */
-          .btn-toolbar,
-          #filterBtn,
-          #sortBtn,
-          #backToListBtn,
-          #sheetBtn,
-          #columnsBtn,
-          #addBtn {
-            font-size: 28px !important;
-            min-height: 80px !important;
-            padding: 12px 24px !important;
-          }
-
-          /* Exception: Keep Image Zoom Close Button at original size */
-          #imgOverlayClose {
-            font-size: 32px !important;
-            padding: 8px 14px !important;
-            min-width: 48px !important;
-            min-height: 48px !important;
-          }
-
-          /* Form inputs bigger in portrait */
-          input[type="text"],
-          input[type="email"],
-          input[type="password"],
-          input[type="date"],
-          input[type="url"],
-          textarea {
-            font-size: 22px !important;
-            min-height: 80px !important;
-          }
-
-          /* Dropdown menus bigger in portrait */
-          select {
-            font-size: 88px !important;
-            min-height: 80px !important;
-          }
-
-          /* Dropdown menu content bigger in portrait */
-          .dropdown-menu {
-            padding: 16px !important;
-            max-height: 600px !important;
-            min-width: 500px !important;
-            width: auto !important;
-          }
-
-          .dropdown-section-title {
-            font-size: 28px !important;
-            padding: 12px 16px !important;
-          }
-
-          .dropdown-item {
-            font-size: 36px !important;
-            padding: 16px 20px !important;
-            gap: 16px !important;
-          }
-
-          .dropdown-item input[type="checkbox"],
-          .dropdown-item input[type="radio"] {
-            width: 36px !important;
-            height: 36px !important;
-            min-width: 36px !important;
-            min-height: 36px !important;
-          }
-
-          .dropdown-item input[type="checkbox"]:checked::after {
-            top: 6px !important;
-            left: 6px !important;
-            width: 20px !important;
-            height: 20px !important;
-          }
-
-          .dropdown-item span {
-            font-size: 36px !important;
-          }
-
-          /* Make Clear Filters button smaller */
-          .dropdown-btn {
-            font-size: 34px !important;
-            padding: 8px 16px !important;
-          }
-
-          /* Login screen adjustments */
-          .login-box {
-            padding: 32px 24px;
-            max-width: 95vw;
-          }
-
-          .login-title {
-            font-size: 24px;
-          }
-
-          /* Breadcrumb navigation - 2x bigger for easier touch navigation */
-          #breadcrumbNav {
-            font-size: 26px !important;
-            margin: 12px 0 !important;
-            padding: 8px 0 !important;
-            line-height: 1.5 !important;
-          }
-
-          #breadcrumbNav a {
-            padding: 8px 4px !important;
-            font-size: 26px !important;
-          }
-
-          #breadcrumbNav span {
-            margin: 0 12px !important;
-            font-size: 26px !important;
-          }
-        }
-
-      /* Very small phones (600px and below) - Even more compact for actual small phones */
-      @media (max-width: 600px) {
-        /* Even smaller spacing */
-        .shell {
-          padding: 0 4px;
-        }
-
-        .top-header {
-          padding: 10px 12px;
-        }
-
-        /* Grid: might go to 1 column on very small phones */
-        .grid {
-          grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-          gap: 10px;
-        }
-
-        /* Smaller text on tiny screens */
-        .app-name {
-          font-size: 18px;
-        }
-
-        .catalog-name {
-          font-size: 14px;
-        }
-
-        /* Compact buttons but still touch-friendly */
-        .btn-toolbar,
-        .btn-primary,
-        .btn-secondary {
-          height: 44px !important;
-          min-height: 44px !important;
-          font-size: 13px !important;
-          padding: 10px 12px !important;
-        }
-
-        /* Modal even more compact */
-        .modal-box {
-          padding: 16px;
-        }
+      /* ==================== DEVICE-BASED MOBILE & TABLET STYLES ==================== */
+      /* Using device detection instead of media queries */
+      /* These selectors apply ONLY to actual mobile/tablet devices */
+
+      body.mobile-device .shell,
+      body.tablet-device .shell {
+        padding: 0 20px;
       }
 
-      /* DESKTOP OVERRIDE - Reset mobile styles on desktop/laptop with hover capability */
-      @media (hover: hover) and (max-width: 1024px) {
-        /* Reset buttons to normal desktop size */
-        .btn-toolbar,
-        .btn-primary,
-        .btn-secondary {
-          height: 34px !important;
-          min-height: 34px !important;
-          padding: 0 14px !important;
-          font-size: 13px !important;
-          font-weight: 500 !important;
-        }
+      body.mobile-device .top-header,
+      body.tablet-device .top-header {
+        padding: 20px 20px;
+        margin-bottom: 20px;
+      }
 
-        #logoutBtn {
-          height: 34px !important;
-          min-height: 34px !important;
-          padding: 0 14px !important;
-          font-size: 13px !important;
-        }
+      /* Hide navigation arrow buttons on mobile - use swipe instead */
+      body.mobile-device .nav-arrow-btn,
+      body.tablet-device .nav-arrow-btn {
+        display: none !important;
+      }
 
-        #filterBtn,
-        #sortBtn,
-        #backToListBtn,
-        #sheetBtn,
-        #columnsBtn,
-        #addBtn {
-          height: 34px !important;
-          min-height: 34px !important;
-          padding: 0 14px !important;
-          font-size: 13px !important;
-        }
+      /* LARGER TEXT SIZES FOR MOBILE - PORTRAIT */
+      body.mobile-device .app-name,
+      body.tablet-device .app-name {
+        font-size: 30px !important;
+        font-weight: 700 !important;
+      }
 
-        /* Reset search input to normal desktop size */
-        .search-input {
-          height: 34px !important;
-          font-size: 13px !important;
-          padding: 0 40px 0 16px !important;
-          width: 200px !important;
-          max-width: none !important;
-        }
+      body.mobile-device .catalog-name,
+      body.tablet-device .catalog-name {
+        font-size: 25px !important;
+        font-weight: 600 !important;
+      }
 
-        .search-input:focus {
-          width: 250px !important;
-        }
+      body.mobile-device .catalog-label,
+      body.mobile-device .user-role,
+      body.tablet-device .catalog-label,
+      body.tablet-device .user-role {
+        font-size: 18px !important;
+      }
+
+      body.mobile-device .user-email,
+      body.tablet-device .user-email {
+        font-size: 18px !important;
+      }
+
+      body.mobile-device .profile-badge,
+      body.tablet-device .profile-badge {
+        font-size: 16px !important;
+        padding: 2px 10px !important;
+      }
+
+      /* Grid: 3 columns in PORTRAIT */
+      body.mobile-device .grid,
+      body.tablet-device .grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+
+      /* BIGGER BUTTONS FOR PORTRAIT - 68px height */
+      body.mobile-device .btn-toolbar,
+      body.mobile-device .btn-primary,
+      body.mobile-device .btn-secondary,
+      body.tablet-device .btn-toolbar,
+      body.tablet-device .btn-primary,
+      body.tablet-device .btn-secondary {
+        height: 68px !important;
+        min-height: 68px !important;
+        padding: 20px 28px !important;
+        font-size: 19px !important;
+        font-weight: 600 !important;
+      }
+
+      /* Logout button */
+      body.mobile-device #logoutBtn,
+      body.tablet-device #logoutBtn {
+        height: 68px !important;
+        min-height: 68px !important;
+        padding: 0 28px !important;
+        font-size: 18px !important;
+      }
+
+      /* Filter/Sort buttons */
+      body.mobile-device #filterBtn,
+      body.mobile-device #sortBtn,
+      body.mobile-device #backToListBtn,
+      body.tablet-device #filterBtn,
+      body.tablet-device #sortBtn,
+      body.tablet-device #backToListBtn {
+        height: 68px !important;
+        min-height: 68px !important;
+        padding: 20px 28px !important;
+        font-size: 19px !important;
+      }
+
+      /* Right toolbar buttons */
+      body.mobile-device #sheetBtn,
+      body.mobile-device #addBtn,
+      body.tablet-device #sheetBtn,
+      body.tablet-device #addBtn {
+        height: 68px !important;
+        min-height: 68px !important;
+        padding: 20px 28px !important;
+        font-size: 19px !important;
+      }
+
+      /* Search input on mobile */
+      body.mobile-device .search-input,
+      body.tablet-device .search-input {
+        height: 68px !important;
+        font-size: 19px !important;
+        width: 100% !important;
+        max-width: 300px;
+        padding: 0 50px 0 20px !important;
+      }
+
+      body.mobile-device .search-input:focus,
+      body.tablet-device .search-input:focus {
+        width: 100% !important;
+        max-width: 350px;
+      }
+
+      body.mobile-device .clear-search-btn,
+      body.tablet-device .clear-search-btn {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 18px !important;
+        right: 12px !important;
+      }
+
+      /* Card text bigger */
+      body.mobile-device .item-card,
+      body.tablet-device .item-card {
+        min-height: 180px;
+        padding: 12px !important;
+      }
+
+      body.mobile-device .item-name,
+      body.tablet-device .item-name {
+        font-size: 22px !important;
+        line-height: 1.4;
+        font-weight: 600 !important;
+      }
+
+      body.mobile-device .item-subtitle,
+      body.tablet-device .item-subtitle {
+        font-size: 20px !important;
+        margin-top: 6px !important;
+      }
+
+      /* Stack filters row on phones */
+      body.mobile-device .filters-row,
+      body.tablet-device .filters-row {
+        flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
+      }
+
+      body.mobile-device .filters-left,
+      body.mobile-device .filters-right,
+      body.tablet-device .filters-left,
+      body.tablet-device .filters-right {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      /* Dropdown menus full width on mobile */
+      body.mobile-device .dropdown-menu,
+      body.tablet-device .dropdown-menu {
+        left: 0;
+        right: 0;
+        width: 100%;
+      }
+
+      /* Modal adjustments for phones */
+      body.mobile-device .modal-box,
+      body.tablet-device .modal-box {
+        padding: 20px;
+        max-width: 95vw !important;
+      }
+
+      body.mobile-device .modal-header,
+      body.tablet-device .modal-header {
+        font-size: 18px;
+      }
+
+      /* Form inputs touch-friendly */
+      body.mobile-device input[type="text"],
+      body.mobile-device input[type="email"],
+      body.mobile-device input[type="number"],
+      body.mobile-device input[type="date"],
+      body.mobile-device input[type="url"],
+      body.mobile-device textarea,
+      body.mobile-device select,
+      body.tablet-device input[type="text"],
+      body.tablet-device input[type="email"],
+      body.tablet-device input[type="number"],
+      body.tablet-device input[type="date"],
+      body.tablet-device input[type="url"],
+      body.tablet-device textarea,
+      body.tablet-device select {
+        min-height: 44px;
+        font-size: 16px; /* Prevents zoom on iOS */
+      }
+
+      /* ==================== LANDSCAPE MODE - Smaller buttons, smaller text, 4 columns ==================== */
+      /* Reduce paddings and header elements in landscape */
+      body.mobile-device.landscape .shell,
+      body.tablet-device.landscape .shell {
+        padding: 0 10px;
+      }
+
+      body.mobile-device.landscape .top-header,
+      body.tablet-device.landscape .top-header {
+        padding: 4px 10px;
+        margin-bottom: 10px;
+        align-items: center;
+        min-height: 68px;
+      }
+
+      /* Logo size in landscape: 60px, reduce gap */
+      body.mobile-device.landscape .app-logo,
+      body.tablet-device.landscape .app-logo {
+        width: 60px;
+        height: 60px;
+        margin: 0;
+      }
+
+      body.mobile-device.landscape .left-block,
+      body.tablet-device.landscape .left-block {
+        gap: 6px;
+      }
+
+      /* Right-block: Put everything on one line (Signed in: email badge + Login button) */
+      body.mobile-device.landscape .right-block,
+      body.tablet-device.landscape .right-block {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+      }
+
+      /* Filters-row: Keep buttons in same row, aligned to right */
+      body.mobile-device.landscape .filters-row,
+      body.tablet-device.landscape .filters-row {
+        padding: 4px 4px;
+        margin-bottom: 0;
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+      }
+
+      /* Override mobile width: 100% for landscape - let items size naturally */
+      body.mobile-device.landscape .filters-left,
+      body.tablet-device.landscape .filters-left {
+        width: auto;
+        flex-shrink: 1;
+      }
+
+      /* Buttons stay in normal flow on the right side */
+      body.mobile-device.landscape .filters-right,
+      body.tablet-device.landscape .filters-right {
+        width: auto;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+
+
+      /* Smaller header text in landscape */
+      body.mobile-device.landscape .app-name,
+      body.tablet-device.landscape .app-name {
+        font-size: 16px !important;
+      }
+
+      body.mobile-device.landscape .catalog-label,
+      body.tablet-device.landscape .catalog-label {
+        font-size: 12px !important;
+      }
+
+      body.mobile-device.landscape .catalog-name,
+      body.tablet-device.landscape .catalog-name {
+        font-size: 14px !important;
+      }
+
+      body.mobile-device.landscape .user-role,
+      body.tablet-device.landscape .user-role {
+        font-size: 12px !important;
+      }
+
+      body.mobile-device.landscape .user-email,
+      body.tablet-device.landscape .user-email {
+        font-size: 12px !important;
+      }
+
+      body.mobile-device.landscape .profile-badge,
+      body.tablet-device.landscape .profile-badge {
+        font-size: 11px !important;
+        padding: 2px 6px !important;
+      }
+
+      /* Smaller search bar in landscape */
+      body.mobile-device.landscape .search-input,
+      body.tablet-device.landscape .search-input {
+        height: 36px !important;
+        font-size: 14px !important;
+        padding: 0 40px 0 12px !important;
+      }
+
+      body.mobile-device.landscape .clear-search-btn,
+      body.tablet-device.landscape .clear-search-btn {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 14px !important;
+        right: 8px !important;
+      }
+
+      /* Breadcrumb styling for landscape - reduce margins */
+      body.mobile-device.landscape #breadcrumbNav,
+      body.tablet-device.landscape #breadcrumbNav {
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      /* Grid: 4 columns in LANDSCAPE */
+      body.mobile-device.landscape .grid,
+      body.tablet-device.landscape .grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 8px;
+      }
+
+      /* Keep buttons at current size - already configured below */
+
+      /* SMALLER BUTTONS FOR LANDSCAPE - 40px */
+      body.mobile-device.landscape .btn-toolbar,
+      body.mobile-device.landscape .btn-primary,
+      body.mobile-device.landscape .btn-secondary,
+      body.mobile-device.landscape #logoutBtn,
+      body.mobile-device.landscape #filterBtn,
+      body.mobile-device.landscape #sortBtn,
+      body.mobile-device.landscape #backToListBtn,
+      body.mobile-device.landscape #sheetBtn,
+      body.mobile-device.landscape #addBtn,
+      body.tablet-device.landscape .btn-toolbar,
+      body.tablet-device.landscape .btn-primary,
+      body.tablet-device.landscape .btn-secondary,
+      body.tablet-device.landscape #logoutBtn,
+      body.tablet-device.landscape #filterBtn,
+      body.tablet-device.landscape #sortBtn,
+      body.tablet-device.landscape #backToListBtn,
+      body.tablet-device.landscape #sheetBtn,
+      body.tablet-device.landscape #addBtn {
+        height: 40px !important;
+        min-height: 40px !important;
+        padding: 8px 16px !important;
+        font-size: 14px !important;
+      }
+
+      /* Smaller card text in landscape */
+      body.mobile-device.landscape .item-name,
+      body.tablet-device.landscape .item-name {
+        font-size: 15px !important;
+      }
+
+      body.mobile-device.landscape .item-subtitle,
+      body.tablet-device.landscape .item-subtitle {
+        font-size: 14px !important;
+      }
+
+      body.mobile-device.landscape .item-card,
+      body.tablet-device.landscape .item-card {
+        min-height: 150px;
+      }
+
+      /* Detail view layout - LANDSCAPE: Restore side-by-side */
+      body.mobile-device.landscape .detail-layout,
+      body.tablet-device.landscape .detail-layout {
+        grid-template-columns: minmax(0, 360px) minmax(0, 1fr) !important;
+        gap: 16px;
+      }
+
+      body.mobile-device.landscape .detail-img,
+      body.tablet-device.landscape .detail-img {
+        height: auto !important;
+        object-fit: contain !important;
+      }
+
+      /* Detail view text sizes - LANDSCAPE */
+      body.mobile-device.landscape .detail-name,
+      body.tablet-device.landscape .detail-name {
+        font-size: 20px !important;
+      }
+
+      body.mobile-device.landscape .detail-subtitle,
+      body.tablet-device.landscape .detail-subtitle {
+        font-size: 16px !important;
+      }
+
+      body.mobile-device.landscape .detail-topcorner,
+      body.tablet-device.landscape .detail-topcorner {
+        font-size: 16px !important;
+      }
+
+      body.mobile-device.landscape .detail-meta,
+      body.tablet-device.landscape .detail-meta {
+        font-size: 16px !important;
+      }
+
+      body.mobile-device.landscape .detail-field,
+      body.tablet-device.landscape .detail-field {
+        font-size: 15px !important;
+      }
+
+      body.mobile-device.landscape .detail-field-label,
+      body.tablet-device.landscape .detail-field-label {
+        font-size: 15px !important;
+      }
+
+      body.mobile-device.landscape .detail-field-value,
+      body.tablet-device.landscape .detail-field-value {
+        font-size: 15px !important;
+      }
+
+      /* ==================== PORTRAIT MODE - Larger text, bigger buttons ==================== */
+      /* Portrait mode shell padding */
+      body.mobile-device.portrait .shell,
+      body.tablet-device.portrait .shell {
+        padding: 0 12px !important;
+      }
+
+      /* Ensure symmetrical margins - adjust container padding */
+      body.mobile-device.portrait #detailView,
+      body.tablet-device.portrait #detailView {
+        padding: 16px !important;
+        margin-left: 0;
+        margin-right: 0;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      /* Detail view layout - PORTRAIT: Stack image above details */
+      body.mobile-device.portrait .detail-layout,
+      body.tablet-device.portrait .detail-layout {
+        grid-template-columns: 1fr !important;
+        gap: 16px;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+
+      body.mobile-device.portrait .detail-img-wrapper,
+      body.tablet-device.portrait .detail-img-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: none !important;
+        min-height: 300px;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+      }
+
+      body.mobile-device.portrait .detail-img,
+      body.tablet-device.portrait .detail-img {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        display: block;
+        object-fit: cover;
+        margin: 0 !important;
+      }
+
+      /* Ensure text wraps properly */
+      body.mobile-device.portrait .detail-field,
+      body.mobile-device.portrait .detail-name,
+      body.mobile-device.portrait .detail-subtitle,
+      body.mobile-device.portrait .detail-topcorner,
+      body.mobile-device.portrait .detail-meta,
+      body.tablet-device.portrait .detail-field,
+      body.tablet-device.portrait .detail-name,
+      body.tablet-device.portrait .detail-subtitle,
+      body.tablet-device.portrait .detail-topcorner,
+      body.tablet-device.portrait .detail-meta {
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+      }
+
+      /* Make image zoom close button MUCH bigger for portrait */
+      body.mobile-device.portrait #imgOverlayClose,
+      body.tablet-device.portrait #imgOverlayClose {
+        font-size: 32px !important;
+        padding: 8px 14px !important;
+        top: 20px !important;
+        right: 20px !important;
+        min-width: 48px;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Detail view text sizes - PORTRAIT */
+      body.mobile-device.portrait .detail-container,
+      body.tablet-device.portrait .detail-container {
+        padding: 16px;
+      }
+
+      body.mobile-device.portrait .detail-name,
+      body.tablet-device.portrait .detail-name {
+        font-size: 30px !important;
+      }
+
+      body.mobile-device.portrait .detail-subtitle,
+      body.tablet-device.portrait .detail-subtitle {
+        font-size: 25px !important;
+      }
+
+      /* Make the text container positioned so Top Corner positions relative to it */
+      body.mobile-device.portrait .detail-layout > div:not(#detailImgContainer),
+      body.tablet-device.portrait .detail-layout > div:not(#detailImgContainer) {
+        position: relative;
+      }
+
+      body.mobile-device.portrait .detail-topcorner,
+      body.tablet-device.portrait .detail-topcorner {
+        font-size: 25px !important;
+        top: 0 !important;
+        right: 0 !important;
+      }
+
+      body.mobile-device.portrait .detail-meta,
+      body.tablet-device.portrait .detail-meta {
+        font-size: 25px !important;
+      }
+
+      body.mobile-device.portrait .detail-field,
+      body.tablet-device.portrait .detail-field {
+        font-size: 22px !important;
+      }
+
+      body.mobile-device.portrait .detail-field-label,
+      body.tablet-device.portrait .detail-field-label {
+        font-size: 22px !important;
+      }
+
+      body.mobile-device.portrait .detail-field-value,
+      body.tablet-device.portrait .detail-field-value {
+        font-size: 22px !important;
+      }
+
+      /* Make external link buttons bigger in portrait */
+      body.mobile-device.portrait .link-pill,
+      body.tablet-device.portrait .link-pill {
+        font-size: 24px !important;
+        padding: 10px 18px !important;
+      }
+
+      /* Card adjustments - MUCH LARGER TEXT */
+      body.mobile-device.portrait .item-card,
+      body.tablet-device.portrait .item-card {
+        min-height: 180px;
+        padding: 12px !important;
+      }
+
+      /* Make card images square in portrait */
+      body.mobile-device.portrait .card-img-wrapper,
+      body.tablet-device.portrait .card-img-wrapper {
+        height: auto !important;
+        aspect-ratio: 1 / 1 !important;
+      }
+
+      body.mobile-device.portrait .card-name,
+      body.tablet-device.portrait .card-name {
+        font-size: 26px !important;
+        line-height: 1.4;
+        font-weight: 600 !important;
+      }
+
+      body.mobile-device.portrait .card-sub,
+      body.tablet-device.portrait .card-sub {
+        font-size: 22px !important;
+      }
+
+      /* Make all buttons bigger in portrait */
+      body.mobile-device.portrait button,
+      body.mobile-device.portrait .btn,
+      body.mobile-device.portrait .btn-primary,
+      body.mobile-device.portrait .btn-secondary,
+      body.mobile-device.portrait .btn-danger,
+      body.mobile-device.portrait .back-btn,
+      body.mobile-device.portrait .sort-btn,
+      body.mobile-device.portrait .filter-pill,
+      body.tablet-device.portrait button,
+      body.tablet-device.portrait .btn,
+      body.tablet-device.portrait .btn-primary,
+      body.tablet-device.portrait .btn-secondary,
+      body.tablet-device.portrait .btn-danger,
+      body.tablet-device.portrait .back-btn,
+      body.tablet-device.portrait .sort-btn,
+      body.tablet-device.portrait .filter-pill {
+        min-height: 80px !important;
+        font-size: 28px !important;
+        padding: 12px 24px !important;
+      }
+
+      /* Make Filter and Sort button text even bigger */
+      body.mobile-device.portrait .btn-toolbar,
+      body.mobile-device.portrait #filterBtn,
+      body.mobile-device.portrait #sortBtn,
+      body.mobile-device.portrait #backToListBtn,
+      body.mobile-device.portrait #sheetBtn,
+      body.mobile-device.portrait #addBtn,
+      body.tablet-device.portrait .btn-toolbar,
+      body.tablet-device.portrait #filterBtn,
+      body.tablet-device.portrait #sortBtn,
+      body.tablet-device.portrait #backToListBtn,
+      body.tablet-device.portrait #sheetBtn,
+      body.tablet-device.portrait #addBtn {
+        font-size: 28px !important;
+        min-height: 80px !important;
+        padding: 12px 24px !important;
+      }
+
+      /* Exception: Keep Image Zoom Close Button at original size */
+      body.mobile-device.portrait #imgOverlayClose,
+      body.tablet-device.portrait #imgOverlayClose {
+        font-size: 32px !important;
+        padding: 8px 14px !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
+      }
+
+      /* Form inputs bigger in portrait */
+      body.mobile-device.portrait input[type="text"],
+      body.mobile-device.portrait input[type="email"],
+      body.mobile-device.portrait input[type="password"],
+      body.mobile-device.portrait input[type="date"],
+      body.mobile-device.portrait input[type="url"],
+      body.mobile-device.portrait textarea,
+      body.tablet-device.portrait input[type="text"],
+      body.tablet-device.portrait input[type="email"],
+      body.tablet-device.portrait input[type="password"],
+      body.tablet-device.portrait input[type="date"],
+      body.tablet-device.portrait input[type="url"],
+      body.tablet-device.portrait textarea {
+        font-size: 22px !important;
+        min-height: 80px !important;
+      }
+
+      /* Dropdown menus bigger in portrait */
+      body.mobile-device.portrait select,
+      body.tablet-device.portrait select {
+        font-size: 88px !important;
+        min-height: 80px !important;
+      }
+
+      /* Dropdown menu content bigger in portrait */
+      body.mobile-device.portrait .dropdown-menu,
+      body.tablet-device.portrait .dropdown-menu {
+        padding: 16px !important;
+        max-height: 600px !important;
+        min-width: 500px !important;
+        width: auto !important;
+      }
+
+      body.mobile-device.portrait .dropdown-section-title,
+      body.tablet-device.portrait .dropdown-section-title {
+        font-size: 28px !important;
+        padding: 12px 16px !important;
+      }
+
+      body.mobile-device.portrait .dropdown-item,
+      body.tablet-device.portrait .dropdown-item {
+        font-size: 36px !important;
+        padding: 16px 20px !important;
+        gap: 16px !important;
+      }
+
+      body.mobile-device.portrait .dropdown-item input[type="checkbox"],
+      body.mobile-device.portrait .dropdown-item input[type="radio"],
+      body.tablet-device.portrait .dropdown-item input[type="checkbox"],
+      body.tablet-device.portrait .dropdown-item input[type="radio"] {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        min-height: 36px !important;
+      }
+
+      body.mobile-device.portrait .dropdown-item input[type="checkbox"]:checked::after,
+      body.tablet-device.portrait .dropdown-item input[type="checkbox"]:checked::after {
+        top: 6px !important;
+        left: 6px !important;
+        width: 20px !important;
+        height: 20px !important;
+      }
+
+      body.mobile-device.portrait .dropdown-item span,
+      body.tablet-device.portrait .dropdown-item span {
+        font-size: 36px !important;
+      }
+
+      /* Make Clear Filters button smaller */
+      body.mobile-device.portrait .dropdown-btn,
+      body.tablet-device.portrait .dropdown-btn {
+        font-size: 34px !important;
+        padding: 8px 16px !important;
+      }
+
+      /* Login screen adjustments */
+      body.mobile-device.portrait .login-box,
+      body.tablet-device.portrait .login-box {
+        padding: 32px 24px;
+        max-width: 95vw;
+      }
+
+      body.mobile-device.portrait .login-title,
+      body.tablet-device.portrait .login-title {
+        font-size: 24px;
+      }
+
+      /* Breadcrumb navigation - 2x bigger for easier touch navigation */
+      body.mobile-device.portrait #breadcrumbNav,
+      body.tablet-device.portrait #breadcrumbNav {
+        font-size: 26px !important;
+        margin: 12px 0 !important;
+        padding: 8px 0 !important;
+        line-height: 1.5 !important;
+      }
+
+      body.mobile-device.portrait #breadcrumbNav a,
+      body.tablet-device.portrait #breadcrumbNav a {
+        padding: 8px 4px !important;
+        font-size: 26px !important;
+      }
+
+      body.mobile-device.portrait #breadcrumbNav span,
+      body.tablet-device.portrait #breadcrumbNav span {
+        margin: 0 12px !important;
+        font-size: 26px !important;
+      }
+
+      /* ==================== DESKTOP DEVICE STYLES ==================== */
+      /* Desktop: 12px side borders total */
+      /* Multiple selectors for maximum compatibility */
+      body.desktop-device,
+      html.desktop-device body,
+      html[data-device="desktop-device"] body {
+        padding: 18px 0 32px !important;
+      }
+
+      body.desktop-device .shell,
+      html.desktop-device .shell,
+      html[data-device="desktop-device"] .shell {
+        padding: 0 24px;
       }
 
       /* Large desktop (1440px and up) - optimize for big screens */
       @media (min-width: 1440px) {
-        .shell {
-          max-width: 1400px;
-        }
-
         /* More columns on large screens */
         .grid {
           grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -2244,10 +2367,6 @@
 
       /* Ultra-wide (1920px and up) */
       @media (min-width: 1920px) {
-        .shell {
-          max-width: 1600px;
-        }
-
         .grid {
           grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
           gap: 24px;
@@ -2278,9 +2397,6 @@
             <div class="catalog-row">
               <span class="catalog-label"></span>
               <span id="catalogName" class="catalog-name">Catalogue</span>
-              <button id="editCatalogBtn" class="catalog-edit-btn" title="Rename catalogue" style="display: none">
-                ✏
-              </button>
             </div>
           </div>
         </div>
@@ -2495,102 +2611,6 @@
       </div>
     </div>
 
-    <!-- Manage Columns Modal -->
-    <div id="manageColumnsModal" class="modal">
-      <div class="modal-box" style="max-width: 900px;">
-        <div class="modal-header">
-          <h2>Manage Columns</h2>
-          <button class="modal-close-x" onclick="closeManageColumnsModal()">✕</button>
-        </div>
-        <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
-          <table id="columnsTable" style="width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr>
-                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Order</th>
-                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Column Name</th>
-                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Display Name</th>
-                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Type</th>
-                <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Filter</th>
-                <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Sort</th>
-                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Item Place</th>
-                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Special Role</th>
-                <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="columnsTableBody">
-              <!-- Populated dynamically -->
-            </tbody>
-          </table>
-        </div>
-        <div class="modal-footer">
-          <button id="addColumnBtn" class="btn-primary">+ Add Column</button>
-          <button id="manageColsCancelBtn" class="btn-secondary">Close</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Column Editor Modal -->
-    <div id="columnEditorModal" class="modal">
-      <div class="modal-box">
-        <div class="modal-header">
-          <h2 id="columnEditorTitle">Edit Column</h2>
-          <button class="modal-close-x" onclick="closeColumnEditor()">✕</button>
-        </div>
-        <div class="modal-body">
-          <label>Column Name</label>
-          <input type="text" id="editColName" placeholder="e.g., Price">
-
-          <label>Display Name</label>
-          <input type="text" id="editColDisplayName" placeholder="e.g., Item Price">
-
-          <label>Type</label>
-          <select id="editColType">
-            <option value="text">Text</option>
-            <option value="number">Number</option>
-            <option value="date">Date</option>
-            <option value="image">Image</option>
-            <option value="url">URL</option>
-          </select>
-
-          <label class="checkbox-label">
-            <input type="checkbox" id="editColShowInFilter">
-            Show in Filter
-          </label>
-
-          <label class="checkbox-label">
-            <input type="checkbox" id="editColShowInSort">
-            Show in Sort
-          </label>
-
-          <label>Item Place</label>
-          <select id="editColItemPlace">
-            <option value="Primary Identifier">Primary Identifier</option>
-            <option value="Main Image">Main Image</option>
-            <option value="SubId1">SubId1</option>
-            <option value="SubId2">SubId2</option>
-            <option value="Top Corner">Top Corner</option>
-            <option value="Long text Up">Long text Up</option>
-            <option value="Detail Left">Detail Left</option>
-            <option value="Detail Right">Detail Right</option>
-            <option value="Long text Down">Long text Down</option>
-            <option value="Bottom">Bottom</option>
-            <option value="">None</option>
-          </select>
-
-          <label>Special Role</label>
-          <select id="editColSpecialRole">
-            <option value="">None</option>
-            <option value="Auto-filled User Mail">Auto-filled User Mail</option>
-            <option value="External Link">External Link</option>
-            <option value="Formula (Read-only)">Formula (Read-only)</option>
-          </select>
-        </div>
-        <div class="modal-footer">
-          <button id="columnEditorCancelBtn" class="btn-secondary">Cancel</button>
-          <button id="columnEditorSaveBtn" class="btn-primary">Save</button>
-        </div>
-      </div>
-    </div>
 
     <!-- Toast notification container -->
     <div class="toast-container" id="toastContainer"></div>
@@ -2604,6 +2624,50 @@
     </div>
 
     <script>
+      // ==================== DEVICE DETECTION ====================
+      // Add device class to body (already added to html in head)
+
+      (function() {
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const isMobile = /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(ua);
+        const isTablet = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(ua);
+
+        // Add same class to body that was added to html
+        if (isMobile) {
+          document.body.className = 'mobile-device';
+          console.log('✅ Device: Mobile (body class set)');
+        } else if (isTablet) {
+          document.body.className = 'tablet-device';
+          console.log('✅ Device: Tablet (body class set)');
+        } else {
+          document.body.className = 'desktop-device';
+          console.log('✅ Device: Desktop (body class set)');
+        }
+
+        // Add initial orientation class
+        updateOrientation();
+      })();
+
+      function updateOrientation() {
+        // Remove existing orientation classes
+        document.body.classList.remove('landscape', 'portrait');
+
+        // Check orientation
+        const isLandscape = window.innerWidth > window.innerHeight;
+
+        if (isLandscape) {
+          document.body.classList.add('landscape');
+          console.log('📱 Orientation: Landscape');
+        } else {
+          document.body.classList.add('portrait');
+          console.log('📱 Orientation: Portrait');
+        }
+      }
+
+      // Update orientation on resize/orientation change
+      window.addEventListener('resize', updateOrientation);
+      window.addEventListener('orientationchange', updateOrientation);
+
       // ==================== TOAST NOTIFICATION SYSTEM ====================
       
       function showToast(message, type = 'info') {
@@ -3543,20 +3607,16 @@
         if (!user) return;
 
         const addBtn = document.getElementById("addBtn");
-        const editCatalogBtn = document.getElementById("editCatalogBtn");
         const sheetLinkBtn = document.getElementById("sheetLinkBtn");
 
         if (user.profile === "Viewer") {
           addBtn.style.display = "none";
-          editCatalogBtn.style.display = "none";
           sheetLinkBtn.style.display = "none";
         } else if (user.profile === "Editor") {
           addBtn.style.display = "inline-flex";
-          editCatalogBtn.style.display = "none";
           sheetLinkBtn.style.display = "none";
         } else if (user.profile === "Creator") {
           addBtn.style.display = "inline-flex";
-          editCatalogBtn.style.display = "inline-block";
           sheetLinkBtn.style.display = "inline-flex";
         }
 
@@ -5056,280 +5116,6 @@
         );
       }
 
-      // -------------------- Column Management (Creator only) --------------------
-
-      let editingColumnIndex = -1;
-
-      function openManageColumnsModal() {
-        if (!user || user.profile !== "Creator") {
-          showToast("Only Creator can manage columns.", "warning");
-          return;
-        }
-
-        const modal = document.getElementById("manageColumnsModal");
-        populateColumnsTable();
-        modal.style.display = "flex";
-      }
-
-      function closeManageColumnsModal() {
-        document.getElementById("manageColumnsModal").style.display = "none";
-      }
-
-      function populateColumnsTable() {
-        const tbody = document.getElementById("columnsTableBody");
-        tbody.innerHTML = "";
-
-        for (let i = 0; i < columnConfig.length; i++) {
-          const config = columnConfig[i];
-          const row = document.createElement("tr");
-          row.style.borderBottom = "1px solid #e5e7eb";
-
-          const canMoveUp = i > 0;
-          const canMoveDown = i < columnConfig.length - 1;
-
-          row.innerHTML = `
-            <td style="padding: 8px; text-align: center;">
-              <button onclick="moveColumnUp(${i})" ${!canMoveUp ? 'disabled' : ''} style="background: none; border: none; cursor: ${canMoveUp ? 'pointer' : 'not-allowed'}; font-size: 16px; padding: 2px 4px; color: ${canMoveUp ? '#3b82f6' : '#d1d5db'};">▲</button>
-              <button onclick="moveColumnDown(${i})" ${!canMoveDown ? 'disabled' : ''} style="background: none; border: none; cursor: ${canMoveDown ? 'pointer' : 'not-allowed'}; font-size: 16px; padding: 2px 4px; color: ${canMoveDown ? '#3b82f6' : '#d1d5db'};">▼</button>
-            </td>
-            <td style="padding: 8px;">${config.columnName}</td>
-            <td style="padding: 8px;">${config.displayName || config.columnName}</td>
-            <td style="padding: 8px;">${config.type || 'text'}</td>
-            <td style="padding: 8px; text-align: center;">${config.showInFilter ? '✓' : '—'}</td>
-            <td style="padding: 8px; text-align: center;">${config.showInSort ? '✓' : '—'}</td>
-            <td style="padding: 8px;">${config.itemPlaceDisplay || '—'}</td>
-            <td style="padding: 8px;">${config.specialRoleDisplay || '—'}</td>
-            <td style="padding: 8px; text-align: center;">
-              <button class="btn-text" onclick="openEditColumn(${i})" style="font-size: 11px; padding: 4px 8px;">Edit</button>
-              <button class="btn-text" onclick="confirmDeleteColumn(${i})" style="font-size: 11px; padding: 4px 8px; color: #dc2626;">Delete</button>
-            </td>
-          `;
-
-          tbody.appendChild(row);
-        }
-      }
-
-      function openAddColumn() {
-        editingColumnIndex = -1;
-        const modal = document.getElementById("columnEditorModal");
-        const title = document.getElementById("columnEditorTitle");
-
-        title.textContent = "Add New Column";
-
-        // Clear form
-        document.getElementById("editColName").value = "";
-        document.getElementById("editColDisplayName").value = "";
-        document.getElementById("editColType").value = "text";
-        document.getElementById("editColShowInFilter").checked = false;
-        document.getElementById("editColShowInSort").checked = false;
-        document.getElementById("editColItemPlace").value = "";
-        document.getElementById("editColSpecialRole").value = "";
-
-        // Enable column name field (only for new columns)
-        document.getElementById("editColName").disabled = false;
-
-        modal.style.display = "flex";
-      }
-
-      function openEditColumn(index) {
-        editingColumnIndex = index;
-        const config = columnConfig[index];
-        const modal = document.getElementById("columnEditorModal");
-        const title = document.getElementById("columnEditorTitle");
-
-        title.textContent = "Edit Column";
-
-        // Populate form
-        document.getElementById("editColName").value = config.columnName;
-        document.getElementById("editColDisplayName").value = config.displayName || config.columnName;
-        document.getElementById("editColType").value = config.type || "text";
-        document.getElementById("editColShowInFilter").checked = config.showInFilter || false;
-        document.getElementById("editColShowInSort").checked = config.showInSort || false;
-        document.getElementById("editColItemPlace").value = config.itemPlaceDisplay || "";
-        document.getElementById("editColSpecialRole").value = config.specialRoleDisplay || "";
-
-        // Disable column name field (can't rename existing columns)
-        document.getElementById("editColName").disabled = true;
-
-        modal.style.display = "flex";
-      }
-
-      function closeColumnEditor() {
-        document.getElementById("columnEditorModal").style.display = "none";
-      }
-
-      function saveColumnEditor() {
-        const columnName = document.getElementById("editColName").value.trim();
-        const displayName = document.getElementById("editColDisplayName").value.trim();
-        const type = document.getElementById("editColType").value;
-        const showInFilter = document.getElementById("editColShowInFilter").checked;
-        const showInSort = document.getElementById("editColShowInSort").checked;
-        const itemPlace = document.getElementById("editColItemPlace").value;
-        const specialRole = document.getElementById("editColSpecialRole").value;
-        const token = getSessionToken();
-
-        if (!columnName) {
-          showToast("Column name is required.", "error");
-          return;
-        }
-
-        if (editingColumnIndex === -1) {
-          // Adding new column
-          google.script.run
-            .withSuccessHandler(function (msg) {
-              showToast(msg, "success");
-              closeColumnEditor();
-              reloadColumnConfig();
-            })
-            .withFailureHandler(function(error) {
-              showToast("Error: " + error.message, "error");
-            })
-            .addNewColumn(columnName, displayName, type, showInFilter, showInSort, itemPlace, specialRole, token);
-        } else {
-          // Editing existing column
-          const updatedConfig = columnConfig.slice();
-          updatedConfig[editingColumnIndex] = {
-            columnName: columnName,
-            displayName: displayName,
-            type: type,
-            showInFilter: showInFilter,
-            showInSort: showInSort,
-            itemPlace: itemPlace,
-            itemPlaceDisplay: itemPlace,
-            specialRole: specialRole,
-            specialRoleDisplay: specialRole
-          };
-
-          google.script.run
-            .withSuccessHandler(function (msg) {
-              showToast(msg, "success");
-              closeColumnEditor();
-              reloadColumnConfig();
-            })
-            .withFailureHandler(function(error) {
-              showToast("Error: " + error.message, "error");
-            })
-            .saveColumnConfig(updatedConfig, token);
-        }
-      }
-
-      function reloadColumnConfig() {
-        const token = getSessionToken();
-        google.script.run
-          .withSuccessHandler(function (payload) {
-            columnConfig = payload.columnConfig || [];
-            headers = payload.headers || [];
-            allItems = payload.items || [];
-
-            loadColumnConfig();
-            computeUniqueValues();
-            populateColumnsTable();
-            updateChipsUI();
-            applyFiltersAndSorting();
-          })
-          .getInitialData(token);
-      }
-
-      function moveColumnUp(index) {
-        if (index <= 0) return;
-
-        // Swap with previous item
-        const temp = columnConfig[index];
-        columnConfig[index] = columnConfig[index - 1];
-        columnConfig[index - 1] = temp;
-
-        const token = getSessionToken();
-
-        // Save reordered config
-        google.script.run
-          .withSuccessHandler(function (msg) {
-            showToast(msg, "success");
-            populateColumnsTable();
-          })
-          .withFailureHandler(function(error) {
-            showToast("Error: " + error.message, "error");
-          })
-          .saveColumnConfig(columnConfig, token);
-      }
-
-      function moveColumnDown(index) {
-        if (index >= columnConfig.length - 1) return;
-
-        // Swap with next item
-        const temp = columnConfig[index];
-        columnConfig[index] = columnConfig[index + 1];
-        columnConfig[index + 1] = temp;
-
-        const token = getSessionToken();
-
-        // Save reordered config
-        google.script.run
-          .withSuccessHandler(function (msg) {
-            showToast(msg, "success");
-            populateColumnsTable();
-          })
-          .withFailureHandler(function(error) {
-            showToast("Error: " + error.message, "error");
-          })
-          .saveColumnConfig(columnConfig, token);
-      }
-
-      function confirmDeleteColumn(index) {
-        const config = columnConfig[index];
-        showConfirm(
-          "Delete Column",
-          "Are you sure you want to delete the column '" + config.columnName + "'? This will remove the column from both the ColumnConfig and Main sheets. This action cannot be undone.",
-          function() {
-            deleteColumn(index);
-          }
-        );
-      }
-
-      function deleteColumn(index) {
-        const config = columnConfig[index];
-        const token = getSessionToken();
-
-        google.script.run
-          .withSuccessHandler(function (msg) {
-            showToast(msg, "success");
-            reloadColumnConfig();
-          })
-          .withFailureHandler(function(error) {
-            showToast("Error: " + error.message, "error");
-          })
-          .deleteColumn(config.columnName, token);
-      }
-
-      function promptRenameCatalogue() {
-        if (!user || user.profile !== "Creator") return;
-        const current = (settings && settings.catalogName) || "";
-
-        showPrompt(
-          "Rename Catalogue",
-          "Enter a new name for your catalogue:",
-          current,
-          function(name) {
-            const token = getSessionToken();
-            google.script.run
-              .withSuccessHandler(function (msg) {
-                showToast(msg, "success");
-                google.script.run
-                  .withSuccessHandler(function (s) {
-                    settings = s || settings;
-                    updateHeaderUI();
-                  })
-                  .getSettings();
-              })
-              .withFailureHandler(function(error) {
-                showToast("Error: " + error.message, "error");
-              })
-              .renameCatalogue(name, token);
-          }
-        );
-      }
-
-      // -------------------- Init --------------------
-
       async function init() {
         console.log('=== App Initialization Starting ===');
 
@@ -5611,7 +5397,6 @@
           openAdd();
         };
         document.getElementById("editCancelBtn").onclick = closeEditModal;
-        document.getElementById("editCatalogBtn").onclick = promptRenameCatalogue;
 
         // Sheet link button (Creator only)
         document.getElementById("sheetLinkBtn").onclick = function() {
