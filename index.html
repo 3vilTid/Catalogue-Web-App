@@ -5119,6 +5119,33 @@
         );
       }
 
+      function promptRenameCatalogue() {
+        if (!user || user.profile !== "Creator") return;
+        const current = (settings && settings.catalogName) || "";
+
+        showPrompt(
+          "Rename Catalogue",
+          "Enter a new name for your catalogue:",
+          current,
+          function(name) {
+            const token = getSessionToken();
+            google.script.run
+              .withSuccessHandler(function (msg) {
+                showToast(msg, "success");
+                google.script.run
+                  .withSuccessHandler(function (s) {
+                    settings = s || settings;
+                    updateHeaderUI();
+                  })
+                  .getSettings();
+              })
+              .withFailureHandler(function(error) {
+                showToast("Error: " + error.message, "error");
+              })
+              .renameCatalogue(name, token);
+          }
+        );
+      }
 
       async function init() {
         console.log('=== App Initialization Starting ===');
