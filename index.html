@@ -1859,11 +1859,17 @@
         margin-bottom: 10px;
       }
 
-      /* Logo size in landscape: 60px */
+      /* Logo size in landscape: 60px, reduce gap */
       body.mobile-device.landscape .app-logo,
       body.tablet-device.landscape .app-logo {
         width: 60px;
         height: 60px;
+        margin: 0;
+      }
+
+      body.mobile-device.landscape .left-block,
+      body.tablet-device.landscape .left-block {
+        gap: 6px;
       }
 
       /* Right-block: Put everything on one line (Signed in: email badge + Login button) */
@@ -1874,11 +1880,12 @@
         gap: 8px;
       }
 
-      /* Reduce filters-row padding and margin (search bar area) - more compact */
+      /* Reduce filters-row padding and center items vertically */
       body.mobile-device.landscape .filters-row,
       body.tablet-device.landscape .filters-row {
-        padding: 4px 10px;
+        padding: 2px 10px;
         margin-bottom: 0;
+        align-items: center;
       }
 
       /* Smaller header text in landscape */
