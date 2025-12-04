@@ -1853,10 +1853,19 @@
         justify-content: space-between;
       }
 
+      /* Override mobile width: 100% for landscape - let items size naturally */
+      body.mobile-device.landscape .filters-left,
+      body.tablet-device.landscape .filters-left {
+        width: auto;
+        flex-shrink: 1;
+      }
+
       /* Buttons stay in normal flow on the right side */
       body.mobile-device.landscape .filters-right,
       body.tablet-device.landscape .filters-right {
+        width: auto;
         gap: 6px;
+        flex-shrink: 0;
       }
 
 
