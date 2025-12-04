@@ -1938,16 +1938,11 @@
         margin-top: 8px;
       }
 
-      /* Detail view gap: 4px in landscape */
+      /* Detail view gap: 4px in landscape - reduce margin AND padding */
       body.mobile-device.landscape #detailView,
       body.tablet-device.landscape #detailView {
-        margin-top: 4px !important;
-        background: red !important;
-      }
-
-      /* TEST: Hide logo in detail view on mobile landscape only */
-      body.mobile-device.landscape .app-logo {
-        display: none !important;
+        margin-top: 0 !important;
+        padding-top: 4px !important;
       }
 
       /* Keep buttons at current size - already configured below */
