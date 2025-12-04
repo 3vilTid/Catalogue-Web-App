@@ -1938,10 +1938,11 @@
         margin-top: 8px;
       }
 
-      /* Detail view gap: 4px in mobile landscape only - use data attributes since classes get stripped */
-      html[data-device="mobile-device"][data-orientation="landscape"] #detailView,
-      html[data-device="tablet-device"][data-orientation="landscape"] #detailView {
-        margin-top: 4px;
+      /* Detail view gap: 4px in mobile landscape only - use media query since classes/attributes get stripped */
+      @media (max-width: 900px) and (orientation: landscape) {
+        #detailView {
+          margin-top: 4px;
+        }
       }
 
       /* Keep buttons at current size - already configured below */
