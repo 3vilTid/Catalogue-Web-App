@@ -620,8 +620,9 @@
         box-shadow: var(--shadow-soft);
       }
 
-      /* Reduce gap between search bar and detail content only */
-      .shell:has(#detailView[style*="display: block"]) .filters-row {
+      /* Reduce gap between search bar and detail content - exclude mobile/tablet landscape */
+      body:not(.landscape) .shell:has(#detailView[style*="display: block"]) .filters-row,
+      body.desktop-device .shell:has(#detailView[style*="display: block"]) .filters-row {
         margin-bottom: 8px !important;
       }
 
@@ -1934,17 +1935,6 @@
       body.tablet-device.landscape .grid {
         grid-template-columns: repeat(4, 1fr);
         gap: 10px;
-        margin-top: 8px;
-      }
-
-      /* Override landscape filters-row margin in detail view to match grid gap */
-      body.mobile-device.landscape .shell:has(#detailView[style*="display: block"]) .filters-row,
-      body.tablet-device.landscape .shell:has(#detailView[style*="display: block"]) .filters-row {
-        margin-bottom: 0 !important;
-      }
-
-      body.mobile-device.landscape #detailView,
-      body.tablet-device.landscape #detailView {
         margin-top: 8px;
       }
 
