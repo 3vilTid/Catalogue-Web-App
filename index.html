@@ -1820,6 +1820,7 @@
         margin-bottom: 10px;
         align-items: center;
         min-height: 68px;
+        position: relative;
       }
 
       /* Logo size in landscape: 60px, reduce gap */
@@ -1849,7 +1850,20 @@
         padding: 4px 4px;
         margin-bottom: 0;
         align-items: center;
+        flex-direction: row;
+        justify-content: flex-start;
       }
+
+      /* MOBILE LANDSCAPE: Move toolbar buttons to top-right */
+      body.mobile-device.landscape .filters-right,
+      body.tablet-device.landscape .filters-right {
+        position: absolute;
+        top: 4px;
+        right: 10px;
+        z-index: 100;
+        gap: 6px;
+      }
+
 
       /* Smaller header text in landscape */
       body.mobile-device.landscape .app-name,
