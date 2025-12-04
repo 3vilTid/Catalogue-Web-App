@@ -1345,29 +1345,6 @@
         }
       }
 
-      /* Column Management Table ----------------------------------------- */
-
-      #columnsTable {
-        font-size: 12px;
-      }
-
-      #columnsTable th {
-        font-weight: 600;
-        color: #374151;
-        position: sticky;
-        top: 0;
-        background: #f3f4f6;
-        z-index: 10;
-      }
-
-      #columnsTable tbody tr:hover {
-        background: #f9fafb;
-      }
-
-      #columnsTable input[type="checkbox"] {
-        cursor: pointer;
-      }
-
       /* Login Screen ---------------------------------------------------- */
 
       #loginScreen {
@@ -1736,10 +1713,8 @@
 
       /* Right toolbar buttons */
       body.mobile-device #sheetBtn,
-      body.mobile-device #columnsBtn,
       body.mobile-device #addBtn,
       body.tablet-device #sheetBtn,
-      body.tablet-device #columnsBtn,
       body.tablet-device #addBtn {
         height: 68px !important;
         min-height: 68px !important;
@@ -1964,7 +1939,6 @@
       body.mobile-device.landscape #sortBtn,
       body.mobile-device.landscape #backToListBtn,
       body.mobile-device.landscape #sheetBtn,
-      body.mobile-device.landscape #columnsBtn,
       body.mobile-device.landscape #addBtn,
       body.tablet-device.landscape .btn-toolbar,
       body.tablet-device.landscape .btn-primary,
@@ -1974,7 +1948,6 @@
       body.tablet-device.landscape #sortBtn,
       body.tablet-device.landscape #backToListBtn,
       body.tablet-device.landscape #sheetBtn,
-      body.tablet-device.landscape #columnsBtn,
       body.tablet-device.landscape #addBtn {
         height: 40px !important;
         min-height: 40px !important;
@@ -2234,14 +2207,12 @@
       body.mobile-device.portrait #sortBtn,
       body.mobile-device.portrait #backToListBtn,
       body.mobile-device.portrait #sheetBtn,
-      body.mobile-device.portrait #columnsBtn,
       body.mobile-device.portrait #addBtn,
       body.tablet-device.portrait .btn-toolbar,
       body.tablet-device.portrait #filterBtn,
       body.tablet-device.portrait #sortBtn,
       body.tablet-device.portrait #backToListBtn,
       body.tablet-device.portrait #sheetBtn,
-      body.tablet-device.portrait #columnsBtn,
       body.tablet-device.portrait #addBtn {
         font-size: 28px !important;
         min-height: 80px !important;
@@ -2639,102 +2610,6 @@
       </div>
     </div>
 
-    <!-- Manage Columns Modal -->
-    <div id="manageColumnsModal" class="modal">
-      <div class="modal-box" style="max-width: 900px;">
-        <div class="modal-header">
-          <h2>Manage Columns</h2>
-          <button class="modal-close-x" onclick="closeManageColumnsModal()">✕</button>
-        </div>
-        <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
-          <table id="columnsTable" style="width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr>
-                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Order</th>
-                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Column Name</th>
-                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Display Name</th>
-                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Type</th>
-                <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Filter</th>
-                <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Sort</th>
-                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Item Place</th>
-                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Special Role</th>
-                <th style="padding: 8px; text-align: center; border-bottom: 2px solid #e5e7eb;">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="columnsTableBody">
-              <!-- Populated dynamically -->
-            </tbody>
-          </table>
-        </div>
-        <div class="modal-footer">
-          <button id="addColumnBtn" class="btn-primary">+ Add Column</button>
-          <button id="manageColsCancelBtn" class="btn-secondary">Close</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Column Editor Modal -->
-    <div id="columnEditorModal" class="modal">
-      <div class="modal-box">
-        <div class="modal-header">
-          <h2 id="columnEditorTitle">Edit Column</h2>
-          <button class="modal-close-x" onclick="closeColumnEditor()">✕</button>
-        </div>
-        <div class="modal-body">
-          <label>Column Name</label>
-          <input type="text" id="editColName" placeholder="e.g., Price">
-
-          <label>Display Name</label>
-          <input type="text" id="editColDisplayName" placeholder="e.g., Item Price">
-
-          <label>Type</label>
-          <select id="editColType">
-            <option value="text">Text</option>
-            <option value="number">Number</option>
-            <option value="date">Date</option>
-            <option value="image">Image</option>
-            <option value="url">URL</option>
-          </select>
-
-          <label class="checkbox-label">
-            <input type="checkbox" id="editColShowInFilter">
-            Show in Filter
-          </label>
-
-          <label class="checkbox-label">
-            <input type="checkbox" id="editColShowInSort">
-            Show in Sort
-          </label>
-
-          <label>Item Place</label>
-          <select id="editColItemPlace">
-            <option value="Primary Identifier">Primary Identifier</option>
-            <option value="Main Image">Main Image</option>
-            <option value="SubId1">SubId1</option>
-            <option value="SubId2">SubId2</option>
-            <option value="Top Corner">Top Corner</option>
-            <option value="Long text Up">Long text Up</option>
-            <option value="Detail Left">Detail Left</option>
-            <option value="Detail Right">Detail Right</option>
-            <option value="Long text Down">Long text Down</option>
-            <option value="Bottom">Bottom</option>
-            <option value="">None</option>
-          </select>
-
-          <label>Special Role</label>
-          <select id="editColSpecialRole">
-            <option value="">None</option>
-            <option value="Auto-filled User Mail">Auto-filled User Mail</option>
-            <option value="External Link">External Link</option>
-            <option value="Formula (Read-only)">Formula (Read-only)</option>
-          </select>
-        </div>
-        <div class="modal-footer">
-          <button id="columnEditorCancelBtn" class="btn-secondary">Cancel</button>
-          <button id="columnEditorSaveBtn" class="btn-primary">Save</button>
-        </div>
-      </div>
-    </div>
 
     <!-- Toast notification container -->
     <div class="toast-container" id="toastContainer"></div>
@@ -5244,279 +5119,6 @@
         );
       }
 
-      // -------------------- Column Management (Creator only) --------------------
-
-      let editingColumnIndex = -1;
-
-      function openManageColumnsModal() {
-        if (!user || user.profile !== "Creator") {
-          showToast("Only Creator can manage columns.", "warning");
-          return;
-        }
-
-        const modal = document.getElementById("manageColumnsModal");
-        populateColumnsTable();
-        modal.style.display = "flex";
-      }
-
-      function closeManageColumnsModal() {
-        document.getElementById("manageColumnsModal").style.display = "none";
-      }
-
-      function populateColumnsTable() {
-        const tbody = document.getElementById("columnsTableBody");
-        tbody.innerHTML = "";
-
-        for (let i = 0; i < columnConfig.length; i++) {
-          const config = columnConfig[i];
-          const row = document.createElement("tr");
-          row.style.borderBottom = "1px solid #e5e7eb";
-
-          const canMoveUp = i > 0;
-          const canMoveDown = i < columnConfig.length - 1;
-
-          row.innerHTML = `
-            <td style="padding: 8px; text-align: center;">
-              <button onclick="moveColumnUp(${i})" ${!canMoveUp ? 'disabled' : ''} style="background: none; border: none; cursor: ${canMoveUp ? 'pointer' : 'not-allowed'}; font-size: 16px; padding: 2px 4px; color: ${canMoveUp ? '#3b82f6' : '#d1d5db'};">▲</button>
-              <button onclick="moveColumnDown(${i})" ${!canMoveDown ? 'disabled' : ''} style="background: none; border: none; cursor: ${canMoveDown ? 'pointer' : 'not-allowed'}; font-size: 16px; padding: 2px 4px; color: ${canMoveDown ? '#3b82f6' : '#d1d5db'};">▼</button>
-            </td>
-            <td style="padding: 8px;">${config.columnName}</td>
-            <td style="padding: 8px;">${config.displayName || config.columnName}</td>
-            <td style="padding: 8px;">${config.type || 'text'}</td>
-            <td style="padding: 8px; text-align: center;">${config.showInFilter ? '✓' : '—'}</td>
-            <td style="padding: 8px; text-align: center;">${config.showInSort ? '✓' : '—'}</td>
-            <td style="padding: 8px;">${config.itemPlaceDisplay || '—'}</td>
-            <td style="padding: 8px;">${config.specialRoleDisplay || '—'}</td>
-            <td style="padding: 8px; text-align: center;">
-              <button class="btn-text" onclick="openEditColumn(${i})" style="font-size: 11px; padding: 4px 8px;">Edit</button>
-              <button class="btn-text" onclick="confirmDeleteColumn(${i})" style="font-size: 11px; padding: 4px 8px; color: #dc2626;">Delete</button>
-            </td>
-          `;
-
-          tbody.appendChild(row);
-        }
-      }
-
-      function openAddColumn() {
-        editingColumnIndex = -1;
-        const modal = document.getElementById("columnEditorModal");
-        const title = document.getElementById("columnEditorTitle");
-
-        title.textContent = "Add New Column";
-
-        // Clear form
-        document.getElementById("editColName").value = "";
-        document.getElementById("editColDisplayName").value = "";
-        document.getElementById("editColType").value = "text";
-        document.getElementById("editColShowInFilter").checked = false;
-        document.getElementById("editColShowInSort").checked = false;
-        document.getElementById("editColItemPlace").value = "";
-        document.getElementById("editColSpecialRole").value = "";
-
-        // Enable column name field (only for new columns)
-        document.getElementById("editColName").disabled = false;
-
-        modal.style.display = "flex";
-      }
-
-      function openEditColumn(index) {
-        editingColumnIndex = index;
-        const config = columnConfig[index];
-        const modal = document.getElementById("columnEditorModal");
-        const title = document.getElementById("columnEditorTitle");
-
-        title.textContent = "Edit Column";
-
-        // Populate form
-        document.getElementById("editColName").value = config.columnName;
-        document.getElementById("editColDisplayName").value = config.displayName || config.columnName;
-        document.getElementById("editColType").value = config.type || "text";
-        document.getElementById("editColShowInFilter").checked = config.showInFilter || false;
-        document.getElementById("editColShowInSort").checked = config.showInSort || false;
-        document.getElementById("editColItemPlace").value = config.itemPlaceDisplay || "";
-        document.getElementById("editColSpecialRole").value = config.specialRoleDisplay || "";
-
-        // Disable column name field (can't rename existing columns)
-        document.getElementById("editColName").disabled = true;
-
-        modal.style.display = "flex";
-      }
-
-      function closeColumnEditor() {
-        document.getElementById("columnEditorModal").style.display = "none";
-      }
-
-      function saveColumnEditor() {
-        const columnName = document.getElementById("editColName").value.trim();
-        const displayName = document.getElementById("editColDisplayName").value.trim();
-        const type = document.getElementById("editColType").value;
-        const showInFilter = document.getElementById("editColShowInFilter").checked;
-        const showInSort = document.getElementById("editColShowInSort").checked;
-        const itemPlace = document.getElementById("editColItemPlace").value;
-        const specialRole = document.getElementById("editColSpecialRole").value;
-        const token = getSessionToken();
-
-        if (!columnName) {
-          showToast("Column name is required.", "error");
-          return;
-        }
-
-        if (editingColumnIndex === -1) {
-          // Adding new column
-          google.script.run
-            .withSuccessHandler(function (msg) {
-              showToast(msg, "success");
-              closeColumnEditor();
-              reloadColumnConfig();
-            })
-            .withFailureHandler(function(error) {
-              showToast("Error: " + error.message, "error");
-            })
-            .addNewColumn(columnName, displayName, type, showInFilter, showInSort, itemPlace, specialRole, token);
-        } else {
-          // Editing existing column
-          const updatedConfig = columnConfig.slice();
-          updatedConfig[editingColumnIndex] = {
-            columnName: columnName,
-            displayName: displayName,
-            type: type,
-            showInFilter: showInFilter,
-            showInSort: showInSort,
-            itemPlace: itemPlace,
-            itemPlaceDisplay: itemPlace,
-            specialRole: specialRole,
-            specialRoleDisplay: specialRole
-          };
-
-          google.script.run
-            .withSuccessHandler(function (msg) {
-              showToast(msg, "success");
-              closeColumnEditor();
-              reloadColumnConfig();
-            })
-            .withFailureHandler(function(error) {
-              showToast("Error: " + error.message, "error");
-            })
-            .saveColumnConfig(updatedConfig, token);
-        }
-      }
-
-      function reloadColumnConfig() {
-        const token = getSessionToken();
-        google.script.run
-          .withSuccessHandler(function (payload) {
-            columnConfig = payload.columnConfig || [];
-            headers = payload.headers || [];
-            allItems = payload.items || [];
-
-            loadColumnConfig();
-            computeUniqueValues();
-            populateColumnsTable();
-            updateChipsUI();
-            applyFiltersAndSorting();
-          })
-          .getInitialData(token);
-      }
-
-      function moveColumnUp(index) {
-        if (index <= 0) return;
-
-        // Swap with previous item
-        const temp = columnConfig[index];
-        columnConfig[index] = columnConfig[index - 1];
-        columnConfig[index - 1] = temp;
-
-        const token = getSessionToken();
-
-        // Save reordered config
-        google.script.run
-          .withSuccessHandler(function (msg) {
-            showToast(msg, "success");
-            populateColumnsTable();
-          })
-          .withFailureHandler(function(error) {
-            showToast("Error: " + error.message, "error");
-          })
-          .saveColumnConfig(columnConfig, token);
-      }
-
-      function moveColumnDown(index) {
-        if (index >= columnConfig.length - 1) return;
-
-        // Swap with next item
-        const temp = columnConfig[index];
-        columnConfig[index] = columnConfig[index + 1];
-        columnConfig[index + 1] = temp;
-
-        const token = getSessionToken();
-
-        // Save reordered config
-        google.script.run
-          .withSuccessHandler(function (msg) {
-            showToast(msg, "success");
-            populateColumnsTable();
-          })
-          .withFailureHandler(function(error) {
-            showToast("Error: " + error.message, "error");
-          })
-          .saveColumnConfig(columnConfig, token);
-      }
-
-      function confirmDeleteColumn(index) {
-        const config = columnConfig[index];
-        showConfirm(
-          "Delete Column",
-          "Are you sure you want to delete the column '" + config.columnName + "'? This will remove the column from both the ColumnConfig and Main sheets. This action cannot be undone.",
-          function() {
-            deleteColumn(index);
-          }
-        );
-      }
-
-      function deleteColumn(index) {
-        const config = columnConfig[index];
-        const token = getSessionToken();
-
-        google.script.run
-          .withSuccessHandler(function (msg) {
-            showToast(msg, "success");
-            reloadColumnConfig();
-          })
-          .withFailureHandler(function(error) {
-            showToast("Error: " + error.message, "error");
-          })
-          .deleteColumn(config.columnName, token);
-      }
-
-      function promptRenameCatalogue() {
-        if (!user || user.profile !== "Creator") return;
-        const current = (settings && settings.catalogName) || "";
-
-        showPrompt(
-          "Rename Catalogue",
-          "Enter a new name for your catalogue:",
-          current,
-          function(name) {
-            const token = getSessionToken();
-            google.script.run
-              .withSuccessHandler(function (msg) {
-                showToast(msg, "success");
-                google.script.run
-                  .withSuccessHandler(function (s) {
-                    settings = s || settings;
-                    updateHeaderUI();
-                  })
-                  .getSettings();
-              })
-              .withFailureHandler(function(error) {
-                showToast("Error: " + error.message, "error");
-              })
-              .renameCatalogue(name, token);
-          }
-        );
-      }
-
-      // -------------------- Init --------------------
 
       async function init() {
         console.log('=== App Initialization Starting ===');
