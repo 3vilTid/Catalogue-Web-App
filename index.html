@@ -613,11 +613,20 @@
 
       #detailView {
         display: none;
-        margin-top: 18px;
+        margin-top: 8px;
         padding: 18px 20px 20px;
         border-radius: 20px;
         background: rgba(255, 255, 255, 0.98);
         box-shadow: var(--shadow-soft);
+      }
+
+      /* Reduce gaps when detail view is shown */
+      .shell:has(#detailView[style*="display: block"]) .top-header {
+        margin-bottom: 8px !important;
+      }
+
+      .shell:has(#detailView[style*="display: block"]) .filters-row {
+        margin-bottom: 8px !important;
       }
 
       .detail-layout {
