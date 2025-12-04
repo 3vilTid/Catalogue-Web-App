@@ -1820,7 +1820,6 @@
         margin-bottom: 10px;
         align-items: center;
         min-height: 68px;
-        position: relative;
       }
 
       /* Logo size in landscape: 60px, reduce gap */
@@ -1844,23 +1843,19 @@
         gap: 8px;
       }
 
-      /* Filters-row padding: balanced 4px all around */
+      /* Filters-row: Keep buttons in same row, aligned to right */
       body.mobile-device.landscape .filters-row,
       body.tablet-device.landscape .filters-row {
         padding: 4px 4px;
         margin-bottom: 0;
         align-items: center;
         flex-direction: row;
-        justify-content: flex-start;
+        justify-content: space-between;
       }
 
-      /* MOBILE LANDSCAPE: Move toolbar buttons to top-right */
+      /* Buttons stay in normal flow on the right side */
       body.mobile-device.landscape .filters-right,
       body.tablet-device.landscape .filters-right {
-        position: absolute;
-        top: 4px;
-        right: 10px;
-        z-index: 100;
         gap: 6px;
       }
 
