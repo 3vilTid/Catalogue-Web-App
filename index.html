@@ -1531,11 +1531,7 @@
 
       /* Right toolbar buttons */
       body.mobile-device #sheetBtn,
-      body.mobile-device #columnsBtn,
-      body.mobile-device #addBtn,
-      body.tablet-device #sheetBtn,
-      body.tablet-device #columnsBtn,
-      body.tablet-device #addBtn {
+      body.tablet-device #sheetBtn {
         height: 68px !important;
         min-height: 68px !important;
         padding: 20px 28px !important;
@@ -1759,8 +1755,6 @@
       body.mobile-device.landscape #sortBtn,
       body.mobile-device.landscape #backToListBtn,
       body.mobile-device.landscape #sheetBtn,
-      body.mobile-device.landscape #columnsBtn,
-      body.mobile-device.landscape #addBtn,
       body.tablet-device.landscape .btn-toolbar,
       body.tablet-device.landscape .btn-primary,
       body.tablet-device.landscape .btn-secondary,
@@ -1768,9 +1762,7 @@
       body.tablet-device.landscape #filterBtn,
       body.tablet-device.landscape #sortBtn,
       body.tablet-device.landscape #backToListBtn,
-      body.tablet-device.landscape #sheetBtn,
-      body.tablet-device.landscape #columnsBtn,
-      body.tablet-device.landscape #addBtn {
+      body.tablet-device.landscape #sheetBtn {
         height: 40px !important;
         min-height: 40px !important;
         padding: 8px 16px !important;
@@ -2029,15 +2021,11 @@
       body.mobile-device.portrait #sortBtn,
       body.mobile-device.portrait #backToListBtn,
       body.mobile-device.portrait #sheetBtn,
-      body.mobile-device.portrait #columnsBtn,
-      body.mobile-device.portrait #addBtn,
       body.tablet-device.portrait .btn-toolbar,
       body.tablet-device.portrait #filterBtn,
       body.tablet-device.portrait #sortBtn,
       body.tablet-device.portrait #backToListBtn,
-      body.tablet-device.portrait #sheetBtn,
-      body.tablet-device.portrait #columnsBtn,
-      body.tablet-device.portrait #addBtn {
+      body.tablet-device.portrait #sheetBtn {
         font-size: 28px !important;
         min-height: 80px !important;
         padding: 12px 24px !important;
@@ -3412,20 +3400,16 @@
       function applyRoleVisibility() {
         if (!user) return;
 
-        const addBtn = document.getElementById("addBtn");
         const editCatalogBtn = document.getElementById("editCatalogBtn");
         const sheetLinkBtn = document.getElementById("sheetLinkBtn");
 
         if (user.profile === "Viewer") {
-          addBtn.style.display = "none";
           editCatalogBtn.style.display = "none";
           sheetLinkBtn.style.display = "none";
         } else if (user.profile === "Editor") {
-          addBtn.style.display = "inline-flex";
           editCatalogBtn.style.display = "none";
           sheetLinkBtn.style.display = "none";
         } else if (user.profile === "Creator") {
-          addBtn.style.display = "inline-flex";
           editCatalogBtn.style.display = "inline-block";
           sheetLinkBtn.style.display = "inline-flex";
         }
@@ -4193,20 +4177,7 @@
 
           if (editable || deletable) {
             html += '<div class="detail-actions">';
-            if (editable) {
-              const itemName = nameColumn ? (item[nameColumn.columnName] || "") : "";
-              html +=
-                '<button class="btn-secondary" onclick="openEdit(\'' +
-                itemName.replace(/'/g, "\\'") +
-                "')\">✏ Edit</button>";
-            }
-            if (deletable) {
-              const itemName = nameColumn ? (item[nameColumn.columnName] || "") : "";
-              html +=
-                '<button class="btn-danger" onclick="confirmDelete(\'' +
-                itemName.replace(/'/g, "\\'") +
-                "')\">🗑 Delete</button>";
-            }
+            // Edit and Delete buttons removed (creator-only features)
             html += "</div>";
           }
         }
@@ -5004,17 +4975,6 @@
         };
 
         // CRUD event handlers
-        document.getElementById("addBtn").onclick = function () {
-          if (
-            !user ||
-            (user.profile !== "Creator" && user.profile !== "Editor")
-          ) {
-            showToast("Only Creator or Editor can add items.", "warning");
-            return;
-          }
-          openAdd();
-        };
-        document.getElementById("editCancelBtn").onclick = closeEditModal;
         document.getElementById("editCatalogBtn").onclick = promptRenameCatalogue;
 
         // Sheet link button (Creator only)
