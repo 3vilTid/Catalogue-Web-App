@@ -1,3 +1,4 @@
+
 /**************************************************
  * Constants & Helpers
  **************************************************/
@@ -944,41 +945,6 @@ function deleteItem(name, token) {
 
   } catch (err) {
     throw new Error("Error deleting item: " + err.message);
-  }
-}
-
-/**************************************************
- * Column Management (Creator Only)
- **************************************************/
-
-/**************************************************
- * Settings Management (Creator Only)
- **************************************************/
-
-function renameCatalogue(newName, token) {
-  try {
-    // Verify session
-    var sessionResult = verifySession(token);
-    if (!sessionResult.success) {
-      throw new Error("Authentication required.");
-    }
-
-    var user = sessionResult.user;
-
-    // Only Creator can rename catalogue
-    if (user.profile !== "Creator") {
-      throw new Error("Only Creator can rename the catalogue.");
-    }
-
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sh = ss.getSheetByName("Settings");
-    if (!sh) throw new Error("Settings sheet not found.");
-
-    sh.getRange("C3").setValue(newName);
-    return "Catalogue renamed successfully.";
-
-  } catch (err) {
-    throw new Error("Error renaming catalogue: " + err.message);
   }
 }
 
