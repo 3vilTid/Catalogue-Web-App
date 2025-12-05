@@ -1886,11 +1886,16 @@
         min-height: 68px;
       }
 
-      /* Logo size in landscape: 60px, reduce gap */
-      body.mobile-device.landscape .app-logo,
-      body.tablet-device.landscape .app-logo {
+      /* Logo size in landscape: 60px for mobile, 70px for tablet */
+      body.mobile-device.landscape .app-logo {
         width: 60px;
         height: 60px;
+        margin: 0;
+      }
+
+      body.tablet-device.landscape .app-logo {
+        width: 70px;
+        height: 70px;
         margin: 0;
       }
 
@@ -1969,28 +1974,28 @@
 
       /* Bigger header text for TABLET landscape */
       body.tablet-device.landscape .app-name {
-        font-size: 20px !important;
+        font-size: 25px !important;
       }
 
       body.tablet-device.landscape .catalog-label {
-        font-size: 15px !important;
-      }
-
-      body.tablet-device.landscape .catalog-name {
         font-size: 17px !important;
       }
 
+      body.tablet-device.landscape .catalog-name {
+        font-size: 20px !important;
+      }
+
       body.tablet-device.landscape .user-role {
-        font-size: 15px !important;
+        font-size: 17px !important;
       }
 
       body.tablet-device.landscape .user-email {
-        font-size: 15px !important;
+        font-size: 17px !important;
       }
 
       body.tablet-device.landscape .profile-badge {
-        font-size: 14px !important;
-        padding: 3px 8px !important;
+        font-size: 16px !important;
+        padding: 4px 10px !important;
       }
 
       /* Smaller search bar in MOBILE landscape */
@@ -2009,23 +2014,40 @@
 
       /* Bigger search bar for TABLET landscape */
       body.tablet-device.landscape .search-input {
-        height: 44px !important;
-        font-size: 16px !important;
-        padding: 0 44px 0 14px !important;
+        height: 48px !important;
+        font-size: 18px !important;
+        padding: 0 48px 0 16px !important;
       }
 
       body.tablet-device.landscape .clear-search-btn {
-        width: 28px !important;
-        height: 28px !important;
-        font-size: 16px !important;
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 18px !important;
         right: 10px !important;
       }
 
-      /* Breadcrumb styling for landscape - reduce margins */
-      body.mobile-device.landscape #breadcrumbNav,
-      body.tablet-device.landscape #breadcrumbNav {
+      /* Breadcrumb styling for MOBILE landscape - reduce margins */
+      body.mobile-device.landscape #breadcrumbNav {
         margin: 0 !important;
         padding: 0 !important;
+      }
+
+      /* Breadcrumb styling for TABLET landscape - 2x bigger */
+      body.tablet-device.landscape #breadcrumbNav {
+        font-size: 26px !important;
+        margin: 8px 0 !important;
+        padding: 6px 0 !important;
+        line-height: 1.5 !important;
+      }
+
+      body.tablet-device.landscape #breadcrumbNav a {
+        padding: 6px 4px !important;
+        font-size: 26px !important;
+      }
+
+      body.tablet-device.landscape #breadcrumbNav span {
+        margin: 0 10px !important;
+        font-size: 26px !important;
       }
 
       /* Grid: 4 columns in MOBILE LANDSCAPE */
@@ -2100,15 +2122,21 @@
 
       /* Bigger card text for TABLET landscape */
       body.tablet-device.landscape .item-name {
-        font-size: 17px !important;
+        font-size: 20px !important;
       }
 
       body.tablet-device.landscape .item-subtitle {
-        font-size: 16px !important;
+        font-size: 18px !important;
       }
 
       body.tablet-device.landscape .item-card {
-        min-height: 160px;
+        min-height: 170px;
+      }
+
+      /* Make card images square in TABLET landscape */
+      body.tablet-device.landscape .card-img-wrapper {
+        height: auto !important;
+        aspect-ratio: 1 / 1 !important;
       }
 
       /* Detail view layout - MOBILE LANDSCAPE: Restore side-by-side */
@@ -2119,8 +2147,8 @@
 
       /* Detail view layout - TABLET LANDSCAPE: Bigger image column */
       body.tablet-device.landscape .detail-layout {
-        grid-template-columns: minmax(0, 420px) minmax(0, 1fr) !important;
-        gap: 18px;
+        grid-template-columns: minmax(0, 500px) minmax(0, 1fr) !important;
+        gap: 20px;
       }
 
       body.mobile-device.landscape .detail-img,
@@ -2158,33 +2186,33 @@
         font-size: 15px !important;
       }
 
-      /* Detail view text sizes - TABLET LANDSCAPE (slightly bigger) */
+      /* Detail view text sizes - TABLET LANDSCAPE (bigger) */
       body.tablet-device.landscape .detail-name {
-        font-size: 24px !important;
+        font-size: 30px !important;
       }
 
       body.tablet-device.landscape .detail-subtitle {
-        font-size: 19px !important;
+        font-size: 24px !important;
       }
 
       body.tablet-device.landscape .detail-topcorner {
-        font-size: 18px !important;
+        font-size: 22px !important;
       }
 
       body.tablet-device.landscape .detail-meta {
-        font-size: 18px !important;
+        font-size: 22px !important;
       }
 
       body.tablet-device.landscape .detail-field {
-        font-size: 17px !important;
+        font-size: 20px !important;
       }
 
       body.tablet-device.landscape .detail-field-label {
-        font-size: 17px !important;
+        font-size: 20px !important;
       }
 
       body.tablet-device.landscape .detail-field-value {
-        font-size: 17px !important;
+        font-size: 20px !important;
       }
 
       /* ==================== PORTRAIT MODE - Larger text, bigger buttons ==================== */
