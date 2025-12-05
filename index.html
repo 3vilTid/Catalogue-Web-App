@@ -12,10 +12,21 @@
     <script>
       (function() {
         const ua = navigator.userAgent || navigator.vendor || window.opera;
-        console.log('🔍 User Agent:', ua);
+        const touchPoints = navigator.maxTouchPoints || 0;
 
-        // Check tablet FIRST before mobile (Android tablets contain "android" but not "mobile")
-        const isTablet = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(ua);
+        console.log('🔍 User Agent:', ua);
+        console.log('🔍 Touch Points:', touchPoints);
+
+        // Detect tablets:
+        // 1. Traditional tablet user agents (iPad, Android tablets, Kindle, etc.)
+        const hasTabletUA = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(ua);
+
+        // 2. iPad in desktop mode (reports as Macintosh but has touch)
+        const isiPadDesktopMode = /macintosh/i.test(ua) && touchPoints > 1;
+
+        const isTablet = hasTabletUA || isiPadDesktopMode;
+
+        // Detect mobile phones
         const isMobile = /android.*mobile|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(ua);
 
         console.log('📊 Detection results - isTablet:', isTablet, ', isMobile:', isMobile);
