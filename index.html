@@ -1714,6 +1714,7 @@
       /* Logo 2x bigger for mobile/tablet (will be overridden by landscape mode) */
       body.mobile-device .app-logo,
       body.tablet-device .app-logo {
+        display: block !important;
         width: 96px !important;
         height: 96px !important;
         min-width: 96px !important;
@@ -1721,7 +1722,9 @@
         max-width: 96px !important;
         max-height: 96px !important;
         margin: 0 !important;
+        padding: 0 !important;
         object-fit: contain !important;
+        flex-shrink: 0 !important;
       }
 
       /* Grid: 3 columns in PORTRAIT */
