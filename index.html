@@ -12,9 +12,14 @@
     <script>
       (function() {
         const ua = navigator.userAgent || navigator.vendor || window.opera;
+        console.log('🔍 User Agent:', ua);
+
         // Check tablet FIRST before mobile (Android tablets contain "android" but not "mobile")
         const isTablet = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(ua);
         const isMobile = /android.*mobile|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(ua);
+
+        console.log('📊 Detection results - isTablet:', isTablet, ', isMobile:', isMobile);
+
         const deviceClass = isTablet ? 'tablet-device' : (isMobile ? 'mobile-device' : 'desktop-device');
 
         // Immediately set on HTML (blocks before page renders)
