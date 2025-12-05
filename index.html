@@ -16,19 +16,53 @@
         const isTablet = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(ua);
         const deviceClass = isMobile ? 'mobile-device' : (isTablet ? 'tablet-device' : 'desktop-device');
 
-        // Force set using setAttribute (more reliable than className)
-        document.documentElement.setAttribute('class', deviceClass);
+        // Immediately set on HTML (blocks before page renders)
+        document.documentElement.className = deviceClass;
         document.documentElement.setAttribute('data-device', deviceClass);
-        console.log('🔧 Device class set on HTML:', deviceClass);
+        console.log('🔧 Device class set on HTML (blocking):', deviceClass);
 
-        // Also set when DOM is ready (in case something strips it)
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', function() {
-            document.documentElement.setAttribute('class', deviceClass);
-            document.body.setAttribute('class', deviceClass);
-            console.log('🔧 Device class re-applied on DOMContentLoaded');
-          });
+        // Set on body as soon as it's available (early, before full DOM load)
+        function setBodyClass() {
+          if (document.body) {
+            document.body.className = deviceClass;
+            console.log('✅ Device: ' + deviceClass + ' (body class set early)');
+            updateOrientation();
+          } else {
+            setTimeout(setBodyClass, 1);
+          }
         }
+
+        // Define orientation function
+        function updateOrientation() {
+          if (!document.body) return;
+          document.body.classList.remove('landscape', 'portrait');
+          const isLandscape = window.innerWidth > window.innerHeight;
+          if (isLandscape) {
+            document.body.classList.add('landscape');
+            document.documentElement.setAttribute('data-orientation', 'landscape');
+            console.log('📱 Orientation: Landscape');
+          } else {
+            document.body.classList.add('portrait');
+            document.documentElement.setAttribute('data-orientation', 'portrait');
+            console.log('📱 Orientation: Portrait');
+          }
+        }
+
+        // Start setting body class immediately
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', setBodyClass);
+        } else {
+          setBodyClass();
+        }
+
+        // Listen for orientation changes
+        if (typeof window !== 'undefined') {
+          window.addEventListener('resize', updateOrientation);
+          window.addEventListener('orientationchange', updateOrientation);
+        }
+
+        // Make updateOrientation globally available
+        window.updateOrientation = updateOrientation;
       })();
     </script>
 
@@ -2637,52 +2671,6 @@
     </div>
 
     <script>
-      // ==================== DEVICE DETECTION ====================
-      // Add device class to body (already added to html in head)
-
-      (function() {
-        const ua = navigator.userAgent || navigator.vendor || window.opera;
-        const isMobile = /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(ua);
-        const isTablet = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(ua);
-
-        // Add same class to body that was added to html
-        if (isMobile) {
-          document.body.className = 'mobile-device';
-          console.log('✅ Device: Mobile (body class set)');
-        } else if (isTablet) {
-          document.body.className = 'tablet-device';
-          console.log('✅ Device: Tablet (body class set)');
-        } else {
-          document.body.className = 'desktop-device';
-          console.log('✅ Device: Desktop (body class set)');
-        }
-
-        // Add initial orientation class
-        updateOrientation();
-      })();
-
-      function updateOrientation() {
-        // Remove existing orientation classes
-        document.body.classList.remove('landscape', 'portrait');
-
-        // Check orientation
-        const isLandscape = window.innerWidth > window.innerHeight;
-
-        if (isLandscape) {
-          document.body.classList.add('landscape');
-          document.documentElement.setAttribute('data-orientation', 'landscape');
-          console.log('📱 Orientation: Landscape');
-        } else {
-          document.body.classList.add('portrait');
-          document.documentElement.setAttribute('data-orientation', 'portrait');
-          console.log('📱 Orientation: Portrait');
-        }
-      }
-
-      // Update orientation on resize/orientation change
-      window.addEventListener('resize', updateOrientation);
-      window.addEventListener('orientationchange', updateOrientation);
-
       // ==================== TOAST NOTIFICATION SYSTEM ====================
       
       function showToast(message, type = 'info') {
