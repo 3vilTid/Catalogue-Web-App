@@ -22,7 +22,7 @@
         const hasTabletUA = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(ua);
 
         // 2. iPad in desktop mode (reports as Macintosh but has touch)
-        const isiPadDesktopMode = /macintosh/i.test(ua) && touchPoints > 1;
+        const isiPadDesktopMode = /macintosh/i.test(ua) && touchPoints >= 1;
 
         const isTablet = hasTabletUA || isiPadDesktopMode;
 
