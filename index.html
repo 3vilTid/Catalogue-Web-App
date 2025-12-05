@@ -1711,6 +1711,19 @@
         padding: 2px 10px !important;
       }
 
+      /* Logo 2x bigger for mobile/tablet (will be overridden by landscape mode) */
+      body.mobile-device .app-logo,
+      body.tablet-device .app-logo {
+        width: 96px !important;
+        height: 96px !important;
+        min-width: 96px !important;
+        min-height: 96px !important;
+        max-width: 96px !important;
+        max-height: 96px !important;
+        margin: 0 !important;
+        object-fit: contain !important;
+      }
+
       /* Grid: 3 columns in PORTRAIT */
       body.mobile-device .grid,
       body.tablet-device .grid {
@@ -2220,19 +2233,6 @@
       body.mobile-device.portrait .shell,
       body.tablet-device.portrait .shell {
         padding: 0 12px !important;
-      }
-
-      /* Logo 2x bigger in portrait mode */
-      body.mobile-device.portrait .app-logo,
-      body.tablet-device.portrait .app-logo {
-        width: 96px !important;
-        height: 96px !important;
-        min-width: 96px !important;
-        min-height: 96px !important;
-        max-width: 96px !important;
-        max-height: 96px !important;
-        margin: 0 !important;
-        object-fit: contain !important;
       }
 
       /* Ensure symmetrical margins - adjust container padding */
