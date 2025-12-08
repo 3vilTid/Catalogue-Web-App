@@ -1866,6 +1866,107 @@
         font-size: 16px; /* Prevents zoom on iOS */
       }
 
+      /* ==================== TABLET PORTRAIT - Reduced sizes (75% of mobile portrait) ==================== */
+
+      /* Grid: 4 columns for tablet portrait */
+      body.tablet-device.portrait .grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      /* Top-header padding: 20px → 15px */
+      body.tablet-device.portrait .top-header {
+        padding: 15px 15px;
+      }
+
+      /* Logo: 48px → 36px */
+      body.tablet-device.portrait .app-logo {
+        width: 36px !important;
+        height: 36px !important;
+      }
+
+      /* Header text sizes: 25% reduction */
+      body.tablet-device.portrait .app-name {
+        font-size: 23px !important;
+      }
+
+      body.tablet-device.portrait .catalog-name {
+        font-size: 19px !important;
+      }
+
+      body.tablet-device.portrait .user-email {
+        font-size: 14px !important;
+      }
+
+      body.tablet-device.portrait .catalog-label,
+      body.tablet-device.portrait .user-role {
+        font-size: 14px !important;
+      }
+
+      /* Search bar: 68px → 51px, 19px → 14px */
+      body.tablet-device.portrait .search-input {
+        height: 51px !important;
+        font-size: 14px !important;
+        padding: 0 50px 0 15px !important;
+      }
+
+      body.tablet-device.portrait .clear-search-btn {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 14px !important;
+      }
+
+      /* Buttons: 68px → 51px, padding and font reduced */
+      body.tablet-device.portrait .btn-toolbar,
+      body.tablet-device.portrait .btn-primary,
+      body.tablet-device.portrait .btn-secondary {
+        height: 51px !important;
+        min-height: 51px !important;
+        padding: 15px 21px !important;
+        font-size: 14px !important;
+      }
+
+      body.tablet-device.portrait #logoutBtn {
+        height: 51px !important;
+        min-height: 51px !important;
+        padding: 0 21px !important;
+        font-size: 14px !important;
+      }
+
+      body.tablet-device.portrait #filterBtn,
+      body.tablet-device.portrait #sortBtn,
+      body.tablet-device.portrait #backToListBtn {
+        height: 51px !important;
+        min-height: 51px !important;
+        padding: 15px 21px !important;
+        font-size: 14px !important;
+      }
+
+      body.tablet-device.portrait #sheetBtn,
+      body.tablet-device.portrait #addBtn {
+        height: 51px !important;
+        min-height: 51px !important;
+      }
+
+      /* Filters-row gap: 8px → 6px */
+      body.tablet-device.portrait .filters-row {
+        gap: 6px;
+      }
+
+      /* Card text sizes: 25% reduction */
+      body.tablet-device.portrait .item-name {
+        font-size: 17px !important;
+      }
+
+      body.tablet-device.portrait .item-subtitle {
+        font-size: 15px !important;
+      }
+
+      /* Profile badge: smaller */
+      body.tablet-device.portrait .profile-badge {
+        font-size: 12px !important;
+        padding: 2px 8px !important;
+      }
+
       /* ==================== LANDSCAPE MODE - Smaller buttons, smaller text, 4 columns ==================== */
       /* Reduce paddings and header elements in landscape */
       body.mobile-device.landscape .shell,
@@ -1880,12 +1981,12 @@
         min-height: 68px;
       }
 
-      /* Bigger top-header for tablet landscape */
+      /* Bigger top-header for tablet landscape - reduced by 25% */
       body.tablet-device.landscape .top-header {
-        padding: 12px 14px;
-        margin-bottom: 14px;
+        padding: 9px 11px;
+        margin-bottom: 11px;
         align-items: center;
-        min-height: 68px;
+        min-height: 51px;
       }
 
       /* Logo size in landscape: 60px for mobile, 70px for tablet */
@@ -1896,8 +1997,8 @@
       }
 
       body.tablet-device.landscape .app-logo {
-        width: 70px;
-        height: 70px;
+        width: 53px;
+        height: 53px;
         margin: 0;
       }
 
@@ -1923,10 +2024,10 @@
         justify-content: space-between;
       }
 
-      /* Bigger filters-row for tablet landscape */
+      /* Bigger filters-row for tablet landscape - reduced by 25% */
       body.tablet-device.landscape .filters-row {
-        padding: 8px 14px;
-        margin-bottom: 4px;
+        padding: 6px 11px;
+        margin-bottom: 3px;
         align-items: center;
         flex-direction: row;
         justify-content: space-between;
@@ -1974,30 +2075,30 @@
         padding: 2px 6px !important;
       }
 
-      /* Bigger header text for TABLET landscape */
+      /* Bigger header text for TABLET landscape - reduced by 25% */
       body.tablet-device.landscape .app-name {
-        font-size: 25px !important;
+        font-size: 19px !important;
       }
 
       body.tablet-device.landscape .catalog-label {
-        font-size: 17px !important;
+        font-size: 13px !important;
       }
 
       body.tablet-device.landscape .catalog-name {
-        font-size: 20px !important;
+        font-size: 15px !important;
       }
 
       body.tablet-device.landscape .user-role {
-        font-size: 17px !important;
+        font-size: 13px !important;
       }
 
       body.tablet-device.landscape .user-email {
-        font-size: 17px !important;
+        font-size: 13px !important;
       }
 
       body.tablet-device.landscape .profile-badge {
-        font-size: 16px !important;
-        padding: 4px 10px !important;
+        font-size: 12px !important;
+        padding: 3px 8px !important;
       }
 
       /* Smaller search bar in MOBILE landscape */
@@ -2014,18 +2115,18 @@
         right: 8px !important;
       }
 
-      /* Bigger search bar for TABLET landscape */
+      /* Bigger search bar for TABLET landscape - reduced by 25% */
       body.tablet-device.landscape .search-input {
-        height: 48px !important;
-        font-size: 18px !important;
-        padding: 0 48px 0 16px !important;
+        height: 36px !important;
+        font-size: 14px !important;
+        padding: 0 36px 0 12px !important;
       }
 
       body.tablet-device.landscape .clear-search-btn {
-        width: 32px !important;
-        height: 32px !important;
-        font-size: 18px !important;
-        right: 10px !important;
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 14px !important;
+        right: 8px !important;
       }
 
       /* Breadcrumb styling for MOBILE landscape - reduce margins */
@@ -2034,22 +2135,22 @@
         padding: 0 !important;
       }
 
-      /* Breadcrumb styling for TABLET landscape - 2x bigger */
+      /* Breadcrumb styling for TABLET landscape - reduced by 25% */
       body.tablet-device.landscape #breadcrumbNav {
-        font-size: 26px !important;
-        margin: 8px 0 !important;
-        padding: 6px 0 !important;
+        font-size: 20px !important;
+        margin: 6px 0 !important;
+        padding: 5px 0 !important;
         line-height: 1.5 !important;
       }
 
       body.tablet-device.landscape #breadcrumbNav a {
-        padding: 6px 4px !important;
-        font-size: 26px !important;
+        padding: 5px 3px !important;
+        font-size: 20px !important;
       }
 
       body.tablet-device.landscape #breadcrumbNav span {
-        margin: 0 10px !important;
-        font-size: 26px !important;
+        margin: 0 8px !important;
+        font-size: 20px !important;
       }
 
       /* Grid: 4 columns in MOBILE LANDSCAPE */
@@ -2059,9 +2160,9 @@
         margin-top: 8px;
       }
 
-      /* Grid: 5 columns for TABLET LANDSCAPE */
+      /* Grid: 6 columns for TABLET LANDSCAPE */
       body.tablet-device.landscape .grid {
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(6, 1fr);
         gap: 10px;
         margin-top: 8px;
       }
@@ -2092,7 +2193,7 @@
         font-size: 14px !important;
       }
 
-      /* BIGGER BUTTONS FOR TABLET LANDSCAPE - 50px */
+      /* BIGGER BUTTONS FOR TABLET LANDSCAPE - reduced by 25% */
       body.tablet-device.landscape .btn-toolbar,
       body.tablet-device.landscape .btn-primary,
       body.tablet-device.landscape .btn-secondary,
@@ -2103,10 +2204,10 @@
       body.tablet-device.landscape #backToListBtn,
       body.tablet-device.landscape #sheetBtn,
       body.tablet-device.landscape #addBtn {
-        height: 50px !important;
-        min-height: 50px !important;
-        padding: 12px 20px !important;
-        font-size: 16px !important;
+        height: 38px !important;
+        min-height: 38px !important;
+        padding: 9px 15px !important;
+        font-size: 12px !important;
       }
 
       /* Smaller card text in MOBILE landscape */
@@ -2122,17 +2223,17 @@
         min-height: 150px;
       }
 
-      /* Bigger card text for TABLET landscape */
+      /* Bigger card text for TABLET landscape - reduced by 25% */
       body.tablet-device.landscape .item-name {
-        font-size: 20px !important;
+        font-size: 15px !important;
       }
 
       body.tablet-device.landscape .item-subtitle {
-        font-size: 18px !important;
+        font-size: 14px !important;
       }
 
       body.tablet-device.landscape .item-card {
-        min-height: 170px;
+        min-height: 128px;
       }
 
       /* Make card images square in TABLET landscape */
@@ -2147,10 +2248,10 @@
         gap: 16px;
       }
 
-      /* Detail view layout - TABLET LANDSCAPE: Bigger image column */
+      /* Detail view layout - TABLET LANDSCAPE: Bigger image column - reduced by 25% */
       body.tablet-device.landscape .detail-layout {
-        grid-template-columns: minmax(0, 500px) minmax(0, 1fr) !important;
-        gap: 20px;
+        grid-template-columns: minmax(0, 375px) minmax(0, 1fr) !important;
+        gap: 15px;
       }
 
       body.mobile-device.landscape .detail-img,
@@ -2188,33 +2289,33 @@
         font-size: 15px !important;
       }
 
-      /* Detail view text sizes - TABLET LANDSCAPE (bigger) */
+      /* Detail view text sizes - TABLET LANDSCAPE - reduced by 25% */
       body.tablet-device.landscape .detail-name {
-        font-size: 30px !important;
+        font-size: 23px !important;
       }
 
       body.tablet-device.landscape .detail-subtitle {
-        font-size: 24px !important;
+        font-size: 18px !important;
       }
 
       body.tablet-device.landscape .detail-topcorner {
-        font-size: 22px !important;
+        font-size: 17px !important;
       }
 
       body.tablet-device.landscape .detail-meta {
-        font-size: 22px !important;
+        font-size: 17px !important;
       }
 
       body.tablet-device.landscape .detail-field {
-        font-size: 20px !important;
+        font-size: 15px !important;
       }
 
       body.tablet-device.landscape .detail-field-label {
-        font-size: 20px !important;
+        font-size: 15px !important;
       }
 
       body.tablet-device.landscape .detail-field-value {
-        font-size: 20px !important;
+        font-size: 15px !important;
       }
 
       /* ==================== PORTRAIT MODE - Larger text, bigger buttons ==================== */
