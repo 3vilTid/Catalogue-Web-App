@@ -3565,9 +3565,16 @@
           displayViewType = savedView;
           console.log('✓ Display view loaded from localStorage:', displayViewType);
         } else if (settings && settings.defaultView) {
-          displayViewType = settings.defaultView;
-          localStorage.setItem('displayViewType', displayViewType);
-          console.log('✓ Display view set from Google Sheet:', displayViewType);
+          // Convert from Google Sheet format (Cards/List/Table) to lowercase
+          const viewFromSheet = String(settings.defaultView).toLowerCase();
+          if (viewFromSheet === 'cards' || viewFromSheet === 'list' || viewFromSheet === 'table') {
+            displayViewType = viewFromSheet;
+            localStorage.setItem('displayViewType', displayViewType);
+            console.log('✓ Display view set from Google Sheet:', settings.defaultView, '→', displayViewType);
+          } else {
+            displayViewType = 'cards'; // Default fallback for invalid values
+            console.log('⚠️ Invalid view type from sheet:', settings.defaultView, '- defaulting to cards');
+          }
         } else {
           displayViewType = 'cards'; // Default fallback
           console.log('✓ Display view set to default: cards');
