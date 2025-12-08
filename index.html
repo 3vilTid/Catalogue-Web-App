@@ -2037,7 +2037,7 @@
 
       /* Filters-row: Keep buttons in same row, aligned to right */
       body.mobile-device.landscape .filters-row {
-        padding: 4px 4px;
+        padding: 2px 4px;
         margin-bottom: 0;
         align-items: center;
         flex-direction: row;
@@ -2046,7 +2046,7 @@
 
       /* Bigger filters-row for tablet landscape - reduced by 25% */
       body.tablet-device.landscape .filters-row {
-        padding: 6px 11px;
+        padding: 2px 11px;
         margin-bottom: 3px;
         align-items: center;
         flex-direction: row;
@@ -2695,6 +2695,13 @@
       html.desktop-device .card-sub,
       html[data-device="desktop-device"] .card-sub {
         font-size: 10px !important;
+      }
+
+      /* Filters-row: Reduce top and bottom padding on desktop */
+      body.desktop-device .filters-row,
+      html.desktop-device .filters-row,
+      html[data-device="desktop-device"] .filters-row {
+        padding: 2px 18px !important;
       }
 
       /* Large desktop (1440px and up) - optimize for big screens - desktop only */
