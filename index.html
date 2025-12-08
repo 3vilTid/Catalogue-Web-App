@@ -1825,6 +1825,11 @@
         gap: 2px !important;
       }
 
+      /* Top-header: Reduce spacing to filters-row in mobile portrait */
+      body.mobile-device.portrait .top-header {
+        margin-bottom: 2px !important;
+      }
+
       body.mobile-device .filters-left,
       body.mobile-device .filters-right,
       body.tablet-device .filters-left,
@@ -1879,10 +1884,10 @@
         grid-template-columns: repeat(4, 1fr);
       }
 
-      /* Top-header padding: 20px → 10px, margin-bottom: 20px → 10px */
+      /* Top-header padding: 20px → 10px, margin-bottom: 20px → 3px */
       body.tablet-device.portrait .top-header {
         padding: 10px 15px !important;
-        margin-bottom: 10px !important;
+        margin-bottom: 3px !important;
       }
 
       /* Logo: 48px → 36px */
@@ -1996,7 +2001,7 @@
 
       body.mobile-device.landscape .top-header {
         padding: 4px 10px;
-        margin-bottom: 10px;
+        margin-bottom: 3px;
         align-items: center;
         min-height: 68px;
       }
@@ -2004,7 +2009,7 @@
       /* Bigger top-header for tablet landscape - reduced by 25% */
       body.tablet-device.landscape .top-header {
         padding: 9px 11px;
-        margin-bottom: 11px;
+        margin-bottom: 4px;
         align-items: center;
         min-height: 51px;
       }
@@ -2701,7 +2706,14 @@
       body.desktop-device .filters-row,
       html.desktop-device .filters-row,
       html[data-device="desktop-device"] .filters-row {
-        padding: 2px 18px !important;
+        padding: 5px 18px !important;
+      }
+
+      /* Top-header: Reduce spacing to filters-row on desktop */
+      body.desktop-device .top-header,
+      html.desktop-device .top-header,
+      html[data-device="desktop-device"] .top-header {
+        margin-bottom: 5px !important;
       }
 
       /* Large desktop (1440px and up) - optimize for big screens - desktop only */
