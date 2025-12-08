@@ -1873,9 +1873,10 @@
         grid-template-columns: repeat(4, 1fr);
       }
 
-      /* Top-header padding: 20px → 15px */
+      /* Top-header padding: 20px → 10px, margin-bottom: 20px → 10px */
       body.tablet-device.portrait .top-header {
-        padding: 15px 15px;
+        padding: 10px 15px !important;
+        margin-bottom: 10px !important;
       }
 
       /* Logo: 48px → 36px */
@@ -1947,9 +1948,22 @@
         min-height: 51px !important;
       }
 
-      /* Filters-row gap: 8px → 6px */
+      /* Filters-row: Reduce padding, margin, and gap */
       body.tablet-device.portrait .filters-row {
-        gap: 6px;
+        padding: 8px 12px !important;
+        margin-bottom: 8px !important;
+        gap: 6px !important;
+      }
+
+      /* Reduce gaps inside top-header for tablet portrait */
+      body.tablet-device.portrait .left-block {
+        gap: 8px !important;
+      }
+
+      /* Reduce gaps inside filters for tablet portrait */
+      body.tablet-device.portrait .filters-left,
+      body.tablet-device.portrait .filters-right {
+        gap: 6px !important;
       }
 
       /* Card text sizes: 25% reduction */
