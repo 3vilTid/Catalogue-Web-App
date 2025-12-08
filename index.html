@@ -2676,20 +2676,28 @@
         padding: 0 24px;
       }
 
-      /* Large desktop (1440px and up) - optimize for big screens */
+      /* Grid: 25% smaller on desktop */
+      body.desktop-device .grid,
+      html.desktop-device .grid,
+      html[data-device="desktop-device"] .grid {
+        grid-template-columns: repeat(auto-fill, minmax(143px, 1fr));
+        gap: 14px;
+      }
+
+      /* Large desktop (1440px and up) - optimize for big screens - desktop only */
       @media (min-width: 1440px) {
-        /* More columns on large screens */
-        .grid {
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          gap: 20px;
+        /* More columns on large screens - 25% smaller */
+        body.desktop-device .grid {
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+          gap: 15px;
         }
       }
 
-      /* Ultra-wide (1920px and up) */
+      /* Ultra-wide (1920px and up) - desktop only */
       @media (min-width: 1920px) {
-        .grid {
-          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-          gap: 24px;
+        body.desktop-device .grid {
+          grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+          gap: 18px;
         }
       }
     </style>
