@@ -1819,6 +1819,11 @@
         align-items: stretch;
       }
 
+      /* Eliminate vertical gap in portrait mode to reduce height */
+      body.mobile-device.portrait .filters-row {
+        gap: 0px !important;
+      }
+
       body.mobile-device .filters-left,
       body.mobile-device .filters-right,
       body.tablet-device .filters-left,
@@ -1948,11 +1953,11 @@
         min-height: 51px !important;
       }
 
-      /* Filters-row: Reduce padding, margin, and gap */
+      /* Filters-row: Reduce padding, margin, and eliminate vertical gap */
       body.tablet-device.portrait .filters-row {
         padding: 8px 12px !important;
         margin-bottom: 8px !important;
-        gap: 6px !important;
+        gap: 0px !important;
       }
 
       /* Reduce gaps inside top-header for tablet portrait */
