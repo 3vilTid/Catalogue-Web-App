@@ -1827,7 +1827,17 @@
 
       /* Top-header: Reduce spacing to filters-row in mobile portrait */
       body.mobile-device.portrait .top-header {
+        padding: 10px 20px !important;
         margin-bottom: 8px !important;
+      }
+
+      /* Mobile portrait: Reduce internal gaps in top-header */
+      body.mobile-device.portrait .left-block {
+        gap: 8px !important;
+      }
+
+      body.mobile-device.portrait .app-text-block {
+        gap: 0px !important;
       }
 
       body.mobile-device .filters-left,
@@ -1884,9 +1894,9 @@
         grid-template-columns: repeat(4, 1fr);
       }
 
-      /* Top-header padding: 20px → 10px, margin-bottom: 20px → 10px */
+      /* Top-header padding: 20px → 6px, margin-bottom: 20px → 10px */
       body.tablet-device.portrait .top-header {
-        padding: 10px 15px !important;
+        padding: 6px 15px !important;
         margin-bottom: 10px !important;
       }
 
@@ -1968,7 +1978,11 @@
 
       /* Reduce gaps inside top-header for tablet portrait */
       body.tablet-device.portrait .left-block {
-        gap: 8px !important;
+        gap: 6px !important;
+      }
+
+      body.tablet-device.portrait .app-text-block {
+        gap: 0px !important;
       }
 
       /* Reduce gaps inside filters for tablet portrait */
@@ -2713,7 +2727,21 @@
       body.desktop-device .top-header,
       html.desktop-device .top-header,
       html[data-device="desktop-device"] .top-header {
+        padding: 8px 20px 6px !important;
         margin-bottom: 8px !important;
+      }
+
+      /* Desktop: Reduce internal gaps in top-header */
+      body.desktop-device .left-block,
+      html.desktop-device .left-block,
+      html[data-device="desktop-device"] .left-block {
+        gap: 8px !important;
+      }
+
+      body.desktop-device .app-text-block,
+      html.desktop-device .app-text-block,
+      html[data-device="desktop-device"] .app-text-block {
+        gap: 0px !important;
       }
 
       /* Large desktop (1440px and up) - optimize for big screens - desktop only */
