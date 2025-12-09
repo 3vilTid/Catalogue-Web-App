@@ -764,6 +764,111 @@
         color: var(--text-main);
       }
 
+      /* Table column headers with filter/sort controls */
+      .table-header-cell {
+        position: relative;
+        padding: 10px 32px 10px 16px;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .table-header-cell:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .table-header-cell.sorted-asc::after {
+        content: " ↑";
+        opacity: 0.8;
+      }
+
+      .table-header-cell.sorted-desc::after {
+        content: " ↓";
+        opacity: 0.8;
+      }
+
+      .table-column-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        min-width: 220px;
+        max-height: 400px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+      }
+
+      .table-column-menu.active {
+        display: block;
+      }
+
+      .table-menu-section {
+        padding: 8px 0;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .table-menu-section:last-child {
+        border-bottom: none;
+      }
+
+      .table-menu-title {
+        padding: 6px 12px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .table-menu-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 13px;
+        color: #374151;
+        transition: background 0.1s ease;
+      }
+
+      .table-menu-item:hover {
+        background: #f3f4f6;
+      }
+
+      .table-filter-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-size: 13px;
+        color: #374151;
+      }
+
+      .table-filter-checkbox:hover {
+        background: #f3f4f6;
+      }
+
+      .table-filter-checkbox input[type="checkbox"] {
+        cursor: pointer;
+      }
+
+      .table-menu-button {
+        width: 100%;
+        padding: 8px 12px;
+        background: transparent;
+        border: none;
+        text-align: left;
+        font-size: 13px;
+        color: #6366f1;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .table-menu-button:hover {
+        background: #f3f4f6;
+      }
+
       /* Detail view --------------------------------------------------------- */
 
       #detailView {
@@ -3626,6 +3731,12 @@
       let layer3ViewType = "cards"; // Layer 3 view type - set from Google Sheet D14
       let mainViewType = "cards";   // Main items view type - set from Google Sheet D15
 
+      // Table view state - for column-level filtering and sorting
+      let tableColumnFilters = {}; // { columnName: [selectedValues...] }
+      let tableSortColumn = null;   // Current sort column name
+      let tableSortOrder = "asc";   // "asc" or "desc"
+      let currentTableItems = [];   // Store original items for table filtering
+
       // Layer navigation state
       let layerConfig = []; // Layer configuration from backend
       let layersData = {}; // All layer data by layer name
@@ -4416,6 +4527,9 @@
         grid.classList.remove('grid', 'list-view');
         grid.classList.add('table-view');
 
+        // Store items for table filtering
+        currentTableItems = items.slice();
+
         // Determine which columns to show based on whether we're in layer view or not
         let columnsToShow = [];
 
@@ -4423,21 +4537,58 @@
           // In layer context: show only Primary Identifier, SubId1, SubId2
           columnsToShow = [nameColumn, categoryColumn, placeColumn].filter(col => col != null);
         } else {
-          // In Main: show all columns with Item place set
-          columnsToShow = columnConfig.filter(col => col.itemPlace && col.itemPlace !== "");
+          // In Main: show all columns with Item place set (exclude "None" or blank)
+          columnsToShow = columnConfig.filter(col => {
+            const itemPlace = col.itemPlace;
+            return itemPlace && itemPlace !== "" && itemPlace.toLowerCase() !== "none";
+          });
         }
+
+        // Apply table column filters
+        let filteredItems = applyTableFilters(items, columnsToShow);
+
+        // Apply table sorting
+        filteredItems = applyTableSort(filteredItems, columnsToShow);
 
         // Create table
         const table = document.createElement("table");
         table.className = "data-table";
 
-        // Create header row
+        // Create header row with interactive controls
         const thead = document.createElement("thead");
         const headerRow = document.createElement("tr");
 
         for (let i = 0; i < columnsToShow.length; i++) {
+          const col = columnsToShow[i];
           const th = document.createElement("th");
-          th.textContent = columnsToShow[i].displayName || columnsToShow[i].columnName;
+          th.className = "table-header-cell";
+
+          // Add sort indicator if this column is sorted
+          if (tableSortColumn === col.columnName) {
+            th.classList.add(tableSortOrder === "asc" ? "sorted-asc" : "sorted-desc");
+          }
+
+          // Create header content
+          const headerText = document.createElement("span");
+          headerText.textContent = col.displayName || col.columnName;
+          th.appendChild(headerText);
+
+          // Create dropdown menu
+          const menu = createTableColumnMenu(col, columnsToShow);
+          th.appendChild(menu);
+
+          // Toggle menu on click
+          th.onclick = (function(menuEl) {
+            return function(e) {
+              e.stopPropagation();
+              // Close all other menus
+              document.querySelectorAll('.table-column-menu').forEach(m => {
+                if (m !== menuEl) m.classList.remove('active');
+              });
+              menuEl.classList.toggle('active');
+            };
+          })(menu);
+
           headerRow.appendChild(th);
         }
 
@@ -4447,15 +4598,23 @@
         // Create body
         const tbody = document.createElement("tbody");
 
-        for (let i = 0; i < items.length; i++) {
-          const item = items[i];
+        for (let i = 0; i < filteredItems.length; i++) {
+          const item = filteredItems[i];
           const row = document.createElement("tr");
           row.className = "table-row";
 
           for (let j = 0; j < columnsToShow.length; j++) {
             const col = columnsToShow[j];
             const td = document.createElement("td");
-            td.textContent = item[col.columnName] || "";
+            const value = item[col.columnName] || "";
+
+            // Format dates if applicable
+            if (col.type === "date" && value) {
+              td.textContent = formatDate(value);
+            } else {
+              td.textContent = value;
+            }
+
             row.appendChild(td);
           }
 
@@ -4470,6 +4629,253 @@
 
         table.appendChild(tbody);
         grid.appendChild(table);
+
+        // Close menus when clicking outside
+        document.addEventListener('click', closeAllTableMenus);
+      }
+
+      // Create dropdown menu for table column
+      function createTableColumnMenu(col, allColumns) {
+        const menu = document.createElement("div");
+        menu.className = "table-column-menu";
+
+        // Sort section
+        const sortSection = document.createElement("div");
+        sortSection.className = "table-menu-section";
+
+        const sortTitle = document.createElement("div");
+        sortTitle.className = "table-menu-title";
+        sortTitle.textContent = "Sort";
+        sortSection.appendChild(sortTitle);
+
+        const sortAsc = document.createElement("div");
+        sortAsc.className = "table-menu-item";
+        sortAsc.textContent = "A → Z";
+        sortAsc.onclick = (e) => {
+          e.stopPropagation();
+          tableSortColumn = col.columnName;
+          tableSortOrder = "asc";
+          rerenderTable();
+        };
+        sortSection.appendChild(sortAsc);
+
+        const sortDesc = document.createElement("div");
+        sortDesc.className = "table-menu-item";
+        sortDesc.textContent = "Z → A";
+        sortDesc.onclick = (e) => {
+          e.stopPropagation();
+          tableSortColumn = col.columnName;
+          tableSortOrder = "desc";
+          rerenderTable();
+        };
+        sortSection.appendChild(sortDesc);
+
+        menu.appendChild(sortSection);
+
+        // Filter section
+        const filterSection = document.createElement("div");
+        filterSection.className = "table-menu-section";
+
+        const filterTitle = document.createElement("div");
+        filterTitle.className = "table-menu-title";
+        filterTitle.textContent = "Filter";
+        filterSection.appendChild(filterTitle);
+
+        // Get unique values for this column
+        const uniqueValues = getUniqueColumnValues(currentTableItems, col.columnName);
+        const selectedFilters = tableColumnFilters[col.columnName] || [];
+
+        // "Select All" option
+        const selectAllLabel = document.createElement("label");
+        selectAllLabel.className = "table-filter-checkbox";
+        const selectAllCheckbox = document.createElement("input");
+        selectAllCheckbox.type = "checkbox";
+        selectAllCheckbox.checked = selectedFilters.length === 0;
+        selectAllCheckbox.onclick = (e) => {
+          e.stopPropagation();
+          if (e.target.checked) {
+            delete tableColumnFilters[col.columnName];
+          } else {
+            tableColumnFilters[col.columnName] = [];
+          }
+          rerenderTable();
+        };
+        selectAllLabel.appendChild(selectAllCheckbox);
+        const selectAllText = document.createElement("span");
+        selectAllText.textContent = "(Select All)";
+        selectAllLabel.appendChild(selectAllText);
+        filterSection.appendChild(selectAllLabel);
+
+        // Individual value checkboxes
+        uniqueValues.forEach(value => {
+          const label = document.createElement("label");
+          label.className = "table-filter-checkbox";
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.checked = selectedFilters.length === 0 || selectedFilters.includes(value);
+          checkbox.onclick = (e) => {
+            e.stopPropagation();
+            toggleTableColumnFilter(col.columnName, value, e.target.checked);
+          };
+          label.appendChild(checkbox);
+
+          const text = document.createElement("span");
+          text.textContent = value || "(blank)";
+          label.appendChild(text);
+
+          filterSection.appendChild(label);
+        });
+
+        menu.appendChild(filterSection);
+
+        // Clear section
+        if (tableSortColumn === col.columnName || tableColumnFilters[col.columnName]) {
+          const clearSection = document.createElement("div");
+          clearSection.className = "table-menu-section";
+
+          const clearBtn = document.createElement("button");
+          clearBtn.className = "table-menu-button";
+          clearBtn.textContent = "Clear";
+          clearBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (tableSortColumn === col.columnName) {
+              tableSortColumn = null;
+              tableSortOrder = "asc";
+            }
+            delete tableColumnFilters[col.columnName];
+            rerenderTable();
+          };
+          clearSection.appendChild(clearBtn);
+
+          menu.appendChild(clearSection);
+        }
+
+        return menu;
+      }
+
+      // Get unique values from items for a column
+      function getUniqueColumnValues(items, columnName) {
+        const values = new Set();
+        items.forEach(item => {
+          const val = getItemValue(item, columnName);
+          values.add(val != null ? String(val) : "");
+        });
+        return Array.from(values).sort();
+      }
+
+      // Toggle table column filter
+      function toggleTableColumnFilter(columnName, value, checked) {
+        if (!tableColumnFilters[columnName]) {
+          tableColumnFilters[columnName] = [];
+        }
+
+        if (checked) {
+          if (!tableColumnFilters[columnName].includes(value)) {
+            tableColumnFilters[columnName].push(value);
+          }
+        } else {
+          const index = tableColumnFilters[columnName].indexOf(value);
+          if (index > -1) {
+            tableColumnFilters[columnName].splice(index, 1);
+          }
+        }
+
+        rerenderTable();
+      }
+
+      // Get value from item (handles both regular items and layer items)
+      function getItemValue(item, columnName) {
+        // Check if this is a layer item
+        if (item._isLayerItem && item._rawLayerItem) {
+          return item._rawLayerItem[columnName];
+        }
+        return item[columnName];
+      }
+
+      // Apply table column filters
+      function applyTableFilters(items, columnsToShow) {
+        let filtered = items.slice();
+
+        for (const columnName in tableColumnFilters) {
+          const selectedValues = tableColumnFilters[columnName];
+          if (selectedValues && selectedValues.length > 0) {
+            filtered = filtered.filter(item => {
+              const value = getItemValue(item, columnName);
+              const itemValue = value != null ? String(value) : "";
+              return selectedValues.includes(itemValue);
+            });
+          }
+        }
+
+        return filtered;
+      }
+
+      // Apply table sorting
+      function applyTableSort(items, columnsToShow) {
+        if (!tableSortColumn) return items;
+
+        const sorted = items.slice();
+        const colConfig = columnsToShow.find(c => c.columnName === tableSortColumn);
+        const isDateColumn = colConfig && colConfig.type === "date";
+
+        sorted.sort((a, b) => {
+          let av = getItemValue(a, tableSortColumn);
+          let bv = getItemValue(b, tableSortColumn);
+
+          // Date sorting
+          if (isDateColumn) {
+            const ad = av ? new Date(av) : null;
+            const bd = bv ? new Date(bv) : null;
+            if (!ad && !bd) return 0;
+            if (!ad) return 1;
+            if (!bd) return -1;
+            return tableSortOrder === "asc" ? ad - bd : bd - ad;
+          }
+
+          // String sorting
+          av = av == null ? "" : String(av).toLowerCase();
+          bv = bv == null ? "" : String(bv).toLowerCase();
+          if (av < bv) return tableSortOrder === "asc" ? -1 : 1;
+          if (av > bv) return tableSortOrder === "asc" ? 1 : -1;
+          return 0;
+        });
+
+        return sorted;
+      }
+
+      // Re-render current table view
+      function rerenderTable() {
+        const grid = document.getElementById("gridView");
+        grid.innerHTML = "";
+
+        if (currentView === "layer") {
+          // Re-render layer view
+          const layerName = layerConfig[currentLayerIndex].layerName;
+          const parentFilter = navigationStack.length > 0
+            ? navigationStack[navigationStack.length - 1].itemName
+            : null;
+          const layerItems = getFilteredLayerItems(layerName, parentFilter);
+          const standardizedItems = layerItems.map(item => ({
+            _isLayerItem: true,
+            _layerIndex: currentLayerIndex,
+            _rawLayerItem: item,
+            "Picture Link": item["Picture Link"],
+            "Names": item["Names"],
+            "Description": item["Description"]
+          }));
+          renderLayerTableView(standardizedItems, grid, currentLayerIndex);
+        } else {
+          // Re-render main table view
+          renderTableView(currentTableItems, grid);
+        }
+      }
+
+      // Close all table column menus
+      function closeAllTableMenus() {
+        document.querySelectorAll('.table-column-menu').forEach(menu => {
+          menu.classList.remove('active');
+        });
       }
 
       // --- LAYER NAVIGATION FUNCTIONS ---
@@ -4693,16 +5099,59 @@
         grid.classList.remove('grid', 'list-view');
         grid.classList.add('table-view');
 
+        // Store items for table filtering
+        currentTableItems = items.slice();
+
+        // Layer columns to show
+        const layerColumns = [
+          { columnName: "Names", displayName: "Names", type: "text" },
+          { columnName: "Description", displayName: "Description", type: "text" }
+        ];
+
+        // Apply table column filters
+        let filteredItems = applyTableFilters(items, layerColumns);
+
+        // Apply table sorting
+        filteredItems = applyTableSort(filteredItems, layerColumns);
+
         const table = document.createElement("table");
         table.className = "data-table";
 
+        // Create header row with interactive controls
         const thead = document.createElement("thead");
         const headerRow = document.createElement("tr");
 
-        const headers = ["Names", "Description"];
-        for (let i = 0; i < headers.length; i++) {
+        for (let i = 0; i < layerColumns.length; i++) {
+          const col = layerColumns[i];
           const th = document.createElement("th");
-          th.textContent = headers[i];
+          th.className = "table-header-cell";
+
+          // Add sort indicator if this column is sorted
+          if (tableSortColumn === col.columnName) {
+            th.classList.add(tableSortOrder === "asc" ? "sorted-asc" : "sorted-desc");
+          }
+
+          // Create header content
+          const headerText = document.createElement("span");
+          headerText.textContent = col.displayName;
+          th.appendChild(headerText);
+
+          // Create dropdown menu
+          const menu = createTableColumnMenu(col, layerColumns);
+          th.appendChild(menu);
+
+          // Toggle menu on click
+          th.onclick = (function(menuEl) {
+            return function(e) {
+              e.stopPropagation();
+              // Close all other menus
+              document.querySelectorAll('.table-column-menu').forEach(m => {
+                if (m !== menuEl) m.classList.remove('active');
+              });
+              menuEl.classList.toggle('active');
+            };
+          })(menu);
+
           headerRow.appendChild(th);
         }
 
@@ -4711,8 +5160,8 @@
 
         const tbody = document.createElement("tbody");
 
-        for (let i = 0; i < items.length; i++) {
-          const standardItem = items[i];
+        for (let i = 0; i < filteredItems.length; i++) {
+          const standardItem = filteredItems[i];
           const item = standardItem._rawLayerItem;
           const row = document.createElement("tr");
           row.className = "table-row";
@@ -4736,6 +5185,9 @@
 
         table.appendChild(tbody);
         grid.appendChild(table);
+
+        // Close menus when clicking outside
+        document.addEventListener('click', closeAllTableMenus);
       }
 
       // Handle layer item click - navigate to next layer or show filtered main items
