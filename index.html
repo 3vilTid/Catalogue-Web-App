@@ -4544,12 +4544,8 @@
           // In layer view: show only Primary Identifier, SubId1, SubId2
           columnsToShow = [nameColumn, categoryColumn, placeColumn].filter(col => col != null);
         } else {
-          // In Main list: show all columns with itemPlace set (exclude empty or "none")
-          columnsToShow = columnConfig.filter(col => {
-            const itemPlace = col.itemPlace;
-            // Include column if itemPlace is set and not empty/none
-            return itemPlace && itemPlace !== "";
-          });
+          // In Main list: show columns where showOnTable is true
+          columnsToShow = columnConfig.filter(col => col.showOnTable === true);
         }
 
         // Apply table column filters

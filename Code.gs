@@ -132,8 +132,8 @@ function getColumnConfig() {
 
     for (var i = 1; i < data.length; i++) {
       var row = data[i];
-      var rawItemPlace = String(row[5] || "").trim();
-      var rawSpecialRole = String(row[6] || "").trim();
+      var rawItemPlace = String(row[6] || "").trim();      // Column G (was F)
+      var rawSpecialRole = String(row[7] || "").trim();    // Column H (was G)
 
       configs.push({
         columnName: row[0] || "",
@@ -141,6 +141,7 @@ function getColumnConfig() {
         type: row[2] || "text",
         showInFilter: row[3] === true || row[3] === "TRUE",
         showInSort: row[4] === true || row[4] === "TRUE",
+        showOnTable: row[5] === true || row[5] === "TRUE", // Column F - NEW
         itemPlace: normalizeItemPlace_(rawItemPlace),
         itemPlaceDisplay: rawItemPlace,
         specialRole: normalizeSpecialRole_(rawSpecialRole),
