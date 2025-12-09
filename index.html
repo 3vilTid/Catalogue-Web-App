@@ -4323,7 +4323,7 @@
 
       // Render List View (vertical list with image left, details right)
       function renderListView(items, grid) {
-        grid.classList.remove('grid');
+        grid.classList.remove('grid', 'table-view');
         grid.classList.add('list-view');
 
         for (let i = 0; i < items.length; i++) {
@@ -4392,7 +4392,7 @@
 
       // Render Table View (spreadsheet-style)
       function renderTableView(items, grid) {
-        grid.classList.remove('grid');
+        grid.classList.remove('grid', 'list-view');
         grid.classList.add('table-view');
 
         // Determine which columns to show based on whether we're in layer view or not
@@ -4599,7 +4599,7 @@
 
       // Render layer items as list
       function renderLayerListView(items, grid, layerIndex) {
-        grid.classList.remove('grid');
+        grid.classList.remove('grid', 'table-view');
         grid.classList.add('list-view');
 
         for (let i = 0; i < items.length; i++) {
@@ -4668,7 +4668,7 @@
 
       // Render layer items as table
       function renderLayerTableView(items, grid, layerIndex) {
-        grid.classList.remove('grid');
+        grid.classList.remove('grid', 'list-view');
         grid.classList.add('table-view');
 
         const table = document.createElement("table");
