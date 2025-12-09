@@ -234,7 +234,10 @@ function getSettings() {
       deploymentUrl: "",
       dateAdjustment: 0,
       appMode: "Private with Profiles",
-      defaultView: "Cards"
+      layer1View: "Cards",
+      layer2View: "Cards",
+      layer3View: "Cards",
+      mainView: "Cards"
     };
   }
 
@@ -246,7 +249,12 @@ function getSettings() {
   var dateAdjustment = parseInt(sh.getRange("F2").getValue()) || 0;
   var appMode = sh.getRange("I2").getDisplayValue() || "Private with Profiles";
   var backgroundImageUrl = sh.getRange("I5").getDisplayValue() || "";
-  var defaultView = sh.getRange("D12").getDisplayValue() || "Cards";
+
+  // Read view types for each layer and main items
+  var layer1View = sh.getRange("D12").getDisplayValue() || "Cards";
+  var layer2View = sh.getRange("D13").getDisplayValue() || "Cards";
+  var layer3View = sh.getRange("D14").getDisplayValue() || "Cards";
+  var mainView = sh.getRange("D15").getDisplayValue() || "Cards";
 
   return {
     appName: appName,
@@ -257,7 +265,10 @@ function getSettings() {
     dateAdjustment: dateAdjustment,
     appMode: appMode,
     backgroundImageUrl: backgroundImageUrl,
-    defaultView: defaultView
+    layer1View: layer1View,
+    layer2View: layer2View,
+    layer3View: layer3View,
+    mainView: mainView
   };
 }
 

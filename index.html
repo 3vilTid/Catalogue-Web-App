@@ -3557,28 +3557,45 @@
       let settings = null;
       let columnConfig = [];
 
-      // Initialize display view type from settings or localStorage
-      function initializeDisplayViewType() {
-        // Priority: localStorage > settings.defaultView > "cards"
-        const savedView = localStorage.getItem('displayViewType');
-        if (savedView && (savedView === 'cards' || savedView === 'list' || savedView === 'table')) {
-          displayViewType = savedView;
-          console.log('✓ Display view loaded from localStorage:', displayViewType);
-        } else if (settings && settings.defaultView) {
-          // Convert from Google Sheet format (Cards/List/Table) to lowercase
-          const viewFromSheet = String(settings.defaultView).toLowerCase();
-          if (viewFromSheet === 'cards' || viewFromSheet === 'list' || viewFromSheet === 'table') {
-            displayViewType = viewFromSheet;
-            localStorage.setItem('displayViewType', displayViewType);
-            console.log('✓ Display view set from Google Sheet:', settings.defaultView, '→', displayViewType);
-          } else {
-            displayViewType = 'cards'; // Default fallback for invalid values
-            console.log('⚠️ Invalid view type from sheet:', settings.defaultView, '- defaulting to cards');
-          }
-        } else {
-          displayViewType = 'cards'; // Default fallback
-          console.log('✓ Display view set to default: cards');
+      // Helper to normalize view type from Google Sheet format to lowercase
+      function normalizeViewType(viewValue) {
+        if (!viewValue) return 'cards';
+        const normalized = String(viewValue).toLowerCase();
+        if (normalized === 'cards' || normalized === 'list' || normalized === 'table') {
+          return normalized;
         }
+        return 'cards'; // Default fallback for invalid values
+      }
+
+      // Initialize display view types from settings
+      function initializeDisplayViewType() {
+        if (settings) {
+          layer1ViewType = normalizeViewType(settings.layer1View);
+          layer2ViewType = normalizeViewType(settings.layer2View);
+          layer3ViewType = normalizeViewType(settings.layer3View);
+          mainViewType = normalizeViewType(settings.mainView);
+
+          console.log('✓ View types loaded from Google Sheet:');
+          console.log('  Layer 1 (D12):', settings.layer1View, '→', layer1ViewType);
+          console.log('  Layer 2 (D13):', settings.layer2View, '→', layer2ViewType);
+          console.log('  Layer 3 (D14):', settings.layer3View, '→', layer3ViewType);
+          console.log('  Main (D15):', settings.mainView, '→', mainViewType);
+        } else {
+          console.log('⚠️ No settings found - using default view types (cards)');
+        }
+      }
+
+      // Get the appropriate view type based on current layer index
+      function getViewTypeForLayer(layerIndex) {
+        if (layerIndex === 0) return layer1ViewType;
+        if (layerIndex === 1) return layer2ViewType;
+        if (layerIndex === 2) return layer3ViewType;
+        return 'cards'; // Default for any additional layers
+      }
+
+      // Get the view type for main items
+      function getMainViewType() {
+        return mainViewType;
       }
 
       // Dynamic column references (populated from columnConfig)
@@ -3603,8 +3620,11 @@
       // Navigation state for back button handling
       let currentView = "list"; // "list", "layer", or "detail"
 
-      // Display view type (cards, list, table)
-      let displayViewType = "cards"; // "cards", "list", or "table" - set from Google Sheet
+      // Display view types for each layer and main items (cards, list, table)
+      let layer1ViewType = "cards"; // Layer 1 view type - set from Google Sheet D12
+      let layer2ViewType = "cards"; // Layer 2 view type - set from Google Sheet D13
+      let layer3ViewType = "cards"; // Layer 3 view type - set from Google Sheet D14
+      let mainViewType = "cards";   // Main items view type - set from Google Sheet D15
 
       // Layer navigation state
       let layerConfig = []; // Layer configuration from backend
@@ -4239,10 +4259,11 @@
           return;
         }
 
-        // Route to appropriate view renderer based on displayViewType
-        if (displayViewType === 'list') {
+        // Route to appropriate view renderer based on mainViewType
+        const viewType = getMainViewType();
+        if (viewType === 'list') {
           renderListView(items, grid);
-        } else if (displayViewType === 'table') {
+        } else if (viewType === 'table') {
           renderTableView(items, grid);
         } else {
           // Default to cards view
@@ -4516,10 +4537,11 @@
           "Description": item["Description"]
         }));
 
-        // Route to appropriate view renderer based on displayViewType
-        if (displayViewType === 'list') {
+        // Route to appropriate view renderer based on layer-specific view type
+        const viewType = getViewTypeForLayer(layerIndex);
+        if (viewType === 'list') {
           renderLayerListView(standardizedItems, grid, layerIndex);
-        } else if (displayViewType === 'table') {
+        } else if (viewType === 'table') {
           renderLayerTableView(standardizedItems, grid, layerIndex);
         } else {
           // Default to cards view
