@@ -767,6 +767,26 @@
         opacity: 0.8;
       }
 
+      /* Table cell image */
+      .table-cell-img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 6px;
+        display: block;
+      }
+
+      /* Table cell link */
+      .table-cell-link {
+        color: #6366f1;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .table-cell-link:hover {
+        text-decoration: underline;
+      }
+
       .table-column-menu {
         position: absolute;
         top: 100%;
@@ -4621,10 +4641,47 @@
             const td = document.createElement("td");
             const value = item[col.columnName] || "";
 
-            // Format dates if applicable
-            if (col.type === "date" && value) {
+            // Handle different column types
+            if (col.type === "image" && value) {
+              // Image type: show small image
+              const imgWrapper = document.createElement("div");
+              imgWrapper.style.cssText = "width: 60px; height: 60px; position: relative; background: #e5e7eb; border-radius: 6px; overflow: hidden;";
+
+              const fileId = extractDriveFileId(value);
+              if (fileId) {
+                imgWrapper.dataset.fileId = fileId;
+                if (imageObserver) {
+                  imageObserver.observe(imgWrapper);
+                } else {
+                  loadImageViaProxy(fileId, imgWrapper);
+                }
+              } else if (value) {
+                const img = document.createElement("img");
+                img.className = "table-cell-img";
+                img.src = value;
+                img.loading = "lazy";
+                imgWrapper.appendChild(img);
+              }
+
+              td.appendChild(imgWrapper);
+              td.style.padding = "6px 16px"; // Reduce padding for image cells
+            } else if (col.type === "url" && value) {
+              // URL type: show clickable link with display name
+              const link = document.createElement("a");
+              link.className = "table-cell-link";
+              link.href = value;
+              link.target = "_blank";
+              link.rel = "noopener noreferrer";
+              link.textContent = col.displayName || col.columnName;
+              link.onclick = (e) => {
+                e.stopPropagation(); // Prevent row click
+              };
+              td.appendChild(link);
+            } else if (col.type === "date" && value) {
+              // Date type: format the date
               td.textContent = formatDate(value);
             } else {
+              // Text, number, and other types: display as is
               td.textContent = value;
             }
 
@@ -4836,14 +4893,14 @@
 
         const sorted = items.slice();
         const colConfig = columnsToShow.find(c => c.columnName === tableSortColumn);
-        const isDateColumn = colConfig && colConfig.type === "date";
+        const colType = colConfig ? colConfig.type : "text";
 
         sorted.sort((a, b) => {
           let av = getItemValue(a, tableSortColumn);
           let bv = getItemValue(b, tableSortColumn);
 
-          // Date sorting
-          if (isDateColumn) {
+          // Date sorting: asc = oldest→newest, desc = newest→oldest
+          if (colType === "date") {
             const ad = av ? new Date(av) : null;
             const bd = bv ? new Date(bv) : null;
             if (!ad && !bd) return 0;
@@ -4852,7 +4909,17 @@
             return tableSortOrder === "asc" ? ad - bd : bd - ad;
           }
 
-          // String sorting
+          // Number sorting: asc = smallest→biggest, desc = biggest→smallest
+          if (colType === "number") {
+            const an = av != null ? parseFloat(av) : null;
+            const bn = bv != null ? parseFloat(bv) : null;
+            if (isNaN(an) && isNaN(bn)) return 0;
+            if (isNaN(an)) return 1;
+            if (isNaN(bn)) return -1;
+            return tableSortOrder === "asc" ? an - bn : bn - an;
+          }
+
+          // String sorting (text, url, image, etc.)
           av = av == null ? "" : String(av).toLowerCase();
           bv = bv == null ? "" : String(bv).toLowerCase();
           if (av < bv) return tableSortOrder === "asc" ? -1 : 1;
