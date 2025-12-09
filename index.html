@@ -4481,7 +4481,7 @@
         });
       }
 
-      // Render a layer view with cards
+      // Render a layer view respecting displayViewType
       function renderLayerView(layerIndex, parentFilterName) {
         const grid = document.getElementById("gridView");
         const det = document.getElementById("detailView");
@@ -4506,9 +4506,35 @@
           return;
         }
 
-        // Render each layer item as a card
-        for (let i = 0; i < layerItems.length; i++) {
-          const item = layerItems[i];
+        // Convert layer items to standard format for rendering
+        const standardizedItems = layerItems.map(item => ({
+          _isLayerItem: true,
+          _layerIndex: layerIndex,
+          _rawLayerItem: item,
+          "Picture Link": item["Picture Link"],
+          "Names": item["Names"],
+          "Description": item["Description"]
+        }));
+
+        // Route to appropriate view renderer based on displayViewType
+        if (displayViewType === 'list') {
+          renderLayerListView(standardizedItems, grid, layerIndex);
+        } else if (displayViewType === 'table') {
+          renderLayerTableView(standardizedItems, grid, layerIndex);
+        } else {
+          // Default to cards view
+          renderLayerCardsView(standardizedItems, grid, layerIndex);
+        }
+      }
+
+      // Render layer items as cards
+      function renderLayerCardsView(items, grid, layerIndex) {
+        grid.classList.add('grid');
+        grid.classList.remove('list-view', 'table-view');
+
+        for (let i = 0; i < items.length; i++) {
+          const standardItem = items[i];
+          const item = standardItem._rawLayerItem;
           const card = document.createElement("div");
           card.className = "card";
 
@@ -4522,7 +4548,6 @@
             const fileId = extractDriveFileId(rawUrl);
 
             if (fileId) {
-              // LAZY LOADING: Store fileId and observe
               imgWrapper.dataset.fileId = fileId;
               if (imageObserver) {
                 imageObserver.observe(imgWrapper);
@@ -4530,7 +4555,6 @@
                 loadImageViaProxy(fileId, imgWrapper);
               }
             } else if (rawUrl) {
-              // Direct HTTPS image
               imgWrapper.dataset.rawUrl = rawUrl;
               if (imageObserver) {
                 imageObserver.observe(imgWrapper);
@@ -4554,7 +4578,6 @@
           nameEl.textContent = item["Names"] || "(no name)";
           body.appendChild(nameEl);
 
-          // Show description if available
           if (item["Description"]) {
             const descEl = document.createElement("div");
             descEl.className = "card-sub";
@@ -4564,7 +4587,6 @@
 
           card.appendChild(body);
 
-          // Add click handler
           card.onclick = (function (layerIdx, itm) {
             return function () {
               onLayerItemClick(layerIdx, itm);
@@ -4573,6 +4595,125 @@
 
           grid.appendChild(card);
         }
+      }
+
+      // Render layer items as list
+      function renderLayerListView(items, grid, layerIndex) {
+        grid.classList.remove('grid');
+        grid.classList.add('list-view');
+
+        for (let i = 0; i < items.length; i++) {
+          const standardItem = items[i];
+          const item = standardItem._rawLayerItem;
+          const listItem = document.createElement("div");
+          listItem.className = "list-item";
+
+          // Image on the left
+          const imgWrapper = document.createElement("div");
+          imgWrapper.className = "list-item-img-wrapper";
+
+          if (item["Picture Link"]) {
+            const rawUrl = item["Picture Link"];
+            const fileId = extractDriveFileId(rawUrl);
+
+            if (fileId) {
+              imgWrapper.dataset.fileId = fileId;
+              if (imageObserver) {
+                imageObserver.observe(imgWrapper);
+              } else {
+                loadImageViaProxy(fileId, imgWrapper);
+              }
+            } else if (rawUrl) {
+              imgWrapper.dataset.rawUrl = rawUrl;
+              if (imageObserver) {
+                imageObserver.observe(imgWrapper);
+              } else {
+                loadDirectImage(rawUrl, imgWrapper);
+              }
+            } else {
+              imgWrapper.innerHTML = '<div style="width:100%;height:100%;background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px);"></div>';
+            }
+          } else {
+            imgWrapper.innerHTML = '<div style="width:100%;height:100%;background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px);"></div>';
+          }
+
+          listItem.appendChild(imgWrapper);
+
+          const detailsWrapper = document.createElement("div");
+          detailsWrapper.className = "list-item-details";
+
+          const nameEl = document.createElement("div");
+          nameEl.className = "list-item-name";
+          nameEl.textContent = item["Names"] || "(no name)";
+          detailsWrapper.appendChild(nameEl);
+
+          if (item["Description"]) {
+            const descEl = document.createElement("div");
+            descEl.className = "list-item-sub";
+            descEl.textContent = item["Description"];
+            detailsWrapper.appendChild(descEl);
+          }
+
+          listItem.appendChild(detailsWrapper);
+
+          listItem.onclick = (function (layerIdx, itm) {
+            return function () {
+              onLayerItemClick(layerIdx, itm);
+            };
+          })(layerIndex, item);
+
+          grid.appendChild(listItem);
+        }
+      }
+
+      // Render layer items as table
+      function renderLayerTableView(items, grid, layerIndex) {
+        grid.classList.remove('grid');
+        grid.classList.add('table-view');
+
+        const table = document.createElement("table");
+        table.className = "data-table";
+
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+
+        const headers = ["Names", "Description"];
+        for (let i = 0; i < headers.length; i++) {
+          const th = document.createElement("th");
+          th.textContent = headers[i];
+          headerRow.appendChild(th);
+        }
+
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+
+        for (let i = 0; i < items.length; i++) {
+          const standardItem = items[i];
+          const item = standardItem._rawLayerItem;
+          const row = document.createElement("tr");
+          row.className = "table-row";
+
+          const nameCell = document.createElement("td");
+          nameCell.textContent = item["Names"] || "";
+          row.appendChild(nameCell);
+
+          const descCell = document.createElement("td");
+          descCell.textContent = item["Description"] || "";
+          row.appendChild(descCell);
+
+          row.onclick = (function (layerIdx, itm) {
+            return function () {
+              onLayerItemClick(layerIdx, itm);
+            };
+          })(layerIndex, item);
+
+          tbody.appendChild(row);
+        }
+
+        table.appendChild(tbody);
+        grid.appendChild(table);
       }
 
       // Handle layer item click - navigate to next layer or show filtered main items
