@@ -130,10 +130,28 @@ function getColumnConfig() {
     var headers = data[0];
     var configs = [];
 
+    // Detect if "Show on Table" column exists by checking header
+    var hasShowOnTableColumn = false;
+    if (headers.length > 5) {
+      var headerF = String(headers[5] || "").trim();
+      hasShowOnTableColumn = (headerF === "Show on Table" || headerF === "Show on table" || headerF === "show on table");
+    }
+
     for (var i = 1; i < data.length; i++) {
       var row = data[i];
-      var rawItemPlace = String(row[6] || "").trim();      // Column G (was F)
-      var rawSpecialRole = String(row[7] || "").trim();    // Column H (was G)
+      var rawItemPlace, rawSpecialRole, showOnTable;
+
+      if (hasShowOnTableColumn) {
+        // New structure: F=Show on Table, G=Item Place, H=Special Role
+        showOnTable = row[5] === true || row[5] === "TRUE";
+        rawItemPlace = String(row[6] || "").trim();
+        rawSpecialRole = String(row[7] || "").trim();
+      } else {
+        // Old structure: F=Item Place, G=Special Role
+        showOnTable = false; // Default to false if column doesn't exist
+        rawItemPlace = String(row[5] || "").trim();
+        rawSpecialRole = String(row[6] || "").trim();
+      }
 
       configs.push({
         columnName: row[0] || "",
@@ -141,7 +159,7 @@ function getColumnConfig() {
         type: row[2] || "text",
         showInFilter: row[3] === true || row[3] === "TRUE",
         showInSort: row[4] === true || row[4] === "TRUE",
-        showOnTable: row[5] === true || row[5] === "TRUE", // Column F - NEW
+        showOnTable: showOnTable,
         itemPlace: normalizeItemPlace_(rawItemPlace),
         itemPlaceDisplay: rawItemPlace,
         specialRole: normalizeSpecialRole_(rawSpecialRole),

@@ -4546,6 +4546,15 @@
         } else {
           // In Main list: show columns where showOnTable is true
           columnsToShow = columnConfig.filter(col => col.showOnTable === true);
+
+          // Fallback: if no columns have showOnTable=true (column doesn't exist yet),
+          // show all columns with itemPlace set (backward compatibility)
+          if (columnsToShow.length === 0) {
+            columnsToShow = columnConfig.filter(col => {
+              const itemPlace = col.itemPlace;
+              return itemPlace && itemPlace !== "";
+            });
+          }
         }
 
         // Apply table column filters
