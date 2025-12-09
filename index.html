@@ -767,6 +767,18 @@
         opacity: 0.8;
       }
 
+      /* Filter indicator badge */
+      .filter-indicator {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 2px 6px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        font-size: 10px;
+        font-weight: 700;
+        vertical-align: middle;
+      }
+
       /* Table cell image */
       .table-cell-img {
         width: 60px;
@@ -4607,6 +4619,16 @@
           headerText.textContent = col.displayName || col.columnName;
           th.appendChild(headerText);
 
+          // Add filter indicator if this column has active filters
+          const activeFilters = tableColumnFilters[col.columnName];
+          if (activeFilters && activeFilters.length > 0) {
+            const filterBadge = document.createElement("span");
+            filterBadge.className = "filter-indicator";
+            filterBadge.textContent = "🔍";
+            filterBadge.title = `${activeFilters.length} filter(s) active`;
+            th.appendChild(filterBadge);
+          }
+
           // Create dropdown menu
           const menu = createTableColumnMenu(col, columnsToShow);
           th.appendChild(menu);
@@ -5259,6 +5281,16 @@
           const headerText = document.createElement("span");
           headerText.textContent = col.displayName;
           th.appendChild(headerText);
+
+          // Add filter indicator if this column has active filters
+          const activeFilters = tableColumnFilters[col.columnName];
+          if (activeFilters && activeFilters.length > 0) {
+            const filterBadge = document.createElement("span");
+            filterBadge.className = "filter-indicator";
+            filterBadge.textContent = "🔍";
+            filterBadge.title = `${activeFilters.length} filter(s) active`;
+            th.appendChild(filterBadge);
+          }
 
           // Create dropdown menu
           const menu = createTableColumnMenu(col, layerColumns);
