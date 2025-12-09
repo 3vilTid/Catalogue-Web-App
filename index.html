@@ -3763,6 +3763,7 @@
       let tableSortColumn = null;   // Current sort column name
       let tableSortOrder = "asc";   // "asc" or "desc"
       let currentTableItems = [];   // Store original items for table filtering
+      let activeTableMenuColumn = null; // Track which column menu is open
 
       // Layer navigation state
       let layerConfig = []; // Layer configuration from backend
@@ -4611,16 +4612,24 @@
           th.appendChild(menu);
 
           // Toggle menu on click
-          th.onclick = (function(menuEl) {
+          th.onclick = (function(menuEl, columnName) {
             return function(e) {
               e.stopPropagation();
               // Close all other menus
               document.querySelectorAll('.table-column-menu').forEach(m => {
                 if (m !== menuEl) m.classList.remove('active');
               });
+              const isOpening = !menuEl.classList.contains('active');
               menuEl.classList.toggle('active');
+
+              // Track which menu is open
+              if (isOpening) {
+                activeTableMenuColumn = columnName;
+              } else {
+                activeTableMenuColumn = null;
+              }
             };
-          })(menu);
+          })(menu, col.columnName);
 
           headerRow.appendChild(th);
         }
@@ -4758,15 +4767,16 @@
         // "Select All" option
         const selectAllLabel = document.createElement("label");
         selectAllLabel.className = "table-filter-checkbox";
-        selectAllLabel.onclick = (e) => {
-          e.stopPropagation();
-        };
         const selectAllCheckbox = document.createElement("input");
         selectAllCheckbox.type = "checkbox";
         selectAllCheckbox.checked = selectedFilters.length === 0;
-        selectAllCheckbox.onchange = (e) => {
+        selectAllCheckbox.onclick = (e) => {
           e.stopPropagation();
-          if (e.target.checked) {
+          // Toggle the checkbox state manually
+          const willBeChecked = !selectAllCheckbox.checked;
+          selectAllCheckbox.checked = willBeChecked;
+
+          if (willBeChecked) {
             delete tableColumnFilters[col.columnName];
           } else {
             tableColumnFilters[col.columnName] = [];
@@ -4783,16 +4793,17 @@
         uniqueValues.forEach(value => {
           const label = document.createElement("label");
           label.className = "table-filter-checkbox";
-          label.onclick = (e) => {
-            e.stopPropagation();
-          };
 
           const checkbox = document.createElement("input");
           checkbox.type = "checkbox";
           checkbox.checked = selectedFilters.length === 0 || selectedFilters.includes(value);
-          checkbox.onchange = (e) => {
+          checkbox.onclick = (e) => {
             e.stopPropagation();
-            toggleTableColumnFilter(col.columnName, value, e.target.checked);
+            // Toggle checkbox state manually
+            const willBeChecked = !checkbox.checked;
+            checkbox.checked = willBeChecked;
+
+            toggleTableColumnFilter(col.columnName, value, willBeChecked);
           };
           label.appendChild(checkbox);
 
@@ -4955,6 +4966,10 @@
           // Re-render main table view
           renderTableView(currentTableItems, grid);
         }
+
+        // Reopen the menu that was active before rerendering
+        // Use setTimeout to ensure DOM is updated
+        setTimeout(reopenActiveTableMenu, 0);
       }
 
       // Close all table column menus
@@ -4962,6 +4977,29 @@
         document.querySelectorAll('.table-column-menu').forEach(menu => {
           menu.classList.remove('active');
         });
+        activeTableMenuColumn = null;
+      }
+
+      // Reopen the active menu after table rerender
+      function reopenActiveTableMenu() {
+        if (activeTableMenuColumn) {
+          // Find the th element for this column and trigger menu open
+          const headers = document.querySelectorAll('.table-header-cell');
+          headers.forEach(th => {
+            const menu = th.querySelector('.table-column-menu');
+            if (menu && menu.parentElement === th) {
+              // Check if this is the right column by looking at header text
+              const headerText = th.querySelector('span');
+              if (headerText) {
+                // Find the column config for this column name
+                const colConfig = columnConfig.find(c => c.columnName === activeTableMenuColumn);
+                if (colConfig && headerText.textContent === (colConfig.displayName || colConfig.columnName)) {
+                  menu.classList.add('active');
+                }
+              }
+            }
+          });
+        }
       }
 
       // --- LAYER NAVIGATION FUNCTIONS ---
@@ -5227,16 +5265,24 @@
           th.appendChild(menu);
 
           // Toggle menu on click
-          th.onclick = (function(menuEl) {
+          th.onclick = (function(menuEl, columnName) {
             return function(e) {
               e.stopPropagation();
               // Close all other menus
               document.querySelectorAll('.table-column-menu').forEach(m => {
                 if (m !== menuEl) m.classList.remove('active');
               });
+              const isOpening = !menuEl.classList.contains('active');
               menuEl.classList.toggle('active');
+
+              // Track which menu is open
+              if (isOpening) {
+                activeTableMenuColumn = columnName;
+              } else {
+                activeTableMenuColumn = null;
+              }
             };
-          })(menu);
+          })(menu, col.columnName);
 
           headerRow.appendChild(th);
         }
