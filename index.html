@@ -597,12 +597,6 @@
         grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
         gap: 18px;
         margin-top: 8px;
-        overflow: visible !important; /* Allow dropdowns to extend */
-      }
-
-      /* Extra padding when in table view for dropdown menus */
-      .grid.table-view {
-        padding-bottom: 400px; /* Space for long dropdown menus */
       }
 
       .card {
@@ -807,20 +801,17 @@
       }
 
       .table-column-menu {
-        position: absolute;
-        top: 100%;
-        left: 0;
+        position: fixed; /* Fixed positioning to escape all parent clipping */
         background: white;
         border: 1px solid #e5e7eb;
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         min-width: 220px;
         max-width: 300px;
-        max-height: none; /* Allow menu to extend beyond table */
-        overflow-y: visible; /* Don't scroll internally */
+        max-height: 500px; /* Max height before internal scroll */
+        overflow-y: auto; /* Scroll menu content if too long */
         z-index: 10000;
         display: none;
-        margin-top: 2px;
       }
 
       .table-column-menu.active {
@@ -4655,7 +4646,7 @@
           th.appendChild(menu);
 
           // Toggle menu on click
-          th.onclick = (function(menuEl, columnName) {
+          th.onclick = (function(menuEl, columnName, headerCell) {
             return function(e) {
               e.stopPropagation();
               // Close all other menus
@@ -4665,14 +4656,17 @@
               const isOpening = !menuEl.classList.contains('active');
               menuEl.classList.toggle('active');
 
-              // Track which menu is open
+              // Position menu using fixed positioning (escapes all parent clipping)
               if (isOpening) {
+                const rect = headerCell.getBoundingClientRect();
+                menuEl.style.top = (rect.bottom + 2) + 'px';
+                menuEl.style.left = rect.left + 'px';
                 activeTableMenuColumn = columnName;
               } else {
                 activeTableMenuColumn = null;
               }
             };
-          })(menu, col.columnName);
+          })(menu, col.columnName, th);
 
           headerRow.appendChild(th);
         }
@@ -5038,7 +5032,11 @@
           if (th) {
             const menu = th.querySelector('.table-column-menu');
             if (menu) {
-              console.log('Menu found, setting active');
+              console.log('Menu found, setting active and positioning');
+              // Position menu using fixed positioning
+              const rect = th.getBoundingClientRect();
+              menu.style.top = (rect.bottom + 2) + 'px';
+              menu.style.left = rect.left + 'px';
               menu.classList.add('active');
             } else {
               console.log('Menu not found in th');
@@ -5329,7 +5327,7 @@
           th.appendChild(menu);
 
           // Toggle menu on click
-          th.onclick = (function(menuEl, columnName) {
+          th.onclick = (function(menuEl, columnName, headerCell) {
             return function(e) {
               e.stopPropagation();
               // Close all other menus
@@ -5339,14 +5337,17 @@
               const isOpening = !menuEl.classList.contains('active');
               menuEl.classList.toggle('active');
 
-              // Track which menu is open
+              // Position menu using fixed positioning (escapes all parent clipping)
               if (isOpening) {
+                const rect = headerCell.getBoundingClientRect();
+                menuEl.style.top = (rect.bottom + 2) + 'px';
+                menuEl.style.left = rect.left + 'px';
                 activeTableMenuColumn = columnName;
               } else {
                 activeTableMenuColumn = null;
               }
             };
-          })(menu, col.columnName);
+          })(menu, col.columnName, th);
 
           headerRow.appendChild(th);
         }
