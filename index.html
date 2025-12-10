@@ -162,6 +162,7 @@
         padding: 0 24px;
         border: none;
         outline: none;
+        overflow: visible; /* Allow dropdowns to extend beyond container */
       }
 
       /* Top header ----------------------------------------------------------- */
@@ -4730,9 +4731,6 @@
 
         table.appendChild(tbody);
         grid.appendChild(table);
-
-        // Close menus when clicking outside
-        document.addEventListener('click', closeAllTableMenus);
       }
 
       // Create dropdown menu for table column
@@ -5061,6 +5059,12 @@
         det.style.display = "none";
         grid.innerHTML = "";
 
+        // Clear table filters when navigating to new view
+        tableColumnFilters = {};
+        tableSortColumn = null;
+        tableSortOrder = "asc";
+        activeTableMenuColumn = null;
+
         // Store navigation state
         currentView = "layer";
         currentLayerIndex = layerIndex;
@@ -5349,9 +5353,6 @@
 
         table.appendChild(tbody);
         grid.appendChild(table);
-
-        // Close menus when clicking outside
-        document.addEventListener('click', closeAllTableMenus);
       }
 
       // Handle layer item click - navigate to next layer or show filtered main items
@@ -5409,6 +5410,12 @@
         // Store for detail navigation
         currentDisplayedItems = filteredItems;
         currentDetailIndex = -1;
+
+        // Clear table filters when navigating to new view
+        tableColumnFilters = {};
+        tableSortColumn = null;
+        tableSortOrder = "asc";
+        activeTableMenuColumn = null;
 
         // Render the filtered items
         currentView = "list";
@@ -6824,6 +6831,18 @@
 
         // Initialize swipe detection for mobile detail view navigation
         initializeSwipeDetection();
+
+        // Global click handler to close table menus when clicking outside
+        document.addEventListener('click', function(e) {
+          // Check if click is inside a table menu or on a table header
+          const clickedInsideMenu = e.target.closest('.table-column-menu');
+          const clickedOnHeader = e.target.closest('.table-header-cell');
+
+          // Only close menus if click was outside both menu and header
+          if (!clickedInsideMenu && !clickedOnHeader) {
+            closeAllTableMenus();
+          }
+        });
 
         // Filter dropdown
         document.getElementById("filterBtn").onclick = function(e) {
