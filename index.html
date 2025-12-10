@@ -4752,6 +4752,26 @@
         const menu = document.createElement("div");
         menu.className = "table-column-menu";
 
+        // Close button section at the top
+        const closeSection = document.createElement("div");
+        closeSection.className = "table-menu-section";
+        closeSection.style.borderBottom = "none";
+        closeSection.style.padding = "4px";
+
+        const closeBtn = document.createElement("button");
+        closeBtn.className = "table-menu-button";
+        closeBtn.textContent = "✕ Close";
+        closeBtn.style.color = "#6b7280";
+        closeBtn.style.fontWeight = "600";
+        closeBtn.onclick = (e) => {
+          e.stopPropagation();
+          closeAllTableMenus();
+          // Apply filters when closing
+          rerenderTable();
+        };
+        closeSection.appendChild(closeBtn);
+        menu.appendChild(closeSection);
+
         // Sort section
         const sortSection = document.createElement("div");
         sortSection.className = "table-menu-section";
@@ -4768,6 +4788,7 @@
           e.stopPropagation();
           tableSortColumn = col.columnName;
           tableSortOrder = "asc";
+          closeAllTableMenus();
           rerenderTable();
         };
         sortSection.appendChild(sortAsc);
@@ -4779,6 +4800,7 @@
           e.stopPropagation();
           tableSortColumn = col.columnName;
           tableSortOrder = "desc";
+          closeAllTableMenus();
           rerenderTable();
         };
         sortSection.appendChild(sortDesc);
@@ -4817,11 +4839,21 @@
           if (newCheckedState) {
             // Select all = remove filter (show everything)
             delete tableColumnFilters[col.columnName];
+            // Check all individual checkboxes
+            uniqueValues.forEach(value => {
+              const checkbox = menu.querySelector(`input[data-filter-value="${CSS.escape(value)}"]`);
+              if (checkbox) checkbox.checked = true;
+            });
           } else {
             // Deselect all = filter to nothing (show nothing)
             tableColumnFilters[col.columnName] = [];
+            // Uncheck all individual checkboxes
+            uniqueValues.forEach(value => {
+              const checkbox = menu.querySelector(`input[data-filter-value="${CSS.escape(value)}"]`);
+              if (checkbox) checkbox.checked = false;
+            });
           }
-          rerenderTable();
+          // Don't rerender - let user continue selecting
         };
         selectAllLabel.appendChild(selectAllCheckbox);
         const selectAllText = document.createElement("span");
@@ -4836,6 +4868,7 @@
 
           const checkbox = document.createElement("input");
           checkbox.type = "checkbox";
+          checkbox.dataset.filterValue = value; // Add data attribute for Select All to find it
           // If no filter exists, all are checked. If filter exists, check only if value is in filter
           if (selectedFilters.length === 0) {
             // No filter = all checked
@@ -4854,7 +4887,16 @@
             checkbox.checked = newCheckedState;
 
             console.log('Checkbox clicked for', value, 'new state:', newCheckedState);
-            toggleTableColumnFilter(col.columnName, value, newCheckedState);
+
+            // Update filter state without rerendering
+            toggleTableColumnFilterWithoutRerender(col.columnName, value, newCheckedState);
+
+            // Update "Select All" checkbox state
+            const allChecked = uniqueValues.every(v => {
+              const cb = menu.querySelector(`input[data-filter-value="${CSS.escape(v)}"]`);
+              return cb && cb.checked;
+            });
+            selectAllCheckbox.checked = allChecked;
           };
           label.appendChild(checkbox);
 
@@ -4882,6 +4924,7 @@
               tableSortOrder = "asc";
             }
             delete tableColumnFilters[col.columnName];
+            closeAllTableMenus();
             rerenderTable();
           };
           clearSection.appendChild(clearBtn);
@@ -4902,9 +4945,9 @@
         return Array.from(values).sort();
       }
 
-      // Toggle table column filter
-      function toggleTableColumnFilter(columnName, value, checked) {
-        console.log('toggleTableColumnFilter:', columnName, value, checked);
+      // Toggle table column filter WITHOUT rerendering (for checkbox clicks)
+      function toggleTableColumnFilterWithoutRerender(columnName, value, checked) {
+        console.log('toggleTableColumnFilterWithoutRerender:', columnName, value, checked);
 
         if (!tableColumnFilters[columnName]) {
           // No filter exists yet - initialize with all unique values
@@ -4929,6 +4972,12 @@
         }
 
         console.log('Filter state:', tableColumnFilters[columnName]);
+        // Don't rerender - menu stays open for multiple selections
+      }
+
+      // Toggle table column filter WITH rerendering (for programmatic use)
+      function toggleTableColumnFilter(columnName, value, checked) {
+        toggleTableColumnFilterWithoutRerender(columnName, value, checked);
         rerenderTable();
       }
 
@@ -5027,10 +5076,7 @@
           // Re-render main table view
           renderTableView(currentTableItems, grid);
         }
-
-        // Reopen the menu that was active before rerendering
-        // Use setTimeout to ensure DOM is updated
-        setTimeout(reopenActiveTableMenu, 0);
+        // Don't reopen menu - user closed it intentionally
       }
 
       // Close all table column menus
@@ -6887,7 +6933,12 @@
 
           // Only close menus if click was outside both menu and header
           if (!clickedInsideMenu && !clickedOnHeader) {
+            const wasMenuOpen = activeTableMenuColumn !== null;
             closeAllTableMenus();
+            // If a menu was open and we're in table view, apply filters
+            if (wasMenuOpen && (document.querySelector('.table-view') || document.querySelector('.data-table'))) {
+              rerenderTable();
+            }
           }
         });
 
