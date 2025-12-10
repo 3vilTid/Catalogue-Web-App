@@ -810,8 +810,8 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         min-width: 220px;
         max-width: 300px;
-        max-height: 400px;
-        overflow-y: auto;
+        max-height: none; /* Allow menu to extend beyond table */
+        overflow-y: visible; /* Don't scroll internally */
         z-index: 10000;
         display: none;
         margin-top: 2px;
@@ -4609,6 +4609,7 @@
           const col = columnsToShow[i];
           const th = document.createElement("th");
           th.className = "table-header-cell";
+          th.dataset.columnName = col.columnName; // Add data attribute for reliable identification
 
           // Add sort indicator if this column is sorted
           if (tableSortColumn === col.columnName) {
@@ -4790,15 +4791,16 @@
         const selectAllCheckbox = document.createElement("input");
         selectAllCheckbox.type = "checkbox";
         selectAllCheckbox.checked = selectedFilters.length === 0;
-        selectAllCheckbox.onclick = (e) => {
+        selectAllCheckbox.onchange = (e) => {
           e.stopPropagation();
-          // Toggle the checkbox state manually
-          const willBeChecked = !selectAllCheckbox.checked;
-          selectAllCheckbox.checked = willBeChecked;
+          // Checkbox state has already been changed by browser
+          console.log('Select All changed, new state:', selectAllCheckbox.checked);
 
-          if (willBeChecked) {
+          if (selectAllCheckbox.checked) {
+            // Select all = remove filter
             delete tableColumnFilters[col.columnName];
           } else {
+            // Deselect all = filter to nothing (empty array)
             tableColumnFilters[col.columnName] = [];
           }
           rerenderTable();
@@ -4817,13 +4819,11 @@
           const checkbox = document.createElement("input");
           checkbox.type = "checkbox";
           checkbox.checked = selectedFilters.length === 0 || selectedFilters.includes(value);
-          checkbox.onclick = (e) => {
+          checkbox.onchange = (e) => {
             e.stopPropagation();
-            // Toggle checkbox state manually
-            const willBeChecked = !checkbox.checked;
-            checkbox.checked = willBeChecked;
-
-            toggleTableColumnFilter(col.columnName, value, willBeChecked);
+            // Checkbox state has already been changed by browser
+            console.log('Checkbox changed for', value, 'new state:', checkbox.checked);
+            toggleTableColumnFilter(col.columnName, value, checkbox.checked);
           };
           label.appendChild(checkbox);
 
@@ -5003,22 +5003,20 @@
       // Reopen the active menu after table rerender
       function reopenActiveTableMenu() {
         if (activeTableMenuColumn) {
-          // Find the th element for this column and trigger menu open
-          const headers = document.querySelectorAll('.table-header-cell');
-          headers.forEach(th => {
+          console.log('Reopening menu for column:', activeTableMenuColumn);
+          // Find the th element for this column using data attribute
+          const th = document.querySelector(`.table-header-cell[data-column-name="${activeTableMenuColumn}"]`);
+          if (th) {
             const menu = th.querySelector('.table-column-menu');
-            if (menu && menu.parentElement === th) {
-              // Check if this is the right column by looking at header text
-              const headerText = th.querySelector('span');
-              if (headerText) {
-                // Find the column config for this column name
-                const colConfig = columnConfig.find(c => c.columnName === activeTableMenuColumn);
-                if (colConfig && headerText.textContent === (colConfig.displayName || colConfig.columnName)) {
-                  menu.classList.add('active');
-                }
-              }
+            if (menu) {
+              console.log('Menu found, setting active');
+              menu.classList.add('active');
+            } else {
+              console.log('Menu not found in th');
             }
-          });
+          } else {
+            console.log('Header cell not found for column:', activeTableMenuColumn);
+          }
         }
       }
 
@@ -5275,6 +5273,7 @@
           const col = layerColumns[i];
           const th = document.createElement("th");
           th.className = "table-header-cell";
+          th.dataset.columnName = col.columnName; // Add data attribute for reliable identification
 
           // Add sort indicator if this column is sorted
           if (tableSortColumn === col.columnName) {
