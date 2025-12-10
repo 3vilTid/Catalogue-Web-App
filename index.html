@@ -4804,16 +4804,21 @@
         const selectAllCheckbox = document.createElement("input");
         selectAllCheckbox.type = "checkbox";
         selectAllCheckbox.checked = selectedFilters.length === 0;
-        selectAllCheckbox.onchange = (e) => {
+        selectAllCheckbox.onclick = (e) => {
+          e.preventDefault(); // Prevent default to manually control state
           e.stopPropagation();
-          // Checkbox state has already been changed by browser
-          console.log('Select All changed, new state:', selectAllCheckbox.checked);
 
-          if (selectAllCheckbox.checked) {
-            // Select all = remove filter
+          // Manually toggle checkbox
+          const newCheckedState = !selectAllCheckbox.checked;
+          selectAllCheckbox.checked = newCheckedState;
+
+          console.log('Select All clicked, new state:', newCheckedState);
+
+          if (newCheckedState) {
+            // Select all = remove filter (show everything)
             delete tableColumnFilters[col.columnName];
           } else {
-            // Deselect all = filter to nothing (empty array)
+            // Deselect all = filter to nothing (show nothing)
             tableColumnFilters[col.columnName] = [];
           }
           rerenderTable();
@@ -4831,12 +4836,25 @@
 
           const checkbox = document.createElement("input");
           checkbox.type = "checkbox";
-          checkbox.checked = selectedFilters.length === 0 || selectedFilters.includes(value);
-          checkbox.onchange = (e) => {
+          // If no filter exists, all are checked. If filter exists, check only if value is in filter
+          if (selectedFilters.length === 0) {
+            // No filter = all checked
+            checkbox.checked = true;
+          } else {
+            // Filter exists = check only if this value is in the filter
+            checkbox.checked = selectedFilters.includes(value);
+          }
+
+          checkbox.onclick = (e) => {
+            e.preventDefault(); // Prevent default to manually control state
             e.stopPropagation();
-            // Checkbox state has already been changed by browser
-            console.log('Checkbox changed for', value, 'new state:', checkbox.checked);
-            toggleTableColumnFilter(col.columnName, value, checkbox.checked);
+
+            // Manually toggle checkbox
+            const newCheckedState = !checkbox.checked;
+            checkbox.checked = newCheckedState;
+
+            console.log('Checkbox clicked for', value, 'new state:', newCheckedState);
+            toggleTableColumnFilter(col.columnName, value, newCheckedState);
           };
           label.appendChild(checkbox);
 
