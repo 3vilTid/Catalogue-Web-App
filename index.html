@@ -919,6 +919,28 @@
         background: #f3f4f6;
       }
 
+      .table-menu-button-row {
+        display: flex;
+        gap: 8px;
+        padding: 0 4px;
+      }
+
+      .table-menu-button-row .table-menu-button {
+        flex: 1;
+        text-align: center;
+        border-radius: 6px;
+      }
+
+      .table-menu-items-row {
+        display: flex;
+        gap: 4px;
+      }
+
+      .table-menu-items-row .table-menu-item {
+        flex: 1;
+        text-align: center;
+      }
+
       /* Detail view --------------------------------------------------------- */
 
       #detailView {
@@ -4752,11 +4774,14 @@
         const menu = document.createElement("div");
         menu.className = "table-column-menu";
 
-        // Close button section at the top
-        const closeSection = document.createElement("div");
-        closeSection.className = "table-menu-section";
-        closeSection.style.borderBottom = "none";
-        closeSection.style.padding = "4px";
+        // Top section with Close and Clear buttons side by side
+        const topSection = document.createElement("div");
+        topSection.className = "table-menu-section";
+        topSection.style.borderBottom = "none";
+        topSection.style.padding = "4px";
+
+        const buttonRow = document.createElement("div");
+        buttonRow.className = "table-menu-button-row";
 
         const closeBtn = document.createElement("button");
         closeBtn.className = "table-menu-button";
@@ -4769,8 +4794,28 @@
           // Apply filters when closing
           rerenderTable();
         };
-        closeSection.appendChild(closeBtn);
-        menu.appendChild(closeSection);
+        buttonRow.appendChild(closeBtn);
+
+        // Add Clear button if there are active filters or sorting on this column
+        if (tableSortColumn === col.columnName || tableColumnFilters[col.columnName]) {
+          const clearBtn = document.createElement("button");
+          clearBtn.className = "table-menu-button";
+          clearBtn.textContent = "Clear";
+          clearBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (tableSortColumn === col.columnName) {
+              tableSortColumn = null;
+              tableSortOrder = "asc";
+            }
+            delete tableColumnFilters[col.columnName];
+            closeAllTableMenus();
+            rerenderTable();
+          };
+          buttonRow.appendChild(clearBtn);
+        }
+
+        topSection.appendChild(buttonRow);
+        menu.appendChild(topSection);
 
         // Sort section
         const sortSection = document.createElement("div");
@@ -4778,8 +4823,11 @@
 
         const sortTitle = document.createElement("div");
         sortTitle.className = "table-menu-title";
-        sortTitle.textContent = "Sort";
+        sortTitle.textContent = "SORT";
         sortSection.appendChild(sortTitle);
+
+        const sortItemsRow = document.createElement("div");
+        sortItemsRow.className = "table-menu-items-row";
 
         const sortAsc = document.createElement("div");
         sortAsc.className = "table-menu-item";
@@ -4791,7 +4839,7 @@
           closeAllTableMenus();
           rerenderTable();
         };
-        sortSection.appendChild(sortAsc);
+        sortItemsRow.appendChild(sortAsc);
 
         const sortDesc = document.createElement("div");
         sortDesc.className = "table-menu-item";
@@ -4803,8 +4851,9 @@
           closeAllTableMenus();
           rerenderTable();
         };
-        sortSection.appendChild(sortDesc);
+        sortItemsRow.appendChild(sortDesc);
 
+        sortSection.appendChild(sortItemsRow);
         menu.appendChild(sortSection);
 
         // Filter section
@@ -4904,29 +4953,6 @@
         });
 
         menu.appendChild(filterSection);
-
-        // Clear section
-        if (tableSortColumn === col.columnName || tableColumnFilters[col.columnName]) {
-          const clearSection = document.createElement("div");
-          clearSection.className = "table-menu-section";
-
-          const clearBtn = document.createElement("button");
-          clearBtn.className = "table-menu-button";
-          clearBtn.textContent = "Clear";
-          clearBtn.onclick = (e) => {
-            e.stopPropagation();
-            if (tableSortColumn === col.columnName) {
-              tableSortColumn = null;
-              tableSortOrder = "asc";
-            }
-            delete tableColumnFilters[col.columnName];
-            closeAllTableMenus();
-            rerenderTable();
-          };
-          clearSection.appendChild(clearBtn);
-
-          menu.appendChild(clearSection);
-        }
 
         return menu;
       }
