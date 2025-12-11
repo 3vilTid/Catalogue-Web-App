@@ -3752,21 +3752,60 @@
         return 'cards'; // Default fallback for invalid values
       }
 
-      // Initialize display view types from settings
+      // Helper to normalize and validate style based on view type
+      function normalizeStyle(viewType, styleValue) {
+        if (!styleValue) {
+          // Return default style for view type
+          if (viewType === 'cards') return 'Squared';
+          if (viewType === 'list') return 'Simple';
+          if (viewType === 'table') return 'Normal';
+          return 'Squared';
+        }
+
+        // Define valid styles for each view type
+        const validStyles = {
+          'cards': ['Squared', 'Rectangle', 'Circle'],
+          'list': ['Simple', 'Double', 'Triple'],
+          'table': ['Normal', 'Open Detail View']
+        };
+
+        const allowed = validStyles[viewType] || [];
+        const styleStr = String(styleValue);
+
+        // Check if style is valid for this view type
+        if (allowed.includes(styleStr)) {
+          return styleStr;
+        }
+
+        // Style not valid for this view type - return default
+        if (viewType === 'cards') return 'Squared';
+        if (viewType === 'list') return 'Simple';
+        if (viewType === 'table') return 'Normal';
+        return 'Squared';
+      }
+
+      // Initialize display view types and styles from settings
       function initializeDisplayViewType() {
         if (settings) {
+          // Initialize view types
           layer1ViewType = normalizeViewType(settings.layer1View);
           layer2ViewType = normalizeViewType(settings.layer2View);
           layer3ViewType = normalizeViewType(settings.layer3View);
           mainViewType = normalizeViewType(settings.mainView);
 
+          // Initialize styles (validated against view types)
+          layer1Style = normalizeStyle(layer1ViewType, settings.layer1Style);
+          layer2Style = normalizeStyle(layer2ViewType, settings.layer2Style);
+          layer3Style = normalizeStyle(layer3ViewType, settings.layer3Style);
+          mainStyle = normalizeStyle(mainViewType, settings.mainStyle);
+
           console.log('✓ View types loaded from Google Sheet:');
-          console.log('  Layer 1 (D12):', settings.layer1View, '→', layer1ViewType);
-          console.log('  Layer 2 (D13):', settings.layer2View, '→', layer2ViewType);
-          console.log('  Layer 3 (D14):', settings.layer3View, '→', layer3ViewType);
-          console.log('  Main (D15):', settings.mainView, '→', mainViewType);
+          console.log('  Layer 1 (D12):', settings.layer1View, '→', layer1ViewType, '| Style (F12):', settings.layer1Style, '→', layer1Style);
+          console.log('  Layer 2 (D13):', settings.layer2View, '→', layer2ViewType, '| Style (F13):', settings.layer2Style, '→', layer2Style);
+          console.log('  Layer 3 (D14):', settings.layer3View, '→', layer3ViewType, '| Style (F14):', settings.layer3Style, '→', layer3Style);
+          console.log('  Main (D15):', settings.mainView, '→', mainViewType, '| Style (F15):', settings.mainStyle, '→', mainStyle);
         } else {
-          console.log('⚠️ No settings found - using default view types (cards)');
+          console.log('⚠️ No settings found - using defaults (cards/Squared)');
         }
       }
 
@@ -3781,6 +3820,19 @@
       // Get the view type for main items
       function getMainViewType() {
         return mainViewType;
+      }
+
+      // Get the appropriate style based on current layer index
+      function getStyleForLayer(layerIndex) {
+        if (layerIndex === 0) return layer1Style;
+        if (layerIndex === 1) return layer2Style;
+        if (layerIndex === 2) return layer3Style;
+        return 'Squared'; // Default for any additional layers
+      }
+
+      // Get the style for main items
+      function getMainStyle() {
+        return mainStyle;
       }
 
       // Dynamic column references (populated from columnConfig)
@@ -3810,6 +3862,12 @@
       let layer2ViewType = "cards"; // Layer 2 view type - set from Google Sheet D13
       let layer3ViewType = "cards"; // Layer 3 view type - set from Google Sheet D14
       let mainViewType = "cards";   // Main items view type - set from Google Sheet D15
+
+      // Display styles for each view type - set from Google Sheet F12-F15
+      let layer1Style = "Squared";  // Layer 1 style - set from Google Sheet F12
+      let layer2Style = "Squared";  // Layer 2 style - set from Google Sheet F13
+      let layer3Style = "Squared";  // Layer 3 style - set from Google Sheet F14
+      let mainStyle = "Squared";    // Main items style - set from Google Sheet F15
 
       // Table view state - for column-level filtering and sorting
       let tableColumnFilters = {}; // { columnName: [selectedValues...] }

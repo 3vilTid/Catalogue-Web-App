@@ -256,7 +256,11 @@ function getSettings() {
       layer1View: "Cards",
       layer2View: "Cards",
       layer3View: "Cards",
-      mainView: "Cards"
+      mainView: "Cards",
+      layer1Style: "Squared",
+      layer2Style: "Squared",
+      layer3Style: "Squared",
+      mainStyle: "Squared"
     };
   }
 
@@ -275,6 +279,12 @@ function getSettings() {
   var layer3View = sh.getRange("D14").getDisplayValue() || "Cards";
   var mainView = sh.getRange("D15").getDisplayValue() || "Cards";
 
+  // Read styles for each layer and main items
+  var layer1Style = sh.getRange("F12").getDisplayValue() || "Squared";
+  var layer2Style = sh.getRange("F13").getDisplayValue() || "Squared";
+  var layer3Style = sh.getRange("F14").getDisplayValue() || "Squared";
+  var mainStyle = sh.getRange("F15").getDisplayValue() || "Squared";
+
   return {
     appName: appName,
     catalogName: catalogName,
@@ -287,7 +297,11 @@ function getSettings() {
     layer1View: layer1View,
     layer2View: layer2View,
     layer3View: layer3View,
-    mainView: mainView
+    mainView: mainView,
+    layer1Style: layer1Style,
+    layer2Style: layer2Style,
+    layer3Style: layer3Style,
+    mainStyle: mainStyle
   };
 }
 
