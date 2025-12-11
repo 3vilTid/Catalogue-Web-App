@@ -5429,8 +5429,9 @@
         // Store items for table filtering
         currentTableItems = items.slice();
 
-        // Layer columns to show
+        // Layer columns to show - include Picture Link if available
         const layerColumns = [
+          { columnName: "Picture Link", displayName: "Image", type: "image" },
           { columnName: "Names", displayName: "Names", type: "text" },
           { columnName: "Description", displayName: "Description", type: "text" }
         ];
@@ -5519,13 +5520,43 @@
           const row = document.createElement("tr");
           row.className = "table-row";
 
-          const nameCell = document.createElement("td");
-          nameCell.textContent = item["Names"] || "";
-          row.appendChild(nameCell);
+          // Render each column
+          for (let j = 0; j < layerColumns.length; j++) {
+            const col = layerColumns[j];
+            const td = document.createElement("td");
+            const value = item[col.columnName] || "";
 
-          const descCell = document.createElement("td");
-          descCell.textContent = item["Description"] || "";
-          row.appendChild(descCell);
+            // Handle different column types
+            if (col.type === "image" && value) {
+              // Image type: show small image
+              const imgWrapper = document.createElement("div");
+              imgWrapper.style.cssText = "width: 60px; height: 60px; position: relative; background: #e5e7eb; border-radius: 6px; overflow: hidden;";
+
+              const fileId = extractDriveFileId(value);
+              if (fileId) {
+                imgWrapper.dataset.fileId = fileId;
+                if (imageObserver) {
+                  imageObserver.observe(imgWrapper);
+                } else {
+                  loadImageViaProxy(fileId, imgWrapper);
+                }
+              } else if (value) {
+                const img = document.createElement("img");
+                img.className = "table-cell-img";
+                img.src = value;
+                img.loading = "lazy";
+                imgWrapper.appendChild(img);
+              }
+
+              td.appendChild(imgWrapper);
+              td.style.padding = "6px 16px"; // Reduce padding for image cells
+            } else {
+              // Text and other types: display as is
+              td.textContent = value;
+            }
+
+            row.appendChild(td);
+          }
 
           row.onclick = (function (layerIdx, itm) {
             return function () {
