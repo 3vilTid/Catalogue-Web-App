@@ -4693,11 +4693,11 @@
                 menuEl.style.left = rect.left + 'px';
                 activeTableMenuColumn = columnName;
                 // Lock body scroll when dropdown opens
-                document.body.style.overflow = 'hidden';
+                lockScroll();
               } else {
                 activeTableMenuColumn = null;
                 // Restore body scroll when dropdown closes
-                document.body.style.overflow = '';
+                unlockScroll();
               }
             };
           })(menu, col.columnName, th);
@@ -5120,7 +5120,7 @@
         });
         activeTableMenuColumn = null;
         // Restore body scroll when menus are closed
-        document.body.style.overflow = '';
+        unlockScroll();
       }
 
       // Reopen the active menu after table rerender
@@ -5139,7 +5139,7 @@
               menu.style.left = rect.left + 'px';
               menu.classList.add('active');
               // Lock body scroll when dropdown reopens
-              document.body.style.overflow = 'hidden';
+              lockScroll();
             } else {
               console.log('Menu not found in th');
             }
@@ -5147,6 +5147,41 @@
             console.log('Header cell not found for column:', activeTableMenuColumn);
           }
         }
+      }
+
+      // --- SCROLL LOCK FUNCTIONS (for dropdown menus) ---
+
+      let scrollPosition = 0;
+      let isScrollLocked = false;
+
+      function lockScroll() {
+        if (isScrollLocked) return;
+
+        // Save current scroll position
+        scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+
+        // Lock scroll using position fixed
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollPosition}px`;
+        document.body.style.width = '100%';
+        document.body.style.overflow = 'hidden';
+
+        isScrollLocked = true;
+      }
+
+      function unlockScroll() {
+        if (!isScrollLocked) return;
+
+        // Restore body styles
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.overflow = '';
+
+        // Restore scroll position
+        window.scrollTo(0, scrollPosition);
+
+        isScrollLocked = false;
       }
 
       // --- LAYER NAVIGATION FUNCTIONS ---
@@ -5446,11 +5481,11 @@
                 menuEl.style.left = rect.left + 'px';
                 activeTableMenuColumn = columnName;
                 // Lock body scroll when dropdown opens
-                document.body.style.overflow = 'hidden';
+                lockScroll();
               } else {
                 activeTableMenuColumn = null;
                 // Restore body scroll when dropdown closes
-                document.body.style.overflow = '';
+                unlockScroll();
               }
             };
           })(menu, col.columnName, th);
