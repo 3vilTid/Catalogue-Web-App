@@ -3844,8 +3844,17 @@
       function updateFilterSortVisibility() {
         const hasFilterColumns = filterColumns && filterColumns.length > 0;
 
-        // Show/hide based on whether there are filterable columns
-        if (hasFilterColumns) {
+        // Check if current view is table (main items or layers)
+        const isMainTableView = currentView === "list" && getMainViewType() === 'table';
+        const isLayerTableView = currentView === "layer" && currentLayerIndex >= 0 && getViewTypeForLayer(currentLayerIndex) === 'table';
+        const isTableView = isMainTableView || isLayerTableView;
+
+        // Hide filter/sort buttons if in table view (table has its own filters/sorting)
+        // Otherwise show/hide based on whether there are filterable columns
+        if (isTableView) {
+          document.getElementById("filterWrapper").style.display = "none";
+          document.getElementById("sortWrapper").style.display = "none";
+        } else if (hasFilterColumns) {
           document.getElementById("filterWrapper").style.display = "inline-block";
           document.getElementById("sortWrapper").style.display = "inline-block";
         } else {
@@ -4461,6 +4470,9 @@
           // Default to cards view
           renderCardsView(items, grid);
         }
+
+        // Update filter/sort button visibility based on view type
+        updateFilterSortVisibility();
       }
 
       // Render Cards View (current default grid layout)
@@ -5265,6 +5277,9 @@
           // Default to cards view
           renderLayerCardsView(standardizedItems, grid, layerIndex);
         }
+
+        // Update filter/sort button visibility based on view type
+        updateFilterSortVisibility();
       }
 
       // Render layer items as cards
