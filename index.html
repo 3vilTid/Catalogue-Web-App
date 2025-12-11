@@ -623,6 +623,21 @@
         background: #e5e7eb;
       }
 
+      /* Card Style: Rectangle - wider aspect ratio */
+      .card.style-rectangle .card-img-wrapper {
+        aspect-ratio: 16 / 9;
+      }
+
+      /* Card Style: Circle - circular images */
+      .card.style-circle .card-img-wrapper {
+        aspect-ratio: 1 / 1;
+        border-radius: 50%;
+      }
+
+      .card.style-circle .card-img {
+        border-radius: 50%;
+      }
+
       .card-img {
         width: 100%;
         height: 100%;
@@ -669,6 +684,26 @@
         flex-direction: column;
         gap: 12px;
         margin-top: 8px;
+      }
+
+      /* List Style: Simple - single column (default) */
+      .list-view.style-simple {
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* List Style: Double - 2 columns */
+      .list-view.style-double {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      /* List Style: Triple - 3 columns */
+      .list-view.style-triple {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
       }
 
       .list-item {
@@ -4538,10 +4573,21 @@
         grid.classList.add('grid');
         grid.classList.remove('list-view', 'table-view');
 
+        // Get style for main items
+        const style = getMainStyle();
+
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
           const card = document.createElement("div");
           card.className = "card";
+
+          // Apply style class based on card style
+          if (style === 'Rectangle') {
+            card.classList.add('style-rectangle');
+          } else if (style === 'Circle') {
+            card.classList.add('style-circle');
+          }
+          // Squared is default, no additional class needed
 
           // Create image wrapper for lazy loading
           const imgWrapper = document.createElement("div");
@@ -4608,6 +4654,18 @@
       function renderListView(items, grid) {
         grid.classList.remove('grid', 'table-view');
         grid.classList.add('list-view');
+
+        // Get style for main items
+        const style = getMainStyle();
+
+        // Apply list style class
+        if (style === 'Double') {
+          grid.classList.add('style-double');
+        } else if (style === 'Triple') {
+          grid.classList.add('style-triple');
+        } else {
+          grid.classList.add('style-simple');
+        }
 
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
@@ -4677,6 +4735,9 @@
       function renderTableView(items, grid) {
         grid.classList.remove('grid', 'list-view');
         grid.classList.add('table-view');
+
+        // Get style for main items
+        const tableStyle = getMainStyle();
 
         // Store items for table filtering
         currentTableItems = items.slice();
@@ -5345,11 +5406,22 @@
         grid.classList.add('grid');
         grid.classList.remove('list-view', 'table-view');
 
+        // Get style for this layer
+        const style = getStyleForLayer(layerIndex);
+
         for (let i = 0; i < items.length; i++) {
           const standardItem = items[i];
           const item = standardItem._rawLayerItem;
           const card = document.createElement("div");
           card.className = "card";
+
+          // Apply style class based on card style
+          if (style === 'Rectangle') {
+            card.classList.add('style-rectangle');
+          } else if (style === 'Circle') {
+            card.classList.add('style-circle');
+          }
+          // Squared is default, no additional class needed
 
           // Create image wrapper for lazy loading
           const imgWrapper = document.createElement("div");
@@ -5414,6 +5486,18 @@
       function renderLayerListView(items, grid, layerIndex) {
         grid.classList.remove('grid', 'table-view');
         grid.classList.add('list-view');
+
+        // Get style for this layer
+        const style = getStyleForLayer(layerIndex);
+
+        // Apply list style class
+        if (style === 'Double') {
+          grid.classList.add('style-double');
+        } else if (style === 'Triple') {
+          grid.classList.add('style-triple');
+        } else {
+          grid.classList.add('style-simple');
+        }
 
         for (let i = 0; i < items.length; i++) {
           const standardItem = items[i];
@@ -5483,6 +5567,9 @@
       function renderLayerTableView(items, grid, layerIndex) {
         grid.classList.remove('grid', 'list-view');
         grid.classList.add('table-view');
+
+        // Get style for this layer
+        const tableStyle = getStyleForLayer(layerIndex);
 
         // Store items for table filtering
         currentTableItems = items.slice();
