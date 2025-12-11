@@ -4826,17 +4826,15 @@
         const selectAllCheckbox = document.createElement("input");
         selectAllCheckbox.type = "checkbox";
         selectAllCheckbox.checked = selectedFilters.length === 0;
-        selectAllCheckbox.onclick = (e) => {
-          e.preventDefault(); // Prevent default to manually control state
+        selectAllCheckbox.onchange = (e) => {
           e.stopPropagation();
 
-          // Manually toggle checkbox
-          const newCheckedState = !selectAllCheckbox.checked;
-          selectAllCheckbox.checked = newCheckedState;
+          // Read the checkbox state (browser has already toggled it)
+          const isChecked = selectAllCheckbox.checked;
 
-          console.log('Select All clicked, new state:', newCheckedState);
+          console.log('Select All changed, new state:', isChecked);
 
-          if (newCheckedState) {
+          if (isChecked) {
             // Select all = remove filter (show everything)
             delete tableColumnFilters[col.columnName];
             // Check all individual checkboxes
@@ -4878,18 +4876,16 @@
             checkbox.checked = selectedFilters.includes(value);
           }
 
-          checkbox.onclick = (e) => {
-            e.preventDefault(); // Prevent default to manually control state
+          checkbox.onchange = (e) => {
             e.stopPropagation();
 
-            // Manually toggle checkbox
-            const newCheckedState = !checkbox.checked;
-            checkbox.checked = newCheckedState;
+            // Read the checkbox state (browser has already toggled it)
+            const isChecked = checkbox.checked;
 
-            console.log('Checkbox clicked for', value, 'new state:', newCheckedState);
+            console.log('Checkbox changed for', value, 'new state:', isChecked);
 
             // Update filter state without rerendering
-            toggleTableColumnFilterWithoutRerender(col.columnName, value, newCheckedState);
+            toggleTableColumnFilterWithoutRerender(col.columnName, value, isChecked);
 
             // Update "Select All" checkbox state
             const allChecked = uniqueValues.every(v => {
