@@ -646,12 +646,6 @@
       .card.style-circle .card-img-wrapper {
         aspect-ratio: 1 / 1;
         border-radius: 50%;
-        box-shadow: 0 8px 24px rgba(148, 163, 184, 0.3);
-        transition: box-shadow 0.12s ease;
-      }
-
-      .card.style-circle:hover .card-img-wrapper {
-        box-shadow: 0 12px 32px rgba(148, 163, 184, 0.45);
       }
 
       .card.style-circle .card-img {
@@ -662,16 +656,23 @@
         padding: 0;
         text-align: center;
         background: transparent;
+        width: 100%;
       }
 
       .card.style-circle .card-name {
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 600;
-        color: var(--text-main);
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
       }
 
       .card.style-circle .card-sub {
-        display: none; /* Hide subtitle in circle view */
+        font-size: 12px;
+        color: var(--text-soft);
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
       }
 
       .card-img {
