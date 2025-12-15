@@ -6228,6 +6228,27 @@
 
         // Insert after the current row
         rowElement.parentNode.insertBefore(expandedRow, rowElement.nextSibling);
+
+        // Load images in the expanded content
+        loadExpandedImages(expandedRow);
+      }
+
+      // Load images in expanded content using the image proxy
+      function loadExpandedImages(containerElement) {
+        const imageWrappers = containerElement.querySelectorAll('.expanded-img-wrapper');
+
+        imageWrappers.forEach(wrapper => {
+          const fileId = wrapper.dataset.fileId;
+          const rawUrl = wrapper.dataset.rawUrl;
+
+          if (fileId) {
+            // Load Google Drive image via proxy
+            loadImageViaProxy(fileId, wrapper);
+          } else if (rawUrl) {
+            // Load direct HTTPS image
+            loadDirectImage(rawUrl, wrapper);
+          }
+        });
       }
 
       // Render expanded layer content as a grid of cards/list
@@ -6263,12 +6284,25 @@
             const item = standardizedItems[i];
             const name = item[nameColumn] || "";
             const description = item[descriptionColumn] || "";
-            const image = item[imageColumn] || "";
+            const rawImageUrl = item[imageColumn] || "";
+
+            // Generate image HTML with proper data attributes
+            let imageHtml = '';
+            if (rawImageUrl) {
+              const fileId = extractDriveFileId(rawImageUrl);
+              if (fileId) {
+                imageHtml = `<div class="expanded-img-wrapper" data-file-id="${fileId}" style="width: 60px; height: 60px; flex-shrink: 0; background: #e5e7eb; border-radius: 6px; overflow: hidden;"></div>`;
+              } else if (rawImageUrl.startsWith('http')) {
+                imageHtml = `<div class="expanded-img-wrapper" data-raw-url="${rawImageUrl}" style="width: 60px; height: 60px; flex-shrink: 0; background: #e5e7eb; border-radius: 6px; overflow: hidden;"></div>`;
+              } else {
+                imageHtml = `<div style="width: 60px; height: 60px; flex-shrink: 0; background: repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px); border-radius: 6px;"></div>`;
+              }
+            }
 
             html += `
               <div style="display: flex; gap: 12px; padding: 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb; cursor: pointer;"
                    onclick="onLayerItemClick(${layerIndex}, ${JSON.stringify(item._rawLayerItem).replace(/"/g, '&quot;')})">
-                ${image ? `<div style="width: 60px; height: 60px; flex-shrink: 0;"><img src="${image}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;"></div>` : ''}
+                ${imageHtml}
                 <div style="flex: 1;">
                   <div style="font-weight: 600; color: #1f2937;">${name}</div>
                   ${description ? `<div style="color: #6b7280; font-size: 14px; margin-top: 4px;">${description}</div>` : ''}
@@ -6307,12 +6341,25 @@
             const item = items[i];
             const name = item[nameColumn] || "";
             const description = item[descriptionColumn] || "";
-            const image = item[imageColumn] || "";
+            const rawImageUrl = item[imageColumn] || "";
+
+            // Generate image HTML with proper data attributes
+            let imageHtml = '';
+            if (rawImageUrl) {
+              const fileId = extractDriveFileId(rawImageUrl);
+              if (fileId) {
+                imageHtml = `<div class="expanded-img-wrapper" data-file-id="${fileId}" style="width: 60px; height: 60px; flex-shrink: 0; background: #e5e7eb; border-radius: 6px; overflow: hidden;"></div>`;
+              } else if (rawImageUrl.startsWith('http')) {
+                imageHtml = `<div class="expanded-img-wrapper" data-raw-url="${rawImageUrl}" style="width: 60px; height: 60px; flex-shrink: 0; background: #e5e7eb; border-radius: 6px; overflow: hidden;"></div>`;
+              } else {
+                imageHtml = `<div style="width: 60px; height: 60px; flex-shrink: 0; background: repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px); border-radius: 6px;"></div>`;
+              }
+            }
 
             html += `
               <div style="display: flex; gap: 12px; padding: 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb; cursor: pointer;"
                    onclick="showDetails(${JSON.stringify(item).replace(/"/g, '&quot;')}, ${i})">
-                ${image ? `<div style="width: 60px; height: 60px; flex-shrink: 0;"><img src="${image}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;"></div>` : ''}
+                ${imageHtml}
                 <div style="flex: 1;">
                   <div style="font-weight: 600; color: #1f2937;">${name}</div>
                   ${description ? `<div style="color: #6b7280; font-size: 14px; margin-top: 4px;">${description}</div>` : ''}
@@ -6332,15 +6379,33 @@
       function createCardHtml(item, style, layerIndex, isInExpandedRow) {
         const name = item[nameColumn] || "";
         const description = item[descriptionColumn] || "";
-        const image = item[imageColumn] || "";
+        const rawImageUrl = item[imageColumn] || "";
 
         // Basic card structure
         let cardClass = 'card';
         if (style === 'Circle') cardClass += ' card-circle';
 
+        // Generate image HTML with proper data attributes for lazy loading
+        let imageHtml = '';
+        if (rawImageUrl) {
+          const fileId = extractDriveFileId(rawImageUrl);
+          const borderRadius = style === 'Circle' ? 'border-radius: 50%;' : 'border-radius: 8px;';
+
+          if (fileId) {
+            // Google Drive image - use data attribute for lazy loading
+            imageHtml = `<div class="expanded-img-wrapper" data-file-id="${fileId}" style="width: 100%; aspect-ratio: 1; margin-bottom: 12px; background: #e5e7eb; ${borderRadius} overflow: hidden;"></div>`;
+          } else if (rawImageUrl.startsWith('http')) {
+            // Direct HTTP/HTTPS image
+            imageHtml = `<div class="expanded-img-wrapper" data-raw-url="${rawImageUrl}" style="width: 100%; aspect-ratio: 1; margin-bottom: 12px; background: #e5e7eb; ${borderRadius} overflow: hidden;"></div>`;
+          } else {
+            // Invalid or empty - show placeholder
+            imageHtml = `<div style="width: 100%; aspect-ratio: 1; margin-bottom: 12px; background: repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px); ${borderRadius}"></div>`;
+          }
+        }
+
         const cardHtml = `
           <div class="${cardClass}" style="cursor: pointer; background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; transition: all 0.2s;">
-            ${image ? `<div style="width: 100%; aspect-ratio: 1; margin-bottom: 12px;"><img src="${image}" style="width: 100%; height: 100%; object-fit: cover; ${style === 'Circle' ? 'border-radius: 50%;' : 'border-radius: 8px;'}"></div>` : ''}
+            ${imageHtml}
             <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">${name}</div>
             ${description ? `<div style="color: #6b7280; font-size: 14px;">${description}</div>` : ''}
           </div>
