@@ -837,6 +837,18 @@
         padding: 0;
       }
 
+      /* Detail two-column grid for expanded view */
+      .detail-two-column-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 16px;
+        background: #e2e8f0;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #cbd5e1;
+      }
+
       /* Table column headers with filter/sort controls */
       .table-header-cell {
         position: relative;
@@ -2773,6 +2785,12 @@
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
+      }
+
+      body.mobile-device.portrait .detail-two-column-grid,
+      body.tablet-device.portrait .detail-two-column-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px;
       }
 
       body.mobile-device.portrait .detail-img-wrapper,
@@ -5058,100 +5076,203 @@
 
       // Render detail view content for expanded row
       function renderExpandedDetailView(item, index) {
-        // Similar to the detail view but rendered inline
-        let html = '<div style="padding: 24px; max-height: 800px; overflow-y: auto;">';
+        // Match the exact same structure as showDetails but without image/navigation
+        let html = '<div style="padding: 24px; position: relative;">';
 
-        // Get all configured columns
-        const allColumns = columnConfig;
+        // Title row with name
+        html += '<div class="detail-title-row">' +
+          '<div class="detail-name">' +
+          (nameColumn ? (item[nameColumn.columnName] || "") : "") +
+          '</div>' +
+          '</div>';
 
-        // Separate columns by item place
-        const sections = {
-          topcorner: [],
-          longtextup: [],
-          detailleft: [],
-          detailright: [],
-          longtextdown: [],
-          bottom: []
-        };
+        // Add SubID1 and SubID2 under the Primary Identifier
+        const subBits = [];
+        if (categoryColumn && item[categoryColumn.columnName]) subBits.push(item[categoryColumn.columnName]);
+        if (placeColumn && item[placeColumn.columnName]) subBits.push(item[placeColumn.columnName]);
 
-        // Organize columns by section
-        allColumns.forEach(col => {
-          const place = col.itemPlace;
-          if (sections[place]) {
-            sections[place].push(col);
+        if (subBits.length > 0) {
+          html += '<div class="detail-subtitle">' +
+            subBits.join(" • ") +
+            '</div>';
+        }
+
+        // Top Corner fields - collect all values with same styling as SubId
+        const topCornerBits = [];
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "topcorner") continue;
+
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            const displayVal = config.type === "date" ? formatDate(val) : val;
+            topCornerBits.push(displayVal);
           }
-        });
-
-        // Render sections
-        // Top Corner
-        if (sections.topcorner.length > 0) {
-          html += '<div style="margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap;">';
-          sections.topcorner.forEach(col => {
-            const value = item[col.columnName] || "";
-            if (value) {
-              html += `<div style="background: #f3f4f6; padding: 8px 16px; border-radius: 6px; font-size: 14px; color: #374151;"><strong>${col.displayName}:</strong> ${value}</div>`;
-            }
-          });
-          html += '</div>';
         }
 
-        // Long text up
-        if (sections.longtextup.length > 0) {
-          sections.longtextup.forEach(col => {
-            const value = item[col.columnName] || "";
-            if (value) {
-              html += `<div style="margin-bottom: 16px;"><div style="font-weight: 600; color: #374151; margin-bottom: 8px;">${col.displayName}</div><div style="color: #6b7280; line-height: 1.6;">${value}</div></div>`;
-            }
-          });
+        if (topCornerBits.length > 0) {
+          html += '<div class="detail-topcorner" style="position: absolute; top: 24px; right: 24px;">' +
+            topCornerBits.join(" • ") +
+            '</div>';
         }
 
-        // Detail left and right in a grid
-        if (sections.detailleft.length > 0 || sections.detailright.length > 0) {
-          html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 16px;">';
+        // Long text Up fields (before two-column grid)
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "longtextup") continue;
 
-          // Left column
-          html += '<div>';
-          sections.detailleft.forEach(col => {
-            const value = item[col.columnName] || "";
-            if (value) {
-              html += `<div style="margin-bottom: 12px;"><div style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">${col.displayName}</div><div style="color: #1f2937;">${value}</div></div>`;
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            // Check if it's a URL type or external link
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              html +=
+                '<div class="detail-field" style="margin-top: 16px;">' +
+                '<a href="' +
+                val +
+                '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
+                "🔗 " + linkLabel +
+                "</a>" +
+                "</div>";
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              html +=
+                '<div class="detail-field" style="margin-top: 16px;"><span class="detail-label">' +
+                (config.displayName || config.columnName) +
+                ":</span> " +
+                displayVal +
+                "</div>";
             }
-          });
-          html += '</div>';
-
-          // Right column
-          html += '<div>';
-          sections.detailright.forEach(col => {
-            const value = item[col.columnName] || "";
-            if (value) {
-              html += `<div style="margin-bottom: 12px;"><div style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">${col.displayName}</div><div style="color: #1f2937;">${value}</div></div>`;
-            }
-          });
-          html += '</div>';
-
-          html += '</div>';
+          }
         }
 
-        // Long text down
-        if (sections.longtextdown.length > 0) {
-          sections.longtextdown.forEach(col => {
-            const value = item[col.columnName] || "";
-            if (value) {
-              html += `<div style="margin-bottom: 16px;"><div style="font-weight: 600; color: #374151; margin-bottom: 8px;">${col.displayName}</div><div style="color: #6b7280; line-height: 1.6;">${value}</div></div>`;
+        // Create two-column layout for detail fields using the new class
+        html += '<div class="detail-two-column-grid">';
+
+        // Left column
+        html += '<div>';
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "detailleft") continue;
+
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            // Check if it's a URL type or external link
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              html +=
+                '<div class="detail-field">' +
+                '<a href="' +
+                val +
+                '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
+                "🔗 " + linkLabel +
+                "</a>" +
+                "</div>";
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              html +=
+                '<div class="detail-field"><span class="detail-label">' +
+                (config.displayName || config.columnName) +
+                ":</span> " +
+                displayVal +
+                "</div>";
             }
-          });
+          }
+        }
+        html += '</div>';
+
+        // Right column
+        html += '<div>';
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "detailright") continue;
+
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            // Check if it's a URL type or external link
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              html +=
+                '<div class="detail-field">' +
+                '<a href="' +
+                val +
+                '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
+                "🔗 " + linkLabel +
+                "</a>" +
+                "</div>";
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              html +=
+                '<div class="detail-field"><span class="detail-label">' +
+                (config.displayName || config.columnName) +
+                ":</span> " +
+                displayVal +
+                "</div>";
+            }
+          }
+        }
+        html += '</div>';
+
+        html += '</div>'; // Close grid
+
+        // Long text Down fields (after two-column grid)
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "longtextdown") continue;
+
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            // Check if it's a URL type or external link
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              html +=
+                '<div class="detail-field" style="margin-top: 16px;">' +
+                '<a href="' +
+                val +
+                '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
+                "🔗 " + linkLabel +
+                "</a>" +
+                "</div>";
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              html +=
+                '<div class="detail-field" style="margin-top: 16px;"><span class="detail-label">' +
+                (config.displayName || config.columnName) +
+                ":</span> " +
+                displayVal +
+                "</div>";
+            }
+          }
         }
 
-        // Bottom
-        if (sections.bottom.length > 0) {
-          html += '<div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb; display: flex; gap: 12px; flex-wrap: wrap;">';
-          sections.bottom.forEach(col => {
-            const value = item[col.columnName] || "";
-            if (value) {
-              html += `<div style="font-size: 14px; color: #6b7280;"><strong>${col.displayName}:</strong> ${value}</div>`;
+        // Bottom fields
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "bottom") continue;
+
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            // Check if it's a URL type or external link
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              html +=
+                '<div class="detail-field" style="margin-top: 16px;">' +
+                '<a href="' +
+                val +
+                '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
+                "🔗 " + linkLabel +
+                "</a>" +
+                "</div>";
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              html +=
+                '<div class="detail-field" style="margin-top: 16px;"><span class="detail-label">' +
+                (config.displayName || config.columnName) +
+                ":</span> " +
+                displayVal +
+                "</div>";
             }
-          });
-          html += '</div>';
+          }
         }
 
         html += '</div>';
