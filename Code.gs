@@ -290,10 +290,10 @@ function getSettings() {
   var mainOnClick = sh.getRange("F15").getDisplayValue() || "Normal";
 
   // Read styles for each layer and main items
-  var layer1Style = sh.getRange("F12").getDisplayValue() || "Squared";
-  var layer2Style = sh.getRange("F13").getDisplayValue() || "Squared";
-  var layer3Style = sh.getRange("F14").getDisplayValue() || "Squared";
-  var mainStyle = sh.getRange("F15").getDisplayValue() || "Squared";
+  var layer1Style = sh.getRange("G12").getDisplayValue() || "Squared";
+  var layer2Style = sh.getRange("G13").getDisplayValue() || "Squared";
+  var layer3Style = sh.getRange("G14").getDisplayValue() || "Squared";
+  var mainStyle = sh.getRange("G15").getDisplayValue() || "Squared";
 
   return {
     appName: appName,

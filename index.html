@@ -3928,10 +3928,10 @@
           mainStyle = normalizeStyle(mainViewType, settings.mainStyle);
 
           console.log('✓ View types loaded from Google Sheet:');
-          console.log('  Layer 1 (D12):', settings.layer1View, '→', layer1ViewType, '| OnClick (F12):', settings.layer1OnClick, '→', layer1OnClick, '| Style (F12):', settings.layer1Style, '→', layer1Style);
-          console.log('  Layer 2 (D13):', settings.layer2View, '→', layer2ViewType, '| OnClick (F13):', settings.layer2OnClick, '→', layer2OnClick, '| Style (F13):', settings.layer2Style, '→', layer2Style);
-          console.log('  Layer 3 (D14):', settings.layer3View, '→', layer3ViewType, '| OnClick (F14):', settings.layer3OnClick, '→', layer3OnClick, '| Style (F14):', settings.layer3Style, '→', layer3Style);
-          console.log('  Main (D15):', settings.mainView, '→', mainViewType, '| OnClick (F15):', settings.mainOnClick, '→', mainOnClick, '| Style (F15):', settings.mainStyle, '→', mainStyle);
+          console.log('  Layer 1 (D12):', settings.layer1View, '→', layer1ViewType, '| OnClick (F12):', settings.layer1OnClick, '→', layer1OnClick, '| Style (G12):', settings.layer1Style, '→', layer1Style);
+          console.log('  Layer 2 (D13):', settings.layer2View, '→', layer2ViewType, '| OnClick (F13):', settings.layer2OnClick, '→', layer2OnClick, '| Style (G13):', settings.layer2Style, '→', layer2Style);
+          console.log('  Layer 3 (D14):', settings.layer3View, '→', layer3ViewType, '| OnClick (F14):', settings.layer3OnClick, '→', layer3OnClick, '| Style (G14):', settings.layer3Style, '→', layer3Style);
+          console.log('  Main (D15):', settings.mainView, '→', mainViewType, '| OnClick (F15):', settings.mainOnClick, '→', mainOnClick, '| Style (G15):', settings.mainStyle, '→', mainStyle);
         } else {
           console.log('⚠️ No settings found - using defaults (cards/Squared)');
         }
@@ -4004,11 +4004,11 @@
       let layer3ViewType = "cards"; // Layer 3 view type - set from Google Sheet D14
       let mainViewType = "cards";   // Main items view type - set from Google Sheet D15
 
-      // Display styles for each view type - set from Google Sheet F12-F15
-      let layer1Style = "Squared";  // Layer 1 style - set from Google Sheet F12
-      let layer2Style = "Squared";  // Layer 2 style - set from Google Sheet F13
-      let layer3Style = "Squared";  // Layer 3 style - set from Google Sheet F14
-      let mainStyle = "Squared";    // Main items style - set from Google Sheet F15
+      // Display styles for each view type - set from Google Sheet G12-G15
+      let layer1Style = "Squared";  // Layer 1 style - set from Google Sheet G12
+      let layer2Style = "Squared";  // Layer 2 style - set from Google Sheet G13
+      let layer3Style = "Squared";  // Layer 3 style - set from Google Sheet G14
+      let mainStyle = "Squared";    // Main items style - set from Google Sheet G15
 
       // OnClick behavior for each layer and main items - set from Google Sheet F12-F15
       let layer1OnClick = "Normal";  // Layer 1 onClick - set from Google Sheet F12
