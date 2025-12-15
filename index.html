@@ -818,6 +818,25 @@
         color: var(--text-main);
       }
 
+      /* Expanded row styles */
+      .data-table tbody tr.row-expanded {
+        background: #f0f9ff;
+        border-left: 3px solid #3b82f6;
+      }
+
+      .data-table tbody tr.expanded-content-row {
+        cursor: default;
+        background: #f9fafb;
+      }
+
+      .data-table tbody tr.expanded-content-row:hover {
+        background: #f9fafb;
+      }
+
+      .data-table tbody tr.expanded-content-row td {
+        padding: 0;
+      }
+
       /* Table column headers with filter/sort controls */
       .table-header-cell {
         position: relative;
@@ -3856,6 +3875,19 @@
         return 'Squared';
       }
 
+      // Normalize onClick behavior value
+      function normalizeOnClick(value) {
+        const val = String(value || "").trim().toLowerCase();
+
+        // Normalize variations of "Open Detail View"
+        if (val === "open detail view" || val === "opendetailview" || val === "detail view") {
+          return "opendetail";
+        }
+
+        // Default to "normal"
+        return "normal";
+      }
+
       // Initialize display view types and styles from settings
       function initializeDisplayViewType() {
         if (settings) {
@@ -3865,6 +3897,12 @@
           layer3ViewType = normalizeViewType(settings.layer3View);
           mainViewType = normalizeViewType(settings.mainView);
 
+          // Initialize onClick behaviors
+          layer1OnClick = normalizeOnClick(settings.layer1OnClick);
+          layer2OnClick = normalizeOnClick(settings.layer2OnClick);
+          layer3OnClick = normalizeOnClick(settings.layer3OnClick);
+          mainOnClick = normalizeOnClick(settings.mainOnClick);
+
           // Initialize styles (validated against view types)
           layer1Style = normalizeStyle(layer1ViewType, settings.layer1Style);
           layer2Style = normalizeStyle(layer2ViewType, settings.layer2Style);
@@ -3872,10 +3910,10 @@
           mainStyle = normalizeStyle(mainViewType, settings.mainStyle);
 
           console.log('✓ View types loaded from Google Sheet:');
-          console.log('  Layer 1 (D12):', settings.layer1View, '→', layer1ViewType, '| Style (F12):', settings.layer1Style, '→', layer1Style);
-          console.log('  Layer 2 (D13):', settings.layer2View, '→', layer2ViewType, '| Style (F13):', settings.layer2Style, '→', layer2Style);
-          console.log('  Layer 3 (D14):', settings.layer3View, '→', layer3ViewType, '| Style (F14):', settings.layer3Style, '→', layer3Style);
-          console.log('  Main (D15):', settings.mainView, '→', mainViewType, '| Style (F15):', settings.mainStyle, '→', mainStyle);
+          console.log('  Layer 1 (D12):', settings.layer1View, '→', layer1ViewType, '| OnClick (E12):', settings.layer1OnClick, '→', layer1OnClick, '| Style (F12):', settings.layer1Style, '→', layer1Style);
+          console.log('  Layer 2 (D13):', settings.layer2View, '→', layer2ViewType, '| OnClick (E13):', settings.layer2OnClick, '→', layer2OnClick, '| Style (F13):', settings.layer2Style, '→', layer2Style);
+          console.log('  Layer 3 (D14):', settings.layer3View, '→', layer3ViewType, '| OnClick (E14):', settings.layer3OnClick, '→', layer3OnClick, '| Style (F14):', settings.layer3Style, '→', layer3Style);
+          console.log('  Main (D15):', settings.mainView, '→', mainViewType, '| OnClick (E15):', settings.mainOnClick, '→', mainOnClick, '| Style (F15):', settings.mainStyle, '→', mainStyle);
         } else {
           console.log('⚠️ No settings found - using defaults (cards/Squared)');
         }
@@ -3905,6 +3943,19 @@
       // Get the style for main items
       function getMainStyle() {
         return mainStyle;
+      }
+
+      // Get the appropriate onClick behavior based on current layer index
+      function getOnClickForLayer(layerIndex) {
+        if (layerIndex === 0) return layer1OnClick;
+        if (layerIndex === 1) return layer2OnClick;
+        if (layerIndex === 2) return layer3OnClick;
+        return 'normal'; // Default for any additional layers
+      }
+
+      // Get the onClick behavior for main items
+      function getMainOnClick() {
+        return mainOnClick;
       }
 
       // Dynamic column references (populated from columnConfig)
@@ -3941,12 +3992,19 @@
       let layer3Style = "Squared";  // Layer 3 style - set from Google Sheet F14
       let mainStyle = "Squared";    // Main items style - set from Google Sheet F15
 
+      // OnClick behavior for each layer and main items - set from Google Sheet E12-E15
+      let layer1OnClick = "Normal";  // Layer 1 onClick - set from Google Sheet E12
+      let layer2OnClick = "Normal";  // Layer 2 onClick - set from Google Sheet E13
+      let layer3OnClick = "Normal";  // Layer 3 onClick - set from Google Sheet E14
+      let mainOnClick = "Normal";    // Main items onClick - set from Google Sheet E15
+
       // Table view state - for column-level filtering and sorting
       let tableColumnFilters = {}; // { columnName: [selectedValues...] }
       let tableSortColumn = null;   // Current sort column name
       let tableSortOrder = "asc";   // "asc" or "desc"
       let currentTableItems = [];   // Store original items for table filtering
       let activeTableMenuColumn = null; // Track which column menu is open
+      let expandedRows = new Set(); // Track which rows are expanded (stores item index or identifier)
 
       // Layer navigation state
       let layerConfig = []; // Layer configuration from backend
@@ -4936,17 +4994,168 @@
             row.appendChild(td);
           }
 
-          row.onclick = (function (it, idx) {
+          row.onclick = (function (it, idx, rowEl) {
             return function () {
-              showDetails(it, idx);
+              handleMainTableRowClick(it, idx, rowEl);
             };
-          })(item, i);
+          })(item, i, row);
 
           tbody.appendChild(row);
         }
 
         table.appendChild(tbody);
         grid.appendChild(table);
+      }
+
+      // Handle main table row click - either show details or expand inline
+      function handleMainTableRowClick(item, index, rowElement) {
+        const onClick = getMainOnClick();
+        const viewType = getMainViewType();
+
+        // Check if this is a table view with "Open Detail View" behavior
+        if (viewType === 'table' && onClick === 'opendetail') {
+          // Toggle row expansion to show detail view inline
+          toggleMainRowExpansion(item, index, rowElement);
+          return;
+        }
+
+        // Normal navigation behavior - show detail view
+        showDetails(item, index);
+      }
+
+      // Toggle expansion of a main table row to show detail view inline
+      function toggleMainRowExpansion(item, itemIndex, rowElement) {
+        const rowId = `main-row-${itemIndex}`;
+
+        // Check if this row is already expanded
+        if (expandedRows.has(rowId)) {
+          // Collapse: remove the expanded row
+          expandedRows.delete(rowId);
+          const expandedRow = rowElement.nextElementSibling;
+          if (expandedRow && expandedRow.classList.contains('expanded-content-row')) {
+            expandedRow.remove();
+          }
+          rowElement.classList.remove('row-expanded');
+          return;
+        }
+
+        // Expand: add the expanded row with detail view
+        expandedRows.add(rowId);
+        rowElement.classList.add('row-expanded');
+
+        // Render the detail view content
+        const contentHtml = renderExpandedDetailView(item, itemIndex);
+
+        // Create and insert the expanded row
+        const expandedRow = document.createElement('tr');
+        expandedRow.className = 'expanded-content-row';
+        const numColumns = rowElement.children.length;
+        expandedRow.innerHTML = `<td colspan="${numColumns}" style="padding: 0; background: #f9fafb; border-top: 2px solid #e5e7eb;">${contentHtml}</td>`;
+
+        // Insert after the current row
+        rowElement.parentNode.insertBefore(expandedRow, rowElement.nextSibling);
+      }
+
+      // Render detail view content for expanded row
+      function renderExpandedDetailView(item, index) {
+        // Similar to the detail view but rendered inline
+        let html = '<div style="padding: 24px; max-height: 800px; overflow-y: auto;">';
+
+        // Get all configured columns
+        const allColumns = columnConfig;
+
+        // Separate columns by item place
+        const sections = {
+          topcorner: [],
+          longtextup: [],
+          detailleft: [],
+          detailright: [],
+          longtextdown: [],
+          bottom: []
+        };
+
+        // Organize columns by section
+        allColumns.forEach(col => {
+          const place = col.itemPlace;
+          if (sections[place]) {
+            sections[place].push(col);
+          }
+        });
+
+        // Render sections
+        // Top Corner
+        if (sections.topcorner.length > 0) {
+          html += '<div style="margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap;">';
+          sections.topcorner.forEach(col => {
+            const value = item[col.columnName] || "";
+            if (value) {
+              html += `<div style="background: #f3f4f6; padding: 8px 16px; border-radius: 6px; font-size: 14px; color: #374151;"><strong>${col.displayName}:</strong> ${value}</div>`;
+            }
+          });
+          html += '</div>';
+        }
+
+        // Long text up
+        if (sections.longtextup.length > 0) {
+          sections.longtextup.forEach(col => {
+            const value = item[col.columnName] || "";
+            if (value) {
+              html += `<div style="margin-bottom: 16px;"><div style="font-weight: 600; color: #374151; margin-bottom: 8px;">${col.displayName}</div><div style="color: #6b7280; line-height: 1.6;">${value}</div></div>`;
+            }
+          });
+        }
+
+        // Detail left and right in a grid
+        if (sections.detailleft.length > 0 || sections.detailright.length > 0) {
+          html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 16px;">';
+
+          // Left column
+          html += '<div>';
+          sections.detailleft.forEach(col => {
+            const value = item[col.columnName] || "";
+            if (value) {
+              html += `<div style="margin-bottom: 12px;"><div style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">${col.displayName}</div><div style="color: #1f2937;">${value}</div></div>`;
+            }
+          });
+          html += '</div>';
+
+          // Right column
+          html += '<div>';
+          sections.detailright.forEach(col => {
+            const value = item[col.columnName] || "";
+            if (value) {
+              html += `<div style="margin-bottom: 12px;"><div style="font-size: 12px; color: #9ca3af; margin-bottom: 4px;">${col.displayName}</div><div style="color: #1f2937;">${value}</div></div>`;
+            }
+          });
+          html += '</div>';
+
+          html += '</div>';
+        }
+
+        // Long text down
+        if (sections.longtextdown.length > 0) {
+          sections.longtextdown.forEach(col => {
+            const value = item[col.columnName] || "";
+            if (value) {
+              html += `<div style="margin-bottom: 16px;"><div style="font-weight: 600; color: #374151; margin-bottom: 8px;">${col.displayName}</div><div style="color: #6b7280; line-height: 1.6;">${value}</div></div>`;
+            }
+          });
+        }
+
+        // Bottom
+        if (sections.bottom.length > 0) {
+          html += '<div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb; display: flex; gap: 12px; flex-wrap: wrap;">';
+          sections.bottom.forEach(col => {
+            const value = item[col.columnName] || "";
+            if (value) {
+              html += `<div style="font-size: 14px; color: #6b7280;"><strong>${col.displayName}:</strong> ${value}</div>`;
+            }
+          });
+          html += '</div>';
+        }
+
+        html += '</div>';
+        return html;
       }
 
       // Create dropdown menu for table column
@@ -5740,11 +5949,11 @@
             row.appendChild(td);
           }
 
-          row.onclick = (function (layerIdx, itm) {
+          row.onclick = (function (layerIdx, itm, rowEl, idx) {
             return function () {
-              onLayerItemClick(layerIdx, itm);
+              onLayerItemClick(layerIdx, itm, rowEl, idx);
             };
-          })(layerIndex, item);
+          })(layerIndex, item, row, i);
 
           tbody.appendChild(row);
         }
@@ -5754,9 +5963,19 @@
       }
 
       // Handle layer item click - navigate to next layer or show filtered main items
-      function onLayerItemClick(layerIndex, item) {
+      function onLayerItemClick(layerIndex, item, rowElement, itemIndex) {
         const itemName = item["Names"];
+        const onClick = getOnClickForLayer(layerIndex);
+        const viewType = getViewTypeForLayer(layerIndex);
 
+        // Check if this is a table view with "Open Detail View" behavior
+        if (viewType === 'table' && onClick === 'opendetail') {
+          // Toggle row expansion
+          toggleLayerRowExpansion(layerIndex, item, rowElement, itemIndex);
+          return;
+        }
+
+        // Normal navigation behavior
         // Add to navigation stack
         navigationStack.push({
           type: "layer",
@@ -5792,6 +6011,189 @@
           // This is the last layer - show filtered main items
           showMainItemsFilteredByLayer(layerIndex, itemName);
         }
+      }
+
+      // Toggle expansion of a layer table row to show next layer inline
+      function toggleLayerRowExpansion(layerIndex, item, rowElement, itemIndex) {
+        const itemName = item["Names"];
+        const rowId = `layer-${layerIndex}-row-${itemIndex}`;
+
+        // Check if this row is already expanded
+        if (expandedRows.has(rowId)) {
+          // Collapse: remove the expanded row
+          expandedRows.delete(rowId);
+          const expandedRow = rowElement.nextElementSibling;
+          if (expandedRow && expandedRow.classList.contains('expanded-content-row')) {
+            expandedRow.remove();
+          }
+          rowElement.classList.remove('row-expanded');
+          return;
+        }
+
+        // Expand: add the expanded row
+        expandedRows.add(rowId);
+        rowElement.classList.add('row-expanded');
+
+        // Determine what to show in the expanded row
+        let contentHtml = '';
+
+        // Check if there's a next layer
+        if (layerIndex + 1 < layerConfig.length) {
+          // Show next layer items filtered by this item
+          const nextLayerName = layerConfig[layerIndex + 1].layerName;
+          const filteredItems = getFilteredLayerItems(nextLayerName, itemName);
+
+          if (filteredItems.length === 0) {
+            contentHtml = '<div style="padding: 20px; text-align: center; color: #6b7280;">No items found in next layer</div>';
+          } else {
+            // Render the filtered items as cards/list based on next layer's view type
+            const nextViewType = getViewTypeForLayer(layerIndex + 1);
+            const nextStyle = getStyleForLayer(layerIndex + 1);
+            contentHtml = renderExpandedLayerContent(filteredItems, layerIndex + 1, nextViewType, nextStyle, itemName);
+          }
+        } else {
+          // This is the last layer - show filtered main items
+          const mainColumnName = layerConfig[layerIndex].mainColumnName;
+          const filteredItems = allItems.filter(mainItem => {
+            const colValue = mainItem[mainColumnName];
+            return colValue && String(colValue).trim() === itemName;
+          });
+
+          if (filteredItems.length === 0) {
+            contentHtml = '<div style="padding: 20px; text-align: center; color: #6b7280;">No main items found</div>';
+          } else {
+            // Render the filtered main items as cards/list based on main view type
+            contentHtml = renderExpandedMainContent(filteredItems, mainViewType, mainStyle);
+          }
+        }
+
+        // Create and insert the expanded row
+        const expandedRow = document.createElement('tr');
+        expandedRow.className = 'expanded-content-row';
+        const numColumns = rowElement.children.length;
+        expandedRow.innerHTML = `<td colspan="${numColumns}" style="padding: 0; background: #f9fafb; border-top: 2px solid #e5e7eb;">${contentHtml}</td>`;
+
+        // Insert after the current row
+        rowElement.parentNode.insertBefore(expandedRow, rowElement.nextSibling);
+      }
+
+      // Render expanded layer content as a grid of cards/list
+      function renderExpandedLayerContent(items, layerIndex, viewType, style, parentFilterName) {
+        // Convert layer items to standardized format
+        const standardizedItems = items.map(layerItem => {
+          return {
+            [nameColumn]: layerItem["Names"] || "",
+            [descriptionColumn]: layerItem["Description"] || "",
+            [imageColumn]: layerItem["Picture Link"] || "",
+            _rawLayerItem: layerItem
+          };
+        });
+
+        // Create a container div
+        let html = '<div style="padding: 20px; max-height: 600px; overflow-y: auto;">';
+
+        if (viewType === 'cards') {
+          html += '<div class="grid" style="gap: 16px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">';
+
+          for (let i = 0; i < standardizedItems.length; i++) {
+            const item = standardizedItems[i];
+            const cardHtml = createCardHtml(item, style, layerIndex, true);
+            html += cardHtml;
+          }
+
+          html += '</div>';
+        } else {
+          // List view
+          html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
+
+          for (let i = 0; i < standardizedItems.length; i++) {
+            const item = standardizedItems[i];
+            const name = item[nameColumn] || "";
+            const description = item[descriptionColumn] || "";
+            const image = item[imageColumn] || "";
+
+            html += `
+              <div style="display: flex; gap: 12px; padding: 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb; cursor: pointer;"
+                   onclick="onLayerItemClick(${layerIndex}, ${JSON.stringify(item._rawLayerItem).replace(/"/g, '&quot;')})">
+                ${image ? `<div style="width: 60px; height: 60px; flex-shrink: 0;"><img src="${image}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;"></div>` : ''}
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; color: #1f2937;">${name}</div>
+                  ${description ? `<div style="color: #6b7280; font-size: 14px; margin-top: 4px;">${description}</div>` : ''}
+                </div>
+              </div>
+            `;
+          }
+
+          html += '</div>';
+        }
+
+        html += '</div>';
+        return html;
+      }
+
+      // Render expanded main items content
+      function renderExpandedMainContent(items, viewType, style) {
+        // Create a container div
+        let html = '<div style="padding: 20px; max-height: 600px; overflow-y: auto;">';
+
+        if (viewType === 'cards') {
+          html += '<div class="grid" style="gap: 16px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));">';
+
+          for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const cardHtml = createCardHtml(item, style, -1, true);
+            html += cardHtml;
+          }
+
+          html += '</div>';
+        } else {
+          // List view
+          html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
+
+          for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const name = item[nameColumn] || "";
+            const description = item[descriptionColumn] || "";
+            const image = item[imageColumn] || "";
+
+            html += `
+              <div style="display: flex; gap: 12px; padding: 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb; cursor: pointer;"
+                   onclick="showDetails(${JSON.stringify(item).replace(/"/g, '&quot;')}, ${i})">
+                ${image ? `<div style="width: 60px; height: 60px; flex-shrink: 0;"><img src="${image}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;"></div>` : ''}
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; color: #1f2937;">${name}</div>
+                  ${description ? `<div style="color: #6b7280; font-size: 14px; margin-top: 4px;">${description}</div>` : ''}
+                </div>
+              </div>
+            `;
+          }
+
+          html += '</div>';
+        }
+
+        html += '</div>';
+        return html;
+      }
+
+      // Helper function to create card HTML for expanded rows
+      function createCardHtml(item, style, layerIndex, isInExpandedRow) {
+        const name = item[nameColumn] || "";
+        const description = item[descriptionColumn] || "";
+        const image = item[imageColumn] || "";
+
+        // Basic card structure
+        let cardClass = 'card';
+        if (style === 'Circle') cardClass += ' card-circle';
+
+        const cardHtml = `
+          <div class="${cardClass}" style="cursor: pointer; background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; transition: all 0.2s;">
+            ${image ? `<div style="width: 100%; aspect-ratio: 1; margin-bottom: 12px;"><img src="${image}" style="width: 100%; height: 100%; object-fit: cover; ${style === 'Circle' ? 'border-radius: 50%;' : 'border-radius: 8px;'}"></div>` : ''}
+            <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">${name}</div>
+            ${description ? `<div style="color: #6b7280; font-size: 14px;">${description}</div>` : ''}
+          </div>
+        `;
+
+        return cardHtml;
       }
 
       // Show main items filtered by the selected layer item
