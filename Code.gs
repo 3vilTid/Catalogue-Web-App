@@ -284,10 +284,10 @@ function getSettings() {
   var mainView = sh.getRange("D15").getDisplayValue() || "Cards";
 
   // Read onClick behavior for each layer and main items
-  var layer1OnClick = sh.getRange("E12").getDisplayValue() || "Normal";
-  var layer2OnClick = sh.getRange("E13").getDisplayValue() || "Normal";
-  var layer3OnClick = sh.getRange("E14").getDisplayValue() || "Normal";
-  var mainOnClick = sh.getRange("E15").getDisplayValue() || "Normal";
+  var layer1OnClick = sh.getRange("F12").getDisplayValue() || "Normal";
+  var layer2OnClick = sh.getRange("F13").getDisplayValue() || "Normal";
+  var layer3OnClick = sh.getRange("F14").getDisplayValue() || "Normal";
+  var mainOnClick = sh.getRange("F15").getDisplayValue() || "Normal";
 
   // Read styles for each layer and main items
   var layer1Style = sh.getRange("F12").getDisplayValue() || "Squared";

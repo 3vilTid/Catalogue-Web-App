@@ -3910,10 +3910,10 @@
           mainStyle = normalizeStyle(mainViewType, settings.mainStyle);
 
           console.log('✓ View types loaded from Google Sheet:');
-          console.log('  Layer 1 (D12):', settings.layer1View, '→', layer1ViewType, '| OnClick (E12):', settings.layer1OnClick, '→', layer1OnClick, '| Style (F12):', settings.layer1Style, '→', layer1Style);
-          console.log('  Layer 2 (D13):', settings.layer2View, '→', layer2ViewType, '| OnClick (E13):', settings.layer2OnClick, '→', layer2OnClick, '| Style (F13):', settings.layer2Style, '→', layer2Style);
-          console.log('  Layer 3 (D14):', settings.layer3View, '→', layer3ViewType, '| OnClick (E14):', settings.layer3OnClick, '→', layer3OnClick, '| Style (F14):', settings.layer3Style, '→', layer3Style);
-          console.log('  Main (D15):', settings.mainView, '→', mainViewType, '| OnClick (E15):', settings.mainOnClick, '→', mainOnClick, '| Style (F15):', settings.mainStyle, '→', mainStyle);
+          console.log('  Layer 1 (D12):', settings.layer1View, '→', layer1ViewType, '| OnClick (F12):', settings.layer1OnClick, '→', layer1OnClick, '| Style (F12):', settings.layer1Style, '→', layer1Style);
+          console.log('  Layer 2 (D13):', settings.layer2View, '→', layer2ViewType, '| OnClick (F13):', settings.layer2OnClick, '→', layer2OnClick, '| Style (F13):', settings.layer2Style, '→', layer2Style);
+          console.log('  Layer 3 (D14):', settings.layer3View, '→', layer3ViewType, '| OnClick (F14):', settings.layer3OnClick, '→', layer3OnClick, '| Style (F14):', settings.layer3Style, '→', layer3Style);
+          console.log('  Main (D15):', settings.mainView, '→', mainViewType, '| OnClick (F15):', settings.mainOnClick, '→', mainOnClick, '| Style (F15):', settings.mainStyle, '→', mainStyle);
         } else {
           console.log('⚠️ No settings found - using defaults (cards/Squared)');
         }
@@ -3992,11 +3992,11 @@
       let layer3Style = "Squared";  // Layer 3 style - set from Google Sheet F14
       let mainStyle = "Squared";    // Main items style - set from Google Sheet F15
 
-      // OnClick behavior for each layer and main items - set from Google Sheet E12-E15
-      let layer1OnClick = "Normal";  // Layer 1 onClick - set from Google Sheet E12
-      let layer2OnClick = "Normal";  // Layer 2 onClick - set from Google Sheet E13
-      let layer3OnClick = "Normal";  // Layer 3 onClick - set from Google Sheet E14
-      let mainOnClick = "Normal";    // Main items onClick - set from Google Sheet E15
+      // OnClick behavior for each layer and main items - set from Google Sheet F12-F15
+      let layer1OnClick = "Normal";  // Layer 1 onClick - set from Google Sheet F12
+      let layer2OnClick = "Normal";  // Layer 2 onClick - set from Google Sheet F13
+      let layer3OnClick = "Normal";  // Layer 3 onClick - set from Google Sheet F14
+      let mainOnClick = "Normal";    // Main items onClick - set from Google Sheet F15
 
       // Table view state - for column-level filtering and sorting
       let tableColumnFilters = {}; // { columnName: [selectedValues...] }
