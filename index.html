@@ -3906,6 +3906,19 @@
         return "normal";
       }
 
+      // Normalize behavior value
+      function normalizeBehavior(value) {
+        const val = String(value || "").trim().toLowerCase();
+
+        // Normalize variations of "Display Next Layer"
+        if (val === "display next layer" || val === "displaynextlayer" || val === "next layer") {
+          return "displaynextlayer";
+        }
+
+        // Default to "normal"
+        return "normal";
+      }
+
       // Initialize display view types and styles from settings
       function initializeDisplayViewType() {
         if (settings) {
@@ -3914,6 +3927,12 @@
           layer2ViewType = normalizeViewType(settings.layer2View);
           layer3ViewType = normalizeViewType(settings.layer3View);
           mainViewType = normalizeViewType(settings.mainView);
+
+          // Initialize behaviors
+          layer1Behavior = normalizeBehavior(settings.layer1Behavior);
+          layer2Behavior = normalizeBehavior(settings.layer2Behavior);
+          layer3Behavior = normalizeBehavior(settings.layer3Behavior);
+          mainBehavior = normalizeBehavior(settings.mainBehavior);
 
           // Initialize onClick behaviors
           layer1OnClick = normalizeOnClick(settings.layer1OnClick);
@@ -3928,10 +3947,10 @@
           mainStyle = normalizeStyle(mainViewType, settings.mainStyle);
 
           console.log('✓ View types loaded from Google Sheet:');
-          console.log('  Layer 1 (D12):', settings.layer1View, '→', layer1ViewType, '| OnClick (F12):', settings.layer1OnClick, '→', layer1OnClick, '| Style (G12):', settings.layer1Style, '→', layer1Style);
-          console.log('  Layer 2 (D13):', settings.layer2View, '→', layer2ViewType, '| OnClick (F13):', settings.layer2OnClick, '→', layer2OnClick, '| Style (G13):', settings.layer2Style, '→', layer2Style);
-          console.log('  Layer 3 (D14):', settings.layer3View, '→', layer3ViewType, '| OnClick (F14):', settings.layer3OnClick, '→', layer3OnClick, '| Style (G14):', settings.layer3Style, '→', layer3Style);
-          console.log('  Main (D15):', settings.mainView, '→', mainViewType, '| OnClick (F15):', settings.mainOnClick, '→', mainOnClick, '| Style (G15):', settings.mainStyle, '→', mainStyle);
+          console.log('  Layer 1 (D12):', settings.layer1View, '→', layer1ViewType, '| Behavior (E12):', settings.layer1Behavior, '→', layer1Behavior, '| OnClick (F12):', settings.layer1OnClick, '→', layer1OnClick, '| Style (G12):', settings.layer1Style, '→', layer1Style);
+          console.log('  Layer 2 (D13):', settings.layer2View, '→', layer2ViewType, '| Behavior (E13):', settings.layer2Behavior, '→', layer2Behavior, '| OnClick (F13):', settings.layer2OnClick, '→', layer2OnClick, '| Style (G13):', settings.layer2Style, '→', layer2Style);
+          console.log('  Layer 3 (D14):', settings.layer3View, '→', layer3ViewType, '| Behavior (E14):', settings.layer3Behavior, '→', layer3Behavior, '| OnClick (F14):', settings.layer3OnClick, '→', layer3OnClick, '| Style (G14):', settings.layer3Style, '→', layer3Style);
+          console.log('  Main (D15):', settings.mainView, '→', mainViewType, '| Behavior (E15):', settings.mainBehavior, '→', mainBehavior, '| OnClick (F15):', settings.mainOnClick, '→', mainOnClick, '| Style (G15):', settings.mainStyle, '→', mainStyle);
         } else {
           console.log('⚠️ No settings found - using defaults (cards/Squared)');
         }
@@ -3976,6 +3995,19 @@
         return mainOnClick;
       }
 
+      // Get the appropriate behavior based on current layer index
+      function getBehaviorForLayer(layerIndex) {
+        if (layerIndex === 0) return layer1Behavior;
+        if (layerIndex === 1) return layer2Behavior;
+        if (layerIndex === 2) return layer3Behavior;
+        return 'normal'; // Default for any additional layers
+      }
+
+      // Get the behavior for main items
+      function getMainBehavior() {
+        return mainBehavior;
+      }
+
       // Dynamic column references (populated from columnConfig)
       let nameColumn = null;
       let descriptionColumn = null;
@@ -4015,6 +4047,12 @@
       let layer2OnClick = "Normal";  // Layer 2 onClick - set from Google Sheet F13
       let layer3OnClick = "Normal";  // Layer 3 onClick - set from Google Sheet F14
       let mainOnClick = "Normal";    // Main items onClick - set from Google Sheet F15
+
+      // Behavior for each layer and main items - set from Google Sheet E12-E15
+      let layer1Behavior = "Normal";  // Layer 1 behavior - set from Google Sheet E12
+      let layer2Behavior = "Normal";  // Layer 2 behavior - set from Google Sheet E13
+      let layer3Behavior = "Normal";  // Layer 3 behavior - set from Google Sheet E14
+      let mainBehavior = "Normal";    // Main items behavior - set from Google Sheet E15
 
       // Table view state - for column-level filtering and sorting
       let tableColumnFilters = {}; // { columnName: [selectedValues...] }
@@ -6120,6 +6158,7 @@
         const itemName = item["Names"];
         const onClick = getOnClickForLayer(layerIndex);
         const viewType = getViewTypeForLayer(layerIndex);
+        const behavior = getBehaviorForLayer(layerIndex);
 
         // Check if this is a table view with "Open Detail View" behavior
         if (viewType === 'table' && onClick === 'opendetail') {
@@ -6136,17 +6175,10 @@
           itemName: itemName
         });
 
-        // Check if there's a next layer
-        if (layerIndex + 1 < layerConfig.length) {
-          // Navigate to next layer, filtered by this item
-          const nextLayerName = layerConfig[layerIndex + 1].layerName;
-          const filteredItems = getFilteredLayerItems(nextLayerName, itemName);
-
-          // Hide empty layers - if no items, skip to main items
-          if (filteredItems.length === 0) {
-            console.log('Layer', nextLayerName, 'is empty, showing main items filtered by', itemName);
-            showMainItemsFilteredByLayer(layerIndex, itemName);
-          } else {
+        // Check behavior setting
+        if (behavior === 'displaynextlayer') {
+          // "Display Next Layer" behavior: Always show next layer, never jump to main items
+          if (layerIndex + 1 < layerConfig.length) {
             // Show next layer
             renderLayerView(layerIndex + 1, itemName);
 
@@ -6160,9 +6192,37 @@
               parentFilter: itemName
             }, "", "");
           }
+          // If no next layer exists, do nothing (stay on current layer)
         } else {
-          // This is the last layer - show filtered main items
-          showMainItemsFilteredByLayer(layerIndex, itemName);
+          // "Normal" behavior: Navigate to next layer if exists and has items, otherwise show main items
+          // Check if there's a next layer
+          if (layerIndex + 1 < layerConfig.length) {
+            // Navigate to next layer, filtered by this item
+            const nextLayerName = layerConfig[layerIndex + 1].layerName;
+            const filteredItems = getFilteredLayerItems(nextLayerName, itemName);
+
+            // Hide empty layers - if no items, skip to main items
+            if (filteredItems.length === 0) {
+              console.log('Layer', nextLayerName, 'is empty, showing main items filtered by', itemName);
+              showMainItemsFilteredByLayer(layerIndex, itemName);
+            } else {
+              // Show next layer
+              renderLayerView(layerIndex + 1, itemName);
+
+              // Update UI for back button
+              updateLayerNavigationUI();
+
+              // Push history state
+              history.pushState({
+                view: "layer",
+                layerIndex: layerIndex + 1,
+                parentFilter: itemName
+              }, "", "");
+            }
+          } else {
+            // This is the last layer - show filtered main items
+            showMainItemsFilteredByLayer(layerIndex, itemName);
+          }
         }
       }
 
