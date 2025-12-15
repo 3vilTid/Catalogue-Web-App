@@ -5072,12 +5072,42 @@
 
         // Insert after the current row
         rowElement.parentNode.insertBefore(expandedRow, rowElement.nextSibling);
+
+        // Load the image if present
+        if (imageColumn && item[imageColumn.columnName]) {
+          const imgWrapper = document.getElementById("inlineDetailImgWrapper_" + itemIndex);
+          if (imgWrapper) {
+            const rawUrl = item[imageColumn.columnName];
+            const fileId = extractDriveFileId(rawUrl);
+
+            if (fileId) {
+              loadDetailImage(fileId, imgWrapper);
+            } else if (rawUrl) {
+              loadDetailImageDirect(rawUrl, imgWrapper);
+            }
+          }
+        }
       }
 
       // Render detail view content for expanded row
       function renderExpandedDetailView(item, index) {
-        // Match the exact same structure as showDetails but without image/navigation
+        // Match the exact same structure as showDetails with image
         let html = '<div style="padding: 24px; position: relative;">';
+
+        // Use detail-layout grid structure (image on left, content on right)
+        html += '<div class="detail-layout">';
+
+        // Image container
+        html += '<div id="detailImgContainer">';
+        if (imageColumn && item[imageColumn.columnName]) {
+          html += '<div class="detail-img-wrapper" id="inlineDetailImgWrapper_' + index + '"></div>';
+        } else {
+          html += '<div class="detail-img-wrapper"></div>';
+        }
+        html += '</div>';
+
+        // Content container
+        html += '<div>';
 
         // Title row with name
         html += '<div class="detail-title-row">' +
@@ -5275,7 +5305,9 @@
           }
         }
 
-        html += '</div>';
+        html += '</div>'; // Close content container div
+        html += '</div>'; // Close detail-layout
+        html += '</div>'; // Close outer div
         return html;
       }
 
