@@ -3893,19 +3893,6 @@
         return 'Squared';
       }
 
-      // Normalize onClick behavior value
-      function normalizeOnClick(value) {
-        const val = String(value || "").trim().toLowerCase();
-
-        // Normalize variations of "Open Detail View"
-        if (val === "open detail view" || val === "opendetailview" || val === "detail view") {
-          return "opendetail";
-        }
-
-        // Default to "normal"
-        return "normal";
-      }
-
       // Normalize behavior value
       function normalizeBehavior(value) {
         const val = String(value || "").trim().toLowerCase();
@@ -3913,6 +3900,11 @@
         // Normalize variations of "Display Next Layer"
         if (val === "display next layer" || val === "displaynextlayer" || val === "next layer") {
           return "displaynextlayer";
+        }
+
+        // Normalize variations of "Open Detail View"
+        if (val === "open detail view" || val === "opendetailview" || val === "detail view") {
+          return "opendetail";
         }
 
         // Default to "normal"
@@ -3934,12 +3926,6 @@
           layer3Behavior = normalizeBehavior(settings.layer3Behavior);
           mainBehavior = normalizeBehavior(settings.mainBehavior);
 
-          // Initialize onClick behaviors
-          layer1OnClick = normalizeOnClick(settings.layer1OnClick);
-          layer2OnClick = normalizeOnClick(settings.layer2OnClick);
-          layer3OnClick = normalizeOnClick(settings.layer3OnClick);
-          mainOnClick = normalizeOnClick(settings.mainOnClick);
-
           // Initialize styles (validated against view types)
           layer1Style = normalizeStyle(layer1ViewType, settings.layer1Style);
           layer2Style = normalizeStyle(layer2ViewType, settings.layer2Style);
@@ -3947,10 +3933,10 @@
           mainStyle = normalizeStyle(mainViewType, settings.mainStyle);
 
           console.log('✓ View types loaded from Google Sheet:');
-          console.log('  Layer 1 (D12):', settings.layer1View, '→', layer1ViewType, '| Behavior (E12):', settings.layer1Behavior, '→', layer1Behavior, '| OnClick (F12):', settings.layer1OnClick, '→', layer1OnClick, '| Style (G12):', settings.layer1Style, '→', layer1Style);
-          console.log('  Layer 2 (D13):', settings.layer2View, '→', layer2ViewType, '| Behavior (E13):', settings.layer2Behavior, '→', layer2Behavior, '| OnClick (F13):', settings.layer2OnClick, '→', layer2OnClick, '| Style (G13):', settings.layer2Style, '→', layer2Style);
-          console.log('  Layer 3 (D14):', settings.layer3View, '→', layer3ViewType, '| Behavior (E14):', settings.layer3Behavior, '→', layer3Behavior, '| OnClick (F14):', settings.layer3OnClick, '→', layer3OnClick, '| Style (G14):', settings.layer3Style, '→', layer3Style);
-          console.log('  Main (D15):', settings.mainView, '→', mainViewType, '| Behavior (E15):', settings.mainBehavior, '→', mainBehavior, '| OnClick (F15):', settings.mainOnClick, '→', mainOnClick, '| Style (G15):', settings.mainStyle, '→', mainStyle);
+          console.log('  Layer 1 (D12):', settings.layer1View, '→', layer1ViewType, '| Behavior (E12):', settings.layer1Behavior, '→', layer1Behavior, '| Style (F12):', settings.layer1Style, '→', layer1Style);
+          console.log('  Layer 2 (D13):', settings.layer2View, '→', layer2ViewType, '| Behavior (E13):', settings.layer2Behavior, '→', layer2Behavior, '| Style (F13):', settings.layer2Style, '→', layer2Style);
+          console.log('  Layer 3 (D14):', settings.layer3View, '→', layer3ViewType, '| Behavior (E14):', settings.layer3Behavior, '→', layer3Behavior, '| Style (F14):', settings.layer3Style, '→', layer3Style);
+          console.log('  Main (D15):', settings.mainView, '→', mainViewType, '| Behavior (E15):', settings.mainBehavior, '→', mainBehavior, '| Style (F15):', settings.mainStyle, '→', mainStyle);
         } else {
           console.log('⚠️ No settings found - using defaults (cards/Squared)');
         }
@@ -3980,19 +3966,6 @@
       // Get the style for main items
       function getMainStyle() {
         return mainStyle;
-      }
-
-      // Get the appropriate onClick behavior based on current layer index
-      function getOnClickForLayer(layerIndex) {
-        if (layerIndex === 0) return layer1OnClick;
-        if (layerIndex === 1) return layer2OnClick;
-        if (layerIndex === 2) return layer3OnClick;
-        return 'normal'; // Default for any additional layers
-      }
-
-      // Get the onClick behavior for main items
-      function getMainOnClick() {
-        return mainOnClick;
       }
 
       // Get the appropriate behavior based on current layer index
@@ -4036,17 +4009,11 @@
       let layer3ViewType = "cards"; // Layer 3 view type - set from Google Sheet D14
       let mainViewType = "cards";   // Main items view type - set from Google Sheet D15
 
-      // Display styles for each view type - set from Google Sheet G12-G15
-      let layer1Style = "Squared";  // Layer 1 style - set from Google Sheet G12
-      let layer2Style = "Squared";  // Layer 2 style - set from Google Sheet G13
-      let layer3Style = "Squared";  // Layer 3 style - set from Google Sheet G14
-      let mainStyle = "Squared";    // Main items style - set from Google Sheet G15
-
-      // OnClick behavior for each layer and main items - set from Google Sheet F12-F15
-      let layer1OnClick = "Normal";  // Layer 1 onClick - set from Google Sheet F12
-      let layer2OnClick = "Normal";  // Layer 2 onClick - set from Google Sheet F13
-      let layer3OnClick = "Normal";  // Layer 3 onClick - set from Google Sheet F14
-      let mainOnClick = "Normal";    // Main items onClick - set from Google Sheet F15
+      // Display styles for each view type - set from Google Sheet F12-F15
+      let layer1Style = "Squared";  // Layer 1 style - set from Google Sheet F12
+      let layer2Style = "Squared";  // Layer 2 style - set from Google Sheet F13
+      let layer3Style = "Squared";  // Layer 3 style - set from Google Sheet F14
+      let mainStyle = "Squared";    // Main items style - set from Google Sheet F15
 
       // Behavior for each layer and main items - set from Google Sheet E12-E15
       let layer1Behavior = "Normal";  // Layer 1 behavior - set from Google Sheet E12
@@ -5065,11 +5032,11 @@
 
       // Handle main table row click - either show details or expand inline
       function handleMainTableRowClick(item, index, rowElement) {
-        const onClick = getMainOnClick();
+        const behavior = getMainBehavior();
         const viewType = getMainViewType();
 
         // Check if this is a table view with "Open Detail View" behavior
-        if (viewType === 'table' && onClick === 'opendetail') {
+        if (viewType === 'table' && behavior === 'opendetail') {
           // Toggle row expansion to show detail view inline
           toggleMainRowExpansion(item, index, rowElement);
           return;
@@ -6156,12 +6123,11 @@
       // Handle layer item click - navigate to next layer or show filtered main items
       function onLayerItemClick(layerIndex, item, rowElement, itemIndex) {
         const itemName = item["Names"];
-        const onClick = getOnClickForLayer(layerIndex);
         const viewType = getViewTypeForLayer(layerIndex);
         const behavior = getBehaviorForLayer(layerIndex);
 
         // Check if this is a table view with "Open Detail View" behavior
-        if (viewType === 'table' && onClick === 'opendetail') {
+        if (viewType === 'table' && behavior === 'opendetail') {
           // Toggle row expansion
           toggleLayerRowExpansion(layerIndex, item, rowElement, itemIndex);
           return;
