@@ -6263,11 +6263,12 @@
           };
         });
 
-        // Create a container div
-        let html = '<div style="padding: 20px; max-height: 600px; overflow-y: auto;">';
+        // Create a container div with better height management
+        let html = '<div style="padding: 20px; max-height: 80vh; overflow-y: auto;">';
 
         if (viewType === 'cards') {
-          html += '<div class="grid" style="gap: 16px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">';
+          // Use the .grid class to inherit responsive grid behavior from CSS
+          html += '<div class="grid">';
 
           for (let i = 0; i < standardizedItems.length; i++) {
             const item = standardizedItems[i];
@@ -6320,11 +6321,12 @@
 
       // Render expanded main items content
       function renderExpandedMainContent(items, viewType, style) {
-        // Create a container div
-        let html = '<div style="padding: 20px; max-height: 600px; overflow-y: auto;">';
+        // Create a container div with better height management
+        let html = '<div style="padding: 20px; max-height: 80vh; overflow-y: auto;">';
 
         if (viewType === 'cards') {
-          html += '<div class="grid" style="gap: 16px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));">';
+          // Use the .grid class to inherit responsive grid behavior from CSS
+          html += '<div class="grid">';
 
           for (let i = 0; i < items.length; i++) {
             const item = items[i];
@@ -6381,25 +6383,33 @@
         const description = item[descriptionColumn] || "";
         const rawImageUrl = item[imageColumn] || "";
 
-        // Basic card structure
+        // Apply style classes like in regular card view
         let cardClass = 'card';
-        if (style === 'Circle') cardClass += ' card-circle';
+        if (style === 'Rectangle') {
+          cardClass += ' style-rectangle';
+        } else if (style === 'Circle') {
+          cardClass += ' style-circle';
+        }
+        // Squared is default, no additional class needed
+
+        // Determine aspect ratio based on style
+        const aspectRatio = style === 'Rectangle' ? '16 / 9' : '1 / 1';
+        const borderRadius = style === 'Circle' ? 'border-radius: 50%;' : 'border-radius: 8px;';
 
         // Generate image HTML with proper data attributes for lazy loading
         let imageHtml = '';
         if (rawImageUrl) {
           const fileId = extractDriveFileId(rawImageUrl);
-          const borderRadius = style === 'Circle' ? 'border-radius: 50%;' : 'border-radius: 8px;';
 
           if (fileId) {
             // Google Drive image - use data attribute for lazy loading
-            imageHtml = `<div class="expanded-img-wrapper" data-file-id="${fileId}" style="width: 100%; aspect-ratio: 1; margin-bottom: 12px; background: #e5e7eb; ${borderRadius} overflow: hidden;"></div>`;
+            imageHtml = `<div class="expanded-img-wrapper" data-file-id="${fileId}" style="width: 100%; aspect-ratio: ${aspectRatio}; margin-bottom: 12px; background: #e5e7eb; ${borderRadius} overflow: hidden; position: relative;"></div>`;
           } else if (rawImageUrl.startsWith('http')) {
             // Direct HTTP/HTTPS image
-            imageHtml = `<div class="expanded-img-wrapper" data-raw-url="${rawImageUrl}" style="width: 100%; aspect-ratio: 1; margin-bottom: 12px; background: #e5e7eb; ${borderRadius} overflow: hidden;"></div>`;
+            imageHtml = `<div class="expanded-img-wrapper" data-raw-url="${rawImageUrl}" style="width: 100%; aspect-ratio: ${aspectRatio}; margin-bottom: 12px; background: #e5e7eb; ${borderRadius} overflow: hidden; position: relative;"></div>`;
           } else {
             // Invalid or empty - show placeholder
-            imageHtml = `<div style="width: 100%; aspect-ratio: 1; margin-bottom: 12px; background: repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px); ${borderRadius}"></div>`;
+            imageHtml = `<div style="width: 100%; aspect-ratio: ${aspectRatio}; margin-bottom: 12px; background: repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px); ${borderRadius}"></div>`;
           }
         }
 
