@@ -277,23 +277,26 @@ function getSettings() {
   var appMode = sh.getRange("I2").getDisplayValue() || "Private with Profiles";
   var backgroundImageUrl = sh.getRange("I5").getDisplayValue() || "";
 
-  // Read view types for each layer and main items
-  var layer1View = sh.getRange("D12").getDisplayValue() || "Cards";
-  var layer2View = sh.getRange("D13").getDisplayValue() || "Cards";
-  var layer3View = sh.getRange("D14").getDisplayValue() || "Cards";
-  var mainView = sh.getRange("D15").getDisplayValue() || "Cards";
+  // Get Layers sheet for layer-specific settings
+  var layersSheet = ss.getSheetByName("Layers");
 
-  // Read onClick behavior for each layer and main items
-  var layer1OnClick = sh.getRange("F12").getDisplayValue() || "Normal";
-  var layer2OnClick = sh.getRange("F13").getDisplayValue() || "Normal";
-  var layer3OnClick = sh.getRange("F14").getDisplayValue() || "Normal";
-  var mainOnClick = sh.getRange("F15").getDisplayValue() || "Normal";
+  // Read view types for each layer and main items from Layers sheet
+  var layer1View = layersSheet ? (layersSheet.getRange("D2").getDisplayValue() || "Cards") : "Cards";
+  var layer2View = layersSheet ? (layersSheet.getRange("D3").getDisplayValue() || "Cards") : "Cards";
+  var layer3View = layersSheet ? (layersSheet.getRange("D4").getDisplayValue() || "Cards") : "Cards";
+  var mainView = layersSheet ? (layersSheet.getRange("D5").getDisplayValue() || "Cards") : "Cards";
 
-  // Read styles for each layer and main items
-  var layer1Style = sh.getRange("F12").getDisplayValue() || "Squared";
-  var layer2Style = sh.getRange("F13").getDisplayValue() || "Squared";
-  var layer3Style = sh.getRange("F14").getDisplayValue() || "Squared";
-  var mainStyle = sh.getRange("F15").getDisplayValue() || "Squared";
+  // Read onClick behavior for each layer and main items from Layers sheet
+  var layer1OnClick = layersSheet ? (layersSheet.getRange("E2").getDisplayValue() || "Normal") : "Normal";
+  var layer2OnClick = layersSheet ? (layersSheet.getRange("E3").getDisplayValue() || "Normal") : "Normal";
+  var layer3OnClick = layersSheet ? (layersSheet.getRange("E4").getDisplayValue() || "Normal") : "Normal";
+  var mainOnClick = layersSheet ? (layersSheet.getRange("E5").getDisplayValue() || "Normal") : "Normal";
+
+  // Read styles for each layer and main items from Layers sheet
+  var layer1Style = layersSheet ? (layersSheet.getRange("F2").getDisplayValue() || "Squared") : "Squared";
+  var layer2Style = layersSheet ? (layersSheet.getRange("F3").getDisplayValue() || "Squared") : "Squared";
+  var layer3Style = layersSheet ? (layersSheet.getRange("F4").getDisplayValue() || "Squared") : "Squared";
+  var mainStyle = layersSheet ? (layersSheet.getRange("F5").getDisplayValue() || "Squared") : "Squared";
 
   return {
     appName: appName,
@@ -320,33 +323,33 @@ function getSettings() {
 }
 
 /**
- * Get layer configuration from Settings sheet
- * Hardcoded to read from B12:C14 (Layer 1, 2, 3)
+ * Get layer configuration from Layers sheet
+ * Hardcoded to read from B2:C4 (Layer 1, 2, 3)
  */
 function getLayerConfig() {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var settingsSheet = ss.getSheetByName("Settings");
+    var layersSheet = ss.getSheetByName("Layers");
 
-    if (!settingsSheet) {
-      Logger.log("✗ Settings sheet not found");
+    if (!layersSheet) {
+      Logger.log("✗ Layers sheet not found");
       return [];
     }
 
     var layers = [];
 
-    // Hardcoded positions: B12:C14
-    // B12: Layer 1, C12: Ex Cat
-    // B13: Layer 2, C13: Category
-    // B14: Layer 3, C14: (blank)
-    var layerRows = [12, 13, 14]; // Rows for Layer 1, 2, 3
+    // Hardcoded positions: B2:C4
+    // B2: Layer 1, C2: Ex Cat
+    // B3: Layer 2, C3: Category
+    // B4: Layer 3, C4: (blank)
+    var layerRows = [2, 3, 4]; // Rows for Layer 1, 2, 3
     var layerCol = 2;  // Column B (1-indexed)
     var mainCol = 3;   // Column C (1-indexed)
 
     for (var i = 0; i < layerRows.length; i++) {
       var row = layerRows[i];
-      var layerName = settingsSheet.getRange(row, layerCol).getValue();
-      var mainColumnName = settingsSheet.getRange(row, mainCol).getValue();
+      var layerName = layersSheet.getRange(row, layerCol).getValue();
+      var mainColumnName = layersSheet.getRange(row, mainCol).getValue();
 
       layerName = String(layerName || "").trim();
       mainColumnName = String(mainColumnName || "").trim();
