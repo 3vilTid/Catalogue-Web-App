@@ -3893,14 +3893,9 @@
         return 'Squared';
       }
 
-      // Normalize behavior value
-      function normalizeBehavior(value) {
+      // Normalize onClick behavior value
+      function normalizeOnClick(value) {
         const val = String(value || "").trim().toLowerCase();
-
-        // Normalize variations of "Display Next Layer"
-        if (val === "display next layer" || val === "displaynextlayer" || val === "next layer") {
-          return "displaynextlayer";
-        }
 
         // Normalize variations of "Open Detail View"
         if (val === "open detail view" || val === "opendetailview" || val === "detail view") {
@@ -3920,11 +3915,11 @@
           layer3ViewType = normalizeViewType(settings.layer3View);
           mainViewType = normalizeViewType(settings.mainView);
 
-          // Initialize behaviors
-          layer1Behavior = normalizeBehavior(settings.layer1Behavior);
-          layer2Behavior = normalizeBehavior(settings.layer2Behavior);
-          layer3Behavior = normalizeBehavior(settings.layer3Behavior);
-          mainBehavior = normalizeBehavior(settings.mainBehavior);
+          // Initialize onClick behaviors
+          layer1OnClick = normalizeOnClick(settings.layer1OnClick);
+          layer2OnClick = normalizeOnClick(settings.layer2OnClick);
+          layer3OnClick = normalizeOnClick(settings.layer3OnClick);
+          mainOnClick = normalizeOnClick(settings.mainOnClick);
 
           // Initialize styles (validated against view types)
           layer1Style = normalizeStyle(layer1ViewType, settings.layer1Style);
@@ -3933,10 +3928,10 @@
           mainStyle = normalizeStyle(mainViewType, settings.mainStyle);
 
           console.log('✓ View types loaded from Google Sheet:');
-          console.log('  Layer 1 (D12):', settings.layer1View, '→', layer1ViewType, '| Behavior (E12):', settings.layer1Behavior, '→', layer1Behavior, '| Style (F12):', settings.layer1Style, '→', layer1Style);
-          console.log('  Layer 2 (D13):', settings.layer2View, '→', layer2ViewType, '| Behavior (E13):', settings.layer2Behavior, '→', layer2Behavior, '| Style (F13):', settings.layer2Style, '→', layer2Style);
-          console.log('  Layer 3 (D14):', settings.layer3View, '→', layer3ViewType, '| Behavior (E14):', settings.layer3Behavior, '→', layer3Behavior, '| Style (F14):', settings.layer3Style, '→', layer3Style);
-          console.log('  Main (D15):', settings.mainView, '→', mainViewType, '| Behavior (E15):', settings.mainBehavior, '→', mainBehavior, '| Style (F15):', settings.mainStyle, '→', mainStyle);
+          console.log('  Layer 1 (D12):', settings.layer1View, '→', layer1ViewType, '| OnClick (F12):', settings.layer1OnClick, '→', layer1OnClick, '| Style (F12):', settings.layer1Style, '→', layer1Style);
+          console.log('  Layer 2 (D13):', settings.layer2View, '→', layer2ViewType, '| OnClick (F13):', settings.layer2OnClick, '→', layer2OnClick, '| Style (F13):', settings.layer2Style, '→', layer2Style);
+          console.log('  Layer 3 (D14):', settings.layer3View, '→', layer3ViewType, '| OnClick (F14):', settings.layer3OnClick, '→', layer3OnClick, '| Style (F14):', settings.layer3Style, '→', layer3Style);
+          console.log('  Main (D15):', settings.mainView, '→', mainViewType, '| OnClick (F15):', settings.mainOnClick, '→', mainOnClick, '| Style (F15):', settings.mainStyle, '→', mainStyle);
         } else {
           console.log('⚠️ No settings found - using defaults (cards/Squared)');
         }
@@ -3968,17 +3963,17 @@
         return mainStyle;
       }
 
-      // Get the appropriate behavior based on current layer index
-      function getBehaviorForLayer(layerIndex) {
-        if (layerIndex === 0) return layer1Behavior;
-        if (layerIndex === 1) return layer2Behavior;
-        if (layerIndex === 2) return layer3Behavior;
+      // Get the appropriate onClick behavior based on current layer index
+      function getOnClickForLayer(layerIndex) {
+        if (layerIndex === 0) return layer1OnClick;
+        if (layerIndex === 1) return layer2OnClick;
+        if (layerIndex === 2) return layer3OnClick;
         return 'normal'; // Default for any additional layers
       }
 
-      // Get the behavior for main items
-      function getMainBehavior() {
-        return mainBehavior;
+      // Get the onClick behavior for main items
+      function getMainOnClick() {
+        return mainOnClick;
       }
 
       // Dynamic column references (populated from columnConfig)
@@ -4015,11 +4010,11 @@
       let layer3Style = "Squared";  // Layer 3 style - set from Google Sheet F14
       let mainStyle = "Squared";    // Main items style - set from Google Sheet F15
 
-      // Behavior for each layer and main items - set from Google Sheet E12-E15
-      let layer1Behavior = "Normal";  // Layer 1 behavior - set from Google Sheet E12
-      let layer2Behavior = "Normal";  // Layer 2 behavior - set from Google Sheet E13
-      let layer3Behavior = "Normal";  // Layer 3 behavior - set from Google Sheet E14
-      let mainBehavior = "Normal";    // Main items behavior - set from Google Sheet E15
+      // OnClick behavior for each layer and main items - set from Google Sheet F12-F15
+      let layer1OnClick = "Normal";  // Layer 1 onClick - set from Google Sheet F12
+      let layer2OnClick = "Normal";  // Layer 2 onClick - set from Google Sheet F13
+      let layer3OnClick = "Normal";  // Layer 3 onClick - set from Google Sheet F14
+      let mainOnClick = "Normal";    // Main items onClick - set from Google Sheet F15
 
       // Table view state - for column-level filtering and sorting
       let tableColumnFilters = {}; // { columnName: [selectedValues...] }
@@ -5032,11 +5027,11 @@
 
       // Handle main table row click - either show details or expand inline
       function handleMainTableRowClick(item, index, rowElement) {
-        const behavior = getMainBehavior();
+        const onClick = getMainOnClick();
         const viewType = getMainViewType();
 
         // Check if this is a table view with "Open Detail View" behavior
-        if (viewType === 'table' && behavior === 'opendetail') {
+        if (viewType === 'table' && onClick === 'opendetail') {
           // Toggle row expansion to show detail view inline
           toggleMainRowExpansion(item, index, rowElement);
           return;
@@ -6123,11 +6118,11 @@
       // Handle layer item click - navigate to next layer or show filtered main items
       function onLayerItemClick(layerIndex, item, rowElement, itemIndex) {
         const itemName = item["Names"];
+        const onClick = getOnClickForLayer(layerIndex);
         const viewType = getViewTypeForLayer(layerIndex);
-        const behavior = getBehaviorForLayer(layerIndex);
 
         // Check if this is a table view with "Open Detail View" behavior
-        if (viewType === 'table' && behavior === 'opendetail') {
+        if (viewType === 'table' && onClick === 'opendetail') {
           // Toggle row expansion
           toggleLayerRowExpansion(layerIndex, item, rowElement, itemIndex);
           return;
@@ -6141,10 +6136,17 @@
           itemName: itemName
         });
 
-        // Check behavior setting
-        if (behavior === 'displaynextlayer') {
-          // "Display Next Layer" behavior: Always show next layer, never jump to main items
-          if (layerIndex + 1 < layerConfig.length) {
+        // Check if there's a next layer
+        if (layerIndex + 1 < layerConfig.length) {
+          // Navigate to next layer, filtered by this item
+          const nextLayerName = layerConfig[layerIndex + 1].layerName;
+          const filteredItems = getFilteredLayerItems(nextLayerName, itemName);
+
+          // Hide empty layers - if no items, skip to main items
+          if (filteredItems.length === 0) {
+            console.log('Layer', nextLayerName, 'is empty, showing main items filtered by', itemName);
+            showMainItemsFilteredByLayer(layerIndex, itemName);
+          } else {
             // Show next layer
             renderLayerView(layerIndex + 1, itemName);
 
@@ -6158,37 +6160,9 @@
               parentFilter: itemName
             }, "", "");
           }
-          // If no next layer exists, do nothing (stay on current layer)
         } else {
-          // "Normal" behavior: Navigate to next layer if exists and has items, otherwise show main items
-          // Check if there's a next layer
-          if (layerIndex + 1 < layerConfig.length) {
-            // Navigate to next layer, filtered by this item
-            const nextLayerName = layerConfig[layerIndex + 1].layerName;
-            const filteredItems = getFilteredLayerItems(nextLayerName, itemName);
-
-            // Hide empty layers - if no items, skip to main items
-            if (filteredItems.length === 0) {
-              console.log('Layer', nextLayerName, 'is empty, showing main items filtered by', itemName);
-              showMainItemsFilteredByLayer(layerIndex, itemName);
-            } else {
-              // Show next layer
-              renderLayerView(layerIndex + 1, itemName);
-
-              // Update UI for back button
-              updateLayerNavigationUI();
-
-              // Push history state
-              history.pushState({
-                view: "layer",
-                layerIndex: layerIndex + 1,
-                parentFilter: itemName
-              }, "", "");
-            }
-          } else {
-            // This is the last layer - show filtered main items
-            showMainItemsFilteredByLayer(layerIndex, itemName);
-          }
+          // This is the last layer - show filtered main items
+          showMainItemsFilteredByLayer(layerIndex, itemName);
         }
       }
 
@@ -6254,27 +6228,6 @@
 
         // Insert after the current row
         rowElement.parentNode.insertBefore(expandedRow, rowElement.nextSibling);
-
-        // Load images in the expanded content
-        loadExpandedImages(expandedRow);
-      }
-
-      // Load images in expanded content using the image proxy
-      function loadExpandedImages(containerElement) {
-        const imageWrappers = containerElement.querySelectorAll('.expanded-img-wrapper');
-
-        imageWrappers.forEach(wrapper => {
-          const fileId = wrapper.dataset.fileId;
-          const rawUrl = wrapper.dataset.rawUrl;
-
-          if (fileId) {
-            // Load Google Drive image via proxy
-            loadImageViaProxy(fileId, wrapper);
-          } else if (rawUrl) {
-            // Load direct HTTPS image
-            loadDirectImage(rawUrl, wrapper);
-          }
-        });
       }
 
       // Render expanded layer content as a grid of cards/list
@@ -6289,12 +6242,11 @@
           };
         });
 
-        // Create a container div with better height management
-        let html = '<div style="padding: 20px; max-height: 80vh; overflow-y: auto;">';
+        // Create a container div
+        let html = '<div style="padding: 20px; max-height: 600px; overflow-y: auto;">';
 
         if (viewType === 'cards') {
-          // Use the .grid class to inherit responsive grid behavior from CSS
-          html += '<div class="grid">';
+          html += '<div class="grid" style="gap: 16px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">';
 
           for (let i = 0; i < standardizedItems.length; i++) {
             const item = standardizedItems[i];
@@ -6311,25 +6263,12 @@
             const item = standardizedItems[i];
             const name = item[nameColumn] || "";
             const description = item[descriptionColumn] || "";
-            const rawImageUrl = item[imageColumn] || "";
-
-            // Generate image HTML with proper data attributes
-            let imageHtml = '';
-            if (rawImageUrl) {
-              const fileId = extractDriveFileId(rawImageUrl);
-              if (fileId) {
-                imageHtml = `<div class="expanded-img-wrapper" data-file-id="${fileId}" style="width: 60px; height: 60px; flex-shrink: 0; background: #e5e7eb; border-radius: 6px; overflow: hidden;"></div>`;
-              } else if (rawImageUrl.startsWith('http')) {
-                imageHtml = `<div class="expanded-img-wrapper" data-raw-url="${rawImageUrl}" style="width: 60px; height: 60px; flex-shrink: 0; background: #e5e7eb; border-radius: 6px; overflow: hidden;"></div>`;
-              } else {
-                imageHtml = `<div style="width: 60px; height: 60px; flex-shrink: 0; background: repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px); border-radius: 6px;"></div>`;
-              }
-            }
+            const image = item[imageColumn] || "";
 
             html += `
               <div style="display: flex; gap: 12px; padding: 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb; cursor: pointer;"
                    onclick="onLayerItemClick(${layerIndex}, ${JSON.stringify(item._rawLayerItem).replace(/"/g, '&quot;')})">
-                ${imageHtml}
+                ${image ? `<div style="width: 60px; height: 60px; flex-shrink: 0;"><img src="${image}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;"></div>` : ''}
                 <div style="flex: 1;">
                   <div style="font-weight: 600; color: #1f2937;">${name}</div>
                   ${description ? `<div style="color: #6b7280; font-size: 14px; margin-top: 4px;">${description}</div>` : ''}
@@ -6347,12 +6286,11 @@
 
       // Render expanded main items content
       function renderExpandedMainContent(items, viewType, style) {
-        // Create a container div with better height management
-        let html = '<div style="padding: 20px; max-height: 80vh; overflow-y: auto;">';
+        // Create a container div
+        let html = '<div style="padding: 20px; max-height: 600px; overflow-y: auto;">';
 
         if (viewType === 'cards') {
-          // Use the .grid class to inherit responsive grid behavior from CSS
-          html += '<div class="grid">';
+          html += '<div class="grid" style="gap: 16px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));">';
 
           for (let i = 0; i < items.length; i++) {
             const item = items[i];
@@ -6369,25 +6307,12 @@
             const item = items[i];
             const name = item[nameColumn] || "";
             const description = item[descriptionColumn] || "";
-            const rawImageUrl = item[imageColumn] || "";
-
-            // Generate image HTML with proper data attributes
-            let imageHtml = '';
-            if (rawImageUrl) {
-              const fileId = extractDriveFileId(rawImageUrl);
-              if (fileId) {
-                imageHtml = `<div class="expanded-img-wrapper" data-file-id="${fileId}" style="width: 60px; height: 60px; flex-shrink: 0; background: #e5e7eb; border-radius: 6px; overflow: hidden;"></div>`;
-              } else if (rawImageUrl.startsWith('http')) {
-                imageHtml = `<div class="expanded-img-wrapper" data-raw-url="${rawImageUrl}" style="width: 60px; height: 60px; flex-shrink: 0; background: #e5e7eb; border-radius: 6px; overflow: hidden;"></div>`;
-              } else {
-                imageHtml = `<div style="width: 60px; height: 60px; flex-shrink: 0; background: repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px); border-radius: 6px;"></div>`;
-              }
-            }
+            const image = item[imageColumn] || "";
 
             html += `
               <div style="display: flex; gap: 12px; padding: 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb; cursor: pointer;"
                    onclick="showDetails(${JSON.stringify(item).replace(/"/g, '&quot;')}, ${i})">
-                ${imageHtml}
+                ${image ? `<div style="width: 60px; height: 60px; flex-shrink: 0;"><img src="${image}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;"></div>` : ''}
                 <div style="flex: 1;">
                   <div style="font-weight: 600; color: #1f2937;">${name}</div>
                   ${description ? `<div style="color: #6b7280; font-size: 14px; margin-top: 4px;">${description}</div>` : ''}
@@ -6407,41 +6332,15 @@
       function createCardHtml(item, style, layerIndex, isInExpandedRow) {
         const name = item[nameColumn] || "";
         const description = item[descriptionColumn] || "";
-        const rawImageUrl = item[imageColumn] || "";
+        const image = item[imageColumn] || "";
 
-        // Apply style classes like in regular card view
+        // Basic card structure
         let cardClass = 'card';
-        if (style === 'Rectangle') {
-          cardClass += ' style-rectangle';
-        } else if (style === 'Circle') {
-          cardClass += ' style-circle';
-        }
-        // Squared is default, no additional class needed
-
-        // Determine aspect ratio based on style
-        const aspectRatio = style === 'Rectangle' ? '16 / 9' : '1 / 1';
-        const borderRadius = style === 'Circle' ? 'border-radius: 50%;' : 'border-radius: 8px;';
-
-        // Generate image HTML with proper data attributes for lazy loading
-        let imageHtml = '';
-        if (rawImageUrl) {
-          const fileId = extractDriveFileId(rawImageUrl);
-
-          if (fileId) {
-            // Google Drive image - use data attribute for lazy loading
-            imageHtml = `<div class="expanded-img-wrapper" data-file-id="${fileId}" style="width: 100%; aspect-ratio: ${aspectRatio}; margin-bottom: 12px; background: #e5e7eb; ${borderRadius} overflow: hidden; position: relative;"></div>`;
-          } else if (rawImageUrl.startsWith('http')) {
-            // Direct HTTP/HTTPS image
-            imageHtml = `<div class="expanded-img-wrapper" data-raw-url="${rawImageUrl}" style="width: 100%; aspect-ratio: ${aspectRatio}; margin-bottom: 12px; background: #e5e7eb; ${borderRadius} overflow: hidden; position: relative;"></div>`;
-          } else {
-            // Invalid or empty - show placeholder
-            imageHtml = `<div style="width: 100%; aspect-ratio: ${aspectRatio}; margin-bottom: 12px; background: repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px); ${borderRadius}"></div>`;
-          }
-        }
+        if (style === 'Circle') cardClass += ' card-circle';
 
         const cardHtml = `
           <div class="${cardClass}" style="cursor: pointer; background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; transition: all 0.2s;">
-            ${imageHtml}
+            ${image ? `<div style="width: 100%; aspect-ratio: 1; margin-bottom: 12px;"><img src="${image}" style="width: 100%; height: 100%; object-fit: cover; ${style === 'Circle' ? 'border-radius: 50%;' : 'border-radius: 8px;'}"></div>` : ''}
             <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">${name}</div>
             ${description ? `<div style="color: #6b7280; font-size: 14px;">${description}</div>` : ''}
           </div>
@@ -8020,4 +7919,4 @@
       };
     </script>
   </body>
-</html>
+                                     </html>
