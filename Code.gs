@@ -384,14 +384,14 @@ function getLayerData(layerName) {
     }
 
     // Hardcoded positions for each layer table
-    // Layer 1: B1 (column 2), Layer 2: F1 (column 6), Layer 3: K1 (column 11)
+    // Layer 1: H1 (column 8), Layer 2: L1 (column 12), Layer 3: Q1 (column 17)
     var startCol;
     if (layerName === "Layer 1") {
-      startCol = 2; // Column B (1-indexed)
+      startCol = 8; // Column H (1-indexed)
     } else if (layerName === "Layer 2") {
-      startCol = 6; // Column F (1-indexed)
+      startCol = 12; // Column L (1-indexed)
     } else if (layerName === "Layer 3") {
-      startCol = 11; // Column K (1-indexed)
+      startCol = 17; // Column Q (1-indexed)
     } else {
       Logger.log("✗ Unknown layer: " + layerName);
       return [];
