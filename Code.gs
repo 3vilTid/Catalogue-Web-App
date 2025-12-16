@@ -257,10 +257,10 @@ function getSettings() {
       layer2View: "Cards",
       layer3View: "Cards",
       mainView: "Cards",
-      layer1Behavior: "Normal",
-      layer2Behavior: "Normal",
-      layer3Behavior: "Normal",
-      mainBehavior: "Normal",
+      layer1OnClick: "Normal",
+      layer2OnClick: "Normal",
+      layer3OnClick: "Normal",
+      mainOnClick: "Normal",
       layer1Style: "Squared",
       layer2Style: "Squared",
       layer3Style: "Squared",
@@ -283,14 +283,13 @@ function getSettings() {
   var layer3View = sh.getRange("D14").getDisplayValue() || "Cards";
   var mainView = sh.getRange("D15").getDisplayValue() || "Cards";
 
-  // Read behavior for each layer and main items (E12-E15)
-  // Behavior controls: Normal, Display Next Layer, Open Detail View
-  var layer1Behavior = sh.getRange("E12").getDisplayValue() || "Normal";
-  var layer2Behavior = sh.getRange("E13").getDisplayValue() || "Normal";
-  var layer3Behavior = sh.getRange("E14").getDisplayValue() || "Normal";
-  var mainBehavior = sh.getRange("E15").getDisplayValue() || "Normal";
+  // Read onClick behavior for each layer and main items
+  var layer1OnClick = sh.getRange("F12").getDisplayValue() || "Normal";
+  var layer2OnClick = sh.getRange("F13").getDisplayValue() || "Normal";
+  var layer3OnClick = sh.getRange("F14").getDisplayValue() || "Normal";
+  var mainOnClick = sh.getRange("F15").getDisplayValue() || "Normal";
 
-  // Read styles for each layer and main items (F12-F15)
+  // Read styles for each layer and main items
   var layer1Style = sh.getRange("F12").getDisplayValue() || "Squared";
   var layer2Style = sh.getRange("F13").getDisplayValue() || "Squared";
   var layer3Style = sh.getRange("F14").getDisplayValue() || "Squared";
@@ -309,10 +308,10 @@ function getSettings() {
     layer2View: layer2View,
     layer3View: layer3View,
     mainView: mainView,
-    layer1Behavior: layer1Behavior,
-    layer2Behavior: layer2Behavior,
-    layer3Behavior: layer3Behavior,
-    mainBehavior: mainBehavior,
+    layer1OnClick: layer1OnClick,
+    layer2OnClick: layer2OnClick,
+    layer3OnClick: layer3OnClick,
+    mainOnClick: mainOnClick,
     layer1Style: layer1Style,
     layer2Style: layer2Style,
     layer3Style: layer3Style,
