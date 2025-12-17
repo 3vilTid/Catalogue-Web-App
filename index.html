@@ -920,11 +920,17 @@
         max-height: 500px; /* Max height before internal scroll */
         overflow-y: auto; /* Scroll menu content if too long */
         z-index: 10000;
-        display: none;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-8px);
+        transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s linear 0.15s;
       }
 
       .table-column-menu.active {
-        display: block;
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        transition: opacity 0.15s ease, transform 0.15s ease;
       }
 
       /* Ensure table view doesn't clip the menus */
@@ -4962,20 +4968,18 @@
                 if (m !== menuEl) m.classList.remove('active');
               });
               const isOpening = !menuEl.classList.contains('active');
-              menuEl.classList.toggle('active');
 
-              // Position menu using fixed positioning (escapes all parent clipping)
+              // Position menu BEFORE making it visible to prevent flash
               if (isOpening) {
                 const rect = headerCell.getBoundingClientRect();
                 menuEl.style.top = (rect.bottom + 2) + 'px';
                 menuEl.style.left = rect.left + 'px';
+                // Now make it visible
+                menuEl.classList.add('active');
                 activeTableMenuColumn = columnName;
-                // Lock body scroll when dropdown opens
-                lockScroll();
               } else {
+                menuEl.classList.remove('active');
                 activeTableMenuColumn = null;
-                // Restore body scroll when dropdown closes
-                unlockScroll();
               }
             };
           })(menu, col.columnName, th);
@@ -5745,18 +5749,28 @@
       }
 
       // Update dropdown position on scroll to keep it aligned with sticky header
+      let rafId = null;
       function updateDropdownPosition() {
-        if (activeTableMenuColumn) {
-          const th = document.querySelector(`.table-header-cell[data-column-name="${activeTableMenuColumn}"]`);
-          if (th) {
-            const menu = th.querySelector('.table-column-menu.active');
-            if (menu) {
-              const rect = th.getBoundingClientRect();
-              menu.style.top = (rect.bottom + 2) + 'px';
-              menu.style.left = rect.left + 'px';
+        // Cancel any pending animation frame
+        if (rafId) {
+          cancelAnimationFrame(rafId);
+        }
+
+        // Use requestAnimationFrame to batch position updates and prevent jitter
+        rafId = requestAnimationFrame(() => {
+          if (activeTableMenuColumn) {
+            const th = document.querySelector(`.table-header-cell[data-column-name="${activeTableMenuColumn}"]`);
+            if (th) {
+              const menu = th.querySelector('.table-column-menu.active');
+              if (menu) {
+                const rect = th.getBoundingClientRect();
+                menu.style.top = (rect.bottom + 2) + 'px';
+                menu.style.left = rect.left + 'px';
+              }
             }
           }
-        }
+          rafId = null;
+        });
       }
 
       // Add scroll listener to update dropdown position
@@ -6089,20 +6103,18 @@
                 if (m !== menuEl) m.classList.remove('active');
               });
               const isOpening = !menuEl.classList.contains('active');
-              menuEl.classList.toggle('active');
 
-              // Position menu using fixed positioning (escapes all parent clipping)
+              // Position menu BEFORE making it visible to prevent flash
               if (isOpening) {
                 const rect = headerCell.getBoundingClientRect();
                 menuEl.style.top = (rect.bottom + 2) + 'px';
                 menuEl.style.left = rect.left + 'px';
+                // Now make it visible
+                menuEl.classList.add('active');
                 activeTableMenuColumn = columnName;
-                // Lock body scroll when dropdown opens
-                lockScroll();
               } else {
+                menuEl.classList.remove('active');
                 activeTableMenuColumn = null;
-                // Restore body scroll when dropdown closes
-                unlockScroll();
               }
             };
           })(menu, col.columnName, th);
