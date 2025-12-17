@@ -2110,6 +2110,11 @@
         gap: 12px;
       }
 
+      /* Rectangle cards: 2 columns in mobile portrait */
+      body.mobile-device .grid.grid-rectangle {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
       /* BIGGER BUTTONS FOR PORTRAIT - 68px height */
       body.mobile-device .btn-toolbar,
       body.mobile-device .btn-primary,
@@ -2282,6 +2287,11 @@
       /* Grid: 4 columns for tablet portrait */
       body.tablet-device.portrait .grid {
         grid-template-columns: repeat(4, 1fr);
+      }
+
+      /* Rectangle cards: 3 columns in tablet portrait */
+      body.tablet-device.portrait .grid.grid-rectangle {
+        grid-template-columns: repeat(3, 1fr);
       }
 
       /* Top-header padding: 20px → 6px, margin-bottom: 20px → 10px */
@@ -2589,11 +2599,21 @@
         margin-top: 8px;
       }
 
+      /* Rectangle cards: 4 columns in mobile landscape */
+      body.mobile-device.landscape .grid.grid-rectangle {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
       /* Grid: 8 columns for TABLET LANDSCAPE */
       body.tablet-device.landscape .grid {
         grid-template-columns: repeat(8, 1fr);
         gap: 10px;
         margin-top: 8px;
+      }
+
+      /* Rectangle cards: 6 columns in tablet landscape */
+      body.tablet-device.landscape .grid.grid-rectangle {
+        grid-template-columns: repeat(6, 1fr);
       }
 
       /* Detail view gap: 4px in landscape - reduce margin AND padding */
@@ -3099,6 +3119,13 @@
         gap: 14px;
       }
 
+      /* Rectangle cards: 2x bigger on desktop */
+      body.desktop-device .grid.grid-rectangle,
+      html.desktop-device .grid.grid-rectangle,
+      html[data-device="desktop-device"] .grid.grid-rectangle {
+        grid-template-columns: repeat(auto-fill, minmax(286px, 1fr));
+      }
+
       /* Grid item text: 15% smaller on desktop */
       body.desktop-device .card-name,
       html.desktop-device .card-name,
@@ -3147,6 +3174,11 @@
           grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
           gap: 15px;
         }
+
+        /* Rectangle cards: 2x bigger on large desktop */
+        body.desktop-device .grid.grid-rectangle {
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
       }
 
       /* Ultra-wide (1920px and up) - desktop only */
@@ -3154,6 +3186,11 @@
         body.desktop-device .grid {
           grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
           gap: 18px;
+        }
+
+        /* Rectangle cards: 2x bigger on ultra-wide */
+        body.desktop-device .grid.grid-rectangle {
+          grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
         }
       }
     </style>
@@ -4651,6 +4688,13 @@
         // Get style for main items
         const style = getMainStyle();
 
+        // Add style class to grid for Rectangle cards
+        if (style === 'Rectangle') {
+          grid.classList.add('grid-rectangle');
+        } else {
+          grid.classList.remove('grid-rectangle');
+        }
+
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
           const card = document.createElement("div");
@@ -5769,6 +5813,13 @@
 
         // Get style for this layer
         const style = getStyleForLayer(layerIndex);
+
+        // Add style class to grid for Rectangle cards
+        if (style === 'Rectangle') {
+          grid.classList.add('grid-rectangle');
+        } else {
+          grid.classList.remove('grid-rectangle');
+        }
 
         for (let i = 0; i < items.length; i++) {
           const standardItem = items[i];
