@@ -136,7 +136,7 @@
         margin: 0;
         padding: 0;
         width: 100%;
-        overflow-x: hidden;
+        /* overflow-x: hidden; REMOVED - breaks position: sticky */
         border: none;
         outline: none;
       }
@@ -855,14 +855,15 @@
 
       /* Table column headers with filter/sort controls */
       .table-header-cell {
-        position: relative;
+        /* position: relative; REMOVED - conflicts with sticky positioning from .data-table th */
         padding: 10px 32px 10px 16px;
         cursor: pointer;
         user-select: none;
       }
 
       .table-header-cell:hover {
-        background: rgba(255, 255, 255, 0.1);
+        /* Keep the gradient and add overlay using filter instead */
+        filter: brightness(1.1);
       }
 
       .table-header-cell.sorted-asc::after {
