@@ -922,15 +922,15 @@
         z-index: 10000;
         opacity: 0;
         visibility: hidden;
-        transform: translateY(-8px);
-        transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s linear 0.15s;
+        /* Removed transform to prevent positioning conflicts with JS getBoundingClientRect() */
+        transition: opacity 0.15s ease, visibility 0s linear 0.15s;
       }
 
       .table-column-menu.active {
         opacity: 1;
         visibility: visible;
-        transform: translateY(0);
-        transition: opacity 0.15s ease, transform 0.15s ease;
+        /* Removed transform - dropdown position is set via JS inline styles (top/left) */
+        transition: opacity 0.15s ease;
       }
 
       /* Ensure table view doesn't clip the menus */
