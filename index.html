@@ -952,12 +952,6 @@
         position: relative;
       }
 
-      /* Reduce table-view margin-top for mobile/tablet to prevent excessive upper padding */
-      body.mobile-device .table-view,
-      body.tablet-device .table-view {
-        margin-top: 0;
-      }
-
       .data-table {
         width: 100%;
         border-collapse: collapse;
@@ -5133,14 +5127,10 @@
           filtersRow.style.width = widthToSet;
           filtersRow.style.minWidth = widthToSet;
 
-          // For mobile/tablet: let CSS handle shell width (fit-content)
-          // For desktop: set shell width to prevent excessive scrolling
-          const isMobileOrTablet = document.body.classList.contains('mobile-device') ||
-                                   document.body.classList.contains('tablet-device');
-          if (!isMobileOrTablet) {
-            shell.style.width = `${tableWidth + shellPadding}px`;
-            shell.style.minWidth = '';
-          }
+          // Also set shell width to fit content properly and prevent excessive scrolling
+          // Shell should be exactly as wide as needed for the table plus padding
+          shell.style.width = `${tableWidth + shellPadding}px`;
+          shell.style.minWidth = '';
         } else {
           // Table fits in viewport - reset to default
           topHeader.style.width = '';
