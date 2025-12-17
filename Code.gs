@@ -283,10 +283,10 @@ function getSettings() {
   var mainView = layersSheet ? (layersSheet.getRange("D5").getDisplayValue() || "Cards") : "Cards";
 
   // Read styles for each layer and main items from Layers sheet
-  var layer1Style = layersSheet ? (layersSheet.getRange("F2").getDisplayValue() || "Squared") : "Squared";
-  var layer2Style = layersSheet ? (layersSheet.getRange("F3").getDisplayValue() || "Squared") : "Squared";
-  var layer3Style = layersSheet ? (layersSheet.getRange("F4").getDisplayValue() || "Squared") : "Squared";
-  var mainStyle = layersSheet ? (layersSheet.getRange("F5").getDisplayValue() || "Squared") : "Squared";
+  var layer1Style = layersSheet ? (layersSheet.getRange("E2").getDisplayValue() || "Squared") : "Squared";
+  var layer2Style = layersSheet ? (layersSheet.getRange("E3").getDisplayValue() || "Squared") : "Squared";
+  var layer3Style = layersSheet ? (layersSheet.getRange("E4").getDisplayValue() || "Squared") : "Squared";
+  var mainStyle = layersSheet ? (layersSheet.getRange("E5").getDisplayValue() || "Squared") : "Squared";
 
   return {
     appName: appName,
