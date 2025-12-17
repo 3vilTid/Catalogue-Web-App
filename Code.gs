@@ -257,10 +257,6 @@ function getSettings() {
       layer2View: "Cards",
       layer3View: "Cards",
       mainView: "Cards",
-      layer1OnClick: "Normal",
-      layer2OnClick: "Normal",
-      layer3OnClick: "Normal",
-      mainOnClick: "Normal",
       layer1Style: "Squared",
       layer2Style: "Squared",
       layer3Style: "Squared",
@@ -286,12 +282,6 @@ function getSettings() {
   var layer3View = layersSheet ? (layersSheet.getRange("D4").getDisplayValue() || "Cards") : "Cards";
   var mainView = layersSheet ? (layersSheet.getRange("D5").getDisplayValue() || "Cards") : "Cards";
 
-  // Read onClick behavior for each layer and main items from Layers sheet
-  var layer1OnClick = layersSheet ? (layersSheet.getRange("E2").getDisplayValue() || "Normal") : "Normal";
-  var layer2OnClick = layersSheet ? (layersSheet.getRange("E3").getDisplayValue() || "Normal") : "Normal";
-  var layer3OnClick = layersSheet ? (layersSheet.getRange("E4").getDisplayValue() || "Normal") : "Normal";
-  var mainOnClick = layersSheet ? (layersSheet.getRange("E5").getDisplayValue() || "Normal") : "Normal";
-
   // Read styles for each layer and main items from Layers sheet
   var layer1Style = layersSheet ? (layersSheet.getRange("F2").getDisplayValue() || "Squared") : "Squared";
   var layer2Style = layersSheet ? (layersSheet.getRange("F3").getDisplayValue() || "Squared") : "Squared";
@@ -311,10 +301,6 @@ function getSettings() {
     layer2View: layer2View,
     layer3View: layer3View,
     mainView: mainView,
-    layer1OnClick: layer1OnClick,
-    layer2OnClick: layer2OnClick,
-    layer3OnClick: layer3OnClick,
-    mainOnClick: mainOnClick,
     layer1Style: layer1Style,
     layer2Style: layer2Style,
     layer3Style: layer3Style,
