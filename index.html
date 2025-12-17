@@ -3937,7 +3937,7 @@
         const validStyles = {
           'cards': ['Squared', 'Rectangle', 'Circle'],
           'list': ['Simple', 'Double', 'Triple'],
-          'table': ['Normal', 'Open Detail View']
+          'table': ['Normal', 'Open Detail View', 'No Detail View']
         };
 
         const allowed = validStyles[viewType] || [];
@@ -4991,6 +4991,11 @@
           const row = document.createElement("tr");
           row.className = "table-row";
 
+          // Remove pointer cursor for "No Detail View" style
+          if (tableStyle === 'No Detail View') {
+            row.style.cursor = 'default';
+          }
+
           for (let j = 0; j < columnsToShow.length; j++) {
             const col = columnsToShow[j];
             const td = document.createElement("td");
@@ -5063,6 +5068,12 @@
       function handleMainTableRowClick(item, index, rowElement) {
         const style = getMainStyle();
         const viewType = getMainViewType();
+
+        // Check if this is a table view with "No Detail View" style - skip navigation
+        if (viewType === 'table' && style === 'No Detail View') {
+          // Do nothing - no detail view for this style
+          return;
+        }
 
         // Check if this is a table view with "Open Detail View" style
         if (viewType === 'table' && style === 'Open Detail View') {
