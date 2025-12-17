@@ -929,7 +929,8 @@
       .table-view {
         margin-top: 8px;
         overflow-x: auto;
-        overflow-y: visible;
+        /* overflow-y removed - menus use position:fixed so they won't be clipped */
+        /* This allows sticky headers to work correctly when scrolling the page */
         position: relative;
       }
 
