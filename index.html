@@ -5000,7 +5000,10 @@
             if (col.type === "image" && value) {
               // Image type: show small image
               const imgWrapper = document.createElement("div");
-              imgWrapper.style.cssText = "width: 60px; height: 60px; position: relative; background: #e5e7eb; border-radius: 6px; overflow: hidden;";
+              // 1.5x bigger (90px) for Mobile/Tablet Portrait, 60px otherwise
+              const imgSize = (document.body.classList.contains('mobile-device') || document.body.classList.contains('tablet-device')) &&
+                              document.body.classList.contains('portrait') ? '90px' : '60px';
+              imgWrapper.style.cssText = `width: ${imgSize}; height: ${imgSize}; position: relative; background: #e5e7eb; border-radius: 6px; overflow: hidden;`;
 
               const fileId = extractDriveFileId(value);
               if (fileId) {
@@ -6112,7 +6115,10 @@
             if (col.type === "image" && value) {
               // Image type: show small image
               const imgWrapper = document.createElement("div");
-              imgWrapper.style.cssText = "width: 60px; height: 60px; position: relative; background: #e5e7eb; border-radius: 6px; overflow: hidden;";
+              // 1.5x bigger (90px) for Mobile/Tablet Portrait, 60px otherwise
+              const imgSize = (document.body.classList.contains('mobile-device') || document.body.classList.contains('tablet-device')) &&
+                              document.body.classList.contains('portrait') ? '90px' : '60px';
+              imgWrapper.style.cssText = `width: ${imgSize}; height: ${imgSize}; position: relative; background: #e5e7eb; border-radius: 6px; overflow: hidden;`;
 
               const fileId = extractDriveFileId(value);
               if (fileId) {
