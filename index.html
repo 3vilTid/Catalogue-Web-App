@@ -855,7 +855,8 @@
 
       /* Table column headers with filter/sort controls */
       .table-header-cell {
-        /* position: relative; REMOVED - conflicts with sticky positioning from .data-table th */
+        /* No position property - dropdown uses position:fixed with JS positioning via getBoundingClientRect() */
+        /* This allows the sticky positioning from .data-table th to work without interference */
         padding: 10px 32px 10px 16px;
         cursor: pointer;
         user-select: none;
@@ -929,9 +930,9 @@
       /* Ensure table view doesn't clip the menus */
       .table-view {
         margin-top: 8px;
-        overflow-x: auto;
-        /* overflow-y removed - menus use position:fixed so they won't be clipped */
-        /* This allows sticky headers to work correctly when scrolling the page */
+        /* All overflow removed - ANY overflow creates a scroll container that breaks position: sticky */
+        /* Menus use position:fixed so they won't be clipped */
+        /* For horizontal scrolling of wide tables, the table itself will handle it via display */
         position: relative;
       }
 
@@ -5727,38 +5728,40 @@
       }
 
       // --- SCROLL LOCK FUNCTIONS (for dropdown menus) ---
+      // DISABLED: Setting body position:fixed breaks sticky table headers
+      // Dropdowns use position:fixed so they don't need scroll locking
 
       let scrollPosition = 0;
       let isScrollLocked = false;
 
       function lockScroll() {
-        if (isScrollLocked) return;
-
-        // Save current scroll position
-        scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-
-        // Lock scroll using position fixed
-        document.body.style.position = 'fixed';
-        document.body.style.top = `-${scrollPosition}px`;
-        document.body.style.width = '100%';
-        document.body.style.overflow = 'hidden';
-
-        isScrollLocked = true;
+        // DISABLED - was breaking sticky headers by setting body position:fixed
+        return;
       }
 
       function unlockScroll() {
-        if (!isScrollLocked) return;
+        // DISABLED - companion to lockScroll
+        return;
+      }
 
-        // Restore body styles
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
-        document.body.style.overflow = '';
+      // Update dropdown position on scroll to keep it aligned with sticky header
+      function updateDropdownPosition() {
+        if (activeTableMenuColumn) {
+          const th = document.querySelector(`.table-header-cell[data-column-name="${activeTableMenuColumn}"]`);
+          if (th) {
+            const menu = th.querySelector('.table-column-menu.active');
+            if (menu) {
+              const rect = th.getBoundingClientRect();
+              menu.style.top = (rect.bottom + 2) + 'px';
+              menu.style.left = rect.left + 'px';
+            }
+          }
+        }
+      }
 
-        // Restore scroll position
-        window.scrollTo(0, scrollPosition);
-
-        isScrollLocked = false;
+      // Add scroll listener to update dropdown position
+      if (typeof window !== 'undefined') {
+        window.addEventListener('scroll', updateDropdownPosition, { passive: true });
       }
 
       // --- LAYER NAVIGATION FUNCTIONS ---
