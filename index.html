@@ -855,7 +855,7 @@
 
       /* Table column headers with filter/sort controls */
       .table-header-cell {
-        /* No position property - dropdown uses position:fixed with JS positioning via getBoundingClientRect() */
+        position: relative; /* Positioned so dropdown can be absolutely positioned relative to it */
         /* This allows the sticky positioning from .data-table th to work without interference */
         padding: 10px 32px 10px 16px;
         cursor: pointer;
@@ -910,7 +910,10 @@
       }
 
       .table-column-menu {
-        position: fixed; /* Fixed positioning to escape all parent clipping */
+        position: absolute; /* Absolute positioning relative to parent .table-header-cell */
+        top: 100%; /* Position below the header */
+        left: 0;
+        margin-top: 2px; /* Small gap below header */
         background: white;
         border: 1px solid #e5e7eb;
         border-radius: 8px;
@@ -922,14 +925,14 @@
         z-index: 10000;
         opacity: 0;
         visibility: hidden;
-        /* Removed transform to prevent positioning conflicts with JS getBoundingClientRect() */
+        /* No transform - dropdown locked to parent header cell */
         transition: opacity 0.15s ease, visibility 0s linear 0.15s;
       }
 
       .table-column-menu.active {
         opacity: 1;
         visibility: visible;
-        /* Removed transform - dropdown position is set via JS inline styles (top/left) */
+        /* No transform - dropdown locked to parent header via position:absolute */
         transition: opacity 0.15s ease;
       }
 
@@ -937,7 +940,7 @@
       .table-view {
         margin-top: 8px;
         /* All overflow removed - ANY overflow creates a scroll container that breaks position: sticky */
-        /* Menus use position:fixed so they won't be clipped */
+        /* Menus use position:absolute relative to header cells */
         /* For horizontal scrolling of wide tables, the table itself will handle it via display */
         position: relative;
       }
@@ -4969,12 +4972,8 @@
               });
               const isOpening = !menuEl.classList.contains('active');
 
-              // Position menu BEFORE making it visible to prevent flash
+              // Toggle menu visibility - CSS handles positioning via absolute positioning
               if (isOpening) {
-                const rect = headerCell.getBoundingClientRect();
-                menuEl.style.top = (rect.bottom + 2) + 'px';
-                menuEl.style.left = rect.left + 'px';
-                // Now make it visible
                 menuEl.classList.add('active');
                 activeTableMenuColumn = columnName;
               } else {
@@ -5714,14 +5713,9 @@
           if (th) {
             const menu = th.querySelector('.table-column-menu');
             if (menu) {
-              console.log('Menu found, setting active and positioning');
-              // Position menu using fixed positioning
-              const rect = th.getBoundingClientRect();
-              menu.style.top = (rect.bottom + 2) + 'px';
-              menu.style.left = rect.left + 'px';
+              console.log('Menu found, setting active');
+              // CSS handles positioning via absolute positioning
               menu.classList.add('active');
-              // Lock body scroll when dropdown reopens
-              lockScroll();
             } else {
               console.log('Menu not found in th');
             }
@@ -5733,7 +5727,7 @@
 
       // --- SCROLL LOCK FUNCTIONS (for dropdown menus) ---
       // DISABLED: Setting body position:fixed breaks sticky table headers
-      // Dropdowns use position:fixed so they don't need scroll locking
+      // Dropdowns use position:absolute relative to their header cells
 
       let scrollPosition = 0;
       let isScrollLocked = false;
@@ -5748,35 +5742,8 @@
         return;
       }
 
-      // Update dropdown position on scroll to keep it aligned with sticky header
-      let rafId = null;
-      function updateDropdownPosition() {
-        // Cancel any pending animation frame
-        if (rafId) {
-          cancelAnimationFrame(rafId);
-        }
-
-        // Use requestAnimationFrame to batch position updates and prevent jitter
-        rafId = requestAnimationFrame(() => {
-          if (activeTableMenuColumn) {
-            const th = document.querySelector(`.table-header-cell[data-column-name="${activeTableMenuColumn}"]`);
-            if (th) {
-              const menu = th.querySelector('.table-column-menu.active');
-              if (menu) {
-                const rect = th.getBoundingClientRect();
-                menu.style.top = (rect.bottom + 2) + 'px';
-                menu.style.left = rect.left + 'px';
-              }
-            }
-          }
-          rafId = null;
-        });
-      }
-
-      // Add scroll listener to update dropdown position
-      if (typeof window !== 'undefined') {
-        window.addEventListener('scroll', updateDropdownPosition, { passive: true });
-      }
+      // REMOVED: Scroll listener for updating dropdown position
+      // No longer needed - dropdowns use position:absolute and automatically move with sticky header
 
       // --- LAYER NAVIGATION FUNCTIONS ---
 
@@ -6104,12 +6071,8 @@
               });
               const isOpening = !menuEl.classList.contains('active');
 
-              // Position menu BEFORE making it visible to prevent flash
+              // Toggle menu visibility - CSS handles positioning via absolute positioning
               if (isOpening) {
-                const rect = headerCell.getBoundingClientRect();
-                menuEl.style.top = (rect.bottom + 2) + 'px';
-                menuEl.style.left = rect.left + 'px';
-                // Now make it visible
                 menuEl.classList.add('active');
                 activeTableMenuColumn = columnName;
               } else {
