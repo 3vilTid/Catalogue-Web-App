@@ -1047,9 +1047,28 @@
       /* Portrait mode: Make Close/Clear buttons smaller for mobile and tablet */
       body.mobile-device.portrait .table-menu-button-row .table-menu-button,
       body.tablet-device.portrait .table-menu-button-row .table-menu-button {
-        font-size: 20px !important; 
-        padding: 10px 20px !important; 
-        min-height: auto !important; 
+        font-size: 20px !important;
+        padding: 10px 20px !important;
+        min-height: auto !important;
+      }
+
+      /* Portrait mode: Make table rows and text 1.5x bigger for mobile and tablet */
+      body.mobile-device.portrait .data-table th,
+      body.tablet-device.portrait .data-table th {
+        padding: 21px 24px;
+        font-size: 21px;
+      }
+
+      body.mobile-device.portrait .data-table td,
+      body.tablet-device.portrait .data-table td {
+        padding: 18px 24px;
+        font-size: 21px;
+      }
+
+      body.mobile-device.portrait .table-cell-img,
+      body.tablet-device.portrait .table-cell-img {
+        width: 90px;
+        height: 90px;
       }
 
       /* Detail view --------------------------------------------------------- */
