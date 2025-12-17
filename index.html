@@ -2691,6 +2691,12 @@
         aspect-ratio: 1 / 1 !important;
       }
 
+      /* Rectangle cards: maintain 16:9 aspect ratio with 100px height in tablet landscape */
+      body.tablet-device.landscape .card.style-rectangle .card-img-wrapper {
+        aspect-ratio: 16 / 9 !important;
+        height: 100px !important;
+      }
+
       /* Detail view layout - MOBILE LANDSCAPE: Restore side-by-side */
       body.mobile-device.landscape .detail-layout {
         grid-template-columns: minmax(0, 360px) minmax(0, 1fr) !important;
