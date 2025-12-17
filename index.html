@@ -64,6 +64,13 @@
             document.documentElement.setAttribute('data-orientation', 'portrait');
             console.log('📱 Orientation: Portrait');
           }
+
+          // Sync table and header widths after orientation change
+          if (typeof syncTableWidthToHeaders === 'function') {
+            requestAnimationFrame(() => {
+              syncTableWidthToHeaders();
+            });
+          }
         }
 
         // Start setting body class immediately
@@ -952,6 +959,16 @@
         border-radius: 12px 12px 12px 12px; /* Rounded top corners */
         overflow: visible !important;
         box-shadow: 0 4px 12px rgba(148, 163, 184, 0.2);
+        /* Prevent excessive horizontal scrolling beyond table content */
+        max-width: 100%;
+      }
+
+      /* When table view, ensure shell can accommodate wide tables without extra space */
+      body.mobile-device .shell:has(.table-view),
+      body.tablet-device .shell:has(.table-view) {
+        width: fit-content;
+        min-width: calc(100% - 40px); /* Account for body padding */
+        margin: 0 auto;
       }
 
       .data-table thead {
@@ -4722,6 +4739,9 @@
         grid.classList.add('grid');
         grid.classList.remove('list-view', 'table-view');
 
+        // Reset header and shell widths when leaving table view
+        resetTableWidths();
+
         // Get style for main items
         const style = getMainStyle();
 
@@ -4810,6 +4830,9 @@
       function renderListView(items, grid) {
         grid.classList.remove('grid', 'table-view');
         grid.classList.add('list-view');
+
+        // Reset header and shell widths when leaving table view
+        resetTableWidths();
 
         // Get style for main items
         const style = getMainStyle();
@@ -5068,6 +5091,75 @@
 
         table.appendChild(tbody);
         grid.appendChild(table);
+
+        // Sync header widths with table after rendering
+        requestAnimationFrame(() => {
+          syncTableWidthToHeaders();
+        });
+      }
+
+      // Synchronize top-header and filters-row width with table width
+      // This ensures headers extend to match table width when table exceeds viewport
+      function syncTableWidthToHeaders() {
+        const grid = document.getElementById("gridView");
+        const topHeader = document.querySelector(".top-header");
+        const filtersRow = document.querySelector(".filters-row");
+        const table = document.querySelector(".data-table");
+        const shell = document.querySelector(".shell");
+
+        // Only run if we're in table view and elements exist
+        if (!grid || !grid.classList.contains('table-view') || !table || !topHeader || !filtersRow || !shell) {
+          return;
+        }
+
+        // Get the actual table width including any overflow
+        const tableWidth = table.scrollWidth;
+        const viewportWidth = window.innerWidth;
+        const shellPadding = parseInt(getComputedStyle(shell).paddingLeft) + parseInt(getComputedStyle(shell).paddingRight);
+
+        // If table exceeds viewport, set headers to match table width
+        // Otherwise, reset to auto to fit within shell
+        if (tableWidth + shellPadding > viewportWidth) {
+          // Table is wider than viewport - extend headers to match
+          const widthToSet = tableWidth + 'px';
+          topHeader.style.width = widthToSet;
+          topHeader.style.minWidth = widthToSet;
+          filtersRow.style.width = widthToSet;
+          filtersRow.style.minWidth = widthToSet;
+
+          // Also set shell width to fit content properly and prevent excessive scrolling
+          // Shell should be exactly as wide as needed for the table plus padding
+          shell.style.width = `${tableWidth + shellPadding}px`;
+          shell.style.minWidth = '';
+        } else {
+          // Table fits in viewport - reset to default
+          topHeader.style.width = '';
+          topHeader.style.minWidth = '';
+          filtersRow.style.width = '';
+          filtersRow.style.minWidth = '';
+          shell.style.width = '';
+          shell.style.minWidth = '';
+        }
+      }
+
+      // Reset header and shell widths when switching away from table view
+      function resetTableWidths() {
+        const topHeader = document.querySelector(".top-header");
+        const filtersRow = document.querySelector(".filters-row");
+        const shell = document.querySelector(".shell");
+
+        if (topHeader) {
+          topHeader.style.width = '';
+          topHeader.style.minWidth = '';
+        }
+        if (filtersRow) {
+          filtersRow.style.width = '';
+          filtersRow.style.minWidth = '';
+        }
+        if (shell) {
+          shell.style.width = '';
+          shell.style.minWidth = '';
+        }
       }
 
       // Handle main table row click - either show details or expand inline
@@ -5692,6 +5784,11 @@
           renderTableView(currentTableItems, grid);
         }
         // Don't reopen menu - user closed it intentionally
+
+        // Sync header widths after rerender
+        requestAnimationFrame(() => {
+          syncTableWidthToHeaders();
+        });
       }
 
       // Close all table column menus
@@ -6148,6 +6245,11 @@
 
         table.appendChild(tbody);
         grid.appendChild(table);
+
+        // Sync header widths with table after rendering
+        requestAnimationFrame(() => {
+          syncTableWidthToHeaders();
+        });
       }
 
       // Handle layer item click - navigate to next layer or show filtered main items
