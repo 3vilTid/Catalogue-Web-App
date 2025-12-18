@@ -1,6 +1,6 @@
 # Catalogue Web App
 
-A dynamic, customizable catalogue management system built with Google Apps Script. Features email authentication, role-based access control, flexible column configuration with visual layout control, and optimized image handling.
+A dynamic, multi-layered catalogue management system built with Google Apps Script. Features hierarchical navigation, multiple view types (Cards/List/Table), email authentication, role-based access control, flexible column configuration with visual layout control, responsive mobile/tablet support, and optimized image handling.
 
 ---
 
@@ -11,6 +11,7 @@ A dynamic, customizable catalogue management system built with Google Apps Scrip
 - [Usage Guide](#usage-guide)
 - [File Structure](#file-structure)
 - [Technical Details](#technical-details)
+- [Responsive Design](#responsive-design)
 - [Troubleshooting](#troubleshooting)
 - [Browser Support](#browser-support)
 
@@ -18,19 +19,50 @@ A dynamic, customizable catalogue management system built with Google Apps Scrip
 
 ## Features
 
+### Hierarchical Layer Navigation
+- **Multi-Level Organization**: Up to 3 configurable layers for organizing content
+  - Example: Layer 1 (Categories) → Layer 2 (Subcategories) → Layer 3 (Items) → Main Items (Details)
+  - Each layer can have its own view type and style
+  - Flexible filtering: child layers show only items belonging to selected parent
+- **Breadcrumb Navigation**: Visual navigation trail showing current position
+- **Layer Data Tables**: Each layer can have its own data table in the Layers sheet
+- **Configurable per Layer**: Each layer can use different view types and styles
+
+### Multiple View Types
+- **Cards View**: Visual card-based grid layout (default)
+  - Large images with item information
+  - Responsive grid that adapts to screen size
+  - Style options: Squared, Rounded, etc.
+- **List View**: Compact list layout
+  - Simple: Single column list
+  - Double: Two-column layout
+  - Triple: Three-column layout
+  - Efficient for browsing many items
+- **Table View**: Spreadsheet-style data table
+  - Sortable columns
+  - Filterable data
+  - Configurable columns via "Show on Table" setting
+  - Ideal for data-heavy catalogues
+- **Per-Layer Configuration**: Each layer and main items can use different view types
+  - Set in Layers sheet: Layer 1 (D2), Layer 2 (D3), Layer 3 (D4), Main (D5)
+  - Set styles in Layers sheet: Layer 1 (E2), Layer 2 (E3), Layer 3 (E4), Main (E5)
+
 ### Email-Based Authentication
 - **OTP Verification**: Secure email-based one-time password authentication
-- **Session Management**: Persistent sessions with automatic token validation
+- **Session Management**: 90-day persistent sessions with automatic token validation
 - **No Password Required**: Simple, secure access via email verification codes
+- **User Status Management**: Active/Inactive status control in Users sheet
 
 ### Public/Private Access Modes
-- **Private Mode**: Full authentication required with email OTP
-- **Public Mode**: Open access for everyone as Viewer role
+- **Private with Profiles**: Full authentication required with email OTP
+  - User-specific permissions based on profile (Creator/Editor/Viewer)
+  - Complete access control via Users sheet
+- **Public all in Viewer**: Open access for everyone as Viewer role
   - No login required - instant access to catalogue
   - All users automatically set as "Viewer" (read-only)
   - Clean interface: logout button and user email hidden
   - Perfect for public-facing catalogues or demos
-- **Easy Toggle**: Switch modes via Settings sheet (cell J2)
+- **Easy Toggle**: Switch modes via Settings sheet (cell I2)
 
 ### Dynamic Column System with Visual Layout Control
 
@@ -50,15 +82,17 @@ A dynamic, customizable catalogue management system built with Google Apps Scrip
 - **Auto-filled User Mail**: Automatically filled with creator's email
 - **External Link**: Clickable link display
 - **Formula (Read-only)**: Formula-based columns excluded from forms
+- **Formula/External Link (Read-only)**: Combined role - formula that displays as clickable link
 
-**Column Configuration** (7 columns):
+**Column Configuration** (8 columns):
 1. Column Name
 2. Display Name
 3. Type (text, date, number, url)
 4. Show in Filter (boolean)
 5. Show in Sort (boolean)
-6. Item Place (dropdown)
-7. Special Role (dropdown)
+6. Show on Table (boolean) - Controls visibility in Table view
+7. Item Place (dropdown)
+8. Special Role (dropdown)
 
 **Column Management** (Creator only):
 - Add, edit, delete, and reorder columns
@@ -75,12 +109,38 @@ Three user roles with different permissions:
 | **Editor** | Add items, edit/delete own items |
 | **Creator** | Full access: manage columns, settings, edit all items, access Google Sheet |
 
+### Responsive Design
+- **Device Detection**: Automatic detection of Mobile, Tablet, and Desktop devices
+  - iPad detection works even in "desktop mode"
+  - Touch-point detection for accurate device classification
+- **Orientation Support**: Portrait and landscape modes with optimized layouts
+  - Automatic orientation detection and layout adjustment
+  - Different UI scaling and spacing for each orientation
+- **Touch Gestures** (Mobile/Tablet):
+  - Swipe left/right to navigate between items in detail view
+  - Pull to refresh to reload data
+  - Pinch to zoom on images
+  - Long press for context menus
+- **Responsive UI Elements**:
+  - Larger touch targets on mobile devices (2x size in portrait)
+  - Adaptive font sizes and spacing
+  - Optimized button placement for one-handed use
+  - Hidden navigation arrows on mobile (use swipe instead)
+
 ### User Interface
 
-**Grid View**:
-- Visual card-based display with lazy-loaded images
-- Responsive grid layout
-- SubId1 and SubId2 displayed under item name
+**Multi-View Display**:
+- **Cards**: Visual card-based grid with lazy-loaded images
+  - Responsive grid layout adapts to screen size
+  - SubId1 and SubId2 displayed under item name
+  - Multiple style options (Squared, Rounded, etc.)
+- **List**: Compact list layouts (Simple/Double/Triple column)
+  - Efficient browsing for many items
+  - Minimal vertical space usage
+- **Table**: Spreadsheet-style data table
+  - Column headers with sort controls
+  - Configurable visible columns
+  - Filter and search capabilities
 
 **Detail View**:
 - Two-column layout with configurable field placement
@@ -89,18 +149,23 @@ Three user roles with different permissions:
 - Bottom metadata section
 - Progressive image loading with blur placeholder
 - Clickable external links
+- **Navigation Arrows**: Left/right arrows to navigate between items (hidden on mobile - use swipe)
 - Clean, minimal design
+- **Force Landscape Layout**: Table detail view always uses landscape-style layout (even in portrait mode)
 
 **Navigation & Controls**:
-- Filter and Sort buttons (hidden in detail view)
-- Back to List button (replaces Filter/Sort in detail view)
-- Sheet, Columns, and Add Item buttons (right-aligned)
+- **Breadcrumb Navigation**: Shows current layer path (Layer 1 → Layer 2 → Main)
+- Filter and Sort buttons (hidden in detail view and Table view)
+- Back to List button (visible in detail view)
+- Sheet, Columns, and Add Item buttons (right-aligned, role-based visibility)
 - Styled scrollbars that blend with design
+- **Logo Support**: Custom logo display in header (optional)
 
 **Dynamic Filters & Sorting**:
 - Filter by any column marked as filterable
 - Sort by any column marked as sortable (ascending/descending)
 - Client-side filtering and sorting (instant results)
+- Table view has per-column filter/sort controls
 
 ### Data Management
 
@@ -127,58 +192,90 @@ Three user roles with different permissions:
 **Google Sheets (Database)**
 ```
 ┌─────────────────────┐
-│ Main Sheet          │  ← Catalogue data
+│ Main Sheet          │  ← Catalogue data (main items)
 ├─────────────────────┤
-│ ColumnConfig        │  ← Column definitions (7 columns)
+│ Layers              │  ← Layer configuration + layer data tables
+│                     │    • B2:C4 = Layer definitions
+│                     │    • D2:E5 = View types & styles
+│                     │    • H1+ = Layer 1 data table
+│                     │    • L1+ = Layer 2 data table
+│                     │    • Q1+ = Layer 3 data table
 ├─────────────────────┤
-│ Settings            │  ← App configuration + date adjustment (H2)
+│ ColumnConfig        │  ← Column definitions (8 columns)
+│                     │    • Includes "Show on Table" column
 ├─────────────────────┤
-│ Users               │  ← Access control
+│ Settings            │  ← App configuration
+│                     │    • C2-C6 = App name, catalogue name, URLs, logo
+│                     │    • F2 = Date adjustment
+│                     │    • I2 = App mode (Public/Private)
+│                     │    • I5 = Background image URL
 ├─────────────────────┤
-│ EmailOTP            │  ← OTP verification codes
+│ Users               │  ← Access control + user status
+│                     │    • Email, Profile, Status, Name
 └─────────────────────┘
 ```
 
 **Apps Script (Backend)** - `Code.gs`
-- Email OTP authentication system
-- Session management and validation
+- Email OTP authentication system with 90-day sessions
+- Session management and validation (CacheService)
+- User status management (Active/Inactive)
 - Access control enforcement
 - CRUD operations for items
-- Column configuration management
+- **Layer configuration management** (getLayerConfig, getLayerData)
+- Column configuration management (8 columns including Show on Table)
 - Image serving (Drive file proxy)
-- Settings management
+- Settings management (app mode, date adjustment, logo, background)
+- Special role handling (addedby, externallink, formula, formulaexternallink)
 
-**HTML/CSS/JS (Frontend)** - `index.html`
-- Single-page application
+**HTML/CSS/JS (Frontend)** - `index.html` (8000+ lines)
+- Single-page application with multi-view support
+- **Device Detection**: Automatic mobile/tablet/desktop detection at page load
+- **Responsive Layouts**: Portrait/landscape orientation support
+- **Layer Navigation**: Hierarchical browsing with breadcrumbs
+- **Multiple View Types**: Cards, List (Simple/Double/Triple), Table
+- **Touch Gesture Support**: Swipe, pinch, pull-to-refresh
 - Email login interface
 - Dynamic form generation based on Item Place and Special Role
-- Two-column detail view layout
-- IndexedDB image cache with lazy loading
-- Filter and sort logic
-- Responsive button visibility (Filter/Sort ↔ Back to List)
+- Two-column detail view layout with navigation arrows
+- IndexedDB image cache with lazy loading and blur placeholders
+- Filter and sort logic (global and per-column in Table view)
+- View-specific button visibility management
+- Customizable styling (logo, background image, card styles)
 
 ### Data Flow
 
 ```
 User visits app URL
     ↓
-Enter email address
+Device Detection (Mobile/Tablet/Desktop)
     ↓
-Receive OTP via email
+Check App Mode (Public/Private)
     ↓
-Enter OTP code
+[If Private] Enter email address → Receive OTP → Enter code → Session token created
+[If Public] Auto-login as Viewer
     ↓
-Session token created
+Load initial data:
+  • Settings (app name, logo, background, date adjustment, view types)
+  • Layer configuration (Layer 1-3 definitions)
+  • Layer data (data for each configured layer)
+  • Main data (items with date adjustment)
+  • Column configuration (8 columns)
     ↓
-Access control check (Users sheet)
+Render home view with configured layers (or main items if no layers)
     ↓
-Load app with user's role
+User navigates:
+  • Click layer item → Navigate to next layer → Breadcrumb updates
+  • Navigate through layers until reaching main items
+  • Click main item → Show detail view with arrows/swipe navigation
     ↓
-Frontend loads data via google.script.run
+IndexedDB cache for images (progressive loading with blur)
     ↓
-IndexedDB cache for images
-    ↓
-Render UI based on Item Places
+Render UI based on:
+  • Current layer view type (Cards/List/Table)
+  • Current layer style (Squared/Rounded/etc.)
+  • Device type (Mobile/Tablet/Desktop)
+  • Orientation (Portrait/Landscape)
+  • Item Places (for detail view)
 ```
 
 ### Deployment
@@ -204,23 +301,54 @@ Name        | Description      | Picture url          | Category | Place  | Date
 Darth Vader | Movie character  | https://drive.../... | Star Wars| Bali   | 2024-01-15 | user@example.com
 ```
 
+#### Layers Sheet (Optional - for hierarchical navigation)
+**Layer Configuration (B2:C4):**
+```
+Layer Name | Main Column Name
+-----------|------------------
+Layer 1    | Category
+Layer 2    | Subcategory
+Layer 3    | (blank or another column)
+```
+
+**View Types & Styles (D2:E5):**
+```
+View Type | Style
+----------|--------
+Cards     | Squared    ← Layer 1 (D2:E2)
+List      | Simple     ← Layer 2 (D3:E3)
+Table     | -          ← Layer 3 (D4:E4)
+Cards     | Rounded    ← Main Items (D5:E5)
+```
+
+**Layer Data Tables:**
+- **Layer 1 Data**: Starts at H1 (Column H onwards)
+  - Headers in row 1, data from row 2
+  - Example: Category Name, Category Image, etc.
+- **Layer 2 Data**: Starts at L1 (Column L onwards)
+  - Headers in row 1, data from row 2
+- **Layer 3 Data**: Starts at Q1 (Column Q onwards)
+  - Headers in row 1, data from row 2
+
+**Note:** If you don't need layers, you can skip creating this sheet and items will display directly.
+
 #### ColumnConfig Sheet
-**Headers:** `Column Name | Display Name | Type | Show in Filter | Show in Sort | Item Place | Special Role`
+**Headers:** `Column Name | Display Name | Type | Show in Filter | Show in Sort | Show on Table | Item Place | Special Role`
 
 Example configuration:
 ```
-Column Name   | Display Name | Type | Filter | Sort  | Item Place        | Special Role
---------------|--------------|------|--------|-------|-------------------|------------------
-Name          | Name         | text | FALSE  | TRUE  | Primary Identifier|
-Description   | Description  | text | FALSE  | FALSE | Long text Up      |
-Picture url   | Picture      | text | FALSE  | FALSE | Main Image        |
-Category      | Category     | text | TRUE   | TRUE  | SubId1            |
-Place         | Location     | text | TRUE   | TRUE  | SubId2            |
-Date          | Date         | date | FALSE  | TRUE  | Top Corner        |
-ExternalLink  | Link         | text | FALSE  | FALSE | Detail Left       | External Link
-Info1         | Info 1       | text | FALSE  | FALSE | Detail Left       |
-Info2         | Info 2       | text | FALSE  | FALSE | Detail Right      |
-Added By      | Added By     | text | FALSE  | FALSE | Bottom            | Auto-filled User Mail
+Column Name   | Display Name | Type | Filter | Sort  | Table | Item Place        | Special Role
+--------------|--------------|------|--------|-------|-------|-------------------|------------------
+Name          | Name         | text | FALSE  | TRUE  | TRUE  | Primary Identifier|
+Description   | Description  | text | FALSE  | FALSE | FALSE | Long text Up      |
+Picture url   | Picture      | text | FALSE  | FALSE | FALSE | Main Image        |
+Category      | Category     | text | TRUE   | TRUE  | TRUE  | SubId1            |
+Place         | Location     | text | TRUE   | TRUE  | TRUE  | SubId2            |
+Date          | Date         | date | FALSE  | TRUE  | TRUE  | Top Corner        |
+ExternalLink  | Link         | text | FALSE  | FALSE | TRUE  | Detail Left       | External Link
+Info1         | Info 1       | text | FALSE  | FALSE | TRUE  | Detail Left       |
+Info2         | Info 2       | text | FALSE  | FALSE | TRUE  | Detail Right      |
+Added By      | Added By     | text | FALSE  | FALSE | FALSE | Bottom            | Auto-filled User Mail
 ```
 
 **Column Types:**
@@ -245,10 +373,11 @@ Added By      | Added By     | text | FALSE  | FALSE | Bottom            | Auto-
 - `Auto-filled User Mail`: Automatically filled with user's email
 - `External Link`: Renders as clickable link
 - `Formula (Read-only)`: Excluded from add/edit forms
+- `Formula/External Link (Read-only)`: Formula that displays as clickable link (excluded from forms)
 - Leave empty for regular columns
 
 #### Settings Sheet
-Configure in columns C, H, and J:
+Configure in columns C, F, and I:
 
 | Cell | Setting | Example | Description |
 |------|---------|---------|-------------|
@@ -256,26 +385,39 @@ Configure in columns C, H, and J:
 | C3 | Catalogue Name | "My Underwater Pics" | Header title (can be renamed from UI) |
 | C4 | Sheet URL | (auto-filled) | Link to this sheet |
 | C5 | Deployment URL | "https://script.google.com/.../exec" | Web app deployment URL for image loading |
-| H2 | Date Adjustment | 1 | Days to add to all dates (0 = no adjustment, 1 = +1 day) |
-| J2 | App Mode | "Public all in Viewer" or "Private" | Access mode: Public (no login) or Private (OTP required) |
+| C6 | Logo URL | "https://drive.google.com/..." | Optional logo image (Google Drive URL) |
+| F2 | Date Adjustment | 1 | Days to add to all dates (0 = no adjustment, 1 = +1 day) |
+| I2 | App Mode | "Public all in Viewer" or "Private with Profiles" | Access mode setting |
+| I5 | Background Image URL | "https://drive.google.com/..." | Optional background image (Google Drive URL) |
 
 #### Users Sheet
-**Headers:** `Email | Name | Profile`
+**Headers:** `Email | Profile | Status | Name`
 
 Example:
 ```
-Email                | Name        | Profile
----------------------|-------------|--------
-admin@example.com    | Admin User  | Creator
-editor@example.com   | Editor User | Editor
-viewer@example.com   | Viewer User | Viewer
+Email                | Profile | Status   | Name
+---------------------|---------|----------|------------
+admin@example.com    | Creator | Active   | Admin User
+editor@example.com   | Editor  | Active   | Editor User
+viewer@example.com   | Viewer  | Active   | Viewer User
+blocked@example.com  | Viewer  | Inactive | Blocked User
 ```
 
-**Important:** Only emails listed here can access the app.
+**Important:**
+- Only emails with "Active" status can access the app
+- Set Status to "Inactive" to block access without deleting the user
+- In "Public all in Viewer" mode, authentication is bypassed
 
-#### EmailOTP Sheet (Auto-created)
-Created automatically on first login. Stores temporary OTP codes.
-**Do not modify manually.**
+**User Profiles:**
+- **Creator**: Full access - manage columns, settings, edit all items, access Google Sheet
+- **Editor**: Add items, edit/delete own items only
+- **Viewer**: Read-only access to all items
+
+#### OTP Storage (Cache-based)
+OTP codes are stored in CacheService (in-memory, temporary storage).
+- **No sheet required** - OTP codes expire after 10 minutes
+- **Session tokens** are also stored in CacheService for 90 days
+- **Automatic cleanup** - expired codes are automatically removed
 
 ### 2. Apps Script Setup
 
@@ -317,23 +459,49 @@ Created automatically on first login. Stores temporary OTP codes.
 
 ### For All Users
 
-#### Login
+#### Login (Private Mode Only)
 1. Enter your email address
 2. Click "Send Verification Code"
 3. Check your email for the 6-digit code
 4. Enter the code within 10 minutes
-5. You're logged in for this session
+5. You're logged in for 90 days (or until logout)
+
+**Note:** In "Public all in Viewer" mode, no login is required.
+
+#### Navigate Through Layers
+If layers are configured:
+1. **Home Screen**: Shows Layer 1 items (e.g., Categories)
+2. **Click Layer 1 item**: Navigate to Layer 2 items (e.g., Subcategories)
+3. **Click Layer 2 item**: Navigate to Layer 3 or Main items
+4. **Breadcrumb Trail**: Shows your path (e.g., Home → Category → Subcategory)
+5. **Click breadcrumb**: Jump back to any previous layer
 
 #### Browse & View
-- View items in grid layout
-- Click any item to see full details
-- Click image in detail view for fullscreen
-- Use "Back to List" button to return to grid
+- **Multiple View Types**:
+  - **Cards View**: Visual grid with images (swipeable on mobile)
+  - **List View**: Compact text list (Simple/Double/Triple column)
+  - **Table View**: Spreadsheet-style with column headers
+- **View Items**: Click any item card/row to see full details
+- **Detail View Navigation**:
+  - **Desktop**: Use left/right arrow buttons to navigate between items
+  - **Mobile/Tablet**: Swipe left/right to navigate between items
+  - Click "Back to List" button to return to previous view
+- **Images**: Click image in detail view for fullscreen
+
+#### Touch Gestures (Mobile/Tablet)
+- **Swipe Left/Right**: Navigate between items in detail view
+- **Pull to Refresh**: Reload data (pull down from top)
+- **Pinch to Zoom**: Zoom images in fullscreen view
+- **Long Press**: Access context menus (where available)
 
 #### Filter & Sort
-- **Filter**: Click 🔍 Filter, select criteria, click Apply
-- **Sort**: Click ↕️ Sort, choose field and direction
-- **Note**: Filter and Sort buttons are hidden in detail view
+- **Cards/List View**:
+  - Click 🔍 Filter, select criteria, click Apply
+  - Click ↕️ Sort, choose field and direction
+- **Table View**:
+  - Use column headers to sort (click column name)
+  - Use filter controls in column headers
+- **Note**: Filter and Sort buttons are hidden in detail view and Table view
 
 ### For Editors
 
@@ -356,11 +524,31 @@ Created automatically on first login. Stores temporary OTP codes.
 
 ### For Creators
 
+#### Configure Layers
+1. Open the **Layers** sheet in Google Sheets
+2. **Set up layer definitions (B2:C4)**:
+   - B2: "Layer 1", C2: Column name to use (e.g., "Category")
+   - B3: "Layer 2", C3: Column name to use (e.g., "Subcategory")
+   - B4: "Layer 3", C4: Column name to use (optional)
+3. **Set view types and styles (D2:E5)**:
+   - D2:E2 = Layer 1 view and style
+   - D3:E3 = Layer 2 view and style
+   - D4:E4 = Layer 3 view and style
+   - D5:E5 = Main items view and style
+   - View options: Cards, List, Table
+   - Style options: Squared, Rounded, etc.
+4. **Create layer data tables**:
+   - Layer 1 data: Start at H1 (headers in row 1, data from row 2)
+   - Layer 2 data: Start at L1
+   - Layer 3 data: Start at Q1
+5. **Refresh the app** to see layer navigation
+
 #### Manage Columns
 1. Click **⚙ Columns** button
 2. **Add Column**:
    - Click "➕ Add Column"
    - Set Column Name, Display Name, Type
+   - Set Show on Table (for Table view visibility)
    - Choose Item Place for visual positioning
    - Choose Special Role for special behaviors
    - Set Filter/Sort visibility
@@ -377,13 +565,18 @@ Created automatically on first login. Stores temporary OTP codes.
 - Enter new name
 - Changes immediately
 
+#### Customize Appearance
+- **Logo**: Set C6 in Settings sheet to Google Drive image URL
+- **Background**: Set I5 in Settings sheet to Google Drive image URL
+- **App Mode**: Set I2 to "Public all in Viewer" or "Private with Profiles"
+
 #### Edit All Items
 - Can edit/delete any item, regardless of creator
 - Full access to all data
 
 #### Adjust Dates
 - Open Settings sheet
-- Set cell H2 to number of days to adjust
+- Set cell F2 to number of days to adjust
 - Example: `1` adds 1 day to all dates
 - Use to compensate for timezone issues
 
@@ -421,37 +614,58 @@ Tid-Codes/
 
 | Function | Purpose |
 |----------|---------|
-| `doGet(e)` | Entry point for web app requests |
-| `sendOTP(email)` | Send verification code via email |
-| `verifyOTP(email, code)` | Verify OTP and create session |
-| `verifySession(token)` | Validate session token |
-| `getUserInfo(token)` | Get current user's role |
-| `getInitialData(token)` | Load all data for frontend |
-| `getColumnConfig()` | Get column configuration with Item Places and Special Roles |
-| `saveColumnConfig(configs, token)` | Save column configuration |
-| `addMainRow(obj, token)` | Add new item (auto-fills Special Role columns) |
-| `editItem(name, updates, token)` | Edit existing item |
-| `deleteItem(name, token)` | Delete item |
-| `getSettings()` | Get app settings including date adjustment |
+| `doGet(e)` | Entry point - serves UI or images based on parameters |
+| `requestOTP(email)` | Send verification code via email (checks user status) |
+| `verifyOTP(email, code)` | Verify OTP and create 90-day session |
+| `verifySession(token)` | Validate session token from CacheService |
+| `logout(token)` | Invalidate session token |
+| `getInitialData(token)` | Load all data (settings, layers, items, columns) |
+| `getSettings()` | Get app settings (app mode, date adjustment, logo, background, view types) |
+| `getLayerConfig()` | Get layer configuration from Layers sheet (B2:C4) |
+| `getLayerData(layerName)` | Get data for specific layer from hardcoded positions |
+| `getColumnConfig()` | Get column configuration (8 columns) with Item Places and Special Roles |
 | `getMainData()` | Get all items with date adjustment applied |
+| `addMainRow(obj, token)` | Add new item (auto-fills Special Role columns, requires Editor/Creator) |
+| `editItem(name, updates, token)` | Edit existing item (permission-based) |
+| `deleteItem(name, token)` | Delete item (permission-based) |
+| `serveImage_(fileId)` | Serve Google Drive images as base64 JSON |
+| `getUserByEmail_(email)` | Get user info including status (Active/Inactive) |
 
 ### Key Components in index.html
 
 | Component | Purpose |
 |-----------|---------|
-| `showLoginScreen()` | Display email login form |
+| **Device Detection** | |
+| `(head script)` | Detects mobile/tablet/desktop and sets body class before render |
+| `updateOrientation()` | Detects and applies portrait/landscape orientation |
+| **Authentication** | |
+| `showLoginScreen()` | Display email login form (private mode only) |
 | `sendVerificationCode()` | Request OTP via email |
 | `verifyCode()` | Submit OTP for verification |
-| `init()` | Initialize app after successful login |
-| `renderGrid()` | Render card grid with SubId1/SubId2 |
+| `init()` | Initialize app - load settings, layers, items, columns |
+| **Layer Navigation** | |
+| `navigateToLayer()` | Navigate to specific layer with filtering |
+| `navigateToLayerItem()` | Navigate to child layer or main items |
+| `renderBreadcrumb()` | Render breadcrumb navigation trail |
+| `backToList()` | Navigate back in layer stack |
+| **View Rendering** | |
+| `renderCurrentView()` | Render current layer/items with configured view type |
+| `renderCardsView()` | Render cards grid with style support |
+| `renderListView()` | Render list view (Simple/Double/Triple) |
+| `renderTableView()` | Render table view with column controls |
 | `showDetails(item)` | Show item details with Item Place layout |
-| `backToList()` | Return to grid, toggle button visibility |
+| `nextItem()` / `prevItem()` | Navigate between items (arrows/swipe) |
+| **Filtering & Sorting** | |
 | `renderFilters()` | Generate filter UI |
 | `applyFiltersAndSorting()` | Apply filters and sorting |
+| `filterItemsByParent()` | Filter child layer items by parent selection |
+| **Image Handling** | |
 | `imageCacheDB` | IndexedDB cache manager |
-| `loadImageViaProxy()` | Lazy load images with progressive enhancement |
-| `formatDate()` | Format dates as dd/mm/yyyy |
+| `loadImageViaProxy()` | Lazy load images with progressive blur placeholders |
+| **Utilities** | |
+| `formatDate()` | Format dates as dd/mm/yyyy (locale-aware) |
 | `openColumnManager()` | Open column management modal |
+| `detectDevice()` | User agent and touch detection |
 
 ---
 
@@ -461,20 +675,28 @@ Tid-Codes/
 
 **OTP Flow:**
 1. User enters email
-2. Backend generates 6-digit code
-3. Code stored in EmailOTP sheet with timestamp
-4. Code emailed to user
-5. User enters code within 10 minutes
-6. Backend validates code
-7. Session token created and returned
-8. Token stored in localStorage
-9. Token validated on each backend call
+2. Backend checks if email exists in Users sheet with "Active" status
+3. Backend generates 6-digit code
+4. Code stored in CacheService (in-memory) with 10-minute expiration
+5. Code emailed to user via MailApp
+6. User enters code within 10 minutes
+7. Backend validates code from CacheService
+8. Session token (UUID) created and returned
+9. Token stored in browser localStorage
+10. Session stored in CacheService for 90 days
+11. Token validated on each backend call
 
 **Session Management:**
 - Tokens are UUIDs stored in browser localStorage
-- Backend validates token on every call
-- Sessions don't expire (until logout)
-- No password required
+- Backend validates token on every call via CacheService
+- Sessions expire after 90 days (7,776,000 seconds)
+- Users can logout to invalidate session immediately
+- No password required - email OTP only
+
+**User Status:**
+- Active users can request OTP and login
+- Inactive users are blocked from accessing the app
+- Status change takes effect immediately
 
 ### Item Place System
 
@@ -496,9 +718,76 @@ ITEM_PLACE_MAP = {
 SPECIAL_ROLE_MAP = {
   "Auto-filled User Mail": "addedby",
   "External Link": "externallink",
-  "Formula (Read-only)": "formula"
+  "Formula (Read-only)": "formula",
+  "Formula/External Link (Read-only)": "formulaexternallink"
 }
 ```
+
+### Layer System
+
+**Backend Configuration (Code.gs):**
+```javascript
+function getLayerConfig() {
+  // Hardcoded positions in Layers sheet: B2:C4
+  // Returns: [{layerName: "Layer 1", mainColumnName: "Category"}, ...]
+}
+
+function getLayerData(layerName) {
+  // Hardcoded table positions:
+  // Layer 1: Column H (8), Layer 2: Column L (12), Layer 3: Column Q (17)
+  // Returns array of items for that layer
+}
+```
+
+**Frontend Navigation:**
+- `navigationStack`: Array tracking navigation history
+- `currentLayerIndex`: Current position in layer hierarchy (-1 = home)
+- **Breadcrumb rendering**: Shows path through layers
+- **Filtering**: Child layers show only items matching parent selection
+- **View switching**: Each layer can have different view type/style
+
+**Layer Data Flow:**
+1. App loads layer configuration from Layers sheet (B2:C4)
+2. App loads data for each configured layer from data tables (H1+, L1+, Q1+)
+3. User clicks Layer 1 item → Navigate to Layer 2, filter by parent
+4. User clicks Layer 2 item → Navigate to Layer 3 or Main items, filter by parent
+5. Breadcrumb shows full navigation path
+
+### Device Detection & Responsive Design
+
+**Detection Logic (runs in `<head>` before page render):**
+```javascript
+// User agent detection
+const hasTabletUA = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(ua);
+
+// iPad desktop mode detection (critical!)
+const isiPadDesktopMode = /macintosh/i.test(ua) && touchPoints >= 1;
+
+const isTablet = hasTabletUA || isiPadDesktopMode;
+const isMobile = /android.*mobile|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(ua);
+
+// Set device class immediately
+const deviceClass = isTablet ? 'tablet-device' : (isMobile ? 'mobile-device' : 'desktop-device');
+document.body.className = deviceClass;
+```
+
+**Orientation Detection:**
+```javascript
+const isLandscape = window.innerWidth > window.innerHeight;
+document.body.classList.add(isLandscape ? 'landscape' : 'portrait');
+```
+
+**CSS Classes Applied:**
+- Device: `mobile-device`, `tablet-device`, or `desktop-device`
+- Orientation: `portrait` or `landscape`
+- Combined: e.g., `body.mobile-device.portrait`
+
+**Responsive Features:**
+- Font sizes scale up 2x in mobile portrait mode
+- Touch targets enlarged on mobile (buttons, links)
+- Navigation arrows hidden on mobile (use swipe instead)
+- Breadcrumbs sized 2x larger in mobile portrait
+- Table view forces landscape-style layout even in portrait
 
 **Frontend Layout:**
 ```
@@ -665,8 +954,8 @@ Value: {
 
 **Solutions:**
 1. Verify you're signed in as Creator
-2. Check ColumnConfig sheet has exactly 7 columns:
-   - Column Name | Display Name | Type | Show in Filter | Show in Sort | Item Place | Special Role
+2. Check ColumnConfig sheet has exactly 8 columns:
+   - Column Name | Display Name | Type | Show in Filter | Show in Sort | Show on Table | Item Place | Special Role
 3. Check Apps Script → Executions for error logs
 4. Ensure Main sheet has matching column headers
 
@@ -676,10 +965,42 @@ Value: {
 
 **Solutions:**
 1. Open Settings sheet
-2. Set cell H2 to `1` (to add 1 day)
+2. Set cell **F2** to `1` (to add 1 day)
 3. Or set to `-1` (to subtract 1 day)
 4. Adjust until dates display correctly
 5. This compensates for timezone differences
+
+### Layers Not Working
+
+**Problem:** Layers not appearing or navigation not working
+
+**Solutions:**
+1. **Check Layers sheet exists** in your spreadsheet
+2. **Verify layer configuration (B2:C4)**:
+   - B2: "Layer 1", C2: Column name (must match a column in Main sheet)
+   - B3: "Layer 2", C3: Column name (must match a column in Main sheet)
+   - B4: "Layer 3", C4: Column name (optional)
+3. **Check view types (D2:E5)**:
+   - D2: View type for Layer 1 (Cards, List, or Table)
+   - E2: Style for Layer 1 (Squared, Rounded, etc.)
+4. **Verify layer data tables exist**:
+   - Layer 1 data should start at column H (H1 = headers)
+   - Layer 2 data should start at column L (L1 = headers)
+   - Layer 3 data should start at column Q (Q1 = headers)
+5. **Check data matches**:
+   - Layer data values must match Main sheet column values exactly
+6. **Refresh the app** after making changes
+
+### View Not Displaying Correctly
+
+**Problem:** Table/List/Cards view not showing properly
+
+**Solutions:**
+1. Check Layers sheet D2:E5 for view type settings
+2. Verify view type is spelled correctly (Cards, List, or Table)
+3. For Table view, check ColumnConfig "Show on Table" column (6th column)
+4. Clear browser cache and reload
+5. Check browser console for errors (F12)
 
 ### Layout Issues
 
@@ -692,26 +1013,90 @@ Value: {
 4. Check spelling of Item Place values (case-sensitive)
 5. Refresh page after changing ColumnConfig
 
+### Mobile/Tablet Issues
+
+**Problem:** UI looks wrong on mobile or tablet
+
+**Solutions:**
+1. **Check device detection**: Open browser console (F12), look for device class logs
+2. **iPad desktop mode**: If iPad is detected as desktop, it should still work via touch detection
+3. **Orientation issues**: Rotate device to trigger orientation update
+4. **Touch gestures not working**: Ensure you're on a touch-enabled device
+5. **UI too small/large**: Check if portrait/landscape classes are applied correctly
+6. **Clear cache**: Hard refresh with Ctrl+Shift+R or Cmd+Shift+R
+
+**Problem:** Swipe navigation not working
+
+**Solutions:**
+1. Ensure you're in detail view (not grid/list/table view)
+2. Swipe gestures only work on mobile/tablet devices
+3. On desktop, use arrow buttons instead
+4. Check browser console for JavaScript errors
+
+---
+
+## Responsive Design
+
+### Device Classes
+The app automatically detects your device type and applies appropriate styling:
+
+- **Mobile Device**: Phones (iPhone, Android phones, etc.)
+  - Larger touch targets (2x in portrait)
+  - Swipe navigation enabled
+  - Navigation arrows hidden
+  - Optimized for one-handed use
+
+- **Tablet Device**: Tablets (iPad, Android tablets, etc.)
+  - Medium touch targets
+  - Swipe navigation enabled
+  - Balanced layout for larger screen
+
+- **Desktop Device**: Computers and laptops
+  - Standard touch targets
+  - Arrow button navigation
+  - Full-featured layout
+
+### Orientation Support
+- **Portrait**: Vertical orientation (height > width)
+  - Larger UI elements
+  - Single-column layouts
+  - 2x font sizes on mobile
+
+- **Landscape**: Horizontal orientation (width > height)
+  - Compact UI elements
+  - Multi-column layouts when appropriate
+  - Standard font sizes
+
+### Forced Layouts
+- **Table Detail View**: Always uses landscape-style layout, even in portrait mode
+- This ensures readability of two-column detail layout on all devices
+
 ---
 
 ## Browser Support
 
 **Recommended:**
-- Chrome/Chromium (desktop and mobile)
-- Safari (desktop and iOS)
-- Edge
-- Firefox
+- **Mobile**: Chrome (Android), Safari (iOS), Samsung Internet
+- **Tablet**: Chrome (Android tablets), Safari (iPad)
+- **Desktop**: Chrome, Safari, Edge, Firefox
 
 **Requirements:**
 - JavaScript enabled
 - Cookies enabled (for session storage)
 - LocalStorage enabled (for session tokens)
 - IndexedDB support (optional, for image caching)
+- Touch support (for mobile/tablet gestures)
+
+**Touch Gestures:**
+- Swipe navigation works on all touch-enabled devices
+- Desktop users can use mouse to simulate touch (limited support)
+- Best experience on native mobile/tablet browsers
 
 **Known Issues:**
 - Older browsers (IE11, etc.) not supported
 - Private/Incognito mode works but session is lost on close
 - Date format depends on browser locale settings
+- Some desktop browsers may not detect iPad in desktop mode (but touch detection provides fallback)
 
 ---
 
@@ -745,57 +1130,108 @@ Free tier limits (per day):
 
 ## Version History
 
-### Current Version (2025-11-25)
+### Current Version (2025-12-18)
+**Major Features:**
+- ✅ **Hierarchical Layer System** (up to 3 layers)
+  - Layer configuration in Layers sheet (B2:C4)
+  - Per-layer data tables (H1+, L1+, Q1+)
+  - Breadcrumb navigation
+  - Parent-child filtering
+- ✅ **Multiple View Types** per layer and main items
+  - Cards View (with multiple styles: Squared, Rounded, etc.)
+  - List View (Simple, Double, Triple column layouts)
+  - Table View (spreadsheet-style with column controls)
+  - View types configurable in Layers sheet (D2:E5)
+- ✅ **Responsive Mobile/Tablet Support**
+  - Automatic device detection (mobile/tablet/desktop)
+  - Portrait/landscape orientation support
+  - Touch gesture support (swipe, pinch, pull-to-refresh, long press)
+  - iPad desktop mode detection
+  - Adaptive UI scaling (2x in mobile portrait)
+- ✅ **Enhanced Column Configuration**
+  - Added "Show on Table" column (8th column in ColumnConfig)
+  - New special role: "Formula/External Link (Read-only)"
+  - Controls which columns appear in Table view
+- ✅ **User Status Management**
+  - Active/Inactive status in Users sheet
+  - Block access without deleting users
+  - Status changes take effect immediately
+- ✅ **Visual Customization**
+  - Logo support (Settings C6)
+  - Background image support (Settings I5)
+  - Multiple card styles per layer
+- ✅ **Navigation Enhancements**
+  - Left/right arrow navigation in detail view (desktop)
+  - Swipe navigation in detail view (mobile/tablet)
+  - Force landscape layout for Table detail view
+- ✅ **90-Day Sessions**
+  - Sessions now expire after 90 days (was unlimited)
+  - CacheService-based session storage (no sheet needed)
+  - OTP codes stored in CacheService (was EmailOTP sheet)
+
+**Settings Changes:**
+- 🔄 Date Adjustment moved from H2 to **F2**
+- 🔄 App Mode moved from J2 to **I2**
+- 🔄 App Mode renamed to "Private with Profiles" (was "Private")
+- ➕ Logo URL added at **C6**
+- ➕ Background Image URL added at **I5**
+
+**Previous Updates (2025-11-25)**
 - ✅ Hide logout button and user email in Public mode
 - ✅ Clean public-facing interface for viewer-only access
 
-### Recent Updates (2025-11-24)
-- ✅ Add Public/Private mode toggle (Settings J2)
-- ✅ Add deployment URL setting (Settings C5) for image loading
+**Previous Updates (2025-11-24)**
+- ✅ Add Public/Private mode toggle
+- ✅ Add deployment URL setting for image loading
 - ✅ Fix image loading in public mode
 - ✅ Moved Back to List button to filters bar
 - ✅ Hide Filter/Sort buttons in detail view
 - ✅ Remove shadow edge from detail view images
-- ✅ Improve scrollbar styling (thin, semi-transparent)
-- ✅ Remove delimitation borders throughout app
+- ✅ Improve scrollbar styling
 - ✅ Enhanced date input styling
 
-### Recent Updates (2025-11-23)
+**Previous Updates (2025-11-23)**
 - ✅ Added Bottom item place for metadata display
-- ✅ Removed automatic "Added By" display
-- ✅ Fixed date timezone issues with adjustment setting (Settings H2)
+- ✅ Fixed date timezone issues with adjustment setting
 - ✅ Added Top Corner item place for badge-style display
 - ✅ Improved date format display (dd/mm/yyyy)
 
-### Previous Updates (2025-11-22)
+**Previous Updates (2025-11-22)**
 - ✅ Restructured column system: Item Place + Special Role
-- ✅ Split layout control (Item Place) from behavior (Special Role)
-- ✅ Reduced ColumnConfig from 8 to 7 columns
 - ✅ Implemented two-column detail view layout
-- ✅ Added Long text Up/Down sections
 - ✅ Email OTP authentication system
 - ✅ Session management with tokens
-- ✅ Removed PWA code (~160 lines)
-- ✅ Removed mobile-specific responsive styling
 
 ---
 
 ## Future Development Ideas
 
-**Possible Enhancements:**
+**Completed Features:**
+- ✅ Layer system (hierarchical navigation)
+- ✅ Multiple view types (Cards, List, Table)
+- ✅ Mobile and tablet responsive design
+- ✅ Touch gesture support
+- ✅ Device-specific layouts
+
+**Planned Enhancements:**
+- [ ] **Installation capability** - PWA functionality for install prompts
+- [ ] **Map view** - GPS-based map visualization with pins
+- [ ] **Horizontal card scrolling** - Carousel-style navigation
+- [ ] **Multiple tables** - Different data tables with separate configurations
+- [ ] **Multiple tabs** - Tab-based content organization
+- [ ] **User-specific data** - Hidden columns with personal notes/ratings
+- [ ] **Data visualization** - Charts and graphs for analytics
+- [ ] **Visual builder** - Drag-and-drop interface for Creators
+- [ ] **Custom buttons** - Configurable actions and workflows
+
+**Other Possible Enhancements:**
 - CSV import/export for bulk operations
 - Image upload to Drive from app
 - More column types (checkbox, dropdown, multi-select)
 - Advanced filtering (AND/OR logic, date ranges)
 - User activity logs
 - Email notifications for changes
-- Remember me / persistent sessions
 - 2FA options beyond email OTP
-
-**Not Recommended:**
-- PWA features (Apps Script limitations)
-- Offline mode (requires different architecture)
-- Mobile-specific layouts (single layout is simpler)
 
 ---
 
@@ -811,12 +1247,14 @@ Free tier limits (per day):
 - Review this README
 - Check Troubleshooting section
 - Review code comments in Code.gs and index.html
-- Check Settings sheet configuration
-- Verify ColumnConfig structure (7 columns)
+- Check Settings sheet configuration (F2 for dates, I2 for app mode)
+- Verify ColumnConfig structure (8 columns)
+- Check Layers sheet configuration (B2:C4 for layer definitions, D2:E5 for view types)
+- Check browser console (F12) for device detection and error messages
 
 ---
 
 **Built with Google Apps Script**
 
 Repository: https://github.com/3vilTid/Catalogue-Web-App
-Last Updated: 2025-11-25
+Last Updated: 2025-12-18
