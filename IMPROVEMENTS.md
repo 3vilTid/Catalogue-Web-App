@@ -29,14 +29,7 @@ This document tracks planned features and improvements for the Catalogue Web App
 - [x] **Set up image support for layers**
   - Category images
   - Layer thumbnail support
-
-### Multi-Table & Column Configuration
-- [ ] **Add possibility of multiple Tables**
-  - Each with separate column configurations
-  - Table switching/selection UI
-- [ ] **Multiple column configs per table**
-  - Different layouts for different data types
-
+  
 ### Alternative Visual Layouts
 - [ ] **Different catalogue list views**
   - [x] **Cards** (current default - keep as option)
@@ -47,7 +40,14 @@ This document tracks planned features and improvements for the Catalogue Web App
   - Option for cards to go left/right instead of down
   - Carousel-style navigation
 
-### Advanced Layout Options
+### Multi-Table & Column Configuration
+- [ ] **Add possibility of multiple Tables**
+  - Each with separate column configurations
+  - Table switching/selection UI
+- [ ] **Multiple column configs per table**
+  - Different layouts for different data types
+
+  ### Advanced Layout Options
 - [ ] **Multiple tabs support**
   - Tab-based navigation
   - Organize content across tabs
