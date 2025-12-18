@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html>
   <head>
@@ -136,7 +137,7 @@
         margin: 0;
         padding: 0;
         width: 100%;
-        overflow-x: hidden;
+        /* overflow-x: hidden; REMOVED - breaks position: sticky */
         border: none;
         outline: none;
       }
@@ -796,6 +797,10 @@
         font-weight: 600;
         font-size: 14px;
         letter-spacing: 0.02em;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
       }
 
       .data-table tbody tr {
@@ -858,7 +863,7 @@
       }
 
       .table-header-cell:hover {
-        background: rgba(255, 255, 255, 0.1);
+        filter: brightness(1.15);
       }
 
       .table-header-cell.sorted-asc::after {
@@ -904,7 +909,9 @@
       }
 
       .table-column-menu {
-        position: fixed; /* Fixed positioning to escape all parent clipping */
+        position: absolute; /* Absolute positioning relative to header cell - sticks with sticky header */
+        top: 100%; /* Position below the header cell */
+        left: 0;
         background: white;
         border: 1px solid #e5e7eb;
         border-radius: 8px;
@@ -924,8 +931,9 @@
       /* Ensure table view doesn't clip the menus */
       .table-view {
         margin-top: 8px;
-        overflow-x: auto;
-        overflow-y: visible;
+        /* All overflow removed - ANY overflow creates a scroll container that breaks position: sticky */
+        /* Menus use position:absolute relative to header cells */
+        /* For horizontal scrolling of wide tables, the table itself will handle it via display */
         position: relative;
       }
 
@@ -939,11 +947,7 @@
       }
 
       .data-table thead {
-        background: linear-gradient(135deg, #6366f1, #4f46e5);
         color: white;
-        position: relative;
-        z-index: 1;
-        border-radius: 12px 12px 0 0; /* Rounded top corners only */
       }
 
       .data-table thead tr:first-child th:first-child {
@@ -2822,10 +2826,17 @@
         box-sizing: border-box;
       }
 
-      /* Detail view layout - PORTRAIT: Stack image above details */
-      body.mobile-device.portrait .detail-layout,
+      /* Detail view layout - PORTRAIT: Use landscape-style side-by-side layout */
+      body.mobile-device.portrait .detail-layout {
+        grid-template-columns: minmax(0, 360px) minmax(0, 1fr) !important;
+        gap: 16px;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+
       body.tablet-device.portrait .detail-layout {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: minmax(0, 375px) minmax(0, 1fr) !important;
         gap: 16px;
         width: 100%;
         max-width: 100%;
@@ -2834,7 +2845,7 @@
 
       body.mobile-device.portrait .detail-two-column-grid,
       body.tablet-device.portrait .detail-two-column-grid {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 1fr 1fr !important;
         gap: 16px;
       }
 
@@ -2843,7 +2854,6 @@
         width: 100% !important;
         max-width: 100% !important;
         max-height: none !important;
-        min-height: 300px;
         box-sizing: border-box !important;
         margin: 0 !important;
       }
@@ -2851,11 +2861,9 @@
       body.mobile-device.portrait .detail-img,
       body.tablet-device.portrait .detail-img {
         width: 100% !important;
-        max-width: 100% !important;
         height: auto !important;
-        max-height: none !important;
+        object-fit: contain !important;
         display: block;
-        object-fit: cover;
         margin: 0 !important;
       }
 
@@ -4961,11 +4969,8 @@
               const isOpening = !menuEl.classList.contains('active');
               menuEl.classList.toggle('active');
 
-              // Position menu using fixed positioning (escapes all parent clipping)
+              // Track active menu and manage scroll lock
               if (isOpening) {
-                const rect = headerCell.getBoundingClientRect();
-                menuEl.style.top = (rect.bottom + 2) + 'px';
-                menuEl.style.left = rect.left + 'px';
                 activeTableMenuColumn = columnName;
                 // Lock body scroll when dropdown opens
                 lockScroll();
@@ -5062,6 +5067,62 @@
 
         table.appendChild(tbody);
         grid.appendChild(table);
+
+        // Sync header widths with table after rendering
+        requestAnimationFrame(() => {
+          syncTableWidthToHeaders();
+        });
+      }
+
+      // Synchronize top-header and filters-row width with table width
+      // This ensures headers extend to match table width when table exceeds viewport
+      function syncTableWidthToHeaders() {
+        const grid = document.getElementById("gridView");
+        const topHeader = document.querySelector(".top-header");
+        const filtersRow = document.querySelector(".filters-row");
+        const table = document.querySelector(".data-table");
+        const shell = document.querySelector(".shell");
+
+        // Only run if we're in table view and elements exist
+        if (!grid || !grid.classList.contains('table-view') || !table || !topHeader || !filtersRow || !shell) {
+          return;
+        }
+
+        // Get the actual table width (use offsetWidth for correct visible width)
+        const tableWidth = table.offsetWidth;
+        const shellPadding = parseInt(getComputedStyle(shell).paddingLeft) + parseInt(getComputedStyle(shell).paddingRight);
+
+        // ALWAYS set headers to match table width on ALL devices
+        // This makes headers "follow down" when scrolling
+        const widthToSet = tableWidth + 'px';
+        topHeader.style.width = widthToSet;
+        topHeader.style.minWidth = widthToSet;
+        filtersRow.style.width = widthToSet;
+        filtersRow.style.minWidth = widthToSet;
+
+        // Set shell width to fit content properly
+        shell.style.width = `${tableWidth + shellPadding}px`;
+        shell.style.minWidth = '';
+      }
+
+      // Reset header and shell widths when switching away from table view
+      function resetTableWidths() {
+        const topHeader = document.querySelector(".top-header");
+        const filtersRow = document.querySelector(".filters-row");
+        const shell = document.querySelector(".shell");
+
+        if (topHeader) {
+          topHeader.style.width = '';
+          topHeader.style.minWidth = '';
+        }
+        if (filtersRow) {
+          filtersRow.style.width = '';
+          filtersRow.style.minWidth = '';
+        }
+        if (shell) {
+          shell.style.width = '';
+          shell.style.minWidth = '';
+        }
       }
 
       // Handle main table row click - either show details or expand inline
@@ -5707,11 +5768,8 @@
           if (th) {
             const menu = th.querySelector('.table-column-menu');
             if (menu) {
-              console.log('Menu found, setting active and positioning');
-              // Position menu using fixed positioning
-              const rect = th.getBoundingClientRect();
-              menu.style.top = (rect.bottom + 2) + 'px';
-              menu.style.left = rect.left + 'px';
+              console.log('Menu found, setting active');
+              // Menu position is handled by CSS (absolute positioning relative to header)
               menu.classList.add('active');
               // Lock body scroll when dropdown reopens
               lockScroll();
@@ -5725,39 +5783,24 @@
       }
 
       // --- SCROLL LOCK FUNCTIONS (for dropdown menus) ---
+      // DISABLED: Setting body position:fixed breaks sticky table headers
+      // Dropdowns use position:absolute relative to their header cells
 
       let scrollPosition = 0;
       let isScrollLocked = false;
 
       function lockScroll() {
-        if (isScrollLocked) return;
-
-        // Save current scroll position
-        scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-
-        // Lock scroll using position fixed
-        document.body.style.position = 'fixed';
-        document.body.style.top = `-${scrollPosition}px`;
-        document.body.style.width = '100%';
-        document.body.style.overflow = 'hidden';
-
-        isScrollLocked = true;
+        // DISABLED - was breaking sticky headers by setting body position:fixed
+        return;
       }
 
       function unlockScroll() {
-        if (!isScrollLocked) return;
-
-        // Restore body styles
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
-        document.body.style.overflow = '';
-
-        // Restore scroll position
-        window.scrollTo(0, scrollPosition);
-
-        isScrollLocked = false;
+        // DISABLED - companion to lockScroll
+        return;
       }
+
+      // REMOVED: Scroll listener for updating dropdown position
+      // No longer needed - dropdowns use position:absolute and automatically move with sticky header
 
       // --- LAYER NAVIGATION FUNCTIONS ---
 
@@ -6086,11 +6129,8 @@
               const isOpening = !menuEl.classList.contains('active');
               menuEl.classList.toggle('active');
 
-              // Position menu using fixed positioning (escapes all parent clipping)
+              // Track active menu and manage scroll lock
               if (isOpening) {
-                const rect = headerCell.getBoundingClientRect();
-                menuEl.style.top = (rect.bottom + 2) + 'px';
-                menuEl.style.left = rect.left + 'px';
                 activeTableMenuColumn = columnName;
                 // Lock body scroll when dropdown opens
                 lockScroll();
@@ -7975,3 +8015,4 @@
     </script>
   </body>
         </html>
+
