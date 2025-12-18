@@ -4136,6 +4136,7 @@
       // Filter columns (columns with showInFilter = true)
       let filterColumns = [];
       let filterValues = {}; // { columnName: [selectedValue1, selectedValue2, ...] }
+      let activeFilters = {}; // Active filters applied to the current view
 
       let sortField = "none";
       let sortOrder = "asc";
