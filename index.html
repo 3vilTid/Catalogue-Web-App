@@ -6843,6 +6843,12 @@
         const tab = tabsConfig[tabIndex];
 
         console.log('📥 Loading data for tab:', tab.tabName);
+        console.log('🔑 Session token:', token ? '(exists)' : '(missing)');
+        console.log('📋 Tab config:', {
+          layersSheetName: tab.layersSheetName,
+          mainSheetName: tab.mainSheetName,
+          columnConfigSheetName: tab.columnConfigSheetName
+        });
 
         // Show loading indicator
         const gridView = document.getElementById("gridView");
@@ -6898,7 +6904,20 @@
           })
           .withFailureHandler(function(error) {
             console.error('❌ Error loading tab data:', error);
-            showToast('Error loading tab data: ' + error.message, 'error');
+            console.error('❌ Error details:', {
+              message: error.message,
+              token: token ? '(exists)' : '(missing)',
+              tabName: tab.tabName,
+              tabConfig: tab
+            });
+
+            // If authentication error and we're in a mode that supports public access, reload the page
+            if (error.message && error.message.includes('Authentication required')) {
+              showToast('Session expired. Please refresh the page.', 'error');
+            } else {
+              showToast('Error loading tab data: ' + error.message, 'error');
+            }
+
             gridView.innerHTML = '<div style="text-align: center; padding: 60px; color: #ef4444;">Error loading data</div>';
           })
           .getTabData(tab.layersSheetName, tab.mainSheetName, tab.columnConfigSheetName, token);
