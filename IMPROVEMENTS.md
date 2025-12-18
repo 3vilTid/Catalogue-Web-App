@@ -38,11 +38,11 @@ This document tracks planned features and improvements for the Catalogue Web App
   - Different layouts for different data types
 
 ### Alternative Visual Layouts
-- [] **Different catalogue list views**
+- [ ] **Different catalogue list views**
   - [x] **Cards** (current default - keep as option)
   - [x] **List view** (compact rows)
   - [x] **Table view** with filter and sort options
-  - [] **Map view** with GPS pins
+  - [ ] **Map view** with GPS pins
 - [ ] **Horizontal card scrolling**
   - Option for cards to go left/right instead of down
   - Carousel-style navigation
