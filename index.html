@@ -170,13 +170,106 @@
       .top-header {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
+        align-items: center;
         padding: 16px 20px 14px;
         border-radius: 20px;
         background: linear-gradient(135deg, #ffffffcc, #f3f4fffe);
         box-shadow: 0 16px 40px rgba(148, 163, 184, 0.28);
         backdrop-filter: blur(16px);
         margin-bottom: 18px;
+      }
+
+      .center-block {
+        display: flex;
+        flex: 1;
+        justify-content: center;
+        align-items: center;
+        padding: 0 20px;
+      }
+
+      /* Tab Switcher Styles */
+      .tab-switcher-wrapper {
+        position: relative;
+        display: inline-block;
+      }
+
+      .tab-switcher-btn {
+        height: 38px;
+        border-radius: 999px;
+        border: 1px solid var(--border-soft);
+        background: linear-gradient(135deg, #ffffff, #f8f9ff);
+        font-size: 14px;
+        font-weight: 600;
+        padding: 0 18px;
+        outline: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        white-space: nowrap;
+        color: var(--text-main);
+        box-shadow: 0 4px 12px rgba(148, 163, 184, 0.2);
+        transition: all 0.2s ease;
+      }
+
+      .tab-switcher-btn:hover {
+        background: linear-gradient(135deg, #f8f9ff, #e5edff);
+        box-shadow: 0 6px 16px rgba(148, 163, 184, 0.3);
+        transform: translateY(-1px);
+      }
+
+      .tab-switcher-btn:focus {
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+        border-color: #93c5fd;
+      }
+
+      .tab-switcher-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 50%;
+        transform: translateX(-50%);
+        min-width: 220px;
+        background: white;
+        border-radius: 14px;
+        box-shadow: 0 12px 40px rgba(15, 23, 42, 0.25);
+        padding: 8px;
+        display: none;
+        z-index: 200;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .tab-switcher-menu.show {
+        display: block;
+      }
+
+      .tab-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #374151;
+        transition: background 0.15s ease;
+        font-weight: 500;
+      }
+
+      .tab-menu-item:hover {
+        background: #f3f4f6;
+      }
+
+      .tab-menu-item.active {
+        background: linear-gradient(135deg, #e0e7ff, #dbeafe);
+        color: #4338ca;
+        font-weight: 600;
+      }
+
+      .tab-menu-item.active::before {
+        content: '✓';
+        font-weight: 700;
+        color: #4338ca;
       }
 
       .left-block {
@@ -3254,6 +3347,19 @@
           </div>
         </div>
 
+        <!-- Center block for tab switcher -->
+        <div class="center-block">
+          <div id="tabSwitcherWrapper" class="tab-switcher-wrapper" style="display: none;">
+            <button id="tabSwitcherBtn" class="tab-switcher-btn">
+              <span id="currentTabName">Tab 1</span>
+              <span>▾</span>
+            </button>
+            <div id="tabSwitcherMenu" class="tab-switcher-menu">
+              <!-- Tab items will be dynamically populated here -->
+            </div>
+          </div>
+        </div>
+
         <div id="userInfoBlock" class="right-block">
           <div>
             <span>Signed in:</span>
@@ -4060,6 +4166,11 @@
       let layersData = {}; // All layer data by layer name
       let navigationStack = []; // Stack of navigation history: [{type: "layer", layerName: "Layer 1", item: {...}}, ...]
       let currentLayerIndex = -1; // Index in layerConfig (-1 = home, 0 = Layer 1, 1 = Layer 2, etc.)
+
+      // Tab management state
+      let tabsConfig = []; // Tab configuration from backend: [{tabName, layersSheetName, mainSheetName, columnConfigSheetName}, ...]
+      let currentTabIndex = 0; // Index of currently active tab
+      let tabStates = {}; // Store navigation state per tab: {tabIndex: {navigationStack, currentLayerIndex, currentView, currentDetailIndex, etc.}}
 
       // Save state before searching to restore when search is cleared
       let preSearchNavigationStack = [];
@@ -6589,6 +6700,201 @@
         updateBreadcrumb();
       }
 
+      // -------------------- Tab Management Functions --------------------
+
+      // Initialize tabs UI and populate tab switcher
+      function initializeTabs() {
+        // Show tab switcher only if more than one tab is configured
+        const tabSwitcherWrapper = document.getElementById("tabSwitcherWrapper");
+
+        if (tabsConfig.length <= 1) {
+          tabSwitcherWrapper.style.display = "none";
+          return;
+        }
+
+        tabSwitcherWrapper.style.display = "inline-block";
+
+        // Update current tab name
+        updateCurrentTabName();
+
+        // Populate tab menu
+        renderTabMenu();
+      }
+
+      // Update the displayed current tab name
+      function updateCurrentTabName() {
+        const currentTabNameEl = document.getElementById("currentTabName");
+        if (currentTabIndex >= 0 && currentTabIndex < tabsConfig.length) {
+          currentTabNameEl.textContent = tabsConfig[currentTabIndex].tabName;
+        }
+      }
+
+      // Render the tab menu items
+      function renderTabMenu() {
+        const tabMenu = document.getElementById("tabSwitcherMenu");
+        tabMenu.innerHTML = "";
+
+        for (let i = 0; i < tabsConfig.length; i++) {
+          const tab = tabsConfig[i];
+          const item = document.createElement("div");
+          item.className = "tab-menu-item" + (i === currentTabIndex ? " active" : "");
+          item.textContent = tab.tabName;
+          item.onclick = function() {
+            switchToTab(i);
+          };
+          tabMenu.appendChild(item);
+        }
+      }
+
+      // Save current tab state before switching
+      function saveCurrentTabState() {
+        tabStates[currentTabIndex] = {
+          navigationStack: [...navigationStack],
+          currentLayerIndex: currentLayerIndex,
+          currentView: currentView,
+          currentDetailIndex: currentDetailIndex,
+          currentDisplayedItems: [...currentDisplayedItems],
+          searchQuery: searchQuery,
+          activeFilters: {...activeFilters},
+          sortField: sortField,
+          sortOrder: sortOrder
+        };
+
+        console.log('📦 Saved state for tab', currentTabIndex, ':', tabStates[currentTabIndex]);
+      }
+
+      // Restore tab state after switching
+      function restoreTabState(tabIndex) {
+        if (tabStates[tabIndex]) {
+          const state = tabStates[tabIndex];
+          navigationStack = [...state.navigationStack];
+          currentLayerIndex = state.currentLayerIndex;
+          currentView = state.currentView;
+          currentDetailIndex = state.currentDetailIndex;
+          currentDisplayedItems = [...state.currentDisplayedItems];
+          searchQuery = state.searchQuery || "";
+          activeFilters = {...state.activeFilters} || {};
+          sortField = state.sortField || "none";
+          sortOrder = state.sortOrder || "asc";
+
+          // Update search input
+          document.getElementById("searchInput").value = searchQuery;
+
+          console.log('📂 Restored state for tab', tabIndex, ':', state);
+        } else {
+          // No saved state - initialize fresh
+          navigationStack = [];
+          currentLayerIndex = -1;
+          currentView = "list";
+          currentDetailIndex = -1;
+          currentDisplayedItems = [];
+          searchQuery = "";
+          activeFilters = {};
+          sortField = "none";
+          sortOrder = "asc";
+
+          document.getElementById("searchInput").value = "";
+
+          console.log('🆕 No saved state for tab', tabIndex, '- initializing fresh');
+        }
+      }
+
+      // Switch to a different tab
+      function switchToTab(newTabIndex) {
+        if (newTabIndex === currentTabIndex) {
+          // Same tab - just close the menu
+          toggleTabMenu();
+          return;
+        }
+
+        console.log('🔄 Switching from tab', currentTabIndex, 'to tab', newTabIndex);
+
+        // Save current tab state
+        saveCurrentTabState();
+
+        // Update current tab index
+        currentTabIndex = newTabIndex;
+
+        // Close the tab menu
+        toggleTabMenu();
+
+        // Load data for the new tab
+        loadTabData(newTabIndex);
+      }
+
+      // Load data for a specific tab
+      function loadTabData(tabIndex) {
+        const token = getSessionToken();
+        const tab = tabsConfig[tabIndex];
+
+        console.log('📥 Loading data for tab:', tab.tabName);
+
+        // Show loading indicator
+        const gridView = document.getElementById("gridView");
+        const detailView = document.getElementById("detailView");
+        gridView.innerHTML = '<div style="text-align: center; padding: 60px; color: #9ca3af;">Loading...</div>';
+        detailView.innerHTML = "";
+        detailView.style.display = "none";
+
+        // Call backend to get tab-specific data
+        google.script.run
+          .withSuccessHandler(function(tabData) {
+            console.log('✅ Tab data loaded for:', tab.tabName);
+
+            // Update app data with tab-specific configuration
+            layerConfig = tabData.layerConfig || [];
+            layersData = tabData.layersData || {};
+            allItems = tabData.items || [];
+            columnConfig = tabData.columnConfig || [];
+            headers = tabData.headers || [];
+
+            // Initialize column configuration
+            loadColumnConfig();
+            computeUniqueValues();
+
+            // Restore tab state or navigate to home
+            restoreTabState(tabIndex);
+
+            // Render the view based on restored state
+            if (currentView === "detail" && currentDetailIndex >= 0 && currentDisplayedItems[currentDetailIndex]) {
+              showDetails(currentDisplayedItems[currentDetailIndex], currentDetailIndex);
+            } else if (currentView === "layer" && currentLayerIndex >= 0) {
+              // Reconstruct layer view from navigation stack
+              if (navigationStack.length > 0) {
+                const lastNav = navigationStack[navigationStack.length - 1];
+                const parentFilter = navigationStack.length >= 2
+                  ? navigationStack[navigationStack.length - 2].itemName
+                  : null;
+                renderLayerView(lastNav.layerIndex, parentFilter);
+              } else {
+                renderLayerView(currentLayerIndex, null);
+              }
+            } else {
+              // Navigate to home (Layer 1 or main list)
+              navigateToHome();
+            }
+
+            // Update UI
+            updateCurrentTabName();
+            renderTabMenu();
+            updateBreadcrumb();
+            updateChipsUI();
+            updateFilterSortVisibility();
+          })
+          .withFailureHandler(function(error) {
+            console.error('❌ Error loading tab data:', error);
+            showToast('Error loading tab data: ' + error.message, 'error');
+            gridView.innerHTML = '<div style="text-align: center; padding: 60px; color: #ef4444;">Error loading data</div>';
+          })
+          .getTabData(tab.layersSheetName, tab.mainSheetName, tab.columnConfigSheetName, token);
+      }
+
+      // Toggle tab switcher menu
+      function toggleTabMenu() {
+        const menu = document.getElementById("tabSwitcherMenu");
+        menu.classList.toggle("show");
+      }
+
       function showDetails(item, index) {
         const det = document.getElementById("detailView");
         const grid = document.getElementById("gridView");
@@ -7647,10 +7953,15 @@
             layerConfig = payload.layerConfig || [];
             layersData = payload.layersData || {};
 
+            // Store tabs configuration (if available)
+            tabsConfig = payload.tabsConfig || [];
+
             // Debug: Log layer data
             console.log('📊 Layer Config:', layerConfig);
             console.log('📊 Layers Data:', layersData);
             console.log('📊 Has Layers:', layerConfig.length > 0);
+            console.log('📑 Tabs Config:', tabsConfig);
+            console.log('📑 Has Tabs:', tabsConfig.length > 0);
 
             console.log('Public viewer loaded:', user.email, user.profile);
 
@@ -7682,6 +7993,9 @@
             applyRoleVisibility();
             updateChipsUI();
 
+            // Initialize tabs if configured
+            initializeTabs();
+
             // Show layers if configured, otherwise show main list
             navigateToHome();
 
@@ -7712,10 +8026,15 @@
             layerConfig = payload.layerConfig || [];
             layersData = payload.layersData || {};
 
+            // Store tabs configuration (if available)
+            tabsConfig = payload.tabsConfig || [];
+
             // Debug: Log layer data
             console.log('📊 Layer Config:', layerConfig);
             console.log('📊 Layers Data:', layersData);
             console.log('📊 Has Layers:', layerConfig.length > 0);
+            console.log('📑 Tabs Config:', tabsConfig);
+            console.log('📑 Has Tabs:', tabsConfig.length > 0);
 
             // Setup image proxy if available
             if (settings && settings.deploymentUrl) {
@@ -7736,6 +8055,9 @@
             updateHeaderUI();
             applyRoleVisibility();
             updateChipsUI();
+
+            // Initialize tabs if configured
+            initializeTabs();
 
             // Show layers if configured, otherwise show main list
             navigateToHome();
@@ -7769,10 +8091,15 @@
             layerConfig = payload.layerConfig || [];
             layersData = payload.layersData || {};
 
+            // Store tabs configuration (if available)
+            tabsConfig = payload.tabsConfig || [];
+
             // Debug: Log layer data
             console.log('📊 Layer Config:', layerConfig);
             console.log('📊 Layers Data:', layersData);
             console.log('📊 Has Layers:', layerConfig.length > 0);
+            console.log('📑 Tabs Config:', tabsConfig);
+            console.log('📑 Has Tabs:', tabsConfig.length > 0);
 
             // Check if user is still authenticated
             if (!user) {
@@ -7811,6 +8138,9 @@
             updateHeaderUI();
             applyRoleVisibility();
             updateChipsUI();
+
+            // Initialize tabs if configured
+            initializeTabs();
 
             // Show layers if configured, otherwise show main list
             navigateToHome();
@@ -7874,12 +8204,18 @@
           }
         };
 
+        // Tab switcher button
+        document.getElementById("tabSwitcherBtn").onclick = function(e) {
+          e.stopPropagation();
+          toggleTabMenu();
+        };
+
         init();
 
         // Initialize swipe detection for mobile detail view navigation
         initializeSwipeDetection();
 
-        // Global click handler to close table menus when clicking outside
+        // Global click handler to close table menus and tab menu when clicking outside
         document.addEventListener('click', function(e) {
           // Check if click is inside a table menu or on a table header
           const clickedInsideMenu = e.target.closest('.table-column-menu');
@@ -7892,6 +8228,16 @@
             // If a menu was open and we're in table view, apply filters
             if (wasMenuOpen && (document.querySelector('.table-view') || document.querySelector('.data-table'))) {
               rerenderTable();
+            }
+          }
+
+          // Close tab menu if clicking outside
+          const clickedInsideTabMenu = e.target.closest('.tab-switcher-menu');
+          const clickedOnTabBtn = e.target.closest('.tab-switcher-btn');
+          if (!clickedInsideTabMenu && !clickedOnTabBtn) {
+            const tabMenu = document.getElementById("tabSwitcherMenu");
+            if (tabMenu && tabMenu.classList.contains('show')) {
+              tabMenu.classList.remove('show');
             }
           }
         });
