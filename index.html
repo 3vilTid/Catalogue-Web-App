@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
   <head>
@@ -12,23 +13,74 @@
     <script>
       (function() {
         const ua = navigator.userAgent || navigator.vendor || window.opera;
-        const isMobile = /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(ua);
-        const isTablet = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(ua);
-        const deviceClass = isMobile ? 'mobile-device' : (isTablet ? 'tablet-device' : 'desktop-device');
+        const touchPoints = navigator.maxTouchPoints || 0;
 
-        // Force set using setAttribute (more reliable than className)
-        document.documentElement.setAttribute('class', deviceClass);
+        console.log('🔍 User Agent:', ua);
+        console.log('🔍 Touch Points:', touchPoints);
+
+        // Detect tablets:
+        // 1. Traditional tablet user agents (iPad, Android tablets, Kindle, etc.)
+        const hasTabletUA = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(ua);
+
+        // 2. iPad in desktop mode (reports as Macintosh but has touch)
+        const isiPadDesktopMode = /macintosh/i.test(ua) && touchPoints >= 1;
+
+        const isTablet = hasTabletUA || isiPadDesktopMode;
+
+        // Detect mobile phones
+        const isMobile = /android.*mobile|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(ua);
+
+        console.log('📊 Detection results - isTablet:', isTablet, ', isMobile:', isMobile);
+
+        const deviceClass = isTablet ? 'tablet-device' : (isMobile ? 'mobile-device' : 'desktop-device');
+
+        // Immediately set on HTML (blocks before page renders)
+        document.documentElement.className = deviceClass;
         document.documentElement.setAttribute('data-device', deviceClass);
-        console.log('🔧 Device class set on HTML:', deviceClass);
+        console.log('🔧 Device class set on HTML (blocking):', deviceClass);
 
-        // Also set when DOM is ready (in case something strips it)
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', function() {
-            document.documentElement.setAttribute('class', deviceClass);
-            document.body.setAttribute('class', deviceClass);
-            console.log('🔧 Device class re-applied on DOMContentLoaded');
-          });
+        // Set on body as soon as it's available (early, before full DOM load)
+        function setBodyClass() {
+          if (document.body) {
+            document.body.className = deviceClass;
+            console.log('✅ Device: ' + deviceClass + ' (body class set early)');
+            updateOrientation();
+          } else {
+            setTimeout(setBodyClass, 1);
+          }
         }
+
+        // Define orientation function
+        function updateOrientation() {
+          if (!document.body) return;
+          document.body.classList.remove('landscape', 'portrait');
+          const isLandscape = window.innerWidth > window.innerHeight;
+          if (isLandscape) {
+            document.body.classList.add('landscape');
+            document.documentElement.setAttribute('data-orientation', 'landscape');
+            console.log('📱 Orientation: Landscape');
+          } else {
+            document.body.classList.add('portrait');
+            document.documentElement.setAttribute('data-orientation', 'portrait');
+            console.log('📱 Orientation: Portrait');
+          }
+        }
+
+        // Start setting body class immediately
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', setBodyClass);
+        } else {
+          setBodyClass();
+        }
+
+        // Listen for orientation changes
+        if (typeof window !== 'undefined') {
+          window.addEventListener('resize', updateOrientation);
+          window.addEventListener('orientationchange', updateOrientation);
+        }
+
+        // Make updateOrientation globally available
+        window.updateOrientation = updateOrientation;
       })();
     </script>
 
@@ -110,6 +162,7 @@
         padding: 0 24px;
         border: none;
         outline: none;
+        overflow: visible; /* Allow dropdowns to extend beyond container */
       }
 
       /* Top header ----------------------------------------------------------- */
@@ -560,13 +613,66 @@
         box-shadow: 0 22px 50px rgba(148, 163, 184, 0.6);
       }
 
-      /* Progressive loading image wrapper */
+      /* Progressive loading image wrapper - Square for all devices/orientations */
       .card-img-wrapper {
         position: relative;
         width: 100%;
-        height: 180px;
+        height: auto;
+        aspect-ratio: 1 / 1;
         overflow: hidden;
         background: #e5e7eb;
+      }
+
+      /* Card Style: Rectangle - wider aspect ratio */
+      .card.style-rectangle .card-img-wrapper {
+        aspect-ratio: 16 / 9;
+      }
+
+      /* Card Style: Circle - circular images with no padding */
+      .card.style-circle {
+        background: transparent;
+        box-shadow: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .card.style-circle:hover {
+        transform: none;
+        box-shadow: none;
+      }
+
+      .card.style-circle .card-img-wrapper {
+        aspect-ratio: 1 / 1;
+        border-radius: 50%;
+      }
+
+      .card.style-circle .card-img {
+        border-radius: 50%;
+      }
+
+      .card.style-circle .card-body {
+        padding: 0;
+        text-align: center;
+        background: transparent;
+        width: 100%;
+      }
+
+      .card.style-circle .card-name {
+        font-size: 14px;
+        font-weight: 600;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+      }
+
+      .card.style-circle .card-sub {
+        font-size: 12px;
+        color: var(--text-soft);
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
       }
 
       .card-img {
@@ -609,15 +715,377 @@
         color: var(--text-soft);
       }
 
+      /* List View ----------------------------------------------------------- */
+      .list-view {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 8px;
+      }
+
+      /* List Style: Simple - single column (default) */
+      .list-view.style-simple {
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* List Style: Double - 2 columns */
+      .list-view.style-double {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      /* List Style: Triple - 3 columns */
+      .list-view.style-triple {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+
+      .list-item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 16px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.98);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(148, 163, 184, 0.2);
+        cursor: pointer;
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
+      }
+
+      .list-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(148, 163, 184, 0.3);
+      }
+
+      .list-item-img-wrapper {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        min-width: 100px;
+        overflow: hidden;
+        border-radius: 8px;
+        background: #e5e7eb;
+      }
+
+      .list-item-details {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .list-item-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-main);
+      }
+
+      .list-item-sub {
+        font-size: 14px;
+        color: var(--text-soft);
+      }
+
+      /* Table View ---------------------------------------------------------- */
+      .data-table th {
+        padding: 14px 16px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 14px;
+        letter-spacing: 0.02em;
+      }
+
+      .data-table tbody tr {
+        border-bottom: 1px solid #e5e7eb;
+        cursor: pointer;
+        transition: background 0.12s ease;
+      }
+
+      .data-table tbody tr:hover {
+        background: #f8fafc;
+      }
+
+      .data-table tbody tr:last-child {
+        border-bottom: none;
+      }
+
+      .data-table td {
+        padding: 12px 16px;
+        font-size: 14px;
+        color: var(--text-main);
+      }
+
+      /* Expanded row styles */
+      .data-table tbody tr.row-expanded {
+        background: #f0f9ff;
+        border-left: 3px solid #3b82f6;
+      }
+
+      .data-table tbody tr.expanded-content-row {
+        cursor: default;
+        background: #f9fafb;
+      }
+
+      .data-table tbody tr.expanded-content-row:hover {
+        background: #f9fafb;
+      }
+
+      .data-table tbody tr.expanded-content-row td {
+        padding: 0;
+      }
+
+      /* Detail two-column grid for expanded view */
+      .detail-two-column-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 16px;
+        background: #e2e8f0;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #cbd5e1;
+      }
+
+      /* Table column headers with filter/sort controls */
+      .table-header-cell {
+        position: relative;
+        padding: 10px 32px 10px 16px;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .table-header-cell:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .table-header-cell.sorted-asc::after {
+        content: " ↑";
+        opacity: 0.8;
+      }
+
+      .table-header-cell.sorted-desc::after {
+        content: " ↓";
+        opacity: 0.8;
+      }
+
+      /* Filter indicator badge */
+      .filter-indicator {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 2px 6px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        font-size: 10px;
+        font-weight: 700;
+        vertical-align: middle;
+      }
+
+      /* Table cell image */
+      .table-cell-img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 6px;
+        display: block;
+      }
+
+      /* Table cell link */
+      .table-cell-link {
+        color: #6366f1;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .table-cell-link:hover {
+        text-decoration: underline;
+      }
+
+      .table-column-menu {
+        position: fixed; /* Fixed positioning to escape all parent clipping */
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        min-width: 220px;
+        max-width: 300px;
+        max-height: 500px; /* Max height before internal scroll */
+        overflow-y: auto; /* Scroll menu content if too long */
+        z-index: 10000;
+        display: none;
+      }
+
+      .table-column-menu.active {
+        display: block;
+      }
+
+      /* Ensure table view doesn't clip the menus */
+      .table-view {
+        margin-top: 8px;
+        overflow-x: auto;
+        overflow-y: visible;
+        position: relative;
+      }
+
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: rgba(255, 255, 255, 0.98);
+        border-radius: 12px 12px 12px 12px; /* Rounded top corners */
+        overflow: visible !important;
+        box-shadow: 0 4px 12px rgba(148, 163, 184, 0.2);
+      }
+
+      .data-table thead {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: white;
+        position: relative;
+        z-index: 1;
+        border-radius: 12px 12px 0 0; /* Rounded top corners only */
+      }
+
+      .data-table thead tr:first-child th:first-child {
+        border-top-left-radius: 12px;
+      }
+
+      .data-table thead tr:first-child th:last-child {
+        border-top-right-radius: 12px;
+      }
+
+      .data-table tbody {
+        overflow: visible !important;
+      }
+
+      .table-menu-section {
+        padding: 8px 0;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .table-menu-section:last-child {
+        border-bottom: none;
+      }
+
+      .table-menu-title {
+        padding: 6px 12px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .table-menu-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 13px;
+        color: #374151;
+        transition: background 0.1s ease;
+      }
+
+      .table-menu-item:hover {
+        background: #f3f4f6;
+      }
+
+      .table-filter-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-size: 13px;
+        color: #374151;
+      }
+
+      .table-filter-checkbox:hover {
+        background: #f3f4f6;
+      }
+
+      .table-filter-checkbox input[type="checkbox"] {
+        cursor: pointer;
+      }
+
+      .table-menu-button {
+        width: 100%;
+        padding: 8px 12px;
+        background: transparent;
+        border: none;
+        text-align: left;
+        font-size: 13px;
+        color: #6366f1;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .table-menu-button:hover {
+        background: #f3f4f6;
+      }
+
+      .table-menu-button-row {
+        display: flex;
+        gap: 8px;
+        padding: 0 4px;
+      }
+
+      .table-menu-button-row .table-menu-button {
+        flex: 1;
+        text-align: center;
+        border-radius: 6px;
+      }
+
+      .table-menu-items-row {
+        display: flex;
+        gap: 4px;
+      }
+
+      .table-menu-items-row .table-menu-item {
+        flex: 1;
+        text-align: center;
+      }
+
+      /* Portrait mode: Make Close/Clear buttons smaller for mobile and tablet */
+      body.mobile-device.portrait .table-menu-button-row .table-menu-button,
+      body.tablet-device.portrait .table-menu-button-row .table-menu-button {
+        font-size: 20px !important;
+        padding: 10px 20px !important;
+        min-height: auto !important;
+      }
+
+      /* Portrait mode: Make table rows and text 1.5x bigger for mobile and tablet */
+      body.mobile-device.portrait .data-table th,
+      body.tablet-device.portrait .data-table th {
+        padding: 21px 24px;
+        font-size: 21px;
+      }
+
+      body.mobile-device.portrait .data-table td,
+      body.tablet-device.portrait .data-table td {
+        padding: 18px 24px;
+        font-size: 21px;
+      }
+
+      body.mobile-device.portrait .table-cell-img,
+      body.tablet-device.portrait .table-cell-img {
+        width: 90px;
+        height: 90px;
+      }
+
       /* Detail view --------------------------------------------------------- */
 
       #detailView {
         display: none;
-        margin-top: 18px;
+        margin-top: 8px;
         padding: 18px 20px 20px;
         border-radius: 20px;
         background: rgba(255, 255, 255, 0.98);
         box-shadow: var(--shadow-soft);
+      }
+
+      /* Reduce gap between search bar and detail content - only portrait and desktop */
+      body.portrait .shell:has(#detailView[style*="display: block"]) .filters-row,
+      body.desktop-device .shell:has(#detailView[style*="display: block"]) .filters-row {
+        margin-bottom: 8px !important;
       }
 
       .detail-layout {
@@ -1661,6 +2129,11 @@
         gap: 12px;
       }
 
+      /* Rectangle cards: 2 columns in mobile portrait */
+      body.mobile-device .grid.grid-rectangle {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
       /* BIGGER BUTTONS FOR PORTRAIT - 68px height */
       body.mobile-device .btn-toolbar,
       body.mobile-device .btn-primary,
@@ -1760,6 +2233,27 @@
         align-items: stretch;
       }
 
+      /* Reduce filters-row padding and set minimal gap in mobile portrait */
+      body.mobile-device.portrait .filters-row {
+        padding: 2px 18px !important;
+        gap: 2px !important;
+      }
+
+      /* Top-header: Reduce spacing to filters-row in mobile portrait */
+      body.mobile-device.portrait .top-header {
+        padding: 10px 20px !important;
+        margin-bottom: 8px !important;
+      }
+
+      /* Mobile portrait: Reduce internal gaps in top-header */
+      body.mobile-device.portrait .left-block {
+        gap: 8px !important;
+      }
+
+      body.mobile-device.portrait .app-text-block {
+        gap: 0px !important;
+      }
+
       body.mobile-device .filters-left,
       body.mobile-device .filters-right,
       body.tablet-device .filters-left,
@@ -1807,26 +2301,162 @@
         font-size: 16px; /* Prevents zoom on iOS */
       }
 
-      /* ==================== LANDSCAPE MODE - Smaller buttons, smaller text, 4 columns ==================== */
+      /* ==================== TABLET PORTRAIT - Reduced sizes (75% of mobile portrait) ==================== */
+
+      /* Grid: 4 columns for tablet portrait */
+      body.tablet-device.portrait .grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      /* Rectangle cards: 3 columns in tablet portrait */
+      body.tablet-device.portrait .grid.grid-rectangle {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      /* Top-header padding: 20px → 6px, margin-bottom: 20px → 10px */
+      body.tablet-device.portrait .top-header {
+        padding: 6px 15px !important;
+        margin-bottom: 10px !important;
+      }
+
+      /* Logo: 48px → 36px */
+      body.tablet-device.portrait .app-logo {
+        width: 36px !important;
+        height: 36px !important;
+      }
+
+      /* Header text sizes: 25% reduction */
+      body.tablet-device.portrait .app-name {
+        font-size: 23px !important;
+      }
+
+      body.tablet-device.portrait .catalog-name {
+        font-size: 19px !important;
+      }
+
+      body.tablet-device.portrait .user-email {
+        font-size: 14px !important;
+      }
+
+      body.tablet-device.portrait .catalog-label,
+      body.tablet-device.portrait .user-role {
+        font-size: 14px !important;
+      }
+
+      /* Search bar: 68px → 51px, 19px → 14px */
+      body.tablet-device.portrait .search-input {
+        height: 51px !important;
+        font-size: 14px !important;
+        padding: 0 50px 0 15px !important;
+      }
+
+      body.tablet-device.portrait .clear-search-btn {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 14px !important;
+      }
+
+      /* Buttons: 68px → 51px, padding and font reduced */
+      body.tablet-device.portrait .btn-toolbar,
+      body.tablet-device.portrait .btn-primary,
+      body.tablet-device.portrait .btn-secondary {
+        height: 51px !important;
+        min-height: 51px !important;
+        padding: 15px 21px !important;
+        font-size: 14px !important;
+      }
+
+      body.tablet-device.portrait #logoutBtn {
+        height: 51px !important;
+        min-height: 51px !important;
+        padding: 0 21px !important;
+        font-size: 14px !important;
+      }
+
+      body.tablet-device.portrait #filterBtn,
+      body.tablet-device.portrait #sortBtn,
+      body.tablet-device.portrait #backToListBtn {
+        height: 51px !important;
+        min-height: 51px !important;
+        padding: 15px 21px !important;
+        font-size: 14px !important;
+      }
+
+      body.tablet-device.portrait #sheetBtn,
+      body.tablet-device.portrait #addBtn {
+        height: 51px !important;
+        min-height: 51px !important;
+      }
+
+      /* Filters-row: Reduce padding, margin, and set minimal gap */
+      body.tablet-device.portrait .filters-row {
+        padding: 2px 12px !important;
+        margin-bottom: 8px !important;
+        gap: 2px !important;
+      }
+
+      /* Reduce gaps inside top-header for tablet portrait */
+      body.tablet-device.portrait .left-block {
+        gap: 6px !important;
+      }
+
+      body.tablet-device.portrait .app-text-block {
+        gap: 0px !important;
+      }
+
+      /* Reduce gaps inside filters for tablet portrait */
+      body.tablet-device.portrait .filters-left,
+      body.tablet-device.portrait .filters-right {
+        gap: 6px !important;
+      }
+
+      /* Card text sizes: 15% reduction from base */
+      body.tablet-device.portrait .item-name {
+        font-size: 14px !important;
+      }
+
+      body.tablet-device.portrait .item-subtitle {
+        font-size: 13px !important;
+      }
+
+      /* Profile badge: smaller */
+      body.tablet-device.portrait .profile-badge {
+        font-size: 12px !important;
+        padding: 2px 8px !important;
+      }
+
+      /* ==================== LANDSCAPE MODE - Smaller buttons, smaller text, 6 columns ==================== */
       /* Reduce paddings and header elements in landscape */
       body.mobile-device.landscape .shell,
       body.tablet-device.landscape .shell {
         padding: 0 10px;
       }
 
-      body.mobile-device.landscape .top-header,
-      body.tablet-device.landscape .top-header {
+      body.mobile-device.landscape .top-header {
         padding: 4px 10px;
-        margin-bottom: 10px;
+        margin-bottom: 6px;
         align-items: center;
         min-height: 68px;
       }
 
-      /* Logo size in landscape: 60px, reduce gap */
-      body.mobile-device.landscape .app-logo,
-      body.tablet-device.landscape .app-logo {
+      /* Bigger top-header for tablet landscape - reduced by 25% */
+      body.tablet-device.landscape .top-header {
+        padding: 9px 11px;
+        margin-bottom: 8px;
+        align-items: center;
+        min-height: 51px;
+      }
+
+      /* Logo size in landscape: 60px for mobile, 70px for tablet */
+      body.mobile-device.landscape .app-logo {
         width: 60px;
         height: 60px;
+        margin: 0;
+      }
+
+      body.tablet-device.landscape .app-logo {
+        width: 53px;
+        height: 53px;
         margin: 0;
       }
 
@@ -1844,10 +2474,18 @@
       }
 
       /* Filters-row: Keep buttons in same row, aligned to right */
-      body.mobile-device.landscape .filters-row,
-      body.tablet-device.landscape .filters-row {
-        padding: 4px 4px;
+      body.mobile-device.landscape .filters-row {
+        padding: 2px 4px;
         margin-bottom: 0;
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+      }
+
+      /* Bigger filters-row for tablet landscape - reduced by 25% */
+      body.tablet-device.landscape .filters-row {
+        padding: 2px 11px;
+        margin-bottom: 3px;
         align-items: center;
         flex-direction: row;
         justify-content: space-between;
@@ -1869,47 +2507,79 @@
       }
 
 
-      /* Smaller header text in landscape */
-      body.mobile-device.landscape .app-name,
-      body.tablet-device.landscape .app-name {
+      /* Smaller header text in MOBILE landscape */
+      body.mobile-device.landscape .app-name {
         font-size: 16px !important;
       }
 
-      body.mobile-device.landscape .catalog-label,
-      body.tablet-device.landscape .catalog-label {
+      body.mobile-device.landscape .catalog-label {
         font-size: 12px !important;
       }
 
-      body.mobile-device.landscape .catalog-name,
-      body.tablet-device.landscape .catalog-name {
+      body.mobile-device.landscape .catalog-name {
         font-size: 14px !important;
       }
 
-      body.mobile-device.landscape .user-role,
-      body.tablet-device.landscape .user-role {
+      body.mobile-device.landscape .user-role {
         font-size: 12px !important;
       }
 
-      body.mobile-device.landscape .user-email,
-      body.tablet-device.landscape .user-email {
+      body.mobile-device.landscape .user-email {
         font-size: 12px !important;
       }
 
-      body.mobile-device.landscape .profile-badge,
-      body.tablet-device.landscape .profile-badge {
+      body.mobile-device.landscape .profile-badge {
         font-size: 11px !important;
         padding: 2px 6px !important;
       }
 
-      /* Smaller search bar in landscape */
-      body.mobile-device.landscape .search-input,
-      body.tablet-device.landscape .search-input {
+      /* Bigger header text for TABLET landscape - reduced by 25% */
+      body.tablet-device.landscape .app-name {
+        font-size: 19px !important;
+      }
+
+      body.tablet-device.landscape .catalog-label {
+        font-size: 13px !important;
+      }
+
+      body.tablet-device.landscape .catalog-name {
+        font-size: 15px !important;
+      }
+
+      body.tablet-device.landscape .user-role {
+        font-size: 13px !important;
+      }
+
+      body.tablet-device.landscape .user-email {
+        font-size: 13px !important;
+      }
+
+      body.tablet-device.landscape .profile-badge {
+        font-size: 12px !important;
+        padding: 3px 8px !important;
+      }
+
+      /* Smaller search bar in MOBILE landscape */
+      body.mobile-device.landscape .search-input {
         height: 36px !important;
         font-size: 14px !important;
         padding: 0 40px 0 12px !important;
       }
 
-      body.mobile-device.landscape .clear-search-btn,
+      body.mobile-device.landscape .clear-search-btn {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 14px !important;
+        right: 8px !important;
+      }
+
+      /* Bigger search bar for TABLET landscape - reduced by 25% */
+      body.tablet-device.landscape .search-input {
+        height: 36px !important;
+        font-size: 14px !important;
+        padding: 0 36px 0 12px !important;
+      }
+
       body.tablet-device.landscape .clear-search-btn {
         width: 24px !important;
         height: 24px !important;
@@ -1917,69 +2587,145 @@
         right: 8px !important;
       }
 
-      /* Breadcrumb styling for landscape - reduce margins */
-      body.mobile-device.landscape #breadcrumbNav,
-      body.tablet-device.landscape #breadcrumbNav {
+      /* Breadcrumb styling for MOBILE landscape - reduce margins */
+      body.mobile-device.landscape #breadcrumbNav {
         margin: 0 !important;
         padding: 0 !important;
       }
 
-      /* Grid: 4 columns in LANDSCAPE */
-      body.mobile-device.landscape .grid,
-      body.tablet-device.landscape .grid {
-        grid-template-columns: repeat(4, 1fr);
+      /* Breadcrumb styling for TABLET landscape - reduced by 25% */
+      body.tablet-device.landscape #breadcrumbNav {
+        font-size: 20px !important;
+        margin: 6px 0 !important;
+        padding: 5px 0 !important;
+        line-height: 1.5 !important;
+      }
+
+      body.tablet-device.landscape #breadcrumbNav a {
+        padding: 5px 3px !important;
+        font-size: 20px !important;
+      }
+
+      body.tablet-device.landscape #breadcrumbNav span {
+        margin: 0 8px !important;
+        font-size: 20px !important;
+      }
+
+      /* Grid: 6 columns in MOBILE LANDSCAPE */
+      body.mobile-device.landscape .grid {
+        grid-template-columns: repeat(6, 1fr);
         gap: 10px;
         margin-top: 8px;
       }
 
+      /* Rectangle cards: 4 columns in mobile landscape */
+      body.mobile-device.landscape .grid.grid-rectangle {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      /* Grid: 8 columns for TABLET LANDSCAPE */
+      body.tablet-device.landscape .grid {
+        grid-template-columns: repeat(8, 1fr);
+        gap: 10px;
+        margin-top: 8px;
+      }
+
+      /* Rectangle cards: 4 columns in tablet landscape */
+      body.tablet-device.landscape .grid.grid-rectangle {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      /* Detail view gap: 4px in landscape - reduce margin AND padding */
+      body.mobile-device.landscape #detailView,
+      body.tablet-device.landscape #detailView {
+        margin-top: 0 !important;
+        padding-top: 20px !important;
+      }
+
       /* Keep buttons at current size - already configured below */
 
-      /* SMALLER BUTTONS FOR LANDSCAPE - 40px */
+      /* SMALLER BUTTONS FOR MOBILE LANDSCAPE - 40px */
       body.mobile-device.landscape .btn-toolbar,
       body.mobile-device.landscape .btn-primary,
       body.mobile-device.landscape .btn-secondary,
+      body.mobile-device.landscape .btn-danger,
       body.mobile-device.landscape #logoutBtn,
       body.mobile-device.landscape #filterBtn,
       body.mobile-device.landscape #sortBtn,
       body.mobile-device.landscape #backToListBtn,
       body.mobile-device.landscape #sheetBtn,
-      body.mobile-device.landscape #addBtn,
-      body.tablet-device.landscape .btn-toolbar,
-      body.tablet-device.landscape .btn-primary,
-      body.tablet-device.landscape .btn-secondary,
-      body.tablet-device.landscape #logoutBtn,
-      body.tablet-device.landscape #filterBtn,
-      body.tablet-device.landscape #sortBtn,
-      body.tablet-device.landscape #backToListBtn,
-      body.tablet-device.landscape #sheetBtn,
-      body.tablet-device.landscape #addBtn {
+      body.mobile-device.landscape #addBtn {
         height: 40px !important;
         min-height: 40px !important;
         padding: 8px 16px !important;
         font-size: 14px !important;
       }
 
-      /* Smaller card text in landscape */
-      body.mobile-device.landscape .item-name,
+      /* BIGGER BUTTONS FOR TABLET LANDSCAPE - reduced by 25% */
+      body.tablet-device.landscape .btn-toolbar,
+      body.tablet-device.landscape .btn-primary,
+      body.tablet-device.landscape .btn-secondary,
+      body.tablet-device.landscape .btn-danger,
+      body.tablet-device.landscape #logoutBtn,
+      body.tablet-device.landscape #filterBtn,
+      body.tablet-device.landscape #sortBtn,
+      body.tablet-device.landscape #backToListBtn,
+      body.tablet-device.landscape #sheetBtn,
+      body.tablet-device.landscape #addBtn {
+        height: 38px !important;
+        min-height: 38px !important;
+        padding: 9px 15px !important;
+        font-size: 12px !important;
+      }
+
+      /* Smaller card text in MOBILE landscape */
+      body.mobile-device.landscape .item-name {
+        font-size: 15px !important;
+      }
+
+      body.mobile-device.landscape .item-subtitle {
+        font-size: 14px !important;
+      }
+
+      body.mobile-device.landscape .item-card {
+        min-height: 150px;
+      }
+
+      /* Bigger card text for TABLET landscape - reduced by 25% */
       body.tablet-device.landscape .item-name {
         font-size: 15px !important;
       }
 
-      body.mobile-device.landscape .item-subtitle,
       body.tablet-device.landscape .item-subtitle {
         font-size: 14px !important;
       }
 
-      body.mobile-device.landscape .item-card,
       body.tablet-device.landscape .item-card {
-        min-height: 150px;
+        min-height: 128px;
       }
 
-      /* Detail view layout - LANDSCAPE: Restore side-by-side */
-      body.mobile-device.landscape .detail-layout,
-      body.tablet-device.landscape .detail-layout {
+      /* Make card images square in TABLET landscape */
+      body.tablet-device.landscape .card-img-wrapper {
+        height: auto !important;
+        aspect-ratio: 1 / 1 !important;
+      }
+
+      /* Rectangle cards: maintain 16:12 aspect ratio in tablet landscape */
+      body.tablet-device.landscape .card.style-rectangle .card-img-wrapper {
+        aspect-ratio: 16 / 12 !important;
+        height: auto !important;
+      }
+
+      /* Detail view layout - MOBILE LANDSCAPE: Restore side-by-side */
+      body.mobile-device.landscape .detail-layout {
         grid-template-columns: minmax(0, 360px) minmax(0, 1fr) !important;
         gap: 16px;
+      }
+
+      /* Detail view layout - TABLET LANDSCAPE: Bigger image column - reduced by 25% */
+      body.tablet-device.landscape .detail-layout {
+        grid-template-columns: minmax(0, 375px) minmax(0, 1fr) !important;
+        gap: 15px;
       }
 
       body.mobile-device.landscape .detail-img,
@@ -1988,38 +2734,60 @@
         object-fit: contain !important;
       }
 
-      /* Detail view text sizes - LANDSCAPE */
-      body.mobile-device.landscape .detail-name,
-      body.tablet-device.landscape .detail-name {
+      /* Detail view text sizes - MOBILE LANDSCAPE */
+      body.mobile-device.landscape .detail-name {
         font-size: 20px !important;
       }
 
-      body.mobile-device.landscape .detail-subtitle,
+      body.mobile-device.landscape .detail-subtitle {
+        font-size: 16px !important;
+      }
+
+      body.mobile-device.landscape .detail-topcorner {
+        font-size: 16px !important;
+      }
+
+      body.mobile-device.landscape .detail-meta {
+        font-size: 16px !important;
+      }
+
+      body.mobile-device.landscape .detail-field {
+        font-size: 15px !important;
+      }
+
+      body.mobile-device.landscape .detail-field-label {
+        font-size: 15px !important;
+      }
+
+      body.mobile-device.landscape .detail-field-value {
+        font-size: 15px !important;
+      }
+
+      /* Detail view text sizes - TABLET LANDSCAPE - reduced by 25% */
+      body.tablet-device.landscape .detail-name {
+        font-size: 23px !important;
+      }
+
       body.tablet-device.landscape .detail-subtitle {
-        font-size: 16px !important;
+        font-size: 18px !important;
       }
 
-      body.mobile-device.landscape .detail-topcorner,
       body.tablet-device.landscape .detail-topcorner {
-        font-size: 16px !important;
+        font-size: 17px !important;
       }
 
-      body.mobile-device.landscape .detail-meta,
       body.tablet-device.landscape .detail-meta {
-        font-size: 16px !important;
+        font-size: 17px !important;
       }
 
-      body.mobile-device.landscape .detail-field,
       body.tablet-device.landscape .detail-field {
         font-size: 15px !important;
       }
 
-      body.mobile-device.landscape .detail-field-label,
       body.tablet-device.landscape .detail-field-label {
         font-size: 15px !important;
       }
 
-      body.mobile-device.landscape .detail-field-value,
       body.tablet-device.landscape .detail-field-value {
         font-size: 15px !important;
       }
@@ -2029,6 +2797,19 @@
       body.mobile-device.portrait .shell,
       body.tablet-device.portrait .shell {
         padding: 0 12px !important;
+      }
+
+      /* Logo 2x bigger in portrait mode (NOT WORKING FOR SOME REASON) */
+      body.mobile-device.portrait .app-logo,
+      body.tablet-device.portrait .app-logo {
+        width: 96px !important;
+        height: 96px !important;
+        min-width: 96px !important;
+        min-height: 96px !important;
+        max-width: 96px !important;
+        max-height: 96px !important;
+        margin: 0 !important;
+        object-fit: contain !important;
       }
 
       /* Ensure symmetrical margins - adjust container padding */
@@ -2049,6 +2830,12 @@
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
+      }
+
+      body.mobile-device.portrait .detail-two-column-grid,
+      body.tablet-device.portrait .detail-two-column-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px;
       }
 
       body.mobile-device.portrait .detail-img-wrapper,
@@ -2162,13 +2949,6 @@
       body.tablet-device.portrait .item-card {
         min-height: 180px;
         padding: 12px !important;
-      }
-
-      /* Make card images square in portrait */
-      body.mobile-device.portrait .card-img-wrapper,
-      body.tablet-device.portrait .card-img-wrapper {
-        height: auto !important;
-        aspect-ratio: 1 / 1 !important;
       }
 
       body.mobile-device.portrait .card-name,
@@ -2356,20 +3136,86 @@
         padding: 0 24px;
       }
 
-      /* Large desktop (1440px and up) - optimize for big screens */
+      /* Grid: 25% smaller on desktop */
+      body.desktop-device .grid,
+      html.desktop-device .grid,
+      html[data-device="desktop-device"] .grid {
+        grid-template-columns: repeat(auto-fill, minmax(143px, 1fr));
+        gap: 14px;
+      }
+
+      /* Rectangle cards: 2x bigger on desktop */
+      body.desktop-device .grid.grid-rectangle,
+      html.desktop-device .grid.grid-rectangle,
+      html[data-device="desktop-device"] .grid.grid-rectangle {
+        grid-template-columns: repeat(auto-fill, minmax(286px, 1fr));
+      }
+
+      /* Grid item text: 15% smaller on desktop */
+      body.desktop-device .card-name,
+      html.desktop-device .card-name,
+      html[data-device="desktop-device"] .card-name {
+        font-size: 12px !important;
+      }
+
+      body.desktop-device .card-sub,
+      html.desktop-device .card-sub,
+      html[data-device="desktop-device"] .card-sub {
+        font-size: 10px !important;
+      }
+
+      /* Filters-row: Reduce top and bottom padding on desktop */
+      body.desktop-device .filters-row,
+      html.desktop-device .filters-row,
+      html[data-device="desktop-device"] .filters-row {
+        padding: 5px 18px !important;
+      }
+
+      /* Top-header: Reduce spacing to filters-row on desktop */
+      body.desktop-device .top-header,
+      html.desktop-device .top-header,
+      html[data-device="desktop-device"] .top-header {
+        padding: 8px 20px 6px !important;
+        margin-bottom: 8px !important;
+      }
+
+      /* Desktop: Reduce internal gaps in top-header */
+      body.desktop-device .left-block,
+      html.desktop-device .left-block,
+      html[data-device="desktop-device"] .left-block {
+        gap: 8px !important;
+      }
+
+      body.desktop-device .app-text-block,
+      html.desktop-device .app-text-block,
+      html[data-device="desktop-device"] .app-text-block {
+        gap: 0px !important;
+      }
+
+      /* Large desktop (1440px and up) - optimize for big screens - desktop only */
       @media (min-width: 1440px) {
-        /* More columns on large screens */
-        .grid {
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          gap: 20px;
+        /* More columns on large screens - 25% smaller */
+        body.desktop-device .grid {
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+          gap: 15px;
+        }
+
+        /* Rectangle cards: 2x bigger on large desktop */
+        body.desktop-device .grid.grid-rectangle {
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         }
       }
 
-      /* Ultra-wide (1920px and up) */
+      /* Ultra-wide (1920px and up) - desktop only */
       @media (min-width: 1920px) {
-        .grid {
-          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-          gap: 24px;
+        body.desktop-device .grid {
+          grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+          gap: 18px;
+        }
+
+        /* Rectangle cards: 2x bigger on ultra-wide */
+        body.desktop-device .grid.grid-rectangle {
+          grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
         }
       }
     </style>
@@ -2624,50 +3470,6 @@
     </div>
 
     <script>
-      // ==================== DEVICE DETECTION ====================
-      // Add device class to body (already added to html in head)
-
-      (function() {
-        const ua = navigator.userAgent || navigator.vendor || window.opera;
-        const isMobile = /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(ua);
-        const isTablet = /ipad|android(?!.*mobile)|tablet|kindle|silk|playbook/i.test(ua);
-
-        // Add same class to body that was added to html
-        if (isMobile) {
-          document.body.className = 'mobile-device';
-          console.log('✅ Device: Mobile (body class set)');
-        } else if (isTablet) {
-          document.body.className = 'tablet-device';
-          console.log('✅ Device: Tablet (body class set)');
-        } else {
-          document.body.className = 'desktop-device';
-          console.log('✅ Device: Desktop (body class set)');
-        }
-
-        // Add initial orientation class
-        updateOrientation();
-      })();
-
-      function updateOrientation() {
-        // Remove existing orientation classes
-        document.body.classList.remove('landscape', 'portrait');
-
-        // Check orientation
-        const isLandscape = window.innerWidth > window.innerHeight;
-
-        if (isLandscape) {
-          document.body.classList.add('landscape');
-          console.log('📱 Orientation: Landscape');
-        } else {
-          document.body.classList.add('portrait');
-          console.log('📱 Orientation: Portrait');
-        }
-      }
-
-      // Update orientation on resize/orientation change
-      window.addEventListener('resize', updateOrientation);
-      window.addEventListener('orientationchange', updateOrientation);
-
       // ==================== TOAST NOTIFICATION SYSTEM ====================
       
       function showToast(message, type = 'info') {
@@ -3111,6 +3913,99 @@
       let settings = null;
       let columnConfig = [];
 
+      // Helper to normalize view type from Google Sheet format to lowercase
+      function normalizeViewType(viewValue) {
+        if (!viewValue) return 'cards';
+        const normalized = String(viewValue).toLowerCase();
+        if (normalized === 'cards' || normalized === 'list' || normalized === 'table') {
+          return normalized;
+        }
+        return 'cards'; // Default fallback for invalid values
+      }
+
+      // Helper to normalize and validate style based on view type
+      function normalizeStyle(viewType, styleValue) {
+        if (!styleValue) {
+          // Return default style for view type
+          if (viewType === 'cards') return 'Squared';
+          if (viewType === 'list') return 'Simple';
+          if (viewType === 'table') return 'Normal';
+          return 'Squared';
+        }
+
+        // Define valid styles for each view type
+        const validStyles = {
+          'cards': ['Squared', 'Rectangle', 'Circle'],
+          'list': ['Simple', 'Double', 'Triple'],
+          'table': ['Normal', 'Open Detail View', 'No Detail View']
+        };
+
+        const allowed = validStyles[viewType] || [];
+        const styleStr = String(styleValue);
+
+        // Check if style is valid for this view type
+        if (allowed.includes(styleStr)) {
+          return styleStr;
+        }
+
+        // Style not valid for this view type - return default
+        if (viewType === 'cards') return 'Squared';
+        if (viewType === 'list') return 'Simple';
+        if (viewType === 'table') return 'Normal';
+        return 'Squared';
+      }
+
+      // Initialize display view types and styles from settings
+      function initializeDisplayViewType() {
+        if (settings) {
+          // Initialize view types
+          layer1ViewType = normalizeViewType(settings.layer1View);
+          layer2ViewType = normalizeViewType(settings.layer2View);
+          layer3ViewType = normalizeViewType(settings.layer3View);
+          mainViewType = normalizeViewType(settings.mainView);
+
+          // Initialize styles (validated against view types)
+          layer1Style = normalizeStyle(layer1ViewType, settings.layer1Style);
+          layer2Style = normalizeStyle(layer2ViewType, settings.layer2Style);
+          layer3Style = normalizeStyle(layer3ViewType, settings.layer3Style);
+          mainStyle = normalizeStyle(mainViewType, settings.mainStyle);
+
+          console.log('✓ View types loaded from Google Sheet:');
+          console.log('  Layer 1 (D2):', settings.layer1View, '→', layer1ViewType, '| Style (F2):', settings.layer1Style, '→', layer1Style);
+          console.log('  Layer 2 (D3):', settings.layer2View, '→', layer2ViewType, '| Style (F3):', settings.layer2Style, '→', layer2Style);
+          console.log('  Layer 3 (D4):', settings.layer3View, '→', layer3ViewType, '| Style (F4):', settings.layer3Style, '→', layer3Style);
+          console.log('  Main (D5):', settings.mainView, '→', mainViewType, '| Style (F5):', settings.mainStyle, '→', mainStyle);
+        } else {
+          console.log('⚠️ No settings found - using defaults (cards/Squared)');
+        }
+      }
+
+      // Get the appropriate view type based on current layer index
+      function getViewTypeForLayer(layerIndex) {
+        if (layerIndex === 0) return layer1ViewType;
+        if (layerIndex === 1) return layer2ViewType;
+        if (layerIndex === 2) return layer3ViewType;
+        return 'cards'; // Default for any additional layers
+      }
+
+      // Get the view type for main items
+      function getMainViewType() {
+        return mainViewType;
+      }
+
+      // Get the appropriate style based on current layer index
+      function getStyleForLayer(layerIndex) {
+        if (layerIndex === 0) return layer1Style;
+        if (layerIndex === 1) return layer2Style;
+        if (layerIndex === 2) return layer3Style;
+        return 'Squared'; // Default for any additional layers
+      }
+
+      // Get the style for main items
+      function getMainStyle() {
+        return mainStyle;
+      }
+
       // Dynamic column references (populated from columnConfig)
       let nameColumn = null;
       let descriptionColumn = null;
@@ -3132,6 +4027,26 @@
 
       // Navigation state for back button handling
       let currentView = "list"; // "list", "layer", or "detail"
+
+      // Display view types for each layer and main items (cards, list, table)
+      let layer1ViewType = "cards"; // Layer 1 view type - set from Google Sheet D12
+      let layer2ViewType = "cards"; // Layer 2 view type - set from Google Sheet D13
+      let layer3ViewType = "cards"; // Layer 3 view type - set from Google Sheet D14
+      let mainViewType = "cards";   // Main items view type - set from Google Sheet D15
+
+      // Display styles for each view type - set from Google Sheet F2-F5
+      let layer1Style = "Squared";  // Layer 1 style - set from Google Sheet F2
+      let layer2Style = "Squared";  // Layer 2 style - set from Google Sheet F3
+      let layer3Style = "Squared";  // Layer 3 style - set from Google Sheet F4
+      let mainStyle = "Squared";    // Main items style - set from Google Sheet F5
+
+      // Table view state - for column-level filtering and sorting
+      let tableColumnFilters = {}; // { columnName: [selectedValues...] }
+      let tableSortColumn = null;   // Current sort column name
+      let tableSortOrder = "asc";   // "asc" or "desc"
+      let currentTableItems = [];   // Store original items for table filtering
+      let activeTableMenuColumn = null; // Track which column menu is open
+      let expandedRows = new Set(); // Track which rows are expanded (stores item index or identifier)
 
       // Layer navigation state
       let layerConfig = []; // Layer configuration from backend
@@ -3159,8 +4074,17 @@
       function updateFilterSortVisibility() {
         const hasFilterColumns = filterColumns && filterColumns.length > 0;
 
-        // Show/hide based on whether there are filterable columns
-        if (hasFilterColumns) {
+        // Check if current view is table (main items or layers)
+        const isMainTableView = currentView === "list" && getMainViewType() === 'table';
+        const isLayerTableView = currentView === "layer" && currentLayerIndex >= 0 && getViewTypeForLayer(currentLayerIndex) === 'table';
+        const isTableView = isMainTableView || isLayerTableView;
+
+        // Hide filter/sort buttons if in table view (table has its own filters/sorting)
+        // Otherwise show/hide based on whether there are filterable columns
+        if (isTableView) {
+          document.getElementById("filterWrapper").style.display = "none";
+          document.getElementById("sortWrapper").style.display = "none";
+        } else if (hasFilterColumns) {
           document.getElementById("filterWrapper").style.display = "inline-block";
           document.getElementById("sortWrapper").style.display = "inline-block";
         } else {
@@ -3766,10 +4690,48 @@
           return;
         }
 
+        // Route to appropriate view renderer based on mainViewType
+        const viewType = getMainViewType();
+        if (viewType === 'list') {
+          renderListView(items, grid);
+        } else if (viewType === 'table') {
+          renderTableView(items, grid);
+        } else {
+          // Default to cards view
+          renderCardsView(items, grid);
+        }
+
+        // Update filter/sort button visibility based on view type
+        updateFilterSortVisibility();
+      }
+
+      // Render Cards View (current default grid layout)
+      function renderCardsView(items, grid) {
+        grid.classList.add('grid');
+        grid.classList.remove('list-view', 'table-view');
+
+        // Get style for main items
+        const style = getMainStyle();
+
+        // Add style class to grid for Rectangle cards
+        if (style === 'Rectangle') {
+          grid.classList.add('grid-rectangle');
+        } else {
+          grid.classList.remove('grid-rectangle');
+        }
+
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
           const card = document.createElement("div");
           card.className = "card";
+
+          // Apply style class based on card style
+          if (style === 'Rectangle') {
+            card.classList.add('style-rectangle');
+          } else if (style === 'Circle') {
+            card.classList.add('style-circle');
+          }
+          // Squared is default, no additional class needed
 
           // Create image wrapper for lazy loading
           const imgWrapper = document.createElement("div");
@@ -3832,6 +4794,971 @@
         }
       }
 
+      // Render List View (vertical list with image left, details right)
+      function renderListView(items, grid) {
+        grid.classList.remove('grid', 'table-view');
+        grid.classList.add('list-view');
+
+        // Get style for main items
+        const style = getMainStyle();
+
+        // Apply list style class
+        if (style === 'Double') {
+          grid.classList.add('style-double');
+        } else if (style === 'Triple') {
+          grid.classList.add('style-triple');
+        } else {
+          grid.classList.add('style-simple');
+        }
+
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          const listItem = document.createElement("div");
+          listItem.className = "list-item";
+
+          // Image on the left
+          const imgWrapper = document.createElement("div");
+          imgWrapper.className = "list-item-img-wrapper";
+
+          if (imageColumn && item[imageColumn.columnName]) {
+            const rawUrl = item[imageColumn.columnName];
+            const fileId = extractDriveFileId(rawUrl);
+
+            if (fileId) {
+              imgWrapper.dataset.fileId = fileId;
+              if (imageObserver) {
+                imageObserver.observe(imgWrapper);
+              } else {
+                loadImageViaProxy(fileId, imgWrapper);
+              }
+            } else if (rawUrl) {
+              imgWrapper.dataset.rawUrl = rawUrl;
+              if (imageObserver) {
+                imageObserver.observe(imgWrapper);
+              } else {
+                loadDirectImage(rawUrl, imgWrapper);
+              }
+            } else {
+              imgWrapper.innerHTML = '<div style="width:100%;height:100%;background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px);"></div>';
+            }
+          } else {
+            imgWrapper.innerHTML = '<div style="width:100%;height:100%;background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px);"></div>';
+          }
+
+          listItem.appendChild(imgWrapper);
+
+          // Details on the right
+          const detailsWrapper = document.createElement("div");
+          detailsWrapper.className = "list-item-details";
+
+          const nameEl = document.createElement("div");
+          nameEl.className = "list-item-name";
+          nameEl.textContent = nameColumn ? (item[nameColumn.columnName] || "(no name)") : "(no name)";
+          detailsWrapper.appendChild(nameEl);
+
+          const sub = document.createElement("div");
+          sub.className = "list-item-sub";
+          const cat = categoryColumn ? (item[categoryColumn.columnName] || "") : "";
+          const place = placeColumn ? (item[placeColumn.columnName] || "") : "";
+          sub.textContent = [cat, place].filter(Boolean).join(" • ");
+          detailsWrapper.appendChild(sub);
+
+          listItem.appendChild(detailsWrapper);
+
+          listItem.onclick = (function (it, idx) {
+            return function () {
+              showDetails(it, idx);
+            };
+          })(item, i);
+
+          grid.appendChild(listItem);
+        }
+      }
+
+      // Render Table View (spreadsheet-style)
+      function renderTableView(items, grid) {
+        grid.classList.remove('grid', 'list-view');
+        grid.classList.add('table-view');
+
+        // Get style for main items
+        const tableStyle = getMainStyle();
+
+        // Store items for table filtering
+        currentTableItems = items.slice();
+
+        // Determine which columns to show based on whether we're in layer view or not
+        let columnsToShow = [];
+
+        if (currentView === "layer") {
+          // In layer view: show only Primary Identifier, SubId1, SubId2
+          columnsToShow = [nameColumn, categoryColumn, placeColumn].filter(col => col != null);
+        } else {
+          // In Main list: show columns where showOnTable is true
+          columnsToShow = columnConfig.filter(col => col.showOnTable === true);
+
+          // Fallback: if no columns have showOnTable=true (column doesn't exist yet),
+          // show all columns with itemPlace set (backward compatibility)
+          if (columnsToShow.length === 0) {
+            columnsToShow = columnConfig.filter(col => {
+              const itemPlace = col.itemPlace;
+              return itemPlace && itemPlace !== "";
+            });
+          }
+        }
+
+        // Apply table column filters
+        let filteredItems = applyTableFilters(items, columnsToShow);
+
+        // Apply table sorting
+        filteredItems = applyTableSort(filteredItems, columnsToShow);
+
+        // Create table
+        const table = document.createElement("table");
+        table.className = "data-table";
+
+        // Create header row with interactive controls
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+
+        for (let i = 0; i < columnsToShow.length; i++) {
+          const col = columnsToShow[i];
+          const th = document.createElement("th");
+          th.className = "table-header-cell";
+          th.dataset.columnName = col.columnName; // Add data attribute for reliable identification
+
+          // Add sort indicator if this column is sorted
+          if (tableSortColumn === col.columnName) {
+            th.classList.add(tableSortOrder === "asc" ? "sorted-asc" : "sorted-desc");
+          }
+
+          // Create header content
+          const headerText = document.createElement("span");
+          headerText.textContent = col.displayName || col.columnName;
+          th.appendChild(headerText);
+
+          // Add filter indicator if this column has active filters
+          const activeFilters = tableColumnFilters[col.columnName];
+          if (activeFilters && activeFilters.length > 0) {
+            const filterBadge = document.createElement("span");
+            filterBadge.className = "filter-indicator";
+            filterBadge.textContent = "🔍";
+            filterBadge.title = `${activeFilters.length} filter(s) active`;
+            th.appendChild(filterBadge);
+          }
+
+          // Create dropdown menu
+          const menu = createTableColumnMenu(col, columnsToShow);
+          th.appendChild(menu);
+
+          // Toggle menu on click
+          th.onclick = (function(menuEl, columnName, headerCell) {
+            return function(e) {
+              e.stopPropagation();
+              // Close all other menus
+              document.querySelectorAll('.table-column-menu').forEach(m => {
+                if (m !== menuEl) m.classList.remove('active');
+              });
+              const isOpening = !menuEl.classList.contains('active');
+              menuEl.classList.toggle('active');
+
+              // Position menu using fixed positioning (escapes all parent clipping)
+              if (isOpening) {
+                const rect = headerCell.getBoundingClientRect();
+                menuEl.style.top = (rect.bottom + 2) + 'px';
+                menuEl.style.left = rect.left + 'px';
+                activeTableMenuColumn = columnName;
+                // Lock body scroll when dropdown opens
+                lockScroll();
+              } else {
+                activeTableMenuColumn = null;
+                // Restore body scroll when dropdown closes
+                unlockScroll();
+              }
+            };
+          })(menu, col.columnName, th);
+
+          headerRow.appendChild(th);
+        }
+
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        // Create body
+        const tbody = document.createElement("tbody");
+
+        for (let i = 0; i < filteredItems.length; i++) {
+          const item = filteredItems[i];
+          const row = document.createElement("tr");
+          row.className = "table-row";
+
+          // Remove pointer cursor for "No Detail View" style
+          if (tableStyle === 'No Detail View') {
+            row.style.cursor = 'default';
+          }
+
+          for (let j = 0; j < columnsToShow.length; j++) {
+            const col = columnsToShow[j];
+            const td = document.createElement("td");
+            const value = item[col.columnName] || "";
+
+            // Handle different column types
+            if (col.type === "image" && value) {
+              // Image type: show small image
+              const imgWrapper = document.createElement("div");
+              // 1.5x bigger (90px) for Mobile/Tablet Portrait, 60px otherwise
+              const imgSize = (document.body.classList.contains('mobile-device') || document.body.classList.contains('tablet-device')) &&
+                              document.body.classList.contains('portrait') ? '90px' : '60px';
+              imgWrapper.style.cssText = `width: ${imgSize}; height: ${imgSize}; position: relative; background: #e5e7eb; border-radius: 6px; overflow: hidden;`;
+
+              const fileId = extractDriveFileId(value);
+              if (fileId) {
+                imgWrapper.dataset.fileId = fileId;
+                if (imageObserver) {
+                  imageObserver.observe(imgWrapper);
+                } else {
+                  loadImageViaProxy(fileId, imgWrapper);
+                }
+              } else if (value) {
+                const img = document.createElement("img");
+                img.className = "table-cell-img";
+                img.src = value;
+                img.loading = "lazy";
+                imgWrapper.appendChild(img);
+              }
+
+              td.appendChild(imgWrapper);
+              td.style.padding = "6px 16px"; // Reduce padding for image cells
+            } else if (col.type === "url" && value) {
+              // URL type: show clickable link with display name
+              const link = document.createElement("a");
+              link.className = "table-cell-link";
+              link.href = value;
+              link.target = "_blank";
+              link.rel = "noopener noreferrer";
+              link.textContent = col.displayName || col.columnName;
+              link.onclick = (e) => {
+                e.stopPropagation(); // Prevent row click
+              };
+              td.appendChild(link);
+            } else if (col.type === "date" && value) {
+              // Date type: format the date
+              td.textContent = formatDate(value);
+            } else {
+              // Text, number, and other types: display as is
+              td.textContent = value;
+            }
+
+            row.appendChild(td);
+          }
+
+          row.onclick = (function (it, idx, rowEl) {
+            return function () {
+              handleMainTableRowClick(it, idx, rowEl);
+            };
+          })(item, i, row);
+
+          tbody.appendChild(row);
+        }
+
+        table.appendChild(tbody);
+        grid.appendChild(table);
+      }
+
+      // Handle main table row click - either show details or expand inline
+      function handleMainTableRowClick(item, index, rowElement) {
+        const style = getMainStyle();
+        const viewType = getMainViewType();
+
+        // Check if this is a table view with "No Detail View" style - skip navigation
+        if (viewType === 'table' && style === 'No Detail View') {
+          // Do nothing - no detail view for this style
+          return;
+        }
+
+        // Check if this is a table view with "Open Detail View" style
+        if (viewType === 'table' && style === 'Open Detail View') {
+          // Toggle row expansion to show detail view inline
+          toggleMainRowExpansion(item, index, rowElement);
+          return;
+        }
+
+        // Normal navigation behavior - show detail view
+        showDetails(item, index);
+      }
+
+      // Toggle expansion of a main table row to show detail view inline
+      function toggleMainRowExpansion(item, itemIndex, rowElement) {
+        const rowId = `main-row-${itemIndex}`;
+
+        // Check if this row is already expanded
+        if (expandedRows.has(rowId)) {
+          // Collapse: remove the expanded row
+          expandedRows.delete(rowId);
+          const expandedRow = rowElement.nextElementSibling;
+          if (expandedRow && expandedRow.classList.contains('expanded-content-row')) {
+            expandedRow.remove();
+          }
+          rowElement.classList.remove('row-expanded');
+          return;
+        }
+
+        // Expand: add the expanded row with detail view
+        expandedRows.add(rowId);
+        rowElement.classList.add('row-expanded');
+
+        // Render the detail view content
+        const contentHtml = renderExpandedDetailView(item, itemIndex);
+
+        // Create and insert the expanded row
+        const expandedRow = document.createElement('tr');
+        expandedRow.className = 'expanded-content-row';
+        const numColumns = rowElement.children.length;
+        expandedRow.innerHTML = `<td colspan="${numColumns}" style="padding: 0; background: #f9fafb; border-top: 2px solid #e5e7eb;">${contentHtml}</td>`;
+
+        // Insert after the current row
+        rowElement.parentNode.insertBefore(expandedRow, rowElement.nextSibling);
+
+        // Load the image if present
+        if (imageColumn && item[imageColumn.columnName]) {
+          const imgWrapper = document.getElementById("inlineDetailImgWrapper_" + itemIndex);
+          if (imgWrapper) {
+            const rawUrl = item[imageColumn.columnName];
+            const fileId = extractDriveFileId(rawUrl);
+
+            if (fileId) {
+              loadDetailImage(fileId, imgWrapper);
+            } else if (rawUrl) {
+              loadDetailImageDirect(rawUrl, imgWrapper);
+            }
+          }
+        }
+      }
+
+      // Render detail view content for expanded row
+      function renderExpandedDetailView(item, index) {
+        // Match the exact same structure as showDetails with image
+        let html = '<div style="padding: 24px; position: relative;">';
+
+        // Use detail-layout grid structure (image on left, content on right)
+        html += '<div class="detail-layout">';
+
+        // Image container
+        html += '<div id="detailImgContainer">';
+        if (imageColumn && item[imageColumn.columnName]) {
+          html += '<div class="detail-img-wrapper" id="inlineDetailImgWrapper_' + index + '"></div>';
+        } else {
+          html += '<div class="detail-img-wrapper"></div>';
+        }
+        html += '</div>';
+
+        // Content container
+        html += '<div>';
+
+        // Title row with name
+        html += '<div class="detail-title-row">' +
+          '<div class="detail-name">' +
+          (nameColumn ? (item[nameColumn.columnName] || "") : "") +
+          '</div>' +
+          '</div>';
+
+        // Add SubID1 and SubID2 under the Primary Identifier
+        const subBits = [];
+        if (categoryColumn && item[categoryColumn.columnName]) subBits.push(item[categoryColumn.columnName]);
+        if (placeColumn && item[placeColumn.columnName]) subBits.push(item[placeColumn.columnName]);
+
+        if (subBits.length > 0) {
+          html += '<div class="detail-subtitle">' +
+            subBits.join(" • ") +
+            '</div>';
+        }
+
+        // Top Corner fields - collect all values with same styling as SubId
+        const topCornerBits = [];
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "topcorner") continue;
+
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            const displayVal = config.type === "date" ? formatDate(val) : val;
+            topCornerBits.push(displayVal);
+          }
+        }
+
+        if (topCornerBits.length > 0) {
+          html += '<div class="detail-topcorner" style="position: absolute; top: 24px; right: 24px;">' +
+            topCornerBits.join(" • ") +
+            '</div>';
+        }
+
+        // Long text Up fields (before two-column grid)
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "longtextup") continue;
+
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            // Check if it's a URL type or external link
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              html +=
+                '<div class="detail-field" style="margin-top: 16px;">' +
+                '<a href="' +
+                val +
+                '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
+                "🔗 " + linkLabel +
+                "</a>" +
+                "</div>";
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              html +=
+                '<div class="detail-field" style="margin-top: 16px;"><span class="detail-label">' +
+                (config.displayName || config.columnName) +
+                ":</span> " +
+                displayVal +
+                "</div>";
+            }
+          }
+        }
+
+        // Create two-column layout for detail fields using inline styles (matches normal detail view)
+        html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px; background: #e2e8f0; padding: 20px; border-radius: 12px; border: 1px solid #cbd5e1;">';
+
+        // Left column
+        html += '<div>';
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "detailleft") continue;
+
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            // Check if it's a URL type or external link
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              html +=
+                '<div class="detail-field">' +
+                '<a href="' +
+                val +
+                '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
+                "🔗 " + linkLabel +
+                "</a>" +
+                "</div>";
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              html +=
+                '<div class="detail-field"><span class="detail-label">' +
+                (config.displayName || config.columnName) +
+                ":</span> " +
+                displayVal +
+                "</div>";
+            }
+          }
+        }
+        html += '</div>';
+
+        // Right column
+        html += '<div>';
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "detailright") continue;
+
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            // Check if it's a URL type or external link
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              html +=
+                '<div class="detail-field">' +
+                '<a href="' +
+                val +
+                '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
+                "🔗 " + linkLabel +
+                "</a>" +
+                "</div>";
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              html +=
+                '<div class="detail-field"><span class="detail-label">' +
+                (config.displayName || config.columnName) +
+                ":</span> " +
+                displayVal +
+                "</div>";
+            }
+          }
+        }
+        html += '</div>';
+
+        html += '</div>'; // Close grid
+
+        // Long text Down fields (after two-column grid)
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "longtextdown") continue;
+
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            // Check if it's a URL type or external link
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              html +=
+                '<div class="detail-field" style="margin-top: 16px;">' +
+                '<a href="' +
+                val +
+                '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
+                "🔗 " + linkLabel +
+                "</a>" +
+                "</div>";
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              html +=
+                '<div class="detail-field" style="margin-top: 16px;"><span class="detail-label">' +
+                (config.displayName || config.columnName) +
+                ":</span> " +
+                displayVal +
+                "</div>";
+            }
+          }
+        }
+
+        // Bottom fields
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "bottom") continue;
+
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            // Check if it's a URL type or external link
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              html +=
+                '<div class="detail-field" style="margin-top: 16px;">' +
+                '<a href="' +
+                val +
+                '" target="_blank" class="link-pill" rel="noopener noreferrer">' +
+                "🔗 " + linkLabel +
+                "</a>" +
+                "</div>";
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              html +=
+                '<div class="detail-field" style="margin-top: 16px;"><span class="detail-label">' +
+                (config.displayName || config.columnName) +
+                ":</span> " +
+                displayVal +
+                "</div>";
+            }
+          }
+        }
+
+        html += '</div>'; // Close content container div
+        html += '</div>'; // Close detail-layout
+        html += '</div>'; // Close outer div
+        return html;
+      }
+
+      // Create dropdown menu for table column
+      function createTableColumnMenu(col, allColumns) {
+        const menu = document.createElement("div");
+        menu.className = "table-column-menu";
+
+        // Top section with Close and Clear buttons side by side
+        const topSection = document.createElement("div");
+        topSection.className = "table-menu-section";
+        topSection.style.borderBottom = "none";
+        topSection.style.padding = "4px";
+
+        const buttonRow = document.createElement("div");
+        buttonRow.className = "table-menu-button-row";
+
+        const closeBtn = document.createElement("button");
+        closeBtn.className = "table-menu-button";
+        closeBtn.textContent = "✕ Close";
+        closeBtn.style.color = "#6b7280";
+        closeBtn.style.fontWeight = "600";
+        closeBtn.onclick = (e) => {
+          e.stopPropagation();
+          closeAllTableMenus();
+          // Apply filters when closing
+          rerenderTable();
+        };
+        buttonRow.appendChild(closeBtn);
+
+        // Add Clear button if there are active filters or sorting on this column
+        if (tableSortColumn === col.columnName || tableColumnFilters[col.columnName]) {
+          const clearBtn = document.createElement("button");
+          clearBtn.className = "table-menu-button";
+          clearBtn.textContent = "Clear";
+          clearBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (tableSortColumn === col.columnName) {
+              tableSortColumn = null;
+              tableSortOrder = "asc";
+            }
+            delete tableColumnFilters[col.columnName];
+            closeAllTableMenus();
+            rerenderTable();
+          };
+          buttonRow.appendChild(clearBtn);
+        }
+
+        topSection.appendChild(buttonRow);
+        menu.appendChild(topSection);
+
+        // Sort section
+        const sortSection = document.createElement("div");
+        sortSection.className = "table-menu-section";
+
+        const sortTitle = document.createElement("div");
+        sortTitle.className = "table-menu-title";
+        sortTitle.textContent = "SORT";
+        sortSection.appendChild(sortTitle);
+
+        const sortItemsRow = document.createElement("div");
+        sortItemsRow.className = "table-menu-items-row";
+
+        const sortAsc = document.createElement("div");
+        sortAsc.className = "table-menu-item";
+        sortAsc.textContent = "A → Z";
+        sortAsc.onclick = (e) => {
+          e.stopPropagation();
+          tableSortColumn = col.columnName;
+          tableSortOrder = "asc";
+          closeAllTableMenus();
+          rerenderTable();
+        };
+        sortItemsRow.appendChild(sortAsc);
+
+        const sortDesc = document.createElement("div");
+        sortDesc.className = "table-menu-item";
+        sortDesc.textContent = "Z → A";
+        sortDesc.onclick = (e) => {
+          e.stopPropagation();
+          tableSortColumn = col.columnName;
+          tableSortOrder = "desc";
+          closeAllTableMenus();
+          rerenderTable();
+        };
+        sortItemsRow.appendChild(sortDesc);
+
+        sortSection.appendChild(sortItemsRow);
+        menu.appendChild(sortSection);
+
+        // Filter section
+        const filterSection = document.createElement("div");
+        filterSection.className = "table-menu-section";
+
+        const filterTitle = document.createElement("div");
+        filterTitle.className = "table-menu-title";
+        filterTitle.textContent = "Filter";
+        filterSection.appendChild(filterTitle);
+
+        // Get unique values for this column
+        const uniqueValues = getUniqueColumnValues(currentTableItems, col.columnName);
+        const selectedFilters = tableColumnFilters[col.columnName] || [];
+
+        // "Select All" option
+        const selectAllLabel = document.createElement("label");
+        selectAllLabel.className = "table-filter-checkbox";
+        const selectAllCheckbox = document.createElement("input");
+        selectAllCheckbox.type = "checkbox";
+        selectAllCheckbox.checked = selectedFilters.length === 0;
+        selectAllCheckbox.onchange = (e) => {
+          e.stopPropagation();
+
+          // Read the checkbox state (browser has already toggled it)
+          const isChecked = selectAllCheckbox.checked;
+
+          console.log('Select All changed, new state:', isChecked);
+
+          if (isChecked) {
+            // Select all = remove filter (show everything)
+            delete tableColumnFilters[col.columnName];
+            // Check all individual checkboxes
+            uniqueValues.forEach(value => {
+              const checkbox = menu.querySelector(`input[data-filter-value="${CSS.escape(value)}"]`);
+              if (checkbox) checkbox.checked = true;
+            });
+          } else {
+            // Deselect all = filter to nothing (show nothing)
+            tableColumnFilters[col.columnName] = [];
+            // Uncheck all individual checkboxes
+            uniqueValues.forEach(value => {
+              const checkbox = menu.querySelector(`input[data-filter-value="${CSS.escape(value)}"]`);
+              if (checkbox) checkbox.checked = false;
+            });
+          }
+          // Don't rerender - let user continue selecting
+        };
+        selectAllLabel.appendChild(selectAllCheckbox);
+        const selectAllText = document.createElement("span");
+        selectAllText.textContent = "(Select All)";
+        selectAllLabel.appendChild(selectAllText);
+        filterSection.appendChild(selectAllLabel);
+
+        // Individual value checkboxes
+        uniqueValues.forEach(value => {
+          const label = document.createElement("label");
+          label.className = "table-filter-checkbox";
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.dataset.filterValue = value; // Add data attribute for Select All to find it
+          // If no filter exists, all are checked. If filter exists, check only if value is in filter
+          if (selectedFilters.length === 0) {
+            // No filter = all checked
+            checkbox.checked = true;
+          } else {
+            // Filter exists = check only if this value is in the filter
+            checkbox.checked = selectedFilters.includes(value);
+          }
+
+          checkbox.onchange = (e) => {
+            e.stopPropagation();
+
+            // Read the checkbox state (browser has already toggled it)
+            const isChecked = checkbox.checked;
+
+            console.log('Checkbox changed for', value, 'new state:', isChecked);
+
+            // Update filter state without rerendering
+            toggleTableColumnFilterWithoutRerender(col.columnName, value, isChecked);
+
+            // Update "Select All" checkbox state
+            const allChecked = uniqueValues.every(v => {
+              const cb = menu.querySelector(`input[data-filter-value="${CSS.escape(v)}"]`);
+              return cb && cb.checked;
+            });
+            selectAllCheckbox.checked = allChecked;
+          };
+          label.appendChild(checkbox);
+
+          const text = document.createElement("span");
+          text.textContent = value || "(blank)";
+          label.appendChild(text);
+
+          filterSection.appendChild(label);
+        });
+
+        menu.appendChild(filterSection);
+
+        return menu;
+      }
+
+      // Get unique values from items for a column
+      function getUniqueColumnValues(items, columnName) {
+        const values = new Set();
+        items.forEach(item => {
+          const val = getItemValue(item, columnName);
+          values.add(val != null ? String(val) : "");
+        });
+        return Array.from(values).sort();
+      }
+
+      // Toggle table column filter WITHOUT rerendering (for checkbox clicks)
+      function toggleTableColumnFilterWithoutRerender(columnName, value, checked) {
+        console.log('toggleTableColumnFilterWithoutRerender:', columnName, value, checked);
+
+        if (!tableColumnFilters[columnName]) {
+          // No filter exists yet - initialize with all unique values
+          const allValues = getUniqueColumnValues(currentTableItems, columnName);
+          tableColumnFilters[columnName] = [...allValues];
+          console.log('Initialized filter with all values:', tableColumnFilters[columnName]);
+        }
+
+        if (checked) {
+          // Add value to filter (show this value)
+          if (!tableColumnFilters[columnName].includes(value)) {
+            tableColumnFilters[columnName].push(value);
+            console.log('Added value to filter:', value);
+          }
+        } else {
+          // Remove value from filter (hide this value)
+          const index = tableColumnFilters[columnName].indexOf(value);
+          if (index > -1) {
+            tableColumnFilters[columnName].splice(index, 1);
+            console.log('Removed value from filter:', value);
+          }
+        }
+
+        console.log('Filter state:', tableColumnFilters[columnName]);
+        // Don't rerender - menu stays open for multiple selections
+      }
+
+      // Toggle table column filter WITH rerendering (for programmatic use)
+      function toggleTableColumnFilter(columnName, value, checked) {
+        toggleTableColumnFilterWithoutRerender(columnName, value, checked);
+        rerenderTable();
+      }
+
+      // Get value from item (handles both regular items and layer items)
+      function getItemValue(item, columnName) {
+        // Check if this is a layer item
+        if (item._isLayerItem && item._rawLayerItem) {
+          return item._rawLayerItem[columnName];
+        }
+        return item[columnName];
+      }
+
+      // Apply table column filters
+      function applyTableFilters(items, columnsToShow) {
+        let filtered = items.slice();
+
+        for (const columnName in tableColumnFilters) {
+          const selectedValues = tableColumnFilters[columnName];
+          if (selectedValues && selectedValues.length > 0) {
+            filtered = filtered.filter(item => {
+              const value = getItemValue(item, columnName);
+              const itemValue = value != null ? String(value) : "";
+              return selectedValues.includes(itemValue);
+            });
+          }
+        }
+
+        return filtered;
+      }
+
+      // Apply table sorting
+      function applyTableSort(items, columnsToShow) {
+        if (!tableSortColumn) return items;
+
+        const sorted = items.slice();
+        const colConfig = columnsToShow.find(c => c.columnName === tableSortColumn);
+        const colType = colConfig ? colConfig.type : "text";
+
+        sorted.sort((a, b) => {
+          let av = getItemValue(a, tableSortColumn);
+          let bv = getItemValue(b, tableSortColumn);
+
+          // Date sorting: asc = oldest→newest, desc = newest→oldest
+          if (colType === "date") {
+            const ad = av ? new Date(av) : null;
+            const bd = bv ? new Date(bv) : null;
+            if (!ad && !bd) return 0;
+            if (!ad) return 1;
+            if (!bd) return -1;
+            return tableSortOrder === "asc" ? ad - bd : bd - ad;
+          }
+
+          // Number sorting: asc = smallest→biggest, desc = biggest→smallest
+          if (colType === "number") {
+            const an = av != null ? parseFloat(av) : null;
+            const bn = bv != null ? parseFloat(bv) : null;
+            if (isNaN(an) && isNaN(bn)) return 0;
+            if (isNaN(an)) return 1;
+            if (isNaN(bn)) return -1;
+            return tableSortOrder === "asc" ? an - bn : bn - an;
+          }
+
+          // String sorting (text, url, image, etc.)
+          av = av == null ? "" : String(av).toLowerCase();
+          bv = bv == null ? "" : String(bv).toLowerCase();
+          if (av < bv) return tableSortOrder === "asc" ? -1 : 1;
+          if (av > bv) return tableSortOrder === "asc" ? 1 : -1;
+          return 0;
+        });
+
+        return sorted;
+      }
+
+      // Re-render current table view
+      function rerenderTable() {
+        const grid = document.getElementById("gridView");
+        grid.innerHTML = "";
+
+        if (currentView === "layer") {
+          // Re-render layer view
+          const layerName = layerConfig[currentLayerIndex].layerName;
+          const parentFilter = navigationStack.length > 0
+            ? navigationStack[navigationStack.length - 1].itemName
+            : null;
+          const layerItems = getFilteredLayerItems(layerName, parentFilter);
+          const standardizedItems = layerItems.map(item => ({
+            _isLayerItem: true,
+            _layerIndex: currentLayerIndex,
+            _rawLayerItem: item,
+            "Picture Link": item["Picture Link"],
+            "Names": item["Names"],
+            "Description": item["Description"]
+          }));
+          renderLayerTableView(standardizedItems, grid, currentLayerIndex);
+        } else {
+          // Re-render main table view
+          renderTableView(currentTableItems, grid);
+        }
+        // Don't reopen menu - user closed it intentionally
+      }
+
+      // Close all table column menus
+      function closeAllTableMenus() {
+        document.querySelectorAll('.table-column-menu').forEach(menu => {
+          menu.classList.remove('active');
+        });
+        activeTableMenuColumn = null;
+        // Restore body scroll when menus are closed
+        unlockScroll();
+      }
+
+      // Reopen the active menu after table rerender
+      function reopenActiveTableMenu() {
+        if (activeTableMenuColumn) {
+          console.log('Reopening menu for column:', activeTableMenuColumn);
+          // Find the th element for this column using data attribute
+          const th = document.querySelector(`.table-header-cell[data-column-name="${activeTableMenuColumn}"]`);
+          if (th) {
+            const menu = th.querySelector('.table-column-menu');
+            if (menu) {
+              console.log('Menu found, setting active and positioning');
+              // Position menu using fixed positioning
+              const rect = th.getBoundingClientRect();
+              menu.style.top = (rect.bottom + 2) + 'px';
+              menu.style.left = rect.left + 'px';
+              menu.classList.add('active');
+              // Lock body scroll when dropdown reopens
+              lockScroll();
+            } else {
+              console.log('Menu not found in th');
+            }
+          } else {
+            console.log('Header cell not found for column:', activeTableMenuColumn);
+          }
+        }
+      }
+
+      // --- SCROLL LOCK FUNCTIONS (for dropdown menus) ---
+
+      let scrollPosition = 0;
+      let isScrollLocked = false;
+
+      function lockScroll() {
+        if (isScrollLocked) return;
+
+        // Save current scroll position
+        scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+
+        // Lock scroll using position fixed
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollPosition}px`;
+        document.body.style.width = '100%';
+        document.body.style.overflow = 'hidden';
+
+        isScrollLocked = true;
+      }
+
+      function unlockScroll() {
+        if (!isScrollLocked) return;
+
+        // Restore body styles
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.overflow = '';
+
+        // Restore scroll position
+        window.scrollTo(0, scrollPosition);
+
+        isScrollLocked = false;
+      }
+
       // --- LAYER NAVIGATION FUNCTIONS ---
 
       // Get filtered layer items based on parent layer selection
@@ -3862,12 +5789,18 @@
         });
       }
 
-      // Render a layer view with cards
+      // Render a layer view respecting displayViewType
       function renderLayerView(layerIndex, parentFilterName) {
         const grid = document.getElementById("gridView");
         const det = document.getElementById("detailView");
         det.style.display = "none";
         grid.innerHTML = "";
+
+        // Clear table filters when navigating to new view
+        tableColumnFilters = {};
+        tableSortColumn = null;
+        tableSortOrder = "asc";
+        activeTableMenuColumn = null;
 
         // Store navigation state
         currentView = "layer";
@@ -3887,11 +5820,59 @@
           return;
         }
 
-        // Render each layer item as a card
-        for (let i = 0; i < layerItems.length; i++) {
-          const item = layerItems[i];
+        // Convert layer items to standard format for rendering
+        const standardizedItems = layerItems.map(item => ({
+          _isLayerItem: true,
+          _layerIndex: layerIndex,
+          _rawLayerItem: item,
+          "Picture Link": item["Picture Link"],
+          "Names": item["Names"],
+          "Description": item["Description"]
+        }));
+
+        // Route to appropriate view renderer based on layer-specific view type
+        const viewType = getViewTypeForLayer(layerIndex);
+        if (viewType === 'list') {
+          renderLayerListView(standardizedItems, grid, layerIndex);
+        } else if (viewType === 'table') {
+          renderLayerTableView(standardizedItems, grid, layerIndex);
+        } else {
+          // Default to cards view
+          renderLayerCardsView(standardizedItems, grid, layerIndex);
+        }
+
+        // Update filter/sort button visibility based on view type
+        updateFilterSortVisibility();
+      }
+
+      // Render layer items as cards
+      function renderLayerCardsView(items, grid, layerIndex) {
+        grid.classList.add('grid');
+        grid.classList.remove('list-view', 'table-view');
+
+        // Get style for this layer
+        const style = getStyleForLayer(layerIndex);
+
+        // Add style class to grid for Rectangle cards
+        if (style === 'Rectangle') {
+          grid.classList.add('grid-rectangle');
+        } else {
+          grid.classList.remove('grid-rectangle');
+        }
+
+        for (let i = 0; i < items.length; i++) {
+          const standardItem = items[i];
+          const item = standardItem._rawLayerItem;
           const card = document.createElement("div");
           card.className = "card";
+
+          // Apply style class based on card style
+          if (style === 'Rectangle') {
+            card.classList.add('style-rectangle');
+          } else if (style === 'Circle') {
+            card.classList.add('style-circle');
+          }
+          // Squared is default, no additional class needed
 
           // Create image wrapper for lazy loading
           const imgWrapper = document.createElement("div");
@@ -3903,7 +5884,6 @@
             const fileId = extractDriveFileId(rawUrl);
 
             if (fileId) {
-              // LAZY LOADING: Store fileId and observe
               imgWrapper.dataset.fileId = fileId;
               if (imageObserver) {
                 imageObserver.observe(imgWrapper);
@@ -3911,7 +5891,6 @@
                 loadImageViaProxy(fileId, imgWrapper);
               }
             } else if (rawUrl) {
-              // Direct HTTPS image
               imgWrapper.dataset.rawUrl = rawUrl;
               if (imageObserver) {
                 imageObserver.observe(imgWrapper);
@@ -3935,7 +5914,6 @@
           nameEl.textContent = item["Names"] || "(no name)";
           body.appendChild(nameEl);
 
-          // Show description if available
           if (item["Description"]) {
             const descEl = document.createElement("div");
             descEl.className = "card-sub";
@@ -3945,7 +5923,6 @@
 
           card.appendChild(body);
 
-          // Add click handler
           card.onclick = (function (layerIdx, itm) {
             return function () {
               onLayerItemClick(layerIdx, itm);
@@ -3956,10 +5933,257 @@
         }
       }
 
-      // Handle layer item click - navigate to next layer or show filtered main items
-      function onLayerItemClick(layerIndex, item) {
-        const itemName = item["Names"];
+      // Render layer items as list
+      function renderLayerListView(items, grid, layerIndex) {
+        grid.classList.remove('grid', 'table-view');
+        grid.classList.add('list-view');
 
+        // Get style for this layer
+        const style = getStyleForLayer(layerIndex);
+
+        // Apply list style class
+        if (style === 'Double') {
+          grid.classList.add('style-double');
+        } else if (style === 'Triple') {
+          grid.classList.add('style-triple');
+        } else {
+          grid.classList.add('style-simple');
+        }
+
+        for (let i = 0; i < items.length; i++) {
+          const standardItem = items[i];
+          const item = standardItem._rawLayerItem;
+          const listItem = document.createElement("div");
+          listItem.className = "list-item";
+
+          // Image on the left
+          const imgWrapper = document.createElement("div");
+          imgWrapper.className = "list-item-img-wrapper";
+
+          if (item["Picture Link"]) {
+            const rawUrl = item["Picture Link"];
+            const fileId = extractDriveFileId(rawUrl);
+
+            if (fileId) {
+              imgWrapper.dataset.fileId = fileId;
+              if (imageObserver) {
+                imageObserver.observe(imgWrapper);
+              } else {
+                loadImageViaProxy(fileId, imgWrapper);
+              }
+            } else if (rawUrl) {
+              imgWrapper.dataset.rawUrl = rawUrl;
+              if (imageObserver) {
+                imageObserver.observe(imgWrapper);
+              } else {
+                loadDirectImage(rawUrl, imgWrapper);
+              }
+            } else {
+              imgWrapper.innerHTML = '<div style="width:100%;height:100%;background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px);"></div>';
+            }
+          } else {
+            imgWrapper.innerHTML = '<div style="width:100%;height:100%;background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px);"></div>';
+          }
+
+          listItem.appendChild(imgWrapper);
+
+          const detailsWrapper = document.createElement("div");
+          detailsWrapper.className = "list-item-details";
+
+          const nameEl = document.createElement("div");
+          nameEl.className = "list-item-name";
+          nameEl.textContent = item["Names"] || "(no name)";
+          detailsWrapper.appendChild(nameEl);
+
+          if (item["Description"]) {
+            const descEl = document.createElement("div");
+            descEl.className = "list-item-sub";
+            descEl.textContent = item["Description"];
+            detailsWrapper.appendChild(descEl);
+          }
+
+          listItem.appendChild(detailsWrapper);
+
+          listItem.onclick = (function (layerIdx, itm) {
+            return function () {
+              onLayerItemClick(layerIdx, itm);
+            };
+          })(layerIndex, item);
+
+          grid.appendChild(listItem);
+        }
+      }
+
+      // Render layer items as table
+      function renderLayerTableView(items, grid, layerIndex) {
+        grid.classList.remove('grid', 'list-view');
+        grid.classList.add('table-view');
+
+        // Get style for this layer
+        const tableStyle = getStyleForLayer(layerIndex);
+
+        // Store items for table filtering
+        currentTableItems = items.slice();
+
+        // Layer columns to show - include Picture Link if available
+        const layerColumns = [
+          { columnName: "Picture Link", displayName: "Image", type: "image" },
+          { columnName: "Names", displayName: "Names", type: "text" },
+          { columnName: "Description", displayName: "Description", type: "text" }
+        ];
+
+        // Apply table column filters
+        let filteredItems = applyTableFilters(items, layerColumns);
+
+        // Apply table sorting
+        filteredItems = applyTableSort(filteredItems, layerColumns);
+
+        const table = document.createElement("table");
+        table.className = "data-table";
+
+        // Create header row with interactive controls
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+
+        for (let i = 0; i < layerColumns.length; i++) {
+          const col = layerColumns[i];
+          const th = document.createElement("th");
+          th.className = "table-header-cell";
+          th.dataset.columnName = col.columnName; // Add data attribute for reliable identification
+
+          // Add sort indicator if this column is sorted
+          if (tableSortColumn === col.columnName) {
+            th.classList.add(tableSortOrder === "asc" ? "sorted-asc" : "sorted-desc");
+          }
+
+          // Create header content
+          const headerText = document.createElement("span");
+          headerText.textContent = col.displayName;
+          th.appendChild(headerText);
+
+          // Add filter indicator if this column has active filters
+          const activeFilters = tableColumnFilters[col.columnName];
+          if (activeFilters && activeFilters.length > 0) {
+            const filterBadge = document.createElement("span");
+            filterBadge.className = "filter-indicator";
+            filterBadge.textContent = "🔍";
+            filterBadge.title = `${activeFilters.length} filter(s) active`;
+            th.appendChild(filterBadge);
+          }
+
+          // Create dropdown menu
+          const menu = createTableColumnMenu(col, layerColumns);
+          th.appendChild(menu);
+
+          // Toggle menu on click
+          th.onclick = (function(menuEl, columnName, headerCell) {
+            return function(e) {
+              e.stopPropagation();
+              // Close all other menus
+              document.querySelectorAll('.table-column-menu').forEach(m => {
+                if (m !== menuEl) m.classList.remove('active');
+              });
+              const isOpening = !menuEl.classList.contains('active');
+              menuEl.classList.toggle('active');
+
+              // Position menu using fixed positioning (escapes all parent clipping)
+              if (isOpening) {
+                const rect = headerCell.getBoundingClientRect();
+                menuEl.style.top = (rect.bottom + 2) + 'px';
+                menuEl.style.left = rect.left + 'px';
+                activeTableMenuColumn = columnName;
+                // Lock body scroll when dropdown opens
+                lockScroll();
+              } else {
+                activeTableMenuColumn = null;
+                // Restore body scroll when dropdown closes
+                unlockScroll();
+              }
+            };
+          })(menu, col.columnName, th);
+
+          headerRow.appendChild(th);
+        }
+
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+
+        for (let i = 0; i < filteredItems.length; i++) {
+          const standardItem = filteredItems[i];
+          const item = standardItem._rawLayerItem;
+          const row = document.createElement("tr");
+          row.className = "table-row";
+
+          // Render each column
+          for (let j = 0; j < layerColumns.length; j++) {
+            const col = layerColumns[j];
+            const td = document.createElement("td");
+            const value = item[col.columnName] || "";
+
+            // Handle different column types
+            if (col.type === "image" && value) {
+              // Image type: show small image
+              const imgWrapper = document.createElement("div");
+              // 1.5x bigger (90px) for Mobile/Tablet Portrait, 60px otherwise
+              const imgSize = (document.body.classList.contains('mobile-device') || document.body.classList.contains('tablet-device')) &&
+                              document.body.classList.contains('portrait') ? '90px' : '60px';
+              imgWrapper.style.cssText = `width: ${imgSize}; height: ${imgSize}; position: relative; background: #e5e7eb; border-radius: 6px; overflow: hidden;`;
+
+              const fileId = extractDriveFileId(value);
+              if (fileId) {
+                imgWrapper.dataset.fileId = fileId;
+                if (imageObserver) {
+                  imageObserver.observe(imgWrapper);
+                } else {
+                  loadImageViaProxy(fileId, imgWrapper);
+                }
+              } else if (value) {
+                const img = document.createElement("img");
+                img.className = "table-cell-img";
+                img.src = value;
+                img.loading = "lazy";
+                imgWrapper.appendChild(img);
+              }
+
+              td.appendChild(imgWrapper);
+              td.style.padding = "6px 16px"; // Reduce padding for image cells
+            } else {
+              // Text and other types: display as is
+              td.textContent = value;
+            }
+
+            row.appendChild(td);
+          }
+
+          row.onclick = (function (layerIdx, itm, rowEl, idx) {
+            return function () {
+              onLayerItemClick(layerIdx, itm, rowEl, idx);
+            };
+          })(layerIndex, item, row, i);
+
+          tbody.appendChild(row);
+        }
+
+        table.appendChild(tbody);
+        grid.appendChild(table);
+      }
+
+      // Handle layer item click - navigate to next layer or show filtered main items
+      function onLayerItemClick(layerIndex, item, rowElement, itemIndex) {
+        const itemName = item["Names"];
+        const style = getStyleForLayer(layerIndex);
+        const viewType = getViewTypeForLayer(layerIndex);
+
+        // Check if this is a table view with "Open Detail View" style
+        if (viewType === 'table' && style === 'Open Detail View') {
+          // Toggle row expansion
+          toggleLayerRowExpansion(layerIndex, item, rowElement, itemIndex);
+          return;
+        }
+
+        // Normal navigation behavior
         // Add to navigation stack
         navigationStack.push({
           type: "layer",
@@ -3997,6 +6221,189 @@
         }
       }
 
+      // Toggle expansion of a layer table row to show next layer inline
+      function toggleLayerRowExpansion(layerIndex, item, rowElement, itemIndex) {
+        const itemName = item["Names"];
+        const rowId = `layer-${layerIndex}-row-${itemIndex}`;
+
+        // Check if this row is already expanded
+        if (expandedRows.has(rowId)) {
+          // Collapse: remove the expanded row
+          expandedRows.delete(rowId);
+          const expandedRow = rowElement.nextElementSibling;
+          if (expandedRow && expandedRow.classList.contains('expanded-content-row')) {
+            expandedRow.remove();
+          }
+          rowElement.classList.remove('row-expanded');
+          return;
+        }
+
+        // Expand: add the expanded row
+        expandedRows.add(rowId);
+        rowElement.classList.add('row-expanded');
+
+        // Determine what to show in the expanded row
+        let contentHtml = '';
+
+        // Check if there's a next layer
+        if (layerIndex + 1 < layerConfig.length) {
+          // Show next layer items filtered by this item
+          const nextLayerName = layerConfig[layerIndex + 1].layerName;
+          const filteredItems = getFilteredLayerItems(nextLayerName, itemName);
+
+          if (filteredItems.length === 0) {
+            contentHtml = '<div style="padding: 20px; text-align: center; color: #6b7280;">No items found in next layer</div>';
+          } else {
+            // Render the filtered items as cards/list based on next layer's view type
+            const nextViewType = getViewTypeForLayer(layerIndex + 1);
+            const nextStyle = getStyleForLayer(layerIndex + 1);
+            contentHtml = renderExpandedLayerContent(filteredItems, layerIndex + 1, nextViewType, nextStyle, itemName);
+          }
+        } else {
+          // This is the last layer - show filtered main items
+          const mainColumnName = layerConfig[layerIndex].mainColumnName;
+          const filteredItems = allItems.filter(mainItem => {
+            const colValue = mainItem[mainColumnName];
+            return colValue && String(colValue).trim() === itemName;
+          });
+
+          if (filteredItems.length === 0) {
+            contentHtml = '<div style="padding: 20px; text-align: center; color: #6b7280;">No main items found</div>';
+          } else {
+            // Render the filtered main items as cards/list based on main view type
+            contentHtml = renderExpandedMainContent(filteredItems, mainViewType, mainStyle);
+          }
+        }
+
+        // Create and insert the expanded row
+        const expandedRow = document.createElement('tr');
+        expandedRow.className = 'expanded-content-row';
+        const numColumns = rowElement.children.length;
+        expandedRow.innerHTML = `<td colspan="${numColumns}" style="padding: 0; background: #f9fafb; border-top: 2px solid #e5e7eb;">${contentHtml}</td>`;
+
+        // Insert after the current row
+        rowElement.parentNode.insertBefore(expandedRow, rowElement.nextSibling);
+      }
+
+      // Render expanded layer content as a grid of cards/list
+      function renderExpandedLayerContent(items, layerIndex, viewType, style, parentFilterName) {
+        // Convert layer items to standardized format
+        const standardizedItems = items.map(layerItem => {
+          return {
+            [nameColumn]: layerItem["Names"] || "",
+            [descriptionColumn]: layerItem["Description"] || "",
+            [imageColumn]: layerItem["Picture Link"] || "",
+            _rawLayerItem: layerItem
+          };
+        });
+
+        // Create a container div
+        let html = '<div style="padding: 20px; max-height: 600px; overflow-y: auto;">';
+
+        if (viewType === 'cards') {
+          html += '<div class="grid" style="gap: 16px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">';
+
+          for (let i = 0; i < standardizedItems.length; i++) {
+            const item = standardizedItems[i];
+            const cardHtml = createCardHtml(item, style, layerIndex, true);
+            html += cardHtml;
+          }
+
+          html += '</div>';
+        } else {
+          // List view
+          html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
+
+          for (let i = 0; i < standardizedItems.length; i++) {
+            const item = standardizedItems[i];
+            const name = item[nameColumn] || "";
+            const description = item[descriptionColumn] || "";
+            const image = item[imageColumn] || "";
+
+            html += `
+              <div style="display: flex; gap: 12px; padding: 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb; cursor: pointer;"
+                   onclick="onLayerItemClick(${layerIndex}, ${JSON.stringify(item._rawLayerItem).replace(/"/g, '&quot;')})">
+                ${image ? `<div style="width: 60px; height: 60px; flex-shrink: 0;"><img src="${image}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;"></div>` : ''}
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; color: #1f2937;">${name}</div>
+                  ${description ? `<div style="color: #6b7280; font-size: 14px; margin-top: 4px;">${description}</div>` : ''}
+                </div>
+              </div>
+            `;
+          }
+
+          html += '</div>';
+        }
+
+        html += '</div>';
+        return html;
+      }
+
+      // Render expanded main items content
+      function renderExpandedMainContent(items, viewType, style) {
+        // Create a container div
+        let html = '<div style="padding: 20px; max-height: 600px; overflow-y: auto;">';
+
+        if (viewType === 'cards') {
+          html += '<div class="grid" style="gap: 16px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));">';
+
+          for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const cardHtml = createCardHtml(item, style, -1, true);
+            html += cardHtml;
+          }
+
+          html += '</div>';
+        } else {
+          // List view
+          html += '<div style="display: flex; flex-direction: column; gap: 12px;">';
+
+          for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const name = item[nameColumn] || "";
+            const description = item[descriptionColumn] || "";
+            const image = item[imageColumn] || "";
+
+            html += `
+              <div style="display: flex; gap: 12px; padding: 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb; cursor: pointer;"
+                   onclick="showDetails(${JSON.stringify(item).replace(/"/g, '&quot;')}, ${i})">
+                ${image ? `<div style="width: 60px; height: 60px; flex-shrink: 0;"><img src="${image}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;"></div>` : ''}
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; color: #1f2937;">${name}</div>
+                  ${description ? `<div style="color: #6b7280; font-size: 14px; margin-top: 4px;">${description}</div>` : ''}
+                </div>
+              </div>
+            `;
+          }
+
+          html += '</div>';
+        }
+
+        html += '</div>';
+        return html;
+      }
+
+      // Helper function to create card HTML for expanded rows
+      function createCardHtml(item, style, layerIndex, isInExpandedRow) {
+        const name = item[nameColumn] || "";
+        const description = item[descriptionColumn] || "";
+        const image = item[imageColumn] || "";
+
+        // Basic card structure
+        let cardClass = 'card';
+        if (style === 'Circle') cardClass += ' card-circle';
+
+        const cardHtml = `
+          <div class="${cardClass}" style="cursor: pointer; background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; transition: all 0.2s;">
+            ${image ? `<div style="width: 100%; aspect-ratio: 1; margin-bottom: 12px;"><img src="${image}" style="width: 100%; height: 100%; object-fit: cover; ${style === 'Circle' ? 'border-radius: 50%;' : 'border-radius: 8px;'}"></div>` : ''}
+            <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">${name}</div>
+            ${description ? `<div style="color: #6b7280; font-size: 14px;">${description}</div>` : ''}
+          </div>
+        `;
+
+        return cardHtml;
+      }
+
       // Show main items filtered by the selected layer item
       function showMainItemsFilteredByLayer(layerIndex, itemName) {
         // Get the column name to filter by from layerConfig
@@ -4011,6 +6418,12 @@
         // Store for detail navigation
         currentDisplayedItems = filteredItems;
         currentDetailIndex = -1;
+
+        // Clear table filters when navigating to new view
+        tableColumnFilters = {};
+        tableSortColumn = null;
+        tableSortOrder = "asc";
+        activeTableMenuColumn = null;
 
         // Render the filtered items
         currentView = "list";
@@ -4243,7 +6656,7 @@
         }
 
         // Create two-column layout for detail fields
-        html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">';
+        html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px; background: #e2e8f0; padding: 20px; border-radius: 12px; border: 1px solid #cbd5e1;">';
 
         // Left column
         html += '<div>';
@@ -5220,6 +7633,9 @@
               }
             }
 
+            // Initialize display view type
+            initializeDisplayViewType();
+
             // Load column configuration
             loadColumnConfig();
             computeUniqueValues();
@@ -5271,6 +7687,9 @@
                 document.getElementById('loginAppName').textContent = settings.appName;
               }
             }
+
+            // Initialize display view type
+            initializeDisplayViewType();
 
             // Load column configuration
             loadColumnConfig();
@@ -5343,6 +7762,9 @@
                 document.getElementById('loginAppName').textContent = settings.appName;
               }
             }
+
+            // Initialize display view type
+            initializeDisplayViewType();
 
             // Load column configuration
             loadColumnConfig();
@@ -5417,6 +7839,23 @@
 
         // Initialize swipe detection for mobile detail view navigation
         initializeSwipeDetection();
+
+        // Global click handler to close table menus when clicking outside
+        document.addEventListener('click', function(e) {
+          // Check if click is inside a table menu or on a table header
+          const clickedInsideMenu = e.target.closest('.table-column-menu');
+          const clickedOnHeader = e.target.closest('.table-header-cell');
+
+          // Only close menus if click was outside both menu and header
+          if (!clickedInsideMenu && !clickedOnHeader) {
+            const wasMenuOpen = activeTableMenuColumn !== null;
+            closeAllTableMenus();
+            // If a menu was open and we're in table view, apply filters
+            if (wasMenuOpen && (document.querySelector('.table-view') || document.querySelector('.data-table'))) {
+              rerenderTable();
+            }
+          }
+        });
 
         // Filter dropdown
         document.getElementById("filterBtn").onclick = function(e) {
@@ -5535,4 +7974,4 @@
       };
     </script>
   </body>
-</html>
+        </html>
