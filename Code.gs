@@ -131,10 +131,28 @@ function getColumnConfig() {
     var headers = data[0];
     var configs = [];
 
+    // Detect if "Show on Table" column exists by checking header
+    var hasShowOnTableColumn = false;
+    if (headers.length > 5) {
+      var headerF = String(headers[5] || "").trim();
+      hasShowOnTableColumn = (headerF === "Show on Table" || headerF === "Show on table" || headerF === "show on table");
+    }
+
     for (var i = 1; i < data.length; i++) {
       var row = data[i];
-      var rawItemPlace = String(row[5] || "").trim();
-      var rawSpecialRole = String(row[6] || "").trim();
+      var rawItemPlace, rawSpecialRole, showOnTable;
+
+      if (hasShowOnTableColumn) {
+        // New structure: F=Show on Table, G=Item Place, H=Special Role
+        showOnTable = row[5] === true || row[5] === "TRUE";
+        rawItemPlace = String(row[6] || "").trim();
+        rawSpecialRole = String(row[7] || "").trim();
+      } else {
+        // Old structure: F=Item Place, G=Special Role
+        showOnTable = false; // Default to false if column doesn't exist
+        rawItemPlace = String(row[5] || "").trim();
+        rawSpecialRole = String(row[6] || "").trim();
+      }
 
       configs.push({
         columnName: row[0] || "",
@@ -142,6 +160,7 @@ function getColumnConfig() {
         type: row[2] || "text",
         showInFilter: row[3] === true || row[3] === "TRUE",
         showInSort: row[4] === true || row[4] === "TRUE",
+        showOnTable: showOnTable,
         itemPlace: normalizeItemPlace_(rawItemPlace),
         itemPlaceDisplay: rawItemPlace,
         specialRole: normalizeSpecialRole_(rawSpecialRole),
@@ -234,7 +253,15 @@ function getSettings() {
       sheetUrl: "",
       deploymentUrl: "",
       dateAdjustment: 0,
-      appMode: "Private with Profiles"
+      appMode: "Private with Profiles",
+      layer1View: "Cards",
+      layer2View: "Cards",
+      layer3View: "Cards",
+      mainView: "Cards",
+      layer1Style: "Squared",
+      layer2Style: "Squared",
+      layer3Style: "Squared",
+      mainStyle: "Squared"
     };
   }
 
@@ -247,6 +274,21 @@ function getSettings() {
   var appMode = sh.getRange("I2").getDisplayValue() || "Private with Profiles";
   var backgroundImageUrl = sh.getRange("I5").getDisplayValue() || "";
 
+  // Get Layers sheet for layer-specific settings
+  var layersSheet = ss.getSheetByName("Layers");
+
+  // Read view types for each layer and main items from Layers sheet
+  var layer1View = layersSheet ? (layersSheet.getRange("D2").getDisplayValue() || "Cards") : "Cards";
+  var layer2View = layersSheet ? (layersSheet.getRange("D3").getDisplayValue() || "Cards") : "Cards";
+  var layer3View = layersSheet ? (layersSheet.getRange("D4").getDisplayValue() || "Cards") : "Cards";
+  var mainView = layersSheet ? (layersSheet.getRange("D5").getDisplayValue() || "Cards") : "Cards";
+
+  // Read styles for each layer and main items from Layers sheet
+  var layer1Style = layersSheet ? (layersSheet.getRange("E2").getDisplayValue() || "Squared") : "Squared";
+  var layer2Style = layersSheet ? (layersSheet.getRange("E3").getDisplayValue() || "Squared") : "Squared";
+  var layer3Style = layersSheet ? (layersSheet.getRange("E4").getDisplayValue() || "Squared") : "Squared";
+  var mainStyle = layersSheet ? (layersSheet.getRange("E5").getDisplayValue() || "Squared") : "Squared";
+
   return {
     appName: appName,
     catalogName: catalogName,
@@ -255,38 +297,46 @@ function getSettings() {
     logoUrl: logoUrl,
     dateAdjustment: dateAdjustment,
     appMode: appMode,
-    backgroundImageUrl: backgroundImageUrl
+    backgroundImageUrl: backgroundImageUrl,
+    layer1View: layer1View,
+    layer2View: layer2View,
+    layer3View: layer3View,
+    mainView: mainView,
+    layer1Style: layer1Style,
+    layer2Style: layer2Style,
+    layer3Style: layer3Style,
+    mainStyle: mainStyle
   };
 }
 
 /**
- * Get layer configuration from Settings sheet
- * Hardcoded to read from B12:C14 (Layer 1, 2, 3)
+ * Get layer configuration from Layers sheet
+ * Hardcoded to read from B2:C4 (Layer 1, 2, 3)
  */
 function getLayerConfig() {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var settingsSheet = ss.getSheetByName("Settings");
+    var layersSheet = ss.getSheetByName("Layers");
 
-    if (!settingsSheet) {
-      Logger.log("✗ Settings sheet not found");
+    if (!layersSheet) {
+      Logger.log("✗ Layers sheet not found");
       return [];
     }
 
     var layers = [];
 
-    // Hardcoded positions: B12:C14
-    // B12: Layer 1, C12: Ex Cat
-    // B13: Layer 2, C13: Category
-    // B14: Layer 3, C14: (blank)
-    var layerRows = [12, 13, 14]; // Rows for Layer 1, 2, 3
+    // Hardcoded positions: B2:C4
+    // B2: Layer 1, C2: Ex Cat
+    // B3: Layer 2, C3: Category
+    // B4: Layer 3, C4: (blank)
+    var layerRows = [2, 3, 4]; // Rows for Layer 1, 2, 3
     var layerCol = 2;  // Column B (1-indexed)
     var mainCol = 3;   // Column C (1-indexed)
 
     for (var i = 0; i < layerRows.length; i++) {
       var row = layerRows[i];
-      var layerName = settingsSheet.getRange(row, layerCol).getValue();
-      var mainColumnName = settingsSheet.getRange(row, mainCol).getValue();
+      var layerName = layersSheet.getRange(row, layerCol).getValue();
+      var mainColumnName = layersSheet.getRange(row, mainCol).getValue();
 
       layerName = String(layerName || "").trim();
       mainColumnName = String(mainColumnName || "").trim();
@@ -324,14 +374,14 @@ function getLayerData(layerName) {
     }
 
     // Hardcoded positions for each layer table
-    // Layer 1: B1 (column 2), Layer 2: F1 (column 6), Layer 3: K1 (column 11)
+    // Layer 1: H1 (column 8), Layer 2: L1 (column 12), Layer 3: Q1 (column 17)
     var startCol;
     if (layerName === "Layer 1") {
-      startCol = 2; // Column B (1-indexed)
+      startCol = 8; // Column H (1-indexed)
     } else if (layerName === "Layer 2") {
-      startCol = 6; // Column F (1-indexed)
+      startCol = 12; // Column L (1-indexed)
     } else if (layerName === "Layer 3") {
-      startCol = 11; // Column K (1-indexed)
+      startCol = 17; // Column Q (1-indexed)
     } else {
       Logger.log("✗ Unknown layer: " + layerName);
       return [];
@@ -968,3 +1018,4 @@ function testEmailPermissions() {
   Logger.log("Test email sent successfully to: " + recipient);
   return "Authorization successful! Email sent.";
 }
+
