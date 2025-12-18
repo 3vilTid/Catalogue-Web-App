@@ -7,28 +7,38 @@ This document tracks planned features and improvements for the Catalogue Web App
 ## First - Implement These Features
 
 ### Mobile & Desktop Experience
-- [ ] **Explore best ways to add phone visual**
+- [x] **Explore best ways to add phone visual**
   - Linked to user screen size detection?
   - Or detect Android / iPhone specifically?
-- [ ] **Add phone visual interface**
+- [x] **Add phone visual interface**
   - Optimize layout for mobile devices
 - [ ] **Add installation capability for phone/desktop**
   - PWA (Progressive Web App) functionality
   - Install prompts for mobile and desktop
-- [ ] **Add touch gestures for mobile**
+- [x] **Add touch gestures for mobile**
   - Swipe left/right to navigate between items
   - Pull to refresh to reload data
   - Pinch to zoom on images
   - Long press for context menus
 
 ### Hierarchical Navigation (Layers)
-- [ ] **Add "Layer" possibility**
+- [x] **Add "Layer" possibility**
   - Not direct click → detail view
   - Example: Click "Category" → Click Item → Show Detail View
   - Multi-level navigation system
-- [ ] **Set up image support for layers**
+- [x] **Set up image support for layers**
   - Category images
   - Layer thumbnail support
+  
+### Alternative Visual Layouts
+- [ ] **Different catalogue list views**
+  - [x] **Cards** (current default - keep as option)
+  - [x] **List view** (compact rows)
+  - [x] **Table view** with filter and sort options
+  - [ ] **Map view** with GPS pins
+- [ ] **Horizontal card scrolling**
+  - Option for cards to go left/right instead of down
+  - Carousel-style navigation
 
 ### Multi-Table & Column Configuration
 - [ ] **Add possibility of multiple Tables**
@@ -37,17 +47,7 @@ This document tracks planned features and improvements for the Catalogue Web App
 - [ ] **Multiple column configs per table**
   - Different layouts for different data types
 
-### Alternative Visual Layouts
-- [ ] **Different catalogue list views**
-  - **Cards** (current default - keep as option)
-  - **List view** (compact rows)
-  - **Table view** with filter and sort options
-  - **Map view** with GPS pins
-- [ ] **Horizontal card scrolling**
-  - Option for cards to go left/right instead of down
-  - Carousel-style navigation
-
-### Advanced Layout Options
+  ### Advanced Layout Options
 - [ ] **Multiple tabs support**
   - Tab-based navigation
   - Organize content across tabs
