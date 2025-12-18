@@ -6743,7 +6743,9 @@
           const item = document.createElement("div");
           item.className = "tab-menu-item" + (i === currentTabIndex ? " active" : "");
           item.textContent = tab.tabName;
-          item.onclick = function() {
+          item.onclick = function(e) {
+            e.stopPropagation();
+            console.log('🖱️ Tab menu item clicked:', tab.tabName, 'index:', i);
             switchToTab(i);
           };
           tabMenu.appendChild(item);
@@ -6805,25 +6807,33 @@
 
       // Switch to a different tab
       function switchToTab(newTabIndex) {
+        console.log('🔄 switchToTab called: newTabIndex=', newTabIndex, 'currentTabIndex=', currentTabIndex);
+
         if (newTabIndex === currentTabIndex) {
           // Same tab - just close the menu
+          console.log('📌 Same tab selected, just closing menu');
           toggleTabMenu();
           return;
         }
 
         console.log('🔄 Switching from tab', currentTabIndex, 'to tab', newTabIndex);
 
-        // Save current tab state
-        saveCurrentTabState();
+        try {
+          // Save current tab state
+          saveCurrentTabState();
 
-        // Update current tab index
-        currentTabIndex = newTabIndex;
+          // Update current tab index
+          currentTabIndex = newTabIndex;
 
-        // Close the tab menu
-        toggleTabMenu();
+          // Close the tab menu
+          toggleTabMenu();
 
-        // Load data for the new tab
-        loadTabData(newTabIndex);
+          // Load data for the new tab
+          loadTabData(newTabIndex);
+        } catch (error) {
+          console.error('❌ Error in switchToTab:', error);
+          showToast('Error switching tabs: ' + error.message, 'error');
+        }
       }
 
       // Load data for a specific tab
