@@ -2825,10 +2825,17 @@
         box-sizing: border-box;
       }
 
-      /* Detail view layout - PORTRAIT: Stack image above details */
-      body.mobile-device.portrait .detail-layout,
+      /* Detail view layout - PORTRAIT: Use landscape-style side-by-side layout */
+      body.mobile-device.portrait .detail-layout {
+        grid-template-columns: minmax(0, 360px) minmax(0, 1fr) !important;
+        gap: 16px;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+
       body.tablet-device.portrait .detail-layout {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: minmax(0, 375px) minmax(0, 1fr) !important;
         gap: 16px;
         width: 100%;
         max-width: 100%;
@@ -2837,7 +2844,7 @@
 
       body.mobile-device.portrait .detail-two-column-grid,
       body.tablet-device.portrait .detail-two-column-grid {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 1fr 1fr !important;
         gap: 16px;
       }
 
@@ -2846,7 +2853,6 @@
         width: 100% !important;
         max-width: 100% !important;
         max-height: none !important;
-        min-height: 300px;
         box-sizing: border-box !important;
         margin: 0 !important;
       }
@@ -2854,11 +2860,9 @@
       body.mobile-device.portrait .detail-img,
       body.tablet-device.portrait .detail-img {
         width: 100% !important;
-        max-width: 100% !important;
         height: auto !important;
-        max-height: none !important;
+        object-fit: contain !important;
         display: block;
-        object-fit: cover;
         margin: 0 !important;
       }
 
