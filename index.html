@@ -908,7 +908,9 @@
       }
 
       .table-column-menu {
-        position: fixed; /* Fixed positioning to escape all parent clipping */
+        position: absolute; /* Absolute positioning relative to header cell - sticks with sticky header */
+        top: 100%; /* Position below the header cell */
+        left: 0;
         background: white;
         border: 1px solid #e5e7eb;
         border-radius: 8px;
@@ -4962,11 +4964,8 @@
               const isOpening = !menuEl.classList.contains('active');
               menuEl.classList.toggle('active');
 
-              // Position menu using fixed positioning (escapes all parent clipping)
+              // Track active menu and manage scroll lock
               if (isOpening) {
-                const rect = headerCell.getBoundingClientRect();
-                menuEl.style.top = (rect.bottom + 2) + 'px';
-                menuEl.style.left = rect.left + 'px';
                 activeTableMenuColumn = columnName;
                 // Lock body scroll when dropdown opens
                 lockScroll();
@@ -5764,11 +5763,8 @@
           if (th) {
             const menu = th.querySelector('.table-column-menu');
             if (menu) {
-              console.log('Menu found, setting active and positioning');
-              // Position menu using fixed positioning
-              const rect = th.getBoundingClientRect();
-              menu.style.top = (rect.bottom + 2) + 'px';
-              menu.style.left = rect.left + 'px';
+              console.log('Menu found, setting active');
+              // Menu position is handled by CSS (absolute positioning relative to header)
               menu.classList.add('active');
               // Lock body scroll when dropdown reopens
               lockScroll();
@@ -6128,11 +6124,8 @@
               const isOpening = !menuEl.classList.contains('active');
               menuEl.classList.toggle('active');
 
-              // Position menu using fixed positioning (escapes all parent clipping)
+              // Track active menu and manage scroll lock
               if (isOpening) {
-                const rect = headerCell.getBoundingClientRect();
-                menuEl.style.top = (rect.bottom + 2) + 'px';
-                menuEl.style.left = rect.left + 'px';
                 activeTableMenuColumn = columnName;
                 // Lock body scroll when dropdown opens
                 lockScroll();
