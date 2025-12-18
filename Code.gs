@@ -832,11 +832,13 @@ function getTabData(layersSheetName, mainSheetName, columnConfigSheetName, token
       if (token) {
         var sessionResult = verifySession(token);
         if (!sessionResult.success) {
-          throw new Error('Session expired. Please log in again.');
+          // Session verification failed - log it but continue gracefully
+          // This allows the tab to load in viewer mode, matching getInitialData() behavior
+          Logger.log('Session verification failed in getTabData, continuing in viewer mode');
         }
       }
-      // Note: If no token provided, we allow access (for "Public with Login" mode)
-      // The user will simply not be authenticated
+      // Note: If no token provided or verification fails, we allow access
+      // The user will simply not be authenticated (viewer mode)
     }
 
     // Load tab-specific configuration and data
