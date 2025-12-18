@@ -5062,6 +5062,62 @@
 
         table.appendChild(tbody);
         grid.appendChild(table);
+
+        // Sync header widths with table after rendering
+        requestAnimationFrame(() => {
+          syncTableWidthToHeaders();
+        });
+      }
+
+      // Synchronize top-header and filters-row width with table width
+      // This ensures headers extend to match table width when table exceeds viewport
+      function syncTableWidthToHeaders() {
+        const grid = document.getElementById("gridView");
+        const topHeader = document.querySelector(".top-header");
+        const filtersRow = document.querySelector(".filters-row");
+        const table = document.querySelector(".data-table");
+        const shell = document.querySelector(".shell");
+
+        // Only run if we're in table view and elements exist
+        if (!grid || !grid.classList.contains('table-view') || !table || !topHeader || !filtersRow || !shell) {
+          return;
+        }
+
+        // Get the actual table width (use offsetWidth for correct visible width)
+        const tableWidth = table.offsetWidth;
+        const shellPadding = parseInt(getComputedStyle(shell).paddingLeft) + parseInt(getComputedStyle(shell).paddingRight);
+
+        // ALWAYS set headers to match table width on ALL devices
+        // This makes headers "follow down" when scrolling
+        const widthToSet = tableWidth + 'px';
+        topHeader.style.width = widthToSet;
+        topHeader.style.minWidth = widthToSet;
+        filtersRow.style.width = widthToSet;
+        filtersRow.style.minWidth = widthToSet;
+
+        // Set shell width to fit content properly
+        shell.style.width = `${tableWidth + shellPadding}px`;
+        shell.style.minWidth = '';
+      }
+
+      // Reset header and shell widths when switching away from table view
+      function resetTableWidths() {
+        const topHeader = document.querySelector(".top-header");
+        const filtersRow = document.querySelector(".filters-row");
+        const shell = document.querySelector(".shell");
+
+        if (topHeader) {
+          topHeader.style.width = '';
+          topHeader.style.minWidth = '';
+        }
+        if (filtersRow) {
+          filtersRow.style.width = '';
+          filtersRow.style.minWidth = '';
+        }
+        if (shell) {
+          shell.style.width = '';
+          shell.style.minWidth = '';
+        }
       }
 
       // Handle main table row click - either show details or expand inline
