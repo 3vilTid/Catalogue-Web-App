@@ -1,4 +1,3 @@
-
 /**************************************************
  * Constants & Helpers
  **************************************************/
@@ -1018,4 +1017,3 @@ function testEmailPermissions() {
   Logger.log("Test email sent successfully to: " + recipient);
   return "Authorization successful! Email sent.";
 }
-
