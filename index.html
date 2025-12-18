@@ -136,7 +136,7 @@
         margin: 0;
         padding: 0;
         width: 100%;
-        overflow-x: hidden;
+        /* overflow-x: hidden; REMOVED - breaks position: sticky */
         border: none;
         outline: none;
       }
@@ -796,6 +796,10 @@
         font-weight: 600;
         font-size: 14px;
         letter-spacing: 0.02em;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
       }
 
       .data-table tbody tr {
@@ -924,8 +928,9 @@
       /* Ensure table view doesn't clip the menus */
       .table-view {
         margin-top: 8px;
-        overflow-x: auto;
-        overflow-y: visible;
+        /* All overflow removed - ANY overflow creates a scroll container that breaks position: sticky */
+        /* Menus use position:absolute relative to header cells */
+        /* For horizontal scrolling of wide tables, the table itself will handle it via display */
         position: relative;
       }
 
@@ -939,11 +944,7 @@
       }
 
       .data-table thead {
-        background: linear-gradient(135deg, #6366f1, #4f46e5);
         color: white;
-        position: relative;
-        z-index: 1;
-        border-radius: 12px 12px 0 0; /* Rounded top corners only */
       }
 
       .data-table thead tr:first-child th:first-child {
@@ -5781,39 +5782,24 @@
       }
 
       // --- SCROLL LOCK FUNCTIONS (for dropdown menus) ---
+      // DISABLED: Setting body position:fixed breaks sticky table headers
+      // Dropdowns use position:absolute relative to their header cells
 
       let scrollPosition = 0;
       let isScrollLocked = false;
 
       function lockScroll() {
-        if (isScrollLocked) return;
-
-        // Save current scroll position
-        scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-
-        // Lock scroll using position fixed
-        document.body.style.position = 'fixed';
-        document.body.style.top = `-${scrollPosition}px`;
-        document.body.style.width = '100%';
-        document.body.style.overflow = 'hidden';
-
-        isScrollLocked = true;
+        // DISABLED - was breaking sticky headers by setting body position:fixed
+        return;
       }
 
       function unlockScroll() {
-        if (!isScrollLocked) return;
-
-        // Restore body styles
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
-        document.body.style.overflow = '';
-
-        // Restore scroll position
-        window.scrollTo(0, scrollPosition);
-
-        isScrollLocked = false;
+        // DISABLED - companion to lockScroll
+        return;
       }
+
+      // REMOVED: Scroll listener for updating dropdown position
+      // No longer needed - dropdowns use position:absolute and automatically move with sticky header
 
       // --- LAYER NAVIGATION FUNCTIONS ---
 
