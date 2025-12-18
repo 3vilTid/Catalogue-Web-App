@@ -827,15 +827,16 @@ function getTabData(layersSheetName, mainSheetName, columnConfigSheetName, token
   try {
     // Check if app is in public mode
     if (!isPublicMode_()) {
-      // Private mode: Verify session if token provided
+      // Private or "Public with Login" mode: Verify session if token provided
+      // In "Public with Login" mode, allow access even without token (user will be null)
       if (token) {
         var sessionResult = verifySession(token);
         if (!sessionResult.success) {
           throw new Error('Session expired. Please log in again.');
         }
-      } else {
-        throw new Error('Authentication required.');
       }
+      // Note: If no token provided, we allow access (for "Public with Login" mode)
+      // The user will simply not be authenticated
     }
 
     // Load tab-specific configuration and data
