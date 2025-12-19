@@ -253,7 +253,9 @@ function serveUi_(e) {
  * Settings
  **************************************************/
 
-function getSettings() {
+function getSettings(layersSheetName) {
+  layersSheetName = layersSheetName || 'Layers'; // Default to 'Layers' if not specified
+
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName("Settings");
   if (!sh) {
@@ -284,8 +286,8 @@ function getSettings() {
   var appMode = sh.getRange("I2").getDisplayValue() || "Private with Profiles";
   var backgroundImageUrl = sh.getRange("I5").getDisplayValue() || "";
 
-  // Get Layers sheet for layer-specific settings
-  var layersSheet = ss.getSheetByName("Layers");
+  // Get Layers sheet for layer-specific settings (use the specified sheet name)
+  var layersSheet = ss.getSheetByName(layersSheetName);
 
   // Read view types for each layer and main items from Layers sheet
   var layer1View = layersSheet ? (layersSheet.getRange("D2").getDisplayValue() || "Cards") : "Cards";
@@ -856,13 +858,15 @@ function getTabData(layersSheetName, mainSheetName, columnConfigSheetName, token
     var items = getMainData(mainSheetName);
     var columnConfig = getColumnConfig(columnConfigSheetName);
     var headers = getHeaders(mainSheetName);
+    var tabSettings = getSettings(layersSheetName);
 
     return {
       layerConfig: layerConfig,
       layersData: layersData,
       items: items,
       columnConfig: columnConfig,
-      headers: headers
+      headers: headers,
+      settings: tabSettings
     };
   } catch (err) {
     Logger.log("Error in getTabData: " + err);

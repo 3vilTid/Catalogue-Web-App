@@ -6879,6 +6879,14 @@
           columnConfig = cachedData.columnConfig || [];
           headers = cachedData.headers || [];
 
+          // Restore settings if cached (includes tab-specific Type/Style)
+          if (cachedData.settings) {
+            settings = cachedData.settings;
+            // Re-initialize display view types and styles from the cached settings
+            initializeDisplayViewType();
+            console.log('✅ View types and styles restored from cache for tab:', tab.tabName);
+          }
+
           // Initialize column configuration
           loadColumnConfig();
           computeUniqueValues(); // Will use cached unique values
@@ -6926,13 +6934,22 @@
             columnConfig = tabData.columnConfig || [];
             headers = tabData.headers || [];
 
+            // Update settings if provided (includes tab-specific Type/Style)
+            if (tabData.settings) {
+              settings = tabData.settings;
+              // Re-initialize display view types and styles from the tab-specific settings
+              initializeDisplayViewType();
+              console.log('✅ View types and styles updated for tab:', tab.tabName);
+            }
+
             // Cache the data for future use
             tabDataCache[tabIndex] = {
               layerConfig: layerConfig,
               layersData: layersData,
               items: allItems,
               columnConfig: columnConfig,
-              headers: headers
+              headers: headers,
+              settings: tabData.settings
             };
 
             // Initialize column configuration
