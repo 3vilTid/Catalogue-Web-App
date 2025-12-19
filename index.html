@@ -3232,6 +3232,100 @@
         font-size: 26px !important;
       }
 
+      /* ==================== BOTTOM BAR FOR PORTRAIT MODE ==================== */
+      /* Bottom bar - hidden by default */
+      .bottom-bar {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 9999;
+      }
+
+      /* Show bottom bar in portrait mode only */
+      body.mobile-device.portrait .bottom-bar,
+      body.tablet-device.portrait .bottom-bar {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(to top, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.95));
+        backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(226, 232, 240, 0.8);
+        box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.1);
+        padding: 20px 20px 30px 20px;
+        min-height: 100px;
+      }
+
+      .bottom-bar-content {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        max-width: 600px;
+      }
+
+      /* Hide tab switcher from top header in portrait mode */
+      body.mobile-device.portrait .top-header .center-block,
+      body.tablet-device.portrait .top-header .center-block {
+        display: none !important;
+      }
+
+      /* Move tab switcher to bottom bar in portrait mode */
+      body.mobile-device.portrait .bottom-bar-content::before,
+      body.tablet-device.portrait .bottom-bar-content::before {
+        content: '';
+        display: block;
+      }
+
+      body.mobile-device.portrait #tabSwitcherWrapper,
+      body.tablet-device.portrait #tabSwitcherWrapper {
+        position: fixed !important;
+        bottom: 30px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        z-index: 10000 !important;
+        margin: 0 !important;
+      }
+
+      /* Make tab switcher button bigger in portrait mode for easier touch */
+      body.mobile-device.portrait .tab-switcher-btn,
+      body.tablet-device.portrait .tab-switcher-btn {
+        height: 70px !important;
+        font-size: 32px !important;
+        padding: 0 32px !important;
+        min-height: 70px !important;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.3) !important;
+      }
+
+      /* Adjust tab menu position for bottom placement */
+      body.mobile-device.portrait .tab-switcher-menu,
+      body.tablet-device.portrait .tab-switcher-menu {
+        top: auto !important;
+        bottom: calc(100% + 12px) !important;
+        max-height: 500px !important;
+        font-size: 32px !important;
+      }
+
+      body.mobile-device.portrait .tab-menu-item,
+      body.tablet-device.portrait .tab-menu-item {
+        font-size: 32px !important;
+        padding: 16px 20px !important;
+        min-height: 70px !important;
+      }
+
+      /* Add bottom padding to shell to prevent content from being hidden */
+      body.mobile-device.portrait .shell,
+      body.tablet-device.portrait .shell {
+        padding-bottom: 130px !important;
+      }
+
+      /* Add bottom padding to gridView to ensure last items are visible */
+      body.mobile-device.portrait #gridView,
+      body.tablet-device.portrait #gridView {
+        padding-bottom: 20px !important;
+      }
+
       /* ==================== DESKTOP DEVICE STYLES ==================== */
       /* Desktop: 12px side borders total */
       /* Multiple selectors for maximum compatibility */
@@ -3479,6 +3573,13 @@
       <!-- Cards grid & details -->
       <div id="gridView" class="grid"></div>
       <div id="detailView"></div>
+
+      <!-- Bottom bar for portrait mode (tab switcher will move here) -->
+      <div id="bottomBar" class="bottom-bar">
+        <div id="bottomBarContent" class="bottom-bar-content">
+          <!-- Tab switcher will be moved here in portrait mode via CSS -->
+        </div>
+      </div>
     </div>
 
     <!-- Login Screen -->
