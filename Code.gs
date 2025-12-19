@@ -312,111 +312,28 @@ function serveManifest_() {
 
 function serveServiceWorker_() {
   try {
-    // Service worker JavaScript code as a string
-    var swCode = `// Service Worker for Catalogue Web App
-// Version 1.0.0
+    // Ultra-minimal service worker for maximum mobile compatibility
+    // Only includes the bare essentials required for PWA installation
+    var swCode = `// Minimal Service Worker for Catalogue Web App
+// Optimized for mobile browser compatibility
+// Version 2.0.0
 
-const CACHE_NAME = 'catalogue-v1.0.0';
-const RUNTIME_CACHE = 'catalogue-runtime-v1.0.0';
-
-// Install event - skip waiting to activate immediately
+// Install event - activate immediately
 self.addEventListener('install', (event) => {
-  console.log('[Service Worker] Installing...');
-  event.waitUntil(self.skipWaiting());
+  console.log('[Service Worker] ✅ Installing - Minimal version for mobile compatibility');
+  self.skipWaiting();
 });
 
-// Activate event - clean up old caches and claim clients
+// Activate event - take control immediately
 self.addEventListener('activate', (event) => {
-  console.log('[Service Worker] Activating...');
-
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME && cacheName !== RUNTIME_CACHE) {
-            console.log('[Service Worker] Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(() => {
-      console.log('[Service Worker] Claiming clients');
-      return self.clients.claim();
-    })
-  );
+  console.log('[Service Worker] ✅ Activating and claiming clients');
+  event.waitUntil(self.clients.claim());
 });
 
-// Fetch event - network first, fallback to cache
-self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
-  if (event.request.method !== 'GET') {
-    return;
-  }
+// No fetch event handler - this reduces complexity and improves mobile compatibility
+// The app will work normally, just without offline caching
 
-  // Skip cross-origin requests
-  if (!event.request.url.startsWith(self.location.origin)) {
-    return;
-  }
-
-  event.respondWith(
-    fetch(event.request.clone())
-      .then((response) => {
-        // Check if valid response
-        if (!response || response.status !== 200) {
-          return response;
-        }
-
-        // Clone the response because it can only be used once
-        const responseToCache = response.clone();
-
-        // Cache the fetched response for runtime
-        caches.open(RUNTIME_CACHE).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-
-        return response;
-      })
-      .catch((error) => {
-        console.log('[Service Worker] Fetch failed, trying cache:', event.request.url);
-
-        // Try to serve from cache
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-
-          // If nothing in cache, return a simple offline message
-          return new Response(
-            '<html><body><h1>Offline</h1><p>You are currently offline. Please check your internet connection.</p></body></html>',
-            {
-              headers: { 'Content-Type': 'text/html' }
-            }
-          );
-        });
-      })
-  );
-});
-
-// Listen for messages from the client
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    console.log('[Service Worker] Received SKIP_WAITING message');
-    self.skipWaiting();
-  }
-
-  if (event.data && event.data.type === 'CLEAR_CACHE') {
-    console.log('[Service Worker] Clearing all caches');
-    event.waitUntil(
-      caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => caches.delete(cacheName))
-        );
-      })
-    );
-  }
-});
-
-console.log('[Service Worker] Script loaded');
+console.log('[Service Worker] ✅ Minimal service worker loaded successfully');
 `;
 
     return ContentService
@@ -427,7 +344,9 @@ console.log('[Service Worker] Script loaded');
     Logger.log("Error serving service worker: " + err);
 
     // Return minimal service worker on error
-    var minimalSw = "console.log('[Service Worker] Minimal worker loaded');";
+    var minimalSw = `self.addEventListener('install', () => { self.skipWaiting(); });
+self.addEventListener('activate', (e) => { e.waitUntil(self.clients.claim()); });
+console.log('[Service Worker] Emergency minimal worker loaded');`;
 
     return ContentService
       .createTextOutput(minimalSw)
