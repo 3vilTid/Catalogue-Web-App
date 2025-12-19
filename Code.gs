@@ -195,11 +195,6 @@ function doGet(e) {
     return serveManifest_();
   }
 
-  // Serve service worker
-  if (e && e.parameter && e.parameter.sw) {
-    return serveServiceWorker_();
-  }
-
   // Serve images
   if (e && e.parameter && e.parameter.img) {
     return serveImage_(e.parameter.img);
@@ -252,7 +247,7 @@ function serveImage_(fileId) {
 }
 
 /**************************************************
- * PWA Manifest and Service Worker
+ * PWA Manifest
  **************************************************/
 
 function serveManifest_() {
@@ -310,49 +305,6 @@ function serveManifest_() {
   }
 }
 
-function serveServiceWorker_() {
-  try {
-    // Ultra-minimal service worker for maximum mobile compatibility
-    // Only includes the bare essentials required for PWA installation
-    var swCode = `// Minimal Service Worker for Catalogue Web App
-// Optimized for mobile browser compatibility
-// Version 2.0.0
-
-// Install event - activate immediately
-self.addEventListener('install', (event) => {
-  console.log('[Service Worker] ✅ Installing - Minimal version for mobile compatibility');
-  self.skipWaiting();
-});
-
-// Activate event - take control immediately
-self.addEventListener('activate', (event) => {
-  console.log('[Service Worker] ✅ Activating and claiming clients');
-  event.waitUntil(self.clients.claim());
-});
-
-// No fetch event handler - this reduces complexity and improves mobile compatibility
-// The app will work normally, just without offline caching
-
-console.log('[Service Worker] ✅ Minimal service worker loaded successfully');
-`;
-
-    return ContentService
-      .createTextOutput(swCode)
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
-
-  } catch (err) {
-    Logger.log("Error serving service worker: " + err);
-
-    // Return minimal service worker on error
-    var minimalSw = `self.addEventListener('install', () => { self.skipWaiting(); });
-self.addEventListener('activate', (e) => { e.waitUntil(self.clients.claim()); });
-console.log('[Service Worker] Emergency minimal worker loaded');`;
-
-    return ContentService
-      .createTextOutput(minimalSw)
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }
-}
 
 /**************************************************
  * UI Serving (No Access Control)

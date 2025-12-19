@@ -3637,54 +3637,12 @@
       }
     </style>
 
-    <!-- Service Worker Registration -->
+    <!-- PWA Setup -->
     <script>
-      // Register Service Worker for PWA functionality
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          // Use the actual browser URL to ensure scope matches manifest
-          const actualUrl = window.location.origin + window.location.pathname;
-          const scopeUrl = actualUrl.substring(0, actualUrl.lastIndexOf('/') + 1);
-          const swUrl = actualUrl + '?sw=true';
-
-          console.log('🔧 Service Worker setup:', {
-            actualUrl: actualUrl,
-            scopeUrl: scopeUrl,
-            swUrl: swUrl
-          });
-
-          // Register with scope matching the manifest
-          navigator.serviceWorker.register(swUrl, {
-            scope: scopeUrl
-          })
-            .then((registration) => {
-              console.log('✅ Service Worker registered successfully');
-              console.log('   Scope:', registration.scope);
-              console.log('   URL:', swUrl);
-
-              // Check for updates periodically
-              registration.addEventListener('updatefound', () => {
-                const newWorker = registration.installing;
-                console.log('🔄 Service Worker update found');
-
-                newWorker.addEventListener('statechange', () => {
-                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    console.log('🆕 New Service Worker available');
-                    // You can show a notification to the user here
-                    // For now, we'll just log it
-                  }
-                });
-              });
-            })
-            .catch((error) => {
-              console.error('❌ Service Worker registration failed:', error);
-              console.error('   This is expected on Google Apps Script due to scope restrictions');
-              console.error('   The app will still work, but without offline functionality');
-            });
-        });
-      } else {
-        console.log('⚠️ Service Worker not supported in this browser');
-      }
+      // PWA functionality without Service Worker
+      // Note: Service Workers are not supported on Google Apps Script due to MIME type limitations
+      // The app can still be installed as a PWA using the manifest file
+      console.log('📱 PWA enabled via manifest (Service Worker not available on Google Apps Script)');
 
       // Handle PWA install prompt
       window.deferredPrompt = null;
