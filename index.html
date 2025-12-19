@@ -14,12 +14,11 @@
     <meta name="apple-mobile-web-app-title" content="Catalogue">
 
     <!-- Manifest -->
-    <link rel="manifest" href="./manifest.json">
+    <link rel="manifest" href="<?!= ScriptApp.getService().getUrl() ?>?manifest=true">
 
-    <!-- Icons -->
-    <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
-    <link rel="apple-touch-icon" href="./icon-192.png">
+    <!-- Icons (using inline SVG data URIs) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='white'%3EC%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='white'%3EC%3C/text%3E%3C/svg%3E">
 
     <title>Catalogue</title>
 
@@ -3590,7 +3589,8 @@
       // Register Service Worker for PWA functionality
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js')
+          const swUrl = '<?!= ScriptApp.getService().getUrl() ?>?sw=true';
+          navigator.serviceWorker.register(swUrl)
             .then((registration) => {
               console.log('✅ Service Worker registered successfully:', registration.scope);
 

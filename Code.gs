@@ -190,6 +190,16 @@ function getColumnConfig(sheetName) {
  **************************************************/
 
 function doGet(e) {
+  // Serve PWA manifest
+  if (e && e.parameter && e.parameter.manifest) {
+    return serveManifest_();
+  }
+
+  // Serve service worker
+  if (e && e.parameter && e.parameter.sw) {
+    return serveServiceWorker_();
+  }
+
   // Serve images
   if (e && e.parameter && e.parameter.img) {
     return serveImage_(e.parameter.img);
@@ -238,6 +248,187 @@ function serveImage_(fileId) {
     return ContentService
       .createTextOutput(JSON.stringify(json))
       .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**************************************************
+ * PWA Manifest and Service Worker
+ **************************************************/
+
+function serveManifest_() {
+  try {
+    var settings = getSettings();
+    var appName = settings.appName || "Catalogue Web App";
+    var catalogName = settings.catalogName || "Catalogue";
+
+    var manifest = {
+      "name": appName,
+      "short_name": catalogName,
+      "description": catalogName + " web application for managing and browsing items",
+      "start_url": ScriptApp.getService().getUrl(),
+      "scope": "./",
+      "display": "standalone",
+      "orientation": "any",
+      "theme_color": "#4CAF50",
+      "background_color": "#ffffff",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='white'%3EC%3C/text%3E%3C/svg%3E",
+          "sizes": "192x192",
+          "type": "image/svg+xml",
+          "purpose": "any maskable"
+        },
+        {
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%234CAF50' width='512' height='512'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='320' fill='white'%3EC%3C/text%3E%3C/svg%3E",
+          "sizes": "512x512",
+          "type": "image/svg+xml",
+          "purpose": "any maskable"
+        }
+      ],
+      "categories": ["productivity", "utilities"],
+      "screenshots": []
+    };
+
+    return ContentService
+      .createTextOutput(JSON.stringify(manifest))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    Logger.log("Error serving manifest: " + err);
+    var errorManifest = {
+      "name": "Catalogue",
+      "short_name": "Catalogue",
+      "display": "standalone"
+    };
+
+    return ContentService
+      .createTextOutput(JSON.stringify(errorManifest))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function serveServiceWorker_() {
+  try {
+    // Service worker JavaScript code as a string
+    var swCode = `// Service Worker for Catalogue Web App
+// Version 1.0.0
+
+const CACHE_NAME = 'catalogue-v1.0.0';
+const RUNTIME_CACHE = 'catalogue-runtime-v1.0.0';
+
+// Install event - skip waiting to activate immediately
+self.addEventListener('install', (event) => {
+  console.log('[Service Worker] Installing...');
+  event.waitUntil(self.skipWaiting());
+});
+
+// Activate event - clean up old caches and claim clients
+self.addEventListener('activate', (event) => {
+  console.log('[Service Worker] Activating...');
+
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME && cacheName !== RUNTIME_CACHE) {
+            console.log('[Service Worker] Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => {
+      console.log('[Service Worker] Claiming clients');
+      return self.clients.claim();
+    })
+  );
+});
+
+// Fetch event - network first, fallback to cache
+self.addEventListener('fetch', (event) => {
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
+  // Skip cross-origin requests
+  if (!event.request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
+  event.respondWith(
+    fetch(event.request.clone())
+      .then((response) => {
+        // Check if valid response
+        if (!response || response.status !== 200) {
+          return response;
+        }
+
+        // Clone the response because it can only be used once
+        const responseToCache = response.clone();
+
+        // Cache the fetched response for runtime
+        caches.open(RUNTIME_CACHE).then((cache) => {
+          cache.put(event.request, responseToCache);
+        });
+
+        return response;
+      })
+      .catch((error) => {
+        console.log('[Service Worker] Fetch failed, trying cache:', event.request.url);
+
+        // Try to serve from cache
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+
+          // If nothing in cache, return a simple offline message
+          return new Response(
+            '<html><body><h1>Offline</h1><p>You are currently offline. Please check your internet connection.</p></body></html>',
+            {
+              headers: { 'Content-Type': 'text/html' }
+            }
+          );
+        });
+      })
+  );
+});
+
+// Listen for messages from the client
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[Service Worker] Received SKIP_WAITING message');
+    self.skipWaiting();
+  }
+
+  if (event.data && event.data.type === 'CLEAR_CACHE') {
+    console.log('[Service Worker] Clearing all caches');
+    event.waitUntil(
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => caches.delete(cacheName))
+        );
+      })
+    );
+  }
+});
+
+console.log('[Service Worker] Script loaded');
+`;
+
+    return ContentService
+      .createTextOutput(swCode)
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+
+  } catch (err) {
+    Logger.log("Error serving service worker: " + err);
+
+    // Return minimal service worker on error
+    var minimalSw = "console.log('[Service Worker] Minimal worker loaded');";
+
+    return ContentService
+      .createTextOutput(minimalSw)
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
   }
 }
 
