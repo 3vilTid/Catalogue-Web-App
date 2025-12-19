@@ -4177,6 +4177,10 @@
       let currentTabIndex = 0; // Index of currently active tab
       let tabStates = {}; // Store navigation state per tab: {tabIndex: {navigationStack, currentLayerIndex, currentView, currentDetailIndex, etc.}}
 
+      // Tab data caching for performance
+      let tabDataCache = {}; // Cache full tab data: {tabIndex: {layerConfig, layersData, items, columnConfig, headers}}
+      let tabUniqueValuesCache = {}; // Cache computeUniqueValues results: {tabIndex: uniqueValuesMap}
+
       // Save state before searching to restore when search is cleared
       let preSearchNavigationStack = [];
       let preSearchLayerIndex = -1;
@@ -4321,6 +4325,21 @@
         // Use provided items or default to allItems
         const sourceItems = items || allItems;
 
+        // Check if we have cached unique values for current tab
+        if (tabUniqueValuesCache[currentTabIndex]) {
+          // Restore from cache
+          const cachedValues = tabUniqueValuesCache[currentTabIndex];
+          for (let i = 0; i < filterColumns.length; i++) {
+            const config = filterColumns[i];
+            if (cachedValues[config.columnName]) {
+              config.uniqueValues = cachedValues[config.columnName];
+            }
+          }
+          return;
+        }
+
+        // Compute unique values (not in cache)
+        const uniqueValuesMap = {};
         for (let i = 0; i < filterColumns.length; i++) {
           const config = filterColumns[i];
           const valueSet = new Set();
@@ -4334,7 +4353,11 @@
           }
 
           config.uniqueValues = Array.from(valueSet).sort();
+          uniqueValuesMap[config.columnName] = config.uniqueValues;
         }
+
+        // Cache the computed values for this tab
+        tabUniqueValuesCache[currentTabIndex] = uniqueValuesMap;
       }
 
       // Check if a column has any non-empty values
@@ -6843,6 +6866,40 @@
         const tab = tabsConfig[tabIndex];
 
         console.log('📥 Loading data for tab:', tab.tabName);
+
+        // Check if we have cached data for this tab
+        if (tabDataCache[tabIndex]) {
+          console.log('⚡ Using cached data for tab:', tab.tabName);
+
+          // Restore from cache
+          const cachedData = tabDataCache[tabIndex];
+          layerConfig = cachedData.layerConfig || [];
+          layersData = cachedData.layersData || {};
+          allItems = cachedData.items || [];
+          columnConfig = cachedData.columnConfig || [];
+          headers = cachedData.headers || [];
+
+          // Initialize column configuration
+          loadColumnConfig();
+          computeUniqueValues(); // Will use cached unique values
+
+          // Restore tab state or navigate to home
+          restoreTabState(tabIndex);
+
+          // Render the view based on restored state
+          renderTabView();
+
+          // Update UI
+          updateCurrentTabName();
+          renderTabMenu();
+          updateBreadcrumb();
+          updateChipsUI();
+          updateFilterSortVisibility();
+
+          return;
+        }
+
+        // No cache - need to fetch from backend
         console.log('🔑 Session token:', token ? '(exists)' : '(missing)');
         console.log('📋 Tab config:', {
           layersSheetName: tab.layersSheetName,
@@ -6869,31 +6926,24 @@
             columnConfig = tabData.columnConfig || [];
             headers = tabData.headers || [];
 
+            // Cache the data for future use
+            tabDataCache[tabIndex] = {
+              layerConfig: layerConfig,
+              layersData: layersData,
+              items: allItems,
+              columnConfig: columnConfig,
+              headers: headers
+            };
+
             // Initialize column configuration
             loadColumnConfig();
-            computeUniqueValues();
+            computeUniqueValues(); // Will compute and cache unique values
 
             // Restore tab state or navigate to home
             restoreTabState(tabIndex);
 
             // Render the view based on restored state
-            if (currentView === "detail" && currentDetailIndex >= 0 && currentDisplayedItems[currentDetailIndex]) {
-              showDetails(currentDisplayedItems[currentDetailIndex], currentDetailIndex);
-            } else if (currentView === "layer" && currentLayerIndex >= 0) {
-              // Reconstruct layer view from navigation stack
-              if (navigationStack.length > 0) {
-                const lastNav = navigationStack[navigationStack.length - 1];
-                const parentFilter = navigationStack.length >= 2
-                  ? navigationStack[navigationStack.length - 2].itemName
-                  : null;
-                renderLayerView(lastNav.layerIndex, parentFilter);
-              } else {
-                renderLayerView(currentLayerIndex, null);
-              }
-            } else {
-              // Navigate to home (Layer 1 or main list)
-              navigateToHome();
-            }
+            renderTabView();
 
             // Update UI
             updateCurrentTabName();
@@ -6921,6 +6971,27 @@
             gridView.innerHTML = '<div style="text-align: center; padding: 60px; color: #ef4444;">Error loading data</div>';
           })
           .getTabData(tab.layersSheetName, tab.mainSheetName, tab.columnConfigSheetName, token);
+      }
+
+      // Helper function to render the current tab view
+      function renderTabView() {
+        if (currentView === "detail" && currentDetailIndex >= 0 && currentDisplayedItems[currentDetailIndex]) {
+          showDetails(currentDisplayedItems[currentDetailIndex], currentDetailIndex);
+        } else if (currentView === "layer" && currentLayerIndex >= 0) {
+          // Reconstruct layer view from navigation stack
+          if (navigationStack.length > 0) {
+            const lastNav = navigationStack[navigationStack.length - 1];
+            const parentFilter = navigationStack.length >= 2
+              ? navigationStack[navigationStack.length - 2].itemName
+              : null;
+            renderLayerView(lastNav.layerIndex, parentFilter);
+          } else {
+            renderLayerView(currentLayerIndex, null);
+          }
+        } else {
+          // Navigate to home (Layer 1 or main list)
+          navigateToHome();
+        }
       }
 
       // Toggle tab switcher menu
