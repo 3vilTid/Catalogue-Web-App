@@ -41,14 +41,14 @@ This document tracks planned features and improvements for the Catalogue Web App
   - Carousel-style navigation
 
 ### Multi-Table & Column Configuration
-- [ ] **Add possibility of multiple Tables**
+- [x] **Add possibility of multiple Tables**
   - Each with separate column configurations
   - Table switching/selection UI
-- [ ] **Multiple column configs per table**
+- [x] **Multiple column configs per table**
   - Different layouts for different data types
 
   ### Advanced Layout Options
-- [ ] **Multiple tabs support**
+- [x] **Multiple tabs support**
   - Tab-based navigation
   - Organize content across tabs
 - [ ] **Multiple catalogues per page**
