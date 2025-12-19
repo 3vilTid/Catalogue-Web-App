@@ -3589,10 +3589,17 @@
       // Register Service Worker for PWA functionality
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          const swUrl = '<?!= ScriptApp.getService().getUrl() ?>?sw=true';
-          navigator.serviceWorker.register(swUrl)
+          const baseUrl = '<?!= ScriptApp.getService().getUrl() ?>';
+          const swUrl = baseUrl + '?sw=true';
+
+          // Register with explicit scope pointing to the base URL
+          navigator.serviceWorker.register(swUrl, {
+            scope: baseUrl + '/'
+          })
             .then((registration) => {
-              console.log('✅ Service Worker registered successfully:', registration.scope);
+              console.log('✅ Service Worker registered successfully');
+              console.log('   Scope:', registration.scope);
+              console.log('   URL:', swUrl);
 
               // Check for updates periodically
               registration.addEventListener('updatefound', () => {
@@ -3610,6 +3617,8 @@
             })
             .catch((error) => {
               console.error('❌ Service Worker registration failed:', error);
+              console.error('   This is expected on Google Apps Script due to scope restrictions');
+              console.error('   The app will still work, but without offline functionality');
             });
         });
       } else {

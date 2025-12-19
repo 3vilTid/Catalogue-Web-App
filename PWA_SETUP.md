@@ -105,23 +105,35 @@ When deploying this PWA to Google Apps Script:
 
 ## Testing the PWA
 
+### IMPORTANT: Before Installing
+**If you previously added this app to your home screen and the URL bar is still showing:**
+1. **Remove the old shortcut** from your home screen (long press → Remove/Delete)
+2. **Clear browser cache**:
+   - Android Chrome: Settings → Privacy → Clear browsing data → Cached images and files
+   - iOS Safari: Settings → Safari → Clear History and Website Data
+3. **Close and reopen your browser**
+4. **Follow the installation steps below**
+
 ### Desktop (Chrome/Edge):
 1. Open the web app in Chrome or Edge
 2. Look for install icon in address bar (⊕ or computer icon)
 3. Click to install
-4. App will open in standalone window
+4. App will open in standalone window (no URL bar)
 
 ### Mobile (Android):
 1. Open in Chrome
-2. Tap "Add to Home Screen" from menu
-3. App icon appears on home screen
-4. Opens in full-screen mode
+2. Tap the three-dot menu (⋮) → "Install app" or "Add to Home Screen"
+3. Tap "Install" when prompted
+4. App icon appears on home screen
+5. When you tap the icon, it should open **WITHOUT the URL bar** (full-screen standalone mode)
 
 ### Mobile (iOS/Safari):
 1. Open in Safari
-2. Tap Share button
+2. Tap Share button (square with arrow pointing up)
 3. Scroll and tap "Add to Home Screen"
-4. App icon appears on home screen
+4. Tap "Add" in the top right
+5. App icon appears on home screen
+6. When you tap the icon, it should open **WITHOUT the Safari UI** (standalone mode)
 
 ## Browser Console Logs
 
@@ -162,23 +174,50 @@ When offline:
 
 ## Troubleshooting
 
+### ⚠️ URL Bar Still Showing (App Opens as Bookmark, Not PWA)
+**Problem**: When you tap the home screen icon, the browser URL bar is still visible at the top.
+
+**This means**: The app was added as a bookmark shortcut, NOT installed as a proper PWA.
+
+**Solution**:
+1. **Remove the current shortcut** from your home screen:
+   - Long press the app icon
+   - Select "Remove" or "Delete"
+
+2. **Clear your browser cache**:
+   - **Android Chrome**: Menu (⋮) → Settings → Privacy and security → Clear browsing data → Check "Cached images and files" → Clear data
+   - **iOS Safari**: iPhone Settings app → Safari → Clear History and Website Data
+
+3. **Close your browser completely** (swipe away from recent apps)
+
+4. **Reopen the browser** and navigate to your app URL
+
+5. **Install properly**:
+   - **Android Chrome**: Look for a banner at the bottom saying "Install app" OR tap Menu (⋮) → "Install app" / "Add to Home Screen"
+   - **iOS Safari**: Tap Share button (□↑) → "Add to Home Screen"
+
+6. **Verify installation**: When you tap the icon, the app should open **WITHOUT any browser UI** (no URL bar, no browser buttons)
+
+**Note**: Due to Google Apps Script limitations, the service worker may not work perfectly, but the app should still install in standalone mode without the URL bar.
+
 ### Install Button Doesn't Appear:
 - App must be served over HTTPS ✓ (Apps Script provides this)
 - Browser must support PWA (Chrome, Edge, Safari 11.3+)
 - User may have previously dismissed the prompt
 - Check browser console for errors
+- Try the manual "Add to Home Screen" method from the browser menu
 
 ### Service Worker Not Registering:
 - Check browser console for errors
-- Ensure `sw.js` is accessible at root URL
+- Due to Google Apps Script's URL structure, service worker scope may be limited
+- The app will still work as a PWA even if service worker fails
 - Clear browser cache and reload
 - Check that HTTPS is working
 
 ### Icons Not Displaying:
-- Verify icon files exist at specified paths
-- Check file names match manifest.json
-- Ensure icons are PNG format
-- Clear cache and reinstall app
+- Icons are embedded as inline SVG in the manifest
+- If icons don't show, try clearing cache and reinstalling
+- Icons should display automatically (green square with "C")
 
 ## Browser Support
 

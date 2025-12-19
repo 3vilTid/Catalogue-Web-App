@@ -261,12 +261,14 @@ function serveManifest_() {
     var appName = settings.appName || "Catalogue Web App";
     var catalogName = settings.catalogName || "Catalogue";
 
+    var baseUrl = ScriptApp.getService().getUrl();
+
     var manifest = {
       "name": appName,
       "short_name": catalogName,
       "description": catalogName + " web application for managing and browsing items",
-      "start_url": ScriptApp.getService().getUrl(),
-      "scope": "./",
+      "start_url": baseUrl,
+      "scope": baseUrl,
       "display": "standalone",
       "orientation": "any",
       "theme_color": "#4CAF50",
