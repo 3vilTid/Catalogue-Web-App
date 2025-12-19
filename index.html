@@ -64,7 +64,41 @@
             document.documentElement.setAttribute('data-orientation', 'portrait');
             console.log('📱 Orientation: Portrait');
           }
+
+          // Move tab switcher based on orientation
+          handleTabSwitcherPosition();
         }
+
+        // Handle moving tab switcher between header and bottom bar
+        function handleTabSwitcherPosition() {
+          const tabSwitcher = document.getElementById('tabSwitcherWrapper');
+          const bottomBarContent = document.getElementById('bottomBarContent');
+          const centerBlock = document.querySelector('.top-header .center-block');
+
+          // Only proceed if all elements exist
+          if (!tabSwitcher || !bottomBarContent || !centerBlock) return;
+
+          const deviceClass = document.body.className.split(' ')[0]; // mobile-device, tablet-device, or desktop-device
+          const isMobileOrTablet = deviceClass === 'mobile-device' || deviceClass === 'tablet-device';
+          const isPortrait = document.body.classList.contains('portrait');
+
+          if (isMobileOrTablet && isPortrait) {
+            // Move to bottom bar in portrait mode
+            if (tabSwitcher.parentElement !== bottomBarContent) {
+              bottomBarContent.appendChild(tabSwitcher);
+              console.log('📱 Moved tab switcher to bottom bar');
+            }
+          } else {
+            // Move back to header in landscape or desktop
+            if (tabSwitcher.parentElement !== centerBlock) {
+              centerBlock.appendChild(tabSwitcher);
+              console.log('📱 Moved tab switcher to header');
+            }
+          }
+        }
+
+        // Make both functions globally available
+        window.handleTabSwitcherPosition = handleTabSwitcherPosition;
 
         // Start setting body class immediately
         if (document.readyState === 'loading') {
@@ -3265,27 +3299,17 @@
         max-width: 600px;
       }
 
-      /* Hide tab switcher from top header in portrait mode */
-      body.mobile-device.portrait .top-header .center-block,
-      body.tablet-device.portrait .top-header .center-block {
+      /* Hide tab switcher from top header in portrait mode (when empty) */
+      body.mobile-device.portrait .top-header .center-block:empty,
+      body.tablet-device.portrait .top-header .center-block:empty {
         display: none !important;
       }
 
-      /* Move tab switcher to bottom bar in portrait mode */
-      body.mobile-device.portrait .bottom-bar-content::before,
-      body.tablet-device.portrait .bottom-bar-content::before {
-        content: '';
-        display: block;
-      }
-
-      body.mobile-device.portrait #tabSwitcherWrapper,
-      body.tablet-device.portrait #tabSwitcherWrapper {
-        position: fixed !important;
-        bottom: 30px !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        z-index: 10000 !important;
-        margin: 0 !important;
+      /* Style tab switcher when in bottom bar (portrait mode) */
+      body.mobile-device.portrait .bottom-bar-content #tabSwitcherWrapper,
+      body.tablet-device.portrait .bottom-bar-content #tabSwitcherWrapper {
+        position: relative;
+        margin: 0;
       }
 
       /* Make tab switcher button bigger in portrait mode for easier touch */
@@ -6855,6 +6879,11 @@
 
         // Populate tab menu
         renderTabMenu();
+
+        // Position tab switcher based on current orientation
+        if (window.handleTabSwitcherPosition) {
+          window.handleTabSwitcherPosition();
+        }
       }
 
       // Update the displayed current tab name
