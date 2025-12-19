@@ -195,10 +195,11 @@ function doGet(e) {
     return serveManifest_();
   }
 
-  // Serve service worker
-  if (e && e.parameter && e.parameter.sw) {
-    return serveServiceWorker_();
-  }
+  // NOTE: Service worker removed due to Google Apps Script limitation
+  // Google Apps Script cannot serve JavaScript files with correct MIME type
+  // All responses are served as text/html, which browsers reject for service workers
+  // This means true PWA installation prompts are not available
+  // Users can still use "Add to Home screen" for bookmark-style shortcuts
 
   // Serve images
   if (e && e.parameter && e.parameter.img) {
@@ -310,124 +311,13 @@ function serveManifest_() {
   }
 }
 
-function serveServiceWorker_() {
-  try {
-    // Minimal but valid service worker for PWA installation
-    // This MUST be served with ContentService.MimeType.JAVASCRIPT
-    var swCode = `// Service Worker for Catalogue Web App PWA
-// Version 3.0.0 - Optimized for Google Apps Script
-
-const CACHE_NAME = 'catalogue-v3';
-const ASSETS_TO_CACHE = [
-  // Core app files will be cached as the app runs
-];
-
-// Install event - activate immediately
-self.addEventListener('install', (event) => {
-  console.log('[Service Worker] ✅ Installing version 3.0.0');
-  // Skip waiting to activate immediately
-  self.skipWaiting();
-
-  // Pre-cache essential assets
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Opened cache');
-      return cache.addAll(ASSETS_TO_CACHE).catch((err) => {
-        console.log('[Service Worker] Cache addAll error (expected):', err);
-        // Don't fail installation if caching fails
-        return Promise.resolve();
-      });
-    })
-  );
-});
-
-// Activate event - clean up old caches
-self.addEventListener('activate', (event) => {
-  console.log('[Service Worker] ✅ Activating and taking control');
-
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('[Service Worker] Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(() => {
-      // Take control of all clients immediately
-      return self.clients.claim();
-    })
-  );
-});
-
-// Fetch event - network first, then cache
-self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
-  if (event.request.method !== 'GET') {
-    return;
-  }
-
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // Check if we received a valid response
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
-        }
-
-        // Clone the response for caching
-        const responseToCache = response.clone();
-
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-
-        return response;
-      })
-      .catch(() => {
-        // Network failed, try cache
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            console.log('[Service Worker] Serving from cache:', event.request.url);
-            return cachedResponse;
-          }
-          // No cache available
-          return new Response('Offline - No cached version available', {
-            status: 503,
-            statusText: 'Service Unavailable',
-            headers: new Headers({
-              'Content-Type': 'text/plain'
-            })
-          });
-        });
-      })
-  );
-});
-
-console.log('[Service Worker] ✅ Loaded successfully - Ready for PWA installation');
-`;
-
-    // CRITICAL: Must use JAVASCRIPT MIME type for service workers
-    return ContentService
-      .createTextOutput(swCode)
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
-
-  } catch (err) {
-    Logger.log("Error serving service worker: " + err);
-
-    // Return ultra-minimal service worker on error
-    var minimalSw = `self.addEventListener('install', () => { console.log('[SW] Install'); self.skipWaiting(); });
-self.addEventListener('activate', (e) => { console.log('[SW] Activate'); e.waitUntil(self.clients.claim()); });
-self.addEventListener('fetch', () => { /* Pass through */ });
-console.log('[SW] Minimal worker loaded');`;
-
-    return ContentService
-      .createTextOutput(minimalSw)
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }
-}
+// Service worker function removed - Google Apps Script cannot serve
+// service workers with correct MIME type (serves text/html instead of
+// application/javascript), causing browser security rejection.
+//
+// PWA installation prompts require a valid service worker, which is not
+// possible on Google Apps Script. Users can use "Add to Home screen" for
+// bookmark-style shortcuts instead.
 
 
 /**************************************************

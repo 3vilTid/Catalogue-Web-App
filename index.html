@@ -3597,70 +3597,25 @@
       }
     </style>
 
-    <!-- Service Worker Registration for PWA -->
+    <!-- PWA Configuration Note -->
     <script>
-      // Register Service Worker for full PWA functionality
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          // Get actual browser URL for proper scope matching
-          const actualUrl = window.location.origin + window.location.pathname;
-          const scopeUrl = actualUrl.substring(0, actualUrl.lastIndexOf('/') + 1);
-          const swUrl = actualUrl + '?sw=true';
+      // ============================================
+      // IMPORTANT: Service Worker Limitation
+      // ============================================
+      // Google Apps Script cannot serve service workers with the correct MIME type
+      // (it serves everything as text/html instead of application/javascript).
+      // This means:
+      //   - No true PWA "Install" prompt in Chrome/Edge
+      //   - No offline functionality
+      //   - Users can still use "Add to Home screen" for bookmark-style shortcuts
+      //   - The manifest is still served for basic home screen icon support
+      //
+      // To get full PWA support, the app would need to be hosted on a platform
+      // that can serve static files (GitHub Pages, Netlify, Vercel, etc.)
+      // ============================================
 
-          console.log('🔧 Service Worker Registration:', {
-            actualUrl: actualUrl,
-            scopeUrl: scopeUrl,
-            swUrl: swUrl
-          });
-
-          // Register with scope matching the manifest
-          navigator.serviceWorker.register(swUrl, {
-            scope: scopeUrl
-          })
-            .then((registration) => {
-              console.log('✅ Service Worker registered successfully');
-              console.log('   Scope:', registration.scope);
-              console.log('   State:', registration.active ? registration.active.state : 'installing');
-
-              // Check for updates periodically
-              registration.addEventListener('updatefound', () => {
-                const newWorker = registration.installing;
-                console.log('🔄 Service Worker update found');
-
-                newWorker.addEventListener('statechange', () => {
-                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    console.log('🆕 New Service Worker available - Reload to update');
-                  }
-                });
-              });
-            })
-            .catch((error) => {
-              console.error('❌ Service Worker registration failed:', error);
-              console.error('   URL:', swUrl);
-              console.error('   This may prevent PWA installation');
-            });
-        });
-      } else {
-        console.log('⚠️ Service Worker not supported in this browser');
-      }
-
-      // Handle PWA install prompt
-      window.deferredPrompt = null;
-      window.addEventListener('beforeinstallprompt', (e) => {
-        console.log('💾 PWA install prompt available');
-        // Prevent the mini-infobar from appearing on mobile
-        e.preventDefault();
-        // Store the event so it can be triggered later
-        window.deferredPrompt = e;
-        // Show custom install button/prompt if desired
-        window.showInstallPromotion = true;
-      });
-
-      // Track if app was installed
-      window.addEventListener('appinstalled', () => {
-        console.log('✅ PWA was installed successfully');
-        window.deferredPrompt = null;
-      });
+      console.log('ℹ️ PWA Note: Service worker not available on Google Apps Script');
+      console.log('ℹ️ Use "Add to Home screen" from browser menu for a shortcut');
     </script>
   </head>
 
