@@ -2922,8 +2922,8 @@
         box-sizing: border-box;
       }
 
-      /* Detail view layout - PORTRAIT: Use landscape-style side-by-side layout */
-      body.mobile-device.portrait .detail-layout {
+      /* Detail view layout - PORTRAIT: Use landscape-style side-by-side layout ONLY for Table + Open Detail View */
+      body.mobile-device.portrait #detailView[data-table-open-detail="true"] .detail-layout {
         grid-template-columns: minmax(0, 360px) minmax(0, 1fr) !important;
         gap: 16px;
         width: 100%;
@@ -2931,12 +2931,19 @@
         box-sizing: border-box;
       }
 
-      body.tablet-device.portrait .detail-layout {
+      body.tablet-device.portrait #detailView[data-table-open-detail="true"] .detail-layout {
         grid-template-columns: minmax(0, 375px) minmax(0, 1fr) !important;
         gap: 16px;
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
+      }
+
+      /* Default PORTRAIT mode: Use single-column stacked layout for all other cases */
+      body.mobile-device.portrait #detailView:not([data-table-open-detail="true"]) .detail-layout,
+      body.tablet-device.portrait #detailView:not([data-table-open-detail="true"]) .detail-layout {
+        grid-template-columns: 1fr !important;
+        gap: 16px;
       }
 
       body.mobile-device.portrait .detail-two-column-grid,
@@ -7022,6 +7029,15 @@
         const grid = document.getElementById("gridView");
         det.style.display = "block";
         grid.innerHTML = "";
+
+        // Set data attribute for portrait side-by-side layout ONLY when Type=Table AND Style=Open Detail View
+        const viewType = getMainViewType();
+        const style = getMainStyle();
+        if (viewType === 'table' && style === 'Open Detail View') {
+          det.setAttribute('data-table-open-detail', 'true');
+        } else {
+          det.removeAttribute('data-table-open-detail');
+        }
 
         // Store current detail index for navigation
         if (index !== undefined) {
