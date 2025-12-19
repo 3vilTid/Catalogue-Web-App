@@ -13,67 +13,27 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Catalogue">
 
-    <!-- Manifest (will be dynamically generated) -->
-    <link rel="manifest" href="" id="pwa-manifest">
+    <!-- PWA Manifest - Served from server with proper MIME type -->
+    <script>
+      // Set manifest URL dynamically to use actual browser URL
+      (function() {
+        const actualUrl = window.location.origin + window.location.pathname;
+        const manifestUrl = actualUrl + '?manifest=true';
+
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifestUrl;
+        document.head.appendChild(link);
+
+        console.log('📄 PWA Manifest URL:', manifestUrl);
+      })();
+    </script>
 
     <!-- Icons (using inline SVG data URIs) -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='white'%3EC%3C/text%3E%3C/svg%3E">
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='white'%3EC%3C/text%3E%3C/svg%3E">
 
     <title>Catalogue</title>
-
-    <!-- PWA Manifest Generation - Uses actual browser URL for proper installation -->
-    <script>
-      (function() {
-        // Get the actual URL the browser sees (after all redirects)
-        const actualUrl = window.location.origin + window.location.pathname;
-
-        // Create manifest using the actual browser URL
-        const manifest = {
-          "name": "Catalogue Web App",
-          "short_name": "Catalogue",
-          "description": "Catalogue web application for managing and browsing items",
-          "start_url": actualUrl,
-          "scope": actualUrl.substring(0, actualUrl.lastIndexOf('/') + 1),
-          "display": "standalone",
-          "orientation": "any",
-          "theme_color": "#4CAF50",
-          "background_color": "#ffffff",
-          "prefer_related_applications": false,
-          "icons": [
-            {
-              "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='white'%3EC%3C/text%3E%3C/svg%3E",
-              "sizes": "192x192",
-              "type": "image/svg+xml",
-              "purpose": "any maskable"
-            },
-            {
-              "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%234CAF50' width='512' height='512'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='320' fill='white'%3EC%3C/text%3E%3C/svg%3E",
-              "sizes": "512x512",
-              "type": "image/svg+xml",
-              "purpose": "any maskable"
-            }
-          ],
-          "categories": ["productivity", "utilities"]
-        };
-
-        // Create blob URL for the manifest
-        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-        const manifestURL = URL.createObjectURL(manifestBlob);
-
-        // Update the manifest link
-        const manifestLink = document.getElementById('pwa-manifest');
-        if (manifestLink) {
-          manifestLink.href = manifestURL;
-        }
-
-        console.log('📄 PWA Manifest generated with URLs:', {
-          actualUrl: actualUrl,
-          scope: manifest.scope,
-          start_url: manifest.start_url
-        });
-      })();
-    </script>
 
     <!-- CRITICAL: Device Detection - Must run FIRST in head -->
     <script>
@@ -3637,12 +3597,52 @@
       }
     </style>
 
-    <!-- PWA Setup -->
+    <!-- Service Worker Registration for PWA -->
     <script>
-      // PWA functionality without Service Worker
-      // Note: Service Workers are not supported on Google Apps Script due to MIME type limitations
-      // The app can still be installed as a PWA using the manifest file
-      console.log('📱 PWA enabled via manifest (Service Worker not available on Google Apps Script)');
+      // Register Service Worker for full PWA functionality
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          // Get actual browser URL for proper scope matching
+          const actualUrl = window.location.origin + window.location.pathname;
+          const scopeUrl = actualUrl.substring(0, actualUrl.lastIndexOf('/') + 1);
+          const swUrl = actualUrl + '?sw=true';
+
+          console.log('🔧 Service Worker Registration:', {
+            actualUrl: actualUrl,
+            scopeUrl: scopeUrl,
+            swUrl: swUrl
+          });
+
+          // Register with scope matching the manifest
+          navigator.serviceWorker.register(swUrl, {
+            scope: scopeUrl
+          })
+            .then((registration) => {
+              console.log('✅ Service Worker registered successfully');
+              console.log('   Scope:', registration.scope);
+              console.log('   State:', registration.active ? registration.active.state : 'installing');
+
+              // Check for updates periodically
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                console.log('🔄 Service Worker update found');
+
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('🆕 New Service Worker available - Reload to update');
+                  }
+                });
+              });
+            })
+            .catch((error) => {
+              console.error('❌ Service Worker registration failed:', error);
+              console.error('   URL:', swUrl);
+              console.error('   This may prevent PWA installation');
+            });
+        });
+      } else {
+        console.log('⚠️ Service Worker not supported in this browser');
+      }
 
       // Handle PWA install prompt
       window.deferredPrompt = null;
