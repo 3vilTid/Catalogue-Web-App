@@ -13,14 +13,67 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Catalogue">
 
-    <!-- Manifest -->
-    <link rel="manifest" href="<?!= ScriptApp.getService().getUrl() ?>?manifest=true">
+    <!-- Manifest (will be dynamically generated) -->
+    <link rel="manifest" href="" id="pwa-manifest">
 
     <!-- Icons (using inline SVG data URIs) -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='white'%3EC%3C/text%3E%3C/svg%3E">
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='white'%3EC%3C/text%3E%3C/svg%3E">
 
     <title>Catalogue</title>
+
+    <!-- PWA Manifest Generation - Uses actual browser URL for proper installation -->
+    <script>
+      (function() {
+        // Get the actual URL the browser sees (after all redirects)
+        const actualUrl = window.location.origin + window.location.pathname;
+
+        // Create manifest using the actual browser URL
+        const manifest = {
+          "name": "Catalogue Web App",
+          "short_name": "Catalogue",
+          "description": "Catalogue web application for managing and browsing items",
+          "start_url": actualUrl,
+          "scope": actualUrl.substring(0, actualUrl.lastIndexOf('/') + 1),
+          "display": "standalone",
+          "orientation": "any",
+          "theme_color": "#4CAF50",
+          "background_color": "#ffffff",
+          "prefer_related_applications": false,
+          "icons": [
+            {
+              "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='white'%3EC%3C/text%3E%3C/svg%3E",
+              "sizes": "192x192",
+              "type": "image/svg+xml",
+              "purpose": "any maskable"
+            },
+            {
+              "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%234CAF50' width='512' height='512'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='320' fill='white'%3EC%3C/text%3E%3C/svg%3E",
+              "sizes": "512x512",
+              "type": "image/svg+xml",
+              "purpose": "any maskable"
+            }
+          ],
+          "categories": ["productivity", "utilities"]
+        };
+
+        // Create blob URL for the manifest
+        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+        const manifestURL = URL.createObjectURL(manifestBlob);
+
+        // Update the manifest link
+        const manifestLink = document.getElementById('pwa-manifest');
+        if (manifestLink) {
+          manifestLink.href = manifestURL;
+        }
+
+        console.log('📄 PWA Manifest generated with URLs:', {
+          actualUrl: actualUrl,
+          scope: manifest.scope,
+          start_url: manifest.start_url
+        });
+      })();
+    </script>
 
     <!-- CRITICAL: Device Detection - Must run FIRST in head -->
     <script>
@@ -3589,12 +3642,20 @@
       // Register Service Worker for PWA functionality
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          const baseUrl = '<?!= ScriptApp.getService().getUrl() ?>';
-          const swUrl = baseUrl + '?sw=true';
+          // Use the actual browser URL to ensure scope matches manifest
+          const actualUrl = window.location.origin + window.location.pathname;
+          const scopeUrl = actualUrl.substring(0, actualUrl.lastIndexOf('/') + 1);
+          const swUrl = actualUrl + '?sw=true';
 
-          // Register with explicit scope pointing to the base URL
+          console.log('🔧 Service Worker setup:', {
+            actualUrl: actualUrl,
+            scopeUrl: scopeUrl,
+            swUrl: swUrl
+          });
+
+          // Register with scope matching the manifest
           navigator.serviceWorker.register(swUrl, {
-            scope: baseUrl + '/'
+            scope: scopeUrl
           })
             .then((registration) => {
               console.log('✅ Service Worker registered successfully');

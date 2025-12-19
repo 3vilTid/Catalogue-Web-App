@@ -267,12 +267,13 @@ function serveManifest_() {
       "name": appName,
       "short_name": catalogName,
       "description": catalogName + " web application for managing and browsing items",
-      "start_url": baseUrl,
-      "scope": baseUrl,
+      "start_url": baseUrl + "/",
+      "scope": baseUrl + "/",
       "display": "standalone",
       "orientation": "any",
       "theme_color": "#4CAF50",
       "background_color": "#ffffff",
+      "prefer_related_applications": false,
       "icons": [
         {
           "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='white'%3EC%3C/text%3E%3C/svg%3E",
