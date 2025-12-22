@@ -1654,7 +1654,18 @@
         touch-action: pan-y pan-x;
       }
 
+      #imgOverlayTransform {
+        position: relative;
+        display: inline-block;
+        /* Enable smooth zoom transforms */
+        transform-origin: center center;
+        will-change: transform;
+        /* Prevent default pinch-zoom behavior - we handle it with JS */
+        touch-action: none;
+      }
+
       #imgOverlayImg {
+        display: block;
         max-width: calc(100vw - 40px);
         max-height: calc(100vh - 40px);
         object-fit: contain;
@@ -1663,9 +1674,6 @@
         cursor: zoom-in;
         /* Prevent default pinch-zoom behavior - we handle it with JS */
         touch-action: none;
-        /* Enable smooth zoom transforms */
-        transform-origin: center center;
-        will-change: transform;
       }
 
       #imgOverlayClose {
@@ -1679,6 +1687,9 @@
         color: #e5e7eb;
         font-size: 16px;
         cursor: pointer;
+        /* Keep button at normal size when parent is scaled */
+        transform: scale(var(--close-btn-scale, 1));
+        transform-origin: top right;
       }
 
       #imgOverlayClose:hover {
@@ -3928,8 +3939,10 @@
     <!-- Fullscreen image viewer -->
     <div id="imgOverlay">
       <div id="imgOverlayInner">
-        <img id="imgOverlayImg" alt="Full size">
-        <button id="imgOverlayClose">✕</button>
+        <div id="imgOverlayTransform">
+          <img id="imgOverlayImg" alt="Full size">
+          <button id="imgOverlayClose">✕</button>
+        </div>
       </div>
     </div>
 
@@ -7917,8 +7930,8 @@
       };
 
       function resetImageZoom() {
-        const img = document.getElementById("imgOverlayImg");
-        if (!img) return;
+        const transform = document.getElementById("imgOverlayTransform");
+        if (!transform) return;
         imageZoomState = {
           scale: 1,
           translateX: 0,
@@ -7927,13 +7940,14 @@
           initialScale: 1,
           lastTap: 0
         };
-        img.style.transform = "scale(1) translate(0, 0)";
-        img.style.transition = "transform 0.3s ease";
+        transform.style.transform = "scale(1) translate(0, 0)";
+        transform.style.transition = "transform 0.3s ease";
+        transform.style.setProperty('--close-btn-scale', 1);
       }
 
       function applyImageTransform(smooth = false) {
-        const img = document.getElementById("imgOverlayImg");
-        if (!img) return;
+        const transform = document.getElementById("imgOverlayTransform");
+        if (!transform) return;
 
         // Constrain scale between 1x and 5x
         imageZoomState.scale = Math.max(1, Math.min(5, imageZoomState.scale));
@@ -7944,12 +7958,14 @@
         }
 
         if (smooth) {
-          img.style.transition = "transform 0.3s ease";
+          transform.style.transition = "transform 0.3s ease";
         } else {
-          img.style.transition = "none";
+          transform.style.transition = "none";
         }
 
-        img.style.transform = `scale(${imageZoomState.scale}) translate(${imageZoomState.translateX}px, ${imageZoomState.translateY}px)`;
+        transform.style.transform = `scale(${imageZoomState.scale}) translate(${imageZoomState.translateX}px, ${imageZoomState.translateY}px)`;
+        // Counter-scale the close button to keep it at normal size
+        transform.style.setProperty('--close-btn-scale', 1 / imageZoomState.scale);
       }
 
       function getDistance(touch1, touch2) {
@@ -7959,11 +7975,11 @@
       }
 
       function setupImageZoom() {
-        const img = document.getElementById("imgOverlayImg");
-        if (!img) return;
+        const transform = document.getElementById("imgOverlayTransform");
+        if (!transform) return;
 
         // Pinch zoom handling
-        img.addEventListener("touchstart", (e) => {
+        transform.addEventListener("touchstart", (e) => {
           if (e.touches.length === 2) {
             e.preventDefault();
             imageZoomState.initialDistance = getDistance(e.touches[0], e.touches[1]);
@@ -7988,7 +8004,7 @@
           }
         });
 
-        img.addEventListener("touchmove", (e) => {
+        transform.addEventListener("touchmove", (e) => {
           if (e.touches.length === 2) {
             e.preventDefault();
             const currentDistance = getDistance(e.touches[0], e.touches[1]);
@@ -8012,7 +8028,7 @@
           }
         });
 
-        img.addEventListener("touchend", (e) => {
+        transform.addEventListener("touchend", (e) => {
           if (e.touches.length < 2) {
             imageZoomState.initialDistance = 0;
             imageZoomState.lastTouchX = null;
