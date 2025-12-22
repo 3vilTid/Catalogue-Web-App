@@ -37,6 +37,10 @@
 
     <!-- CRITICAL: Device Detection - Must run FIRST in head -->
     <script>
+      // Global pinch-zoom state (must be declared early for resize handler)
+      let isPinchZooming = false;
+      let pendingOrientationUpdate = null;
+
       (function() {
         const ua = navigator.userAgent || navigator.vendor || window.opera;
         const touchPoints = navigator.maxTouchPoints || 0;
@@ -79,6 +83,15 @@
         // Define orientation function
         function updateOrientation() {
           if (!document.body) return;
+
+          // CRITICAL: Skip during pinch-zoom to prevent lag
+          // Resize events fire continuously during zoom, causing expensive reflows
+          if (isPinchZooming) {
+            // Queue update to run once after zoom completes
+            pendingOrientationUpdate = true;
+            return;
+          }
+
           document.body.classList.remove('landscape', 'portrait');
           const isLandscape = window.innerWidth > window.innerHeight;
           if (isLandscape) {
@@ -4315,7 +4328,7 @@
 
       // ==================== LAZY LOADING WITH INTERSECTION OBSERVER ====================
       let imageObserver = null;
-      let isPinchZooming = false;
+      // isPinchZooming is now declared globally at the top of the file
       let observerPaused = false;
       let pendingObserverResume = null;
 
@@ -4377,6 +4390,12 @@
             pendingObserverResume = setTimeout(() => {
               observerPaused = false;
               pendingObserverResume = null;
+
+              // Execute pending orientation update if queued during zoom
+              if (pendingOrientationUpdate) {
+                pendingOrientationUpdate = false;
+                updateOrientation();
+              }
             }, 300); // Wait for zoom animation to finish
           }
         }, { passive: true });
@@ -4392,6 +4411,12 @@
           pendingObserverResume = setTimeout(() => {
             observerPaused = false;
             pendingObserverResume = null;
+
+            // Execute pending orientation update if queued during zoom
+            if (pendingOrientationUpdate) {
+              pendingOrientationUpdate = false;
+              updateOrientation();
+            }
           }, 300);
         }, { passive: true });
       }
