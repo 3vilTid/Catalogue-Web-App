@@ -4315,22 +4315,28 @@
 
       // ==================== LAZY LOADING WITH INTERSECTION OBSERVER ====================
       let imageObserver = null;
+      let isPinchZooming = false;
+      let observerPaused = false;
+      let pendingObserverResume = null;
 
       function setupLazyLoading() {
         if ('IntersectionObserver' in window) {
           imageObserver = new IntersectionObserver((entries) => {
+            // Skip processing during pinch-zoom to prevent image load blocking
+            if (isPinchZooming || observerPaused) return;
+
             entries.forEach(entry => {
               if (entry.isIntersecting) {
                 const wrapper = entry.target;
                 const fileId = wrapper.dataset.fileId;
                 const rawUrl = wrapper.dataset.rawUrl;
-                
+
                 if (fileId) {
                   loadImageViaProxy(fileId, wrapper);
                 } else if (rawUrl) {
                   loadDirectImage(rawUrl, wrapper);
                 }
-                
+
                 imageObserver.unobserve(wrapper);
               }
             });
@@ -4338,6 +4344,56 @@
             rootMargin: '50px' // Start loading 50px before image enters viewport
           });
         }
+      }
+
+      // Detect and pause image loading during pinch-zoom gestures
+      function setupPinchZoomDetection() {
+        let activeTouches = 0;
+
+        document.addEventListener('touchstart', function(e) {
+          activeTouches = e.touches.length;
+
+          // Multi-touch detected (pinch-zoom)
+          if (activeTouches >= 2) {
+            isPinchZooming = true;
+            observerPaused = true;
+
+            // Clear any pending resume
+            if (pendingObserverResume) {
+              clearTimeout(pendingObserverResume);
+              pendingObserverResume = null;
+            }
+          }
+        }, { passive: true });
+
+        document.addEventListener('touchend', function(e) {
+          activeTouches = e.touches.length;
+
+          // All fingers lifted - resume image loading after brief delay
+          if (activeTouches === 0 && isPinchZooming) {
+            isPinchZooming = false;
+
+            // Resume observer after zoom gesture completes
+            pendingObserverResume = setTimeout(() => {
+              observerPaused = false;
+              pendingObserverResume = null;
+            }, 300); // Wait for zoom animation to finish
+          }
+        }, { passive: true });
+
+        document.addEventListener('touchcancel', function(e) {
+          // Reset on cancel
+          activeTouches = 0;
+          isPinchZooming = false;
+
+          if (pendingObserverResume) {
+            clearTimeout(pendingObserverResume);
+          }
+          pendingObserverResume = setTimeout(() => {
+            observerPaused = false;
+            pendingObserverResume = null;
+          }, 300);
+        }, { passive: true });
       }
 
       // -------------------- State --------------------
@@ -8340,6 +8396,9 @@
 
         // Setup lazy loading
         setupLazyLoading();
+
+        // Setup pinch-zoom detection to prevent image loading during zoom
+        setupPinchZoomDetection();
 
         // First, check app mode (public or private)
         google.script.run
