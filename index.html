@@ -230,6 +230,16 @@
         touch-action: manipulation;
       }
 
+      /* CRITICAL: Disable expensive visual effects during pinch-zoom to eliminate lag
+         backdrop-filter is extremely costly - requires rendering, blurring, and re-rendering
+         on every frame. Disabling during zoom provides instant, smooth pinch-zoom. */
+      body.pinch-zooming .top-header,
+      body.pinch-zooming .bottom-bar,
+      body.pinch-zooming .modal-overlay,
+      body.pinch-zooming .detail-view-overlay {
+        backdrop-filter: none !important;
+      }
+
       .shell {
         max-width: 100%;
         width: 100%;
@@ -4371,6 +4381,9 @@
             isPinchZooming = true;
             observerPaused = true;
 
+            // Add class to body to disable expensive visual effects
+            document.body.classList.add('pinch-zooming');
+
             // Clear any pending resume
             if (pendingObserverResume) {
               clearTimeout(pendingObserverResume);
@@ -4385,6 +4398,9 @@
           // All fingers lifted - resume image loading after brief delay
           if (activeTouches === 0 && isPinchZooming) {
             isPinchZooming = false;
+
+            // Remove class immediately for instant visual restoration
+            document.body.classList.remove('pinch-zooming');
 
             // Resume observer after zoom gesture completes
             pendingObserverResume = setTimeout(() => {
@@ -4404,6 +4420,9 @@
           // Reset on cancel
           activeTouches = 0;
           isPinchZooming = false;
+
+          // Remove class immediately
+          document.body.classList.remove('pinch-zooming');
 
           if (pendingObserverResume) {
             clearTimeout(pendingObserverResume);
