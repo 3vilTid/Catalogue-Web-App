@@ -230,13 +230,15 @@
         touch-action: manipulation;
       }
 
-      /* CRITICAL: Disable expensive visual effects during pinch-zoom to eliminate lag
-         backdrop-filter is extremely costly - requires rendering, blurring, and re-rendering
-         on every frame. Disabling during zoom provides instant, smooth pinch-zoom. */
-      body.pinch-zooming .top-header,
-      body.pinch-zooming .bottom-bar,
-      body.pinch-zooming .modal-overlay,
-      body.pinch-zooming .detail-view-overlay {
+      /* CRITICAL: Disable ALL expensive visual effects during pinch-zoom to eliminate lag
+         During pinch-zoom, the browser recalculates expensive CSS properties on every frame.
+         We disable transitions, box-shadows, filters, animations, and backdrop-filters to
+         ensure instant, smooth native browser zoom with zero lag. */
+      body.pinch-zooming * {
+        transition: none !important;
+        animation: none !important;
+        box-shadow: none !important;
+        filter: none !important;
         backdrop-filter: none !important;
       }
 
