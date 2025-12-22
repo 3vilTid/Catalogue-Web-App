@@ -214,8 +214,8 @@
         );
         color: var(--text-main);
         min-height: 100vh;
-        /* Enable instant pinch-zoom and panning everywhere (no double-tap delay) */
-        touch-action: manipulation;
+        /* Disable pinch-zoom globally for instant responsiveness (enabled only in fullscreen viewer) */
+        touch-action: pan-y pan-x;
       }
 
       .shell {
@@ -1641,6 +1641,8 @@
         align-items: center;
         justify-content: center;
         z-index: 999;
+        /* Enable pinch-zoom for fullscreen image viewing */
+        touch-action: pinch-zoom pan-y pan-x;
       }
 
       #imgOverlayInner {
@@ -1657,6 +1659,8 @@
         border-radius: 20px;
         box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
         cursor: zoom-out;
+        /* Enable pinch-zoom on the image itself */
+        touch-action: pinch-zoom pan-y pan-x;
       }
 
       #imgOverlayClose {
