@@ -37,10 +37,6 @@
 
     <!-- CRITICAL: Device Detection - Must run FIRST in head -->
     <script>
-      // Global pinch-zoom state (must be declared early for resize handler)
-      let isPinchZooming = false;
-      let pendingOrientationUpdate = null;
-
       (function() {
         const ua = navigator.userAgent || navigator.vendor || window.opera;
         const touchPoints = navigator.maxTouchPoints || 0;
@@ -83,14 +79,6 @@
         // Define orientation function
         function updateOrientation() {
           if (!document.body) return;
-
-          // CRITICAL: Skip during pinch-zoom to prevent lag
-          // Resize events fire continuously during zoom, causing expensive reflows
-          if (isPinchZooming) {
-            // Queue update to run once after zoom completes
-            pendingOrientationUpdate = true;
-            return;
-          }
 
           document.body.classList.remove('landscape', 'portrait');
           const isLandscape = window.innerWidth > window.innerHeight;
@@ -228,39 +216,6 @@
         min-height: 100vh;
         /* Enable instant pinch-zoom and panning everywhere (no double-tap delay) */
         touch-action: manipulation;
-      }
-
-      /* CRITICAL: Optimize for instant pinch-zoom with zero lag
-         During pinch-zoom, the browser needs to:
-         1. Quickly determine it's a zoom gesture (not scroll/pan)
-         2. Minimize layout recalculations
-         3. Disable expensive visual effects that recalculate on every frame
-
-         Solutions implemented:
-         - Force GPU compositing with will-change and transforms
-         - Disable transitions, animations, shadows, filters
-         - Use CSS containment to isolate repaints
-         - Disable fixed positioning during zoom (forces expensive recalcs) */
-      body.pinch-zooming {
-        /* Force GPU layer to make zoom hardware-accelerated */
-        will-change: transform;
-        transform: translateZ(0);
-      }
-
-      body.pinch-zooming * {
-        /* Disable all expensive visual effects */
-        transition: none !important;
-        animation: none !important;
-        box-shadow: none !important;
-        filter: none !important;
-        backdrop-filter: none !important;
-
-        /* CRITICAL: Disable fixed/sticky positioning during zoom
-           Fixed elements force expensive recalculations on every zoom frame */
-        position: static !important;
-
-        /* Optimize rendering with CSS containment */
-        contain: layout style paint;
       }
 
       .shell {
@@ -4361,15 +4316,10 @@
 
       // ==================== LAZY LOADING WITH INTERSECTION OBSERVER ====================
       let imageObserver = null;
-      // isPinchZooming is now declared globally at the top of the file
-      let observerPaused = false;
-      let pendingObserverResume = null;
 
       function setupLazyLoading() {
         if ('IntersectionObserver' in window) {
           imageObserver = new IntersectionObserver((entries) => {
-            // Skip processing during pinch-zoom to prevent image load blocking
-            if (isPinchZooming || observerPaused) return;
 
             entries.forEach(entry => {
               if (entry.isIntersecting) {
@@ -4392,98 +4342,6 @@
         }
       }
 
-      // Detect and pause image loading during pinch-zoom gestures
-      function setupPinchZoomDetection() {
-        let activeTouches = 0;
-
-        // Enable pinch-zoom optimizations (called from multiple event types)
-        function enableZoomMode() {
-          if (!isPinchZooming) {
-            isPinchZooming = true;
-            observerPaused = true;
-
-            // Add class to body to disable expensive visual effects
-            document.body.classList.add('pinch-zooming');
-
-            // Clear any pending resume
-            if (pendingObserverResume) {
-              clearTimeout(pendingObserverResume);
-              pendingObserverResume = null;
-            }
-
-            console.log('🔍 Pinch-zoom mode enabled');
-          }
-        }
-
-        // CRITICAL: Listen for iOS/Safari gesturestart event
-        // This fires EARLIER than touchstart with 2 fingers, giving us more time to optimize
-        document.addEventListener('gesturestart', function(e) {
-          console.log('👆 gesturestart detected (native pinch gesture)');
-          enableZoomMode();
-        }, { passive: true });
-
-        // Also listen for gesturechange and gestureend for completeness
-        document.addEventListener('gesturechange', function(e) {
-          enableZoomMode();
-        }, { passive: true });
-
-        document.addEventListener('touchstart', function(e) {
-          activeTouches = e.touches.length;
-
-          // Multi-touch detected (pinch-zoom)
-          if (activeTouches >= 2) {
-            enableZoomMode();
-          }
-        }, { passive: true });
-
-        // Disable pinch-zoom optimizations
-        function disableZoomMode() {
-          if (isPinchZooming) {
-            isPinchZooming = false;
-
-            // Remove class immediately for instant visual restoration
-            document.body.classList.remove('pinch-zooming');
-
-            // Resume observer after zoom gesture completes
-            if (pendingObserverResume) {
-              clearTimeout(pendingObserverResume);
-            }
-            pendingObserverResume = setTimeout(() => {
-              observerPaused = false;
-              pendingObserverResume = null;
-
-              // Execute pending orientation update if queued during zoom
-              if (pendingOrientationUpdate) {
-                pendingOrientationUpdate = false;
-                updateOrientation();
-              }
-            }, 300); // Wait for zoom animation to finish
-
-            console.log('🔍 Pinch-zoom mode disabled');
-          }
-        }
-
-        // Listen for gesture end on iOS/Safari
-        document.addEventListener('gestureend', function(e) {
-          console.log('👆 gestureend detected');
-          disableZoomMode();
-        }, { passive: true });
-
-        document.addEventListener('touchend', function(e) {
-          activeTouches = e.touches.length;
-
-          // All fingers lifted - resume image loading after brief delay
-          if (activeTouches === 0) {
-            disableZoomMode();
-          }
-        }, { passive: true });
-
-        document.addEventListener('touchcancel', function(e) {
-          // Reset on cancel
-          activeTouches = 0;
-          disableZoomMode();
-        }, { passive: true });
-      }
 
       // -------------------- State --------------------
       let allItems = [];
@@ -8485,9 +8343,6 @@
 
         // Setup lazy loading
         setupLazyLoading();
-
-        // Setup pinch-zoom detection to prevent image loading during zoom
-        setupPinchZoomDetection();
 
         // First, check app mode (public or private)
         google.script.run
