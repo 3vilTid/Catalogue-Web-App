@@ -3940,8 +3940,8 @@
       <div id="imgOverlayInner">
         <div id="imgOverlayTransform">
           <img id="imgOverlayImg" alt="Full size">
+          <button id="imgOverlayClose">✕</button>
         </div>
-        <button id="imgOverlayClose">✕</button>
       </div>
     </div>
 
@@ -7928,26 +7928,6 @@
         lastTap: 0
       };
 
-      function updateCloseButtonPosition() {
-        const closeBtn = document.getElementById("imgOverlayClose");
-        const transform = document.getElementById("imgOverlayTransform");
-        const img = document.getElementById("imgOverlayImg");
-        const inner = document.getElementById("imgOverlayInner");
-
-        if (!closeBtn || !transform || !img || !inner) return;
-
-        // Get the image dimensions
-        const imgRect = img.getBoundingClientRect();
-        const innerRect = inner.getBoundingClientRect();
-
-        // Calculate position relative to imgOverlayInner
-        const top = imgRect.top - innerRect.top + 12;
-        const right = innerRect.right - imgRect.right + 12;
-
-        closeBtn.style.top = `${top}px`;
-        closeBtn.style.right = `${right}px`;
-      }
-
       function resetImageZoom() {
         const transform = document.getElementById("imgOverlayTransform");
         if (!transform) return;
@@ -7961,7 +7941,6 @@
         };
         transform.style.transform = "scale(1) translate(0, 0)";
         transform.style.transition = "transform 0.3s ease";
-        updateCloseButtonPosition();
       }
 
       function applyImageTransform(smooth = false) {
@@ -7983,12 +7962,6 @@
         }
 
         transform.style.transform = `scale(${imageZoomState.scale}) translate(${imageZoomState.translateX}px, ${imageZoomState.translateY}px)`;
-
-        // Update close button position to follow the image
-        // Use requestAnimationFrame to ensure the transform has been applied
-        requestAnimationFrame(() => {
-          updateCloseButtonPosition();
-        });
       }
 
       function getDistance(touch1, touch2) {
@@ -8076,10 +8049,6 @@
         document.body.style.overflow = "hidden";
         // Reset zoom state for new image
         resetImageZoom();
-        // Wait for image to load before positioning button
-        img.onload = () => {
-          updateCloseButtonPosition();
-        };
       }
 
       function closeImageFullscreen() {
