@@ -7888,11 +7888,15 @@
         if (!overlay || !img || !src) return;
         img.src = src;
         overlay.style.display = "flex";
+        // Enable pinch-zoom on body when fullscreen viewer is open
+        document.body.style.touchAction = "pinch-zoom pan-y pan-x";
       }
 
       function closeImageFullscreen() {
         const overlay = document.getElementById("imgOverlay");
         if (overlay) overlay.style.display = "none";
+        // Restore pan-only touch action when fullscreen viewer is closed
+        document.body.style.touchAction = "pan-y pan-x";
       }
 
       // -------------------- Filter & Sort Dropdowns --------------------
