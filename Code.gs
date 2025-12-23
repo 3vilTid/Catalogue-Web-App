@@ -120,9 +120,20 @@ function getColumnConfigSheet_() {
  * Column Configuration
  **************************************************/
 
-function getColumnConfig() {
+/**
+ * Get column configuration from specified sheet
+ * @param {string} sheetName - Name of the ColumnConfig sheet (default: 'ColumnConfig')
+ */
+function getColumnConfig(sheetName) {
+  sheetName = sheetName || 'ColumnConfig';
   try {
-    var sh = getColumnConfigSheet_();
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sh = ss.getSheetByName(sheetName);
+
+    if (!sh) {
+      Logger.log("ColumnConfig sheet '" + sheetName + "' not found");
+      return [];
+    }
     var data = sh.getDataRange().getValues();
 
     if (data.length < 2) return [];
@@ -179,6 +190,17 @@ function getColumnConfig() {
  **************************************************/
 
 function doGet(e) {
+  // Serve PWA manifest
+  if (e && e.parameter && e.parameter.manifest) {
+    return serveManifest_();
+  }
+
+  // NOTE: Service worker removed due to Google Apps Script limitation
+  // Google Apps Script cannot serve JavaScript files with correct MIME type
+  // All responses are served as text/html, which browsers reject for service workers
+  // This means true PWA installation prompts are not available
+  // Users can still use "Add to Home screen" for bookmark-style shortcuts
+
   // Serve images
   if (e && e.parameter && e.parameter.img) {
     return serveImage_(e.parameter.img);
@@ -231,6 +253,74 @@ function serveImage_(fileId) {
 }
 
 /**************************************************
+ * PWA Manifest
+ **************************************************/
+
+function serveManifest_() {
+  try {
+    var settings = getSettings();
+    var appName = settings.appName || "Catalogue Web App";
+    var catalogName = settings.catalogName || "Catalogue";
+
+    var baseUrl = ScriptApp.getService().getUrl();
+
+    var manifest = {
+      "name": appName,
+      "short_name": catalogName,
+      "description": catalogName + " web application for managing and browsing items",
+      "start_url": baseUrl + "/",
+      "scope": baseUrl + "/",
+      "display": "standalone",
+      "orientation": "any",
+      "theme_color": "#4CAF50",
+      "background_color": "#ffffff",
+      "prefer_related_applications": false,
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='white'%3EC%3C/text%3E%3C/svg%3E",
+          "sizes": "192x192",
+          "type": "image/svg+xml",
+          "purpose": "any maskable"
+        },
+        {
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%234CAF50' width='512' height='512'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='320' fill='white'%3EC%3C/text%3E%3C/svg%3E",
+          "sizes": "512x512",
+          "type": "image/svg+xml",
+          "purpose": "any maskable"
+        }
+      ],
+      "categories": ["productivity", "utilities"],
+      "screenshots": []
+    };
+
+    return ContentService
+      .createTextOutput(JSON.stringify(manifest))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    Logger.log("Error serving manifest: " + err);
+    var errorManifest = {
+      "name": "Catalogue",
+      "short_name": "Catalogue",
+      "display": "standalone"
+    };
+
+    return ContentService
+      .createTextOutput(JSON.stringify(errorManifest))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// Service worker function removed - Google Apps Script cannot serve
+// service workers with correct MIME type (serves text/html instead of
+// application/javascript), causing browser security rejection.
+//
+// PWA installation prompts require a valid service worker, which is not
+// possible on Google Apps Script. Users can use "Add to Home screen" for
+// bookmark-style shortcuts instead.
+
+
+/**************************************************
  * UI Serving (No Access Control)
  **************************************************/
 
@@ -242,7 +332,9 @@ function serveUi_(e) {
  * Settings
  **************************************************/
 
-function getSettings() {
+function getSettings(layersSheetName) {
+  layersSheetName = layersSheetName || 'Layers'; // Default to 'Layers' if not specified
+
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName("Settings");
   if (!sh) {
@@ -273,8 +365,8 @@ function getSettings() {
   var appMode = sh.getRange("I2").getDisplayValue() || "Private with Profiles";
   var backgroundImageUrl = sh.getRange("I5").getDisplayValue() || "";
 
-  // Get Layers sheet for layer-specific settings
-  var layersSheet = ss.getSheetByName("Layers");
+  // Get Layers sheet for layer-specific settings (use the specified sheet name)
+  var layersSheet = ss.getSheetByName(layersSheetName);
 
   // Read view types for each layer and main items from Layers sheet
   var layer1View = layersSheet ? (layersSheet.getRange("D2").getDisplayValue() || "Cards") : "Cards";
@@ -309,16 +401,66 @@ function getSettings() {
 }
 
 /**
- * Get layer configuration from Layers sheet
- * Hardcoded to read from B2:C4 (Layer 1, 2, 3)
+ * Read tabs configuration from Settings sheet (rows 10-20)
+ * Returns array of tab objects, skipping empty rows
  */
-function getLayerConfig() {
+function getTabsConfig() {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var layersSheet = ss.getSheetByName("Layers");
+    var settingsSheet = ss.getSheetByName('Settings');
+
+    if (!settingsSheet) {
+      Logger.log('Settings sheet not found');
+      return [];
+    }
+
+    // Read tab configuration from B11:E20 (data rows, skipping header in row 10)
+    var tabRange = settingsSheet.getRange('B11:E20');
+    var tabValues = tabRange.getValues();
+
+    var tabsConfig = [];
+
+    for (var i = 0; i < tabValues.length; i++) {
+      var row = tabValues[i];
+      var tabName = row[0]; // Column B
+      var layersSheetName = row[1]; // Column C
+      var mainSheetName = row[2]; // Column D
+      var columnConfigSheetName = row[3]; // Column E
+
+      // Skip empty rows (check if tab name is empty)
+      if (!tabName || tabName.toString().trim() === '') {
+        continue;
+      }
+
+      tabsConfig.push({
+        tabName: tabName.toString().trim(),
+        layersSheetName: layersSheetName ? layersSheetName.toString().trim() : '',
+        mainSheetName: mainSheetName ? mainSheetName.toString().trim() : '',
+        columnConfigSheetName: columnConfigSheetName ? columnConfigSheetName.toString().trim() : ''
+      });
+    }
+
+    Logger.log('Tabs config loaded: ' + tabsConfig.length + ' tabs');
+    return tabsConfig;
+  } catch (e) {
+    Logger.log('Error getting tabs config: ' + e.toString());
+    return [];
+  }
+}
+
+/**
+ * Get layer configuration from Layers sheet
+ * Hardcoded to read from B2:C4 (Layer 1, 2, 3)
+ * @param {string} sheetName - Name of the Layers sheet (default: 'Layers')
+ */
+function getLayerConfig(sheetName) {
+  sheetName = sheetName || 'Layers';
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var layersSheet = ss.getSheetByName(sheetName);
 
     if (!layersSheet) {
-      Logger.log("✗ Layers sheet not found");
+      Logger.log("✗ Layers sheet '" + sheetName + "' not found");
       return [];
     }
 
@@ -361,14 +503,17 @@ function getLayerConfig() {
 /**
  * Get layer data from Layers sheet
  * Searches flexibly for layer table by name in ANY column
+ * @param {string} layerName - Name of the layer (e.g., "Layer 1")
+ * @param {string} sheetName - Name of the Layers sheet (default: 'Layers')
  */
-function getLayerData(layerName) {
+function getLayerData(layerName, sheetName) {
+  sheetName = sheetName || 'Layers';
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var layersSheet = ss.getSheetByName("Layers");
+    var layersSheet = ss.getSheetByName(sheetName);
 
     if (!layersSheet) {
-      Logger.log("✗ Layers sheet not found");
+      Logger.log("✗ Layers sheet '" + sheetName + "' not found");
       return [];
     }
 
@@ -682,15 +827,30 @@ function logout(token) {
  **************************************************/
 
 function getInitialData(token) {
-  // Get layer configuration
-  var layerConfig = getLayerConfig();
+  // Get tabs configuration
+  var tabsConfig = getTabsConfig();
+
+  // Determine which sheets to use for initial load
+  var layersSheetName = 'Layers'; // Default
+  var mainSheetName = 'Main'; // Default
+  var columnConfigSheetName = 'ColumnConfig'; // Default
+
+  if (tabsConfig.length > 0) {
+    var firstTab = tabsConfig[0];
+    layersSheetName = firstTab.layersSheetName || 'Layers';
+    mainSheetName = firstTab.mainSheetName || 'Main';
+    columnConfigSheetName = firstTab.columnConfigSheetName || 'ColumnConfig';
+  }
+
+  // Get layer configuration using the determined sheet name
+  var layerConfig = getLayerConfig(layersSheetName);
   var layersData = {};
 
   // Load data for each configured layer
   if (layerConfig && layerConfig.length > 0) {
     for (var i = 0; i < layerConfig.length; i++) {
       var layerName = layerConfig[i].layerName;
-      layersData[layerName] = getLayerData(layerName);
+      layersData[layerName] = getLayerData(layerName, layersSheetName);
     }
   }
 
@@ -704,11 +864,12 @@ function getInitialData(token) {
         profile: "Viewer"
       },
       settings: getSettings(),
-      headers: getHeaders(),
-      items: getMainData(),
-      columnConfig: getColumnConfig(),
+      headers: getHeaders(mainSheetName),
+      items: getMainData(mainSheetName),
+      columnConfig: getColumnConfig(columnConfigSheetName),
       layerConfig: layerConfig,
-      layersData: layersData
+      layersData: layersData,
+      tabsConfig: tabsConfig
     };
   }
 
@@ -724,19 +885,85 @@ function getInitialData(token) {
   return {
     user: user,
     settings: getSettings(),
-    headers: getHeaders(),
-    items: getMainData(),
-    columnConfig: getColumnConfig(),
+    headers: getHeaders(mainSheetName),
+    items: getMainData(mainSheetName),
+    columnConfig: getColumnConfig(columnConfigSheetName),
     layerConfig: layerConfig,
-    layersData: layersData
+    layersData: layersData,
+    tabsConfig: tabsConfig
   };
 }
 
-function getMainData() {
-  var sh;
+/**
+ * Get data for a specific tab
+ * Called when user switches tabs
+ *
+ * @param {string} layersSheetName - Name of the Layers sheet for this tab
+ * @param {string} mainSheetName - Name of the Main data sheet for this tab
+ * @param {string} columnConfigSheetName - Name of the ColumnConfig sheet for this tab
+ * @param {string} token - Session token for authentication
+ * @return {object} Tab-specific data payload
+ */
+function getTabData(layersSheetName, mainSheetName, columnConfigSheetName, token) {
   try {
-    sh = getMainSheet_();
+    // Check if app is in public mode
+    if (!isPublicMode_()) {
+      // Private or "Public with Login" mode: Verify session if token provided
+      // In "Public with Login" mode, allow access even without token (user will be null)
+      if (token) {
+        var sessionResult = verifySession(token);
+        if (!sessionResult.success) {
+          // Session verification failed - log it but continue gracefully
+          // This allows the tab to load in viewer mode, matching getInitialData() behavior
+          Logger.log('Session verification failed in getTabData, continuing in viewer mode');
+        }
+      }
+      // Note: If no token provided or verification fails, we allow access
+      // The user will simply not be authenticated (viewer mode)
+    }
+
+    // Load tab-specific configuration and data
+    var layerConfig = getLayerConfig(layersSheetName);
+    var layersData = {};
+
+    // Load data for each configured layer
+    if (layerConfig && layerConfig.length > 0) {
+      for (var i = 0; i < layerConfig.length; i++) {
+        var layerName = layerConfig[i].layerName;
+        layersData[layerName] = getLayerData(layerName, layersSheetName);
+      }
+    }
+
+    var items = getMainData(mainSheetName);
+    var columnConfig = getColumnConfig(columnConfigSheetName);
+    var headers = getHeaders(mainSheetName);
+    var tabSettings = getSettings(layersSheetName);
+
+    return {
+      layerConfig: layerConfig,
+      layersData: layersData,
+      items: items,
+      columnConfig: columnConfig,
+      headers: headers,
+      settings: tabSettings
+    };
   } catch (err) {
+    Logger.log("Error in getTabData: " + err);
+    throw new Error("Error loading tab data: " + err.message);
+  }
+}
+
+/**
+ * Get main data from specified sheet
+ * @param {string} sheetName - Name of the Main data sheet (default: 'Main')
+ */
+function getMainData(sheetName) {
+  sheetName = sheetName || 'Main';
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(sheetName);
+
+  if (!sh) {
+    Logger.log("Main sheet '" + sheetName + "' not found");
     return [];
   }
 
@@ -789,13 +1016,20 @@ function getMainData() {
   return out;
 }
 
-function getHeaders() {
-  var sh;
-  try {
-    sh = getMainSheet_();
-  } catch (err) {
+/**
+ * Get headers from specified sheet
+ * @param {string} sheetName - Name of the Main data sheet (default: 'Main')
+ */
+function getHeaders(sheetName) {
+  sheetName = sheetName || 'Main';
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(sheetName);
+
+  if (!sh) {
+    Logger.log("Main sheet '" + sheetName + "' not found");
     return [];
   }
+
   return sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
 }
 
