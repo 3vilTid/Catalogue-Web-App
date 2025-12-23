@@ -13,21 +13,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Catalogue">
 
-    <!-- PWA Manifest - Served from server with proper MIME type -->
-    <script>
-      // Set manifest URL dynamically to use actual browser URL
-      (function() {
-        const actualUrl = window.location.origin + window.location.pathname;
-        const manifestUrl = actualUrl + '?manifest=true';
+    <!-- PWA Manifest - Static file for GitHub Pages -->
+    <link rel="manifest" href="/manifest.json">
 
-        const link = document.createElement('link');
-        link.rel = 'manifest';
-        link.href = manifestUrl;
-        document.head.appendChild(link);
-
-        console.log('📄 PWA Manifest URL:', manifestUrl);
-      })();
-    </script>
+    <!-- API Configuration and Client (GitHub Pages Migration) -->
+    <script src="/api-config.js"></script>
+    <script src="/api-client.js"></script>
 
     <!-- Icons (using inline SVG data URIs) -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='white'%3EC%3C/text%3E%3C/svg%3E">
@@ -4817,7 +4808,12 @@
           }
 
           // 3. Fetch from network (slow, only if not cached)
-          const base = imageProxyBaseUrl || "";
+          // For GitHub Pages deployment, use API_CONFIG.APPS_SCRIPT_URL
+          // For Apps Script deployment, use imageProxyBaseUrl from settings
+          const base = (window.API_CONFIG && window.API_CONFIG.APPS_SCRIPT_URL &&
+                       window.API_CONFIG.APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL_HERE')
+                       ? window.API_CONFIG.APPS_SCRIPT_URL.replace(/\/exec$/, '/exec')
+                       : (imageProxyBaseUrl || "");
           const url = base.replace(/\/$/, "") + "?img=" + encodeURIComponent(fileId);
 
           console.log('Loading image from:', url);
@@ -4893,7 +4889,12 @@
         if (fileId) {
           // It's a Drive URL - fetch via proxy
           try {
-            const base = imageProxyBaseUrl || "";
+            // For GitHub Pages deployment, use API_CONFIG.APPS_SCRIPT_URL
+            // For Apps Script deployment, use imageProxyBaseUrl from settings
+            const base = (window.API_CONFIG && window.API_CONFIG.APPS_SCRIPT_URL &&
+                         window.API_CONFIG.APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL_HERE')
+                         ? window.API_CONFIG.APPS_SCRIPT_URL.replace(/\/exec$/, '/exec')
+                         : (imageProxyBaseUrl || "");
             const proxyUrl = base.replace(/\/$/, "") + "?img=" + encodeURIComponent(fileId);
 
             const response = await fetch(proxyUrl);
@@ -4933,7 +4934,12 @@
         if (fileId) {
           // It's a Drive URL - fetch via proxy
           try {
-            const base = imageProxyBaseUrl || "";
+            // For GitHub Pages deployment, use API_CONFIG.APPS_SCRIPT_URL
+            // For Apps Script deployment, use imageProxyBaseUrl from settings
+            const base = (window.API_CONFIG && window.API_CONFIG.APPS_SCRIPT_URL &&
+                         window.API_CONFIG.APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL_HERE')
+                         ? window.API_CONFIG.APPS_SCRIPT_URL.replace(/\/exec$/, '/exec')
+                         : (imageProxyBaseUrl || "");
             const proxyUrl = base.replace(/\/$/, "") + "?img=" + encodeURIComponent(fileId);
 
             const response = await fetch(proxyUrl);
@@ -7817,7 +7823,12 @@
 
           // If not cached, it should already be in memory from grid view
           // But fetch anyway as fallback
-          const base = imageProxyBaseUrl || "";
+          // For GitHub Pages deployment, use API_CONFIG.APPS_SCRIPT_URL
+          // For Apps Script deployment, use imageProxyBaseUrl from settings
+          const base = (window.API_CONFIG && window.API_CONFIG.APPS_SCRIPT_URL &&
+                       window.API_CONFIG.APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL_HERE')
+                       ? window.API_CONFIG.APPS_SCRIPT_URL.replace(/\/exec$/, '/exec')
+                       : (imageProxyBaseUrl || "");
           const url = base.replace(/\/$/, "") + "?img=" + encodeURIComponent(fileId);
 
           const response = await fetch(url);
@@ -9237,6 +9248,37 @@
         setupInstallBanner();
 
       };
+    </script>
+
+    <!-- Service Worker Registration (GitHub Pages PWA Support) -->
+    <script>
+      // Register service worker for PWA functionality
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then((registration) => {
+              console.log('✅ Service Worker registered successfully:', registration.scope);
+
+              // Check for updates
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                console.log('🔄 Service Worker update found');
+
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('✨ New Service Worker installed, refresh to update');
+                    // Optionally show a notification to the user
+                  }
+                });
+              });
+            })
+            .catch((error) => {
+              console.warn('⚠️ Service Worker registration failed:', error);
+            });
+        });
+      } else {
+        console.warn('⚠️ Service Workers are not supported in this browser');
+      }
     </script>
   </body>
         </html>
