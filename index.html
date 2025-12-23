@@ -1680,6 +1680,8 @@
         cursor: zoom-in;
         /* Prevent default pinch-zoom behavior - we handle it with JS */
         touch-action: none;
+        user-select: none;
+        -webkit-user-drag: none;
       }
 
       #imgOverlayClose {
@@ -7747,6 +7749,11 @@
       }
 
       function handleSwipe() {
+        // Don't navigate if image viewer is open
+        if (imageZoomState.isOpen) {
+          return;
+        }
+
         const swipeThreshold = 50; // Minimum distance for swipe
         const swipeDistanceX = touchEndX - touchStartX;
         const swipeDistanceY = touchEndY - touchStartY;
@@ -7931,7 +7938,9 @@
         translateY: 0,
         initialDistance: 0,
         initialScale: 1,
-        lastTap: 0
+        lastTap: 0,
+        isOpen: false,
+        openedFromDetailView: false
       };
 
       function resetImageZoom() {
@@ -7943,7 +7952,9 @@
           translateY: 0,
           initialDistance: 0,
           initialScale: 1,
-          lastTap: 0
+          lastTap: 0,
+          isOpen: imageZoomState.isOpen,
+          openedFromDetailView: imageZoomState.openedFromDetailView
         };
         transform.style.transform = "scale(1) translate(0, 0)";
         transform.style.transition = "transform 0.3s ease";
@@ -7959,6 +7970,27 @@
         if (imageZoomState.scale === 1) {
           imageZoomState.translateX = 0;
           imageZoomState.translateY = 0;
+        } else {
+          // Constrain panning to prevent empty space around image
+          const img = document.getElementById("imgOverlayImg");
+          if (img && img.complete) {
+            const imgRect = img.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            // Calculate the scaled dimensions
+            const scaledWidth = imgRect.width * imageZoomState.scale;
+            const scaledHeight = imgRect.height * imageZoomState.scale;
+
+            // Calculate maximum allowed translation
+            // When zoomed, we can pan by half the difference between scaled size and viewport
+            const maxTranslateX = Math.max(0, (scaledWidth - viewportWidth) / (2 * imageZoomState.scale));
+            const maxTranslateY = Math.max(0, (scaledHeight - viewportHeight) / (2 * imageZoomState.scale));
+
+            // Constrain translation within bounds
+            imageZoomState.translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, imageZoomState.translateX));
+            imageZoomState.translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, imageZoomState.translateY));
+          }
         }
 
         if (smooth) {
@@ -7968,6 +8000,9 @@
         }
 
         transform.style.transform = `scale(${imageZoomState.scale}) translate(${imageZoomState.translateX}px, ${imageZoomState.translateY}px)`;
+
+        // Update cursor based on zoom level
+        transform.style.cursor = imageZoomState.scale > 1 ? "grab" : "zoom-in";
       }
 
       function getDistance(touch1, touch2) {
@@ -8043,6 +8078,63 @@
             applyImageTransform(true);
           }
         });
+
+        // Desktop: Mouse wheel zoom
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+
+        transform.addEventListener("wheel", (e) => {
+          e.preventDefault();
+
+          // Zoom in/out with mouse wheel
+          const zoomSpeed = 0.1;
+          if (e.deltaY < 0) {
+            // Scroll up - zoom in
+            imageZoomState.scale += zoomSpeed;
+          } else {
+            // Scroll down - zoom out
+            imageZoomState.scale -= zoomSpeed;
+          }
+
+          applyImageTransform(true);
+        }, { passive: false });
+
+        // Desktop: Click and drag to pan
+        transform.addEventListener("mousedown", (e) => {
+          if (imageZoomState.scale > 1) {
+            isDragging = true;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            transform.style.cursor = "grabbing";
+            e.preventDefault();
+          }
+        });
+
+        document.addEventListener("mousemove", (e) => {
+          if (isDragging && imageZoomState.scale > 1) {
+            const movementX = e.clientX - dragStartX;
+            const movementY = e.clientY - dragStartY;
+
+            imageZoomState.translateX += movementX / imageZoomState.scale;
+            imageZoomState.translateY += movementY / imageZoomState.scale;
+
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+
+            applyImageTransform(false);
+          }
+        });
+
+        document.addEventListener("mouseup", () => {
+          if (isDragging) {
+            isDragging = false;
+            const transform = document.getElementById("imgOverlayTransform");
+            if (transform) {
+              transform.style.cursor = imageZoomState.scale > 1 ? "grab" : "zoom-in";
+            }
+          }
+        });
       }
 
       function openImageFullscreen(src) {
@@ -8055,15 +8147,42 @@
         document.body.style.overflow = "hidden";
         // Reset zoom state for new image
         resetImageZoom();
+
+        // Track that viewer is open and where it was opened from
+        imageZoomState.isOpen = true;
+        imageZoomState.openedFromDetailView = (currentView === "detail");
+
+        // On mobile devices, push history state when opened from detail view
+        // This allows the back button to close the enlarged image
+        const isMobile = document.body.classList.contains('mobile-device') ||
+                        document.body.classList.contains('tablet-device');
+        if (isMobile && currentView === "detail") {
+          history.pushState({ view: "imageViewer" }, "", "");
+        }
       }
 
-      function closeImageFullscreen() {
+      function closeImageFullscreen(fromBackButton = false) {
         const overlay = document.getElementById("imgOverlay");
         if (overlay) overlay.style.display = "none";
         // Restore scrolling when fullscreen viewer is closed
         document.body.style.overflow = "";
+
+        // Track that viewer is closed
+        const wasOpen = imageZoomState.isOpen;
+        const wasFromDetail = imageZoomState.openedFromDetailView;
+        imageZoomState.isOpen = false;
+        imageZoomState.openedFromDetailView = false;
+
         // Reset zoom state
         resetImageZoom();
+
+        // If viewer was opened from detail view on mobile and we're NOT already handling back button
+        // Then we need to go back to remove the imageViewer history state
+        const isMobile = document.body.classList.contains('mobile-device') ||
+                        document.body.classList.contains('tablet-device');
+        if (!fromBackButton && wasOpen && wasFromDetail && isMobile) {
+          history.back();
+        }
       }
 
       // -------------------- Filter & Sort Dropdowns --------------------
@@ -8951,6 +9070,14 @@
 
         // Handle browser back button
         window.addEventListener("popstate", function(e) {
+          // Check if image viewer is open first
+          if (imageZoomState.isOpen && imageZoomState.openedFromDetailView) {
+            // Close the enlarged image viewer
+            e.preventDefault();
+            closeImageFullscreen(true); // Pass true to indicate this is from back button
+            return;
+          }
+
           if (currentView === "detail") {
             // User pressed back while in detail view - go back to list or layer
             e.preventDefault();
