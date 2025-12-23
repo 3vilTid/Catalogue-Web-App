@@ -3,7 +3,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="description" content="Catalogue web application">
 
@@ -29,6 +29,32 @@
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='white'%3EC%3C/text%3E%3C/svg%3E">
 
     <title>Catalogue</title>
+
+    <!-- Fix for GitHub Pages viewport scaling on mobile portrait -->
+    <script>
+      (function() {
+        // Detect if we're on GitHub Pages (not Apps Script)
+        const isGitHubPages = window.location.hostname.includes('github.io');
+
+        if (isGitHubPages) {
+          // Apply zoom fix for mobile portrait only
+          const style = document.createElement('style');
+          style.textContent = `
+            @media (max-width: 768px) and (orientation: portrait) {
+              html {
+                zoom: 0.5;
+                -moz-transform: scale(0.5);
+                -moz-transform-origin: 0 0;
+              }
+              body {
+                width: 200%;
+              }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+      })();
+    </script>
 
     <!-- CRITICAL: Device Detection - Must run FIRST in head -->
     <script>
