@@ -166,7 +166,7 @@
      */
     withSuccessHandler(callback) {
       this.successHandler = callback;
-      return this;
+      return this._createProxy();
     }
 
     /**
@@ -174,60 +174,61 @@
      */
     withFailureHandler(callback) {
       this.failureHandler = callback;
-      return this;
+      return this._createProxy();
     }
 
     /**
-     * Create a function caller
+     * Create a proxy that intercepts function calls
      */
-    _createFunctionCaller(functionName) {
-      return (...args) => {
-        this.client.execute(functionName, args)
-          .then((result) => {
-            if (this.successHandler) {
-              this.successHandler(result);
-            }
-          })
-          .catch((error) => {
-            if (this.failureHandler) {
-              this.failureHandler(error);
-            } else {
-              console.error(`[API Client] Unhandled error in ${functionName}:`, error);
-            }
-          });
-      };
+    _createProxy() {
+      const self = this;
+      return new Proxy(this, {
+        get(target, functionName) {
+          // Allow chaining of withSuccessHandler and withFailureHandler
+          if (functionName === 'withSuccessHandler' || functionName === 'withFailureHandler') {
+            return target[functionName].bind(target);
+          }
+
+          // For any other property, treat it as an API function call
+          return (...args) => {
+            self.client.execute(functionName, args)
+              .then((result) => {
+                if (self.successHandler) {
+                  self.successHandler(result);
+                }
+              })
+              .catch((error) => {
+                if (self.failureHandler) {
+                  self.failureHandler(error);
+                } else {
+                  console.error(`[API Client] Unhandled error in ${functionName}:`, error);
+                }
+              });
+          };
+        }
+      });
     }
   }
 
-  // Proxy handler to intercept function calls
-  const scriptRunProxy = new Proxy({}, {
-    get(target, functionName) {
-      if (functionName === 'withSuccessHandler' || functionName === 'withFailureHandler') {
-        const call = apiClient.createCall();
-        return call[functionName].bind(call);
-      }
-
-      // Return a function that will be called with the actual arguments
-      return (...args) => {
-        const call = apiClient.createCall();
-        const caller = call._createFunctionCaller(functionName);
-        return caller(...args);
-      };
-    }
-  });
-
-  // Enhanced proxy that handles chaining
+  // Enhanced proxy that handles the initial google.script.run call
   const enhancedProxy = new Proxy({}, {
     get(target, prop) {
+      // Create a new call for each access
+      const call = apiClient.createCall();
+
       if (prop === 'withSuccessHandler' || prop === 'withFailureHandler') {
-        const call = apiClient.createCall();
         return call[prop].bind(call);
       }
 
-      // For function calls, create a bound function
+      // Direct function call without handlers
       return (...args) => {
-        const call = apiClient.createCall();
-        return call._createFunctionCaller(prop)(...args);
+        apiClient.execute(prop, args)
+          .then((result) => {
+            console.log(`[API Client] ${prop} completed:`, result);
+          })
+          .catch((error) => {
+            console.error(`[API Client] ${prop} failed:`, error);
+          });
       };
     }
   });
