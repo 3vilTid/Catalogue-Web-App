@@ -7974,13 +7974,28 @@
           // Constrain panning to prevent empty space around image
           const img = document.getElementById("imgOverlayImg");
           if (img && img.complete) {
-            const imgRect = img.getBoundingClientRect();
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
 
-            // Calculate the scaled dimensions
-            const scaledWidth = imgRect.width * imageZoomState.scale;
-            const scaledHeight = imgRect.height * imageZoomState.scale;
+            // Get the natural/original dimensions of the image
+            // Calculate how the image is displayed (maintaining aspect ratio)
+            const imgAspect = img.naturalWidth / img.naturalHeight;
+            const viewportAspect = viewportWidth / viewportHeight;
+
+            let baseWidth, baseHeight;
+            if (imgAspect > viewportAspect) {
+              // Image is wider - width constrained
+              baseWidth = Math.min(img.naturalWidth, viewportWidth);
+              baseHeight = baseWidth / imgAspect;
+            } else {
+              // Image is taller - height constrained
+              baseHeight = Math.min(img.naturalHeight, viewportHeight);
+              baseWidth = baseHeight * imgAspect;
+            }
+
+            // Calculate the scaled dimensions using the base size
+            const scaledWidth = baseWidth * imageZoomState.scale;
+            const scaledHeight = baseHeight * imageZoomState.scale;
 
             // Calculate maximum allowed translation
             // When zoomed, we can pan by half the difference between scaled size and viewport
