@@ -6,10 +6,10 @@ const RUNTIME_CACHE = 'catalogue-runtime-v1';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/api-config.js'
+  './',
+  './index.html',
+  './manifest.json',
+  './api-config.js'
 ];
 
 // Install event - precache assets
