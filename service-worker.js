@@ -1,8 +1,8 @@
 // Service Worker for Catalogue PWA
-// Version 2.0.0 - Force cache refresh for mobile portrait fix
+// Version 3.0.0 - Force cache refresh after removing GitHub Pages specific CSS
 
-const CACHE_NAME = 'catalogue-pwa-v2';
-const RUNTIME_CACHE = 'catalogue-runtime-v2';
+const CACHE_NAME = 'catalogue-pwa-v3';
+const RUNTIME_CACHE = 'catalogue-runtime-v3';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
