@@ -52,6 +52,7 @@
 
     /**
      * Execute an API call to the Apps Script backend
+     * Uses GET with URL parameters to avoid CORS preflight issues
      */
     async execute(functionName, args) {
       if (!this.baseUrl) {
@@ -66,17 +67,17 @@
       const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
       try {
-        const response = await fetch(this.baseUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            function: functionName,
-            parameters: args
-          }),
+        // Encode function call as URL parameters to avoid CORS preflight
+        const params = new URLSearchParams({
+          function: functionName,
+          parameters: JSON.stringify(args)
+        });
+
+        const url = `${this.baseUrl}?${params.toString()}`;
+
+        const response = await fetch(url, {
+          method: 'GET',
           signal: controller.signal,
-          mode: 'cors',
           credentials: 'omit'
         });
 
