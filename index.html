@@ -30,6 +30,32 @@
 
     <title>Catalogue</title>
 
+    <!-- Fix for GitHub Pages viewport scaling on mobile portrait -->
+    <script>
+      (function() {
+        // Detect if we're on GitHub Pages (not Apps Script)
+        const isGitHubPages = window.location.hostname.includes('github.io');
+
+        if (isGitHubPages) {
+          // Apply zoom fix for mobile portrait only
+          const style = document.createElement('style');
+          style.textContent = `
+            @media (max-width: 768px) and (orientation: portrait) {
+              html {
+                zoom: 0.5;
+                -moz-transform: scale(0.5);
+                -moz-transform-origin: 0 0;
+              }
+              body {
+                width: 200%;
+              }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+      })();
+    </script>
+
     <!-- CRITICAL: Device Detection - Must run FIRST in head -->
     <script>
       (function() {
