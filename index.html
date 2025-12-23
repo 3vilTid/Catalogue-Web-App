@@ -30,62 +30,16 @@
 
     <title>Catalogue</title>
 
-    <!-- Fix for GitHub Pages viewport scaling on mobile portrait -->
+    <!-- GitHub Pages Detection - Add marker class -->
     <script>
       (function() {
         // Detect if we're on GitHub Pages (not Apps Script)
         const isGitHubPages = window.location.hostname.includes('github.io');
 
         if (isGitHubPages) {
-          // Apply zoom fix for mobile portrait only
-          const style = document.createElement('style');
-          style.textContent = `
-            @media (max-width: 768px) and (orientation: portrait) {
-              html {
-                zoom: 0.5;
-                -moz-transform: scale(0.5);
-                -moz-transform-origin: 0 0;
-              }
-              body {
-                width: 200%;
-              }
-              /* Fix header padding that becomes too large with zoom */
-              body.mobile-device.portrait .top-header {
-                padding: 5px 10px !important;
-                margin-bottom: 4px !important;
-                flex-wrap: nowrap !important;
-                gap: 4px !important;
-              }
-              body.mobile-device.portrait .shell {
-                padding: 0 6px !important;
-              }
-              /* Ensure right block stays on the right */
-              body.mobile-device.portrait .right-block {
-                display: flex !important;
-                flex-direction: column !important;
-                align-items: flex-end !important;
-                gap: 2px !important;
-                flex-shrink: 0 !important;
-              }
-              /* Make auth text smaller to fit */
-              body.mobile-device.portrait .right-block {
-                font-size: 14px !important;
-              }
-              body.mobile-device.portrait .user-email {
-                font-size: 14px !important;
-              }
-              body.mobile-device.portrait .profile-badge {
-                font-size: 12px !important;
-                padding: 1px 6px !important;
-              }
-              body.mobile-device.portrait #logoutBtn {
-                height: 24px !important;
-                font-size: 12px !important;
-                padding: 0 10px !important;
-              }
-            }
-          `;
-          document.head.appendChild(style);
+          // Add class to HTML for GitHub Pages specific CSS
+          document.documentElement.classList.add('github-pages');
+          console.log('🌐 GitHub Pages detected - applying specific mobile portrait styles');
         }
       })();
     </script>
@@ -3715,6 +3669,157 @@
           grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
         }
       }
+
+
+      /* ==================== GITHUB PAGES MOBILE PORTRAIT - 50% scaled down ==================== */
+      /*  All sizes are 50% of the regular mobile portrait values to match Apps Script rendering */
+
+      html.github-pages body.mobile-device.portrait .top-header {
+        padding: 5px 10px !important;
+        margin-bottom: 4px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .shell {
+        padding: 0 6px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .app-name {
+        font-size: 15px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .catalog-name {
+        font-size: 12.5px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .catalog-label,
+      html.github-pages body.mobile-device.portrait .user-role {
+        font-size: 9px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .user-email {
+        font-size: 9px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .profile-badge {
+        font-size: 8px !important;
+        padding: 1px 5px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .btn-toolbar,
+      html.github-pages body.mobile-device.portrait .btn-primary,
+      html.github-pages body.mobile-device.portrait .btn-secondary {
+        height: 34px !important;
+        min-height: 34px !important;
+        padding: 10px 14px !important;
+        font-size: 9.5px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait #logoutBtn {
+        height: 34px !important;
+        min-height: 34px !important;
+        padding: 0 14px !important;
+        font-size: 9px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait #filterBtn,
+      html.github-pages body.mobile-device.portrait #sortBtn,
+      html.github-pages body.mobile-device.portrait #backToListBtn {
+        height: 34px !important;
+        min-height: 34px !important;
+        padding: 10px 14px !important;
+        font-size: 9.5px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait #sheetBtn,
+      html.github-pages body.mobile-device.portrait #addBtn {
+        height: 34px !important;
+        min-height: 34px !important;
+        padding: 10px 14px !important;
+        font-size: 9.5px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .search-input {
+        height: 34px !important;
+        font-size: 9.5px !important;
+        padding: 0 25px 0 10px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .clear-search-btn {
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 9px !important;
+        right: 6px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .item-card {
+        min-height: 90px;
+        padding: 6px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .card-name {
+        font-size: 13px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .card-sub {
+        font-size: 11px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .detail-name {
+        font-size: 18.75px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .detail-subtitle {
+        font-size: 15.625px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .detail-topcorner {
+        font-size: 15.625px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .detail-meta {
+        font-size: 12.5px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .detail-field {
+        font-size: 13.75px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .detail-field-label {
+        font-size: 13.75px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .detail-field-value {
+        font-size: 13.75px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .link-pill {
+        font-size: 12px !important;
+        padding: 5px 9px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait #breadcrumbNav {
+        font-size: 7.5px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait #breadcrumbNav a,
+      html.github-pages body.mobile-device.portrait #breadcrumbNav span {
+        font-size: 8px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .filters-row {
+        padding: 1px 9px !important;
+        gap: 1px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .app-logo {
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
+        max-width: 48px !important;
+        max-height: 48px !important;
+      }
+
     </style>
 
     <!-- PWA Configuration Note -->
