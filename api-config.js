@@ -15,8 +15,8 @@
  */
 
 const API_CONFIG = {
-  // REPLACE THIS with your actual Google Apps Script deployment URL
-  APPS_SCRIPT_URL: 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL_HERE',
+  // Google Apps Script deployment URL
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwL3M6fJ2bixVnrJi4iY0HUtu_XcXwWCcm6Tx2S1Sn0bZESR1G0bdaiyZar2YiSREABHg/exec',
 
   // API timeout in milliseconds (30 seconds)
   TIMEOUT: 30000,
