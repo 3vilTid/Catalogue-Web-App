@@ -49,6 +49,14 @@
               body {
                 width: 200%;
               }
+              /* Fix header padding that becomes too large with zoom */
+              body.mobile-device.portrait .top-header {
+                padding: 5px 10px !important;
+                margin-bottom: 4px !important;
+              }
+              body.mobile-device.portrait .shell {
+                padding: 0 6px !important;
+              }
             }
           `;
           document.head.appendChild(style);
