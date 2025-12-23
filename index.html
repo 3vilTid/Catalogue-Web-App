@@ -1258,6 +1258,11 @@
         position: relative;
       }
 
+      /* When there's no image, make content full width on desktop */
+      .detail-layout.no-image {
+        grid-template-columns: 1fr;
+      }
+
       .detail-img-wrapper {
         position: relative;
         width: 100%;
@@ -3023,10 +3028,20 @@
         gap: 16px;
       }
 
+      /* When there's no image, make content full width on mobile landscape */
+      body.mobile-device.landscape .detail-layout.no-image {
+        grid-template-columns: 1fr !important;
+      }
+
       /* Detail view layout - TABLET LANDSCAPE: Bigger image column - reduced by 25% */
       body.tablet-device.landscape .detail-layout {
         grid-template-columns: minmax(0, 375px) minmax(0, 1fr) !important;
         gap: 15px;
+      }
+
+      /* When there's no image, make content full width on tablet landscape */
+      body.tablet-device.landscape .detail-layout.no-image {
+        grid-template-columns: 1fr !important;
       }
 
       body.mobile-device.landscape .detail-img,
@@ -5707,12 +5722,16 @@
         // Match the exact same structure as showDetails with image
         let html = '<div style="padding: 24px; position: relative;">';
 
+        // Add 'no-image' class if there's no image
+        const hasImage = imageColumn && item[imageColumn.columnName];
+        const detailLayoutClass = hasImage ? 'detail-layout' : 'detail-layout no-image';
+
         // Use detail-layout grid structure (image on left, content on right)
-        html += '<div class="detail-layout">';
+        html += '<div class="' + detailLayoutClass + '">';
 
         // Image container
         html += '<div id="detailImgContainer">';
-        if (imageColumn && item[imageColumn.columnName]) {
+        if (hasImage) {
           html += '<div class="detail-img-wrapper" id="inlineDetailImgWrapper_' + index + '"></div>';
         } else {
           html += '<div class="detail-img-wrapper"></div>';
@@ -7424,13 +7443,17 @@
         document.getElementById("filterWrapper").style.display = "none";
         document.getElementById("sortWrapper").style.display = "none";
 
+        // Add 'no-image' class if there's no image
+        const hasImage = imageColumn && item[imageColumn.columnName];
+        const detailLayoutClass = hasImage ? 'detail-layout' : 'detail-layout no-image';
+
         let html =
-          '<div class="detail-layout">' +
+          '<div class="' + detailLayoutClass + '">' +
           '<button id="prevItemBtn" class="nav-arrow-btn nav-arrow-left" onclick="navigateToPrevious()" title="Previous item">&lt;</button>' +
           '<button id="nextItemBtn" class="nav-arrow-btn nav-arrow-right" onclick="navigateToNext()" title="Next item">&gt;</button>' +
           '<div id="detailImgContainer">';
 
-        if (imageColumn && item[imageColumn.columnName]) {
+        if (hasImage) {
           html += '<div class="detail-img-wrapper" id="detailImgWrapper"></div>';
         } else {
           html += '<div class="detail-img-wrapper"></div>';
