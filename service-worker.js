@@ -1,8 +1,8 @@
 // Service Worker for Catalogue PWA
-// Version 4.0.0 - Force cache refresh for search bar and layout updates
+// Version 5.0.0 - Fix filters-row vertical spacing by reducing button heights and breadcrumb margins
 
-const CACHE_NAME = 'catalogue-pwa-v4';
-const RUNTIME_CACHE = 'catalogue-runtime-v4';
+const CACHE_NAME = 'catalogue-pwa-v5';
+const RUNTIME_CACHE = 'catalogue-runtime-v5';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
