@@ -1,8 +1,8 @@
 // Service Worker for Catalogue PWA
-// Version 7.4.0 - Ultra-comprehensive fix: eliminate ALL vertical spacing sources
+// Version 7.5.0 - Hide logo white square while loading
 
-const CACHE_NAME = 'catalogue-pwa-v7-4';
-const RUNTIME_CACHE = 'catalogue-runtime-v7-4';
+const CACHE_NAME = 'catalogue-pwa-v7-5';
+const RUNTIME_CACHE = 'catalogue-runtime-v7-5';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
