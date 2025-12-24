@@ -1,8 +1,8 @@
 // Service Worker for Catalogue PWA
 // Version 6.2.0 - Test multiple selector variations to isolate CSS matching issue
 
-const CACHE_NAME = 'catalogue-pwa-v6-2';
-const RUNTIME_CACHE = 'catalogue-runtime-v6-2';
+const CACHE_NAME = 'catalogue-pwa-v7';
+const RUNTIME_CACHE = 'catalogue-runtime-v7';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
