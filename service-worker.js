@@ -1,8 +1,8 @@
 // Service Worker for Catalogue PWA
-// Version 7.2.0 - Reduce top-header bottom spacing to 5px for mobile portrait
+// Version 7.3.0 - Comprehensive fix for top-header vertical spacing
 
-const CACHE_NAME = 'catalogue-pwa-v7-2';
-const RUNTIME_CACHE = 'catalogue-runtime-v7-2';
+const CACHE_NAME = 'catalogue-pwa-v7-3';
+const RUNTIME_CACHE = 'catalogue-runtime-v7-3';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
