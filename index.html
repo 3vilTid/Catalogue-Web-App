@@ -3758,6 +3758,14 @@
         display: block !important;
       }
 
+      /* Hide logo white square while loading */
+      html.github-pages body.mobile-device.portrait .app-logo:not([src]),
+      html.github-pages body.mobile-device.portrait .app-logo[src=""],
+      html.github-pages body.mobile-device.portrait .app-logo[style*="display: none"] {
+        visibility: hidden !important;
+        opacity: 0 !important;
+      }
+
       html.github-pages body.mobile-device.portrait .app-name {
         font-size: 15px !important;
         line-height: 1 !important;
