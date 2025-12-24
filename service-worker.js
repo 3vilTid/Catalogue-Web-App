@@ -1,8 +1,8 @@
 // Service Worker for Catalogue PWA
-// Version 5.0.0 - Fix filters-row vertical spacing by reducing button heights and breadcrumb margins
+// Version 6.2.0 - Test multiple selector variations to isolate CSS matching issue
 
-const CACHE_NAME = 'catalogue-pwa-v6-1';
-const RUNTIME_CACHE = 'catalogue-runtime-v6-1';
+const CACHE_NAME = 'catalogue-pwa-v6-2';
+const RUNTIME_CACHE = 'catalogue-runtime-v6-2';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
