@@ -3672,9 +3672,26 @@
       /*  GitHub Pages renders mobile portrait at 2x size - scale down to 50% to match Apps Script */
 
       html.github-pages body.mobile-device.portrait .top-header {
-        padding: 5px 10px !important;
+        padding: 5px 10px 5px 10px !important;
         margin-bottom: 4px !important;
         position: relative !important;
+        min-height: auto !important;
+      }
+
+      /* Remove internal margins/gaps that create vertical space */
+      html.github-pages body.mobile-device.portrait .left-block {
+        margin: 0 !important;
+        gap: 5px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .app-text-block {
+        margin: 0 !important;
+        gap: 0 !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .catalog-row {
+        margin: 0 !important;
+        gap: 3px !important;
       }
 
       /* Position user info block in top right corner */
