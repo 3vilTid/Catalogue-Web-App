@@ -1,8 +1,8 @@
 // Service Worker for Catalogue PWA
-// Version 5.2.0 - Increase filters-row margins to 10px for better spacing
+// Version 5.3.0 - Fix margin specificity for filters-row elements
 
-const CACHE_NAME = 'catalogue-pwa-v5-2';
-const RUNTIME_CACHE = 'catalogue-runtime-v5-2';
+const CACHE_NAME = 'catalogue-pwa-v5-3';
+const RUNTIME_CACHE = 'catalogue-runtime-v5-3';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
