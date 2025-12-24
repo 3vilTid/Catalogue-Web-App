@@ -3837,8 +3837,18 @@
       }
 
       html.github-pages body.mobile-device.portrait .filters-row {
+
         padding: 5px 9px !important;
+
         gap: 0.2px !important;
+        background: rgba(255, 0, 0, 0.1) !important; /* TEST: Red tint to verify CSS is loading */
+        border: 2px solid red !important; /* TEST: Red border to verify CSS is loading */
+      }
+
+      /* TEST: Simpler selector without html.github-pages to isolate issue */
+      body.mobile-device.portrait .filters-row {
+        background: rgba(0, 255, 0, 0.2) !important; /* TEST: Green tint if this matches instead */
+        border: 3px dashed lime !important; /* TEST: Lime dashed border */
       }
 
       html.github-pages body.mobile-device.portrait .filters-left {
