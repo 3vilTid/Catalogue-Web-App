@@ -1,8 +1,8 @@
 // Service Worker for Catalogue PWA
-// Version 7.3.0 - Comprehensive fix for top-header vertical spacing
+// Version 7.4.0 - Ultra-comprehensive fix: eliminate ALL vertical spacing sources
 
-const CACHE_NAME = 'catalogue-pwa-v7-3';
-const RUNTIME_CACHE = 'catalogue-runtime-v7-3';
+const CACHE_NAME = 'catalogue-pwa-v7-4';
+const RUNTIME_CACHE = 'catalogue-runtime-v7-4';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [

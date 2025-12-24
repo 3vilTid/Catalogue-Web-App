@@ -3676,7 +3676,19 @@
         margin-bottom: 4px !important;
         position: relative !important;
         min-height: auto !important;
+        height: auto !important;
+        max-height: none !important;
         align-items: flex-start !important;
+      }
+
+      /* Ensure center-block doesn't create vertical space */
+      html.github-pages body.mobile-device.portrait .center-block {
+        display: none !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        flex: 0 !important;
       }
 
       /* Remove internal margins/gaps that create vertical space */
@@ -3693,7 +3705,11 @@
 
       html.github-pages body.mobile-device.portrait .catalog-row {
         margin: 0 !important;
+        padding: 0 !important;
         gap: 3px !important;
+        height: auto !important;
+        min-height: 0 !important;
+        line-height: 1 !important;
       }
 
       /* Position user info block in top right corner */
@@ -3744,20 +3760,26 @@
 
       html.github-pages body.mobile-device.portrait .app-name {
         font-size: 15px !important;
-        line-height: 1.1 !important;
+        line-height: 1 !important;
         margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
       }
 
       html.github-pages body.mobile-device.portrait .catalog-name {
         font-size: 12.5px !important;
-        line-height: 1.1 !important;
+        line-height: 1 !important;
         margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
       }
 
       html.github-pages body.mobile-device.portrait .catalog-label {
         font-size: 10px !important;
         line-height: 1 !important;
         margin: 0 !important;
+        padding: 0 !important;
+        display: inline !important;
       }
 
       html.github-pages body.mobile-device.portrait .catalog-label,
