@@ -1,5 +1,6 @@
 // Service Worker for Catalogue PWA
-// Version 6.2.0 - Test multiple selector variations to isolate CSS matching issue
+// Version 7.0.0 - Final filters-row padding: 5px vertical spacing
+
 
 const CACHE_NAME = 'catalogue-pwa-v7';
 const RUNTIME_CACHE = 'catalogue-runtime-v7';
