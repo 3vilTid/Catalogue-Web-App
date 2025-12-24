@@ -3674,6 +3674,38 @@
       html.github-pages body.mobile-device.portrait .top-header {
         padding: 5px 10px !important;
         margin-bottom: 4px !important;
+        position: relative !important;
+      }
+
+      /* Position user info block in top right corner */
+      html.github-pages body.mobile-device.portrait .right-block {
+        position: absolute !important;
+        top: 5px !important;
+        right: 10px !important;
+        flex-direction: column !important;
+        align-items: flex-end !important;
+        gap: 3px !important;
+        z-index: 10 !important;
+      }
+
+      /* Reduce size of "Signed in" text and user pill */
+      html.github-pages body.mobile-device.portrait .right-block > div:first-of-type {
+        font-size: 8px !important;
+        gap: 3px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .user-pill {
+        padding: 2px 5px !important;
+        font-size: 8px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .user-email {
+        font-size: 8px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .profile-badge {
+        font-size: 7px !important;
+        padding: 1px 4px !important;
       }
 
       html.github-pages body.mobile-device.portrait .shell {
@@ -3722,10 +3754,11 @@
       }
 
       html.github-pages body.mobile-device.portrait #logoutBtn {
-        height: 34px !important;
-        min-height: 34px !important;
-        padding: 0 14px !important;
-        font-size: 9px !important;
+        height: 18px !important;
+        min-height: 18px !important;
+        padding: 0 8px !important;
+        font-size: 8px !important;
+        line-height: 18px !important;
       }
 
       html.github-pages body.mobile-device.portrait #filterBtn,
