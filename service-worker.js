@@ -1,8 +1,8 @@
 // Service Worker for Catalogue PWA
-// Version 7.1.0 - Reposition user info to top right corner for mobile portrait
+// Version 7.2.0 - Reduce top-header bottom spacing to 5px for mobile portrait
 
-const CACHE_NAME = 'catalogue-pwa-v7-1';
-const RUNTIME_CACHE = 'catalogue-runtime-v7-1';
+const CACHE_NAME = 'catalogue-pwa-v7-2';
+const RUNTIME_CACHE = 'catalogue-runtime-v7-2';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
