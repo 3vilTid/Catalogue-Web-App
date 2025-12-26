@@ -1,8 +1,8 @@
 // Service Worker for Catalogue PWA
-// Version 8.1.0 - Reduce top gap on mobile devices (5px portrait, 8px landscape)
+// Version 8.2.0 - Reduce top gap on mobile devices (2px portrait, 4px landscape)
 
-const CACHE_NAME = 'catalogue-pwa-v8-1';
-const RUNTIME_CACHE = 'catalogue-runtime-v8-1';
+const CACHE_NAME = 'catalogue-pwa-v8-2';
+const RUNTIME_CACHE = 'catalogue-runtime-v8-2';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
