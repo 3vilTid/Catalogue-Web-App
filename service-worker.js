@@ -1,8 +1,8 @@
 // Service Worker for Catalogue PWA
-// Version 8.0.0 - Use static favicon files from repository
+// Version 8.1.0 - Reduce top gap on mobile devices (5px portrait, 8px landscape)
 
-const CACHE_NAME = 'catalogue-pwa-v8';
-const RUNTIME_CACHE = 'catalogue-runtime-v8';
+const CACHE_NAME = 'catalogue-pwa-v8-1';
+const RUNTIME_CACHE = 'catalogue-runtime-v8-1';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
