@@ -1,8 +1,8 @@
 // Service Worker for Catalogue PWA
-// Version 7.5.0 - Hide logo white square while loading
+// Version 8.0.0 - Update favicon to use app logo dynamically
 
-const CACHE_NAME = 'catalogue-pwa-v7-5';
-const RUNTIME_CACHE = 'catalogue-runtime-v7-5';
+const CACHE_NAME = 'catalogue-pwa-v8';
+const RUNTIME_CACHE = 'catalogue-runtime-v8';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
