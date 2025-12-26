@@ -1,8 +1,8 @@
 // Service Worker for Catalogue PWA
-// Version 8.4.0 - Remove top-header margin-top to eliminate gap
+// Version 8.5.0 - Override body top padding (18px → 2px/4px)
 
-const CACHE_NAME = 'catalogue-pwa-v8-4';
-const RUNTIME_CACHE = 'catalogue-runtime-v8-4';
+const CACHE_NAME = 'catalogue-pwa-v8-5';
+const RUNTIME_CACHE = 'catalogue-runtime-v8-5';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [

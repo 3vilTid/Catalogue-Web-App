@@ -3977,17 +3977,24 @@
         min-height: 25px !important;
       }
 
+      /* Fix body top padding for mobile devices */
+      html.github-pages body.mobile-device.portrait {
+        padding-top: 2px !important;
+      }
+
+      html.github-pages body.mobile-device.landscape {
+        padding-top: 4px !important;
+      }
+
       html.github-pages body.mobile-device.portrait .shell {
-        padding: 2px 6px 46px 6px !important;
+        padding: 0 6px 46px 6px !important;
       }
 
       html.github-pages body.mobile-device.landscape .shell {
-        padding-top: 4px !important;
         padding-left: 6px !important;
         padding-right: 6px !important;
       }
 
-      /* Remove top-header margin that creates the gap */
       html.github-pages body.mobile-device.portrait .top-header {
         margin-top: 0 !important;
       }
