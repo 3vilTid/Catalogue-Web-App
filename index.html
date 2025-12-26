@@ -5285,6 +5285,12 @@
               const dataUrl = "data:" + json.mime + ";base64," + json.data;
               logoEl.src = dataUrl;
               logoEl.style.display = "block";
+
+              // Update favicon with the same logo
+              const favicon = document.querySelector('link[rel="icon"]');
+              if (favicon) {
+                favicon.href = dataUrl;
+              }
             } else {
               logoEl.style.display = "none";
             }
@@ -5296,6 +5302,12 @@
           // Regular URL - apply directly
           logoEl.src = url;
           logoEl.style.display = "block";
+
+          // Update favicon with the same logo
+          const favicon = document.querySelector('link[rel="icon"]');
+          if (favicon) {
+            favicon.href = url;
+          }
         }
       }
 
