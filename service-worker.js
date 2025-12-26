@@ -1,8 +1,8 @@
 // Service Worker for Catalogue PWA
-// Version 9.0.0 - Remove PWA install banner
+// Version 9.1.0 - Adjust portrait top padding to 4px
 
-const CACHE_NAME = 'catalogue-pwa-v9-0';
-const RUNTIME_CACHE = 'catalogue-runtime-v9-0';
+const CACHE_NAME = 'catalogue-pwa-v9-1';
+const RUNTIME_CACHE = 'catalogue-runtime-v9-1';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
