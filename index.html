@@ -2232,117 +2232,6 @@
         animation: spin 0.8s linear infinite;
       }
 
-      /* ==================== PWA INSTALL BANNER ==================== */
-
-      .install-banner {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-        color: white;
-        padding: 16px 20px;
-        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-        z-index: 9999;
-        animation: slideUp 0.3s ease-out;
-      }
-
-      @keyframes slideUp {
-        from {
-          transform: translateY(100%);
-        }
-        to {
-          transform: translateY(0);
-        }
-      }
-
-      .install-banner-content {
-        max-width: 1200px;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-      }
-
-      .install-banner-text {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-
-      .install-banner-text strong {
-        font-size: 16px;
-        font-weight: 600;
-      }
-
-      .install-banner-text span {
-        font-size: 14px;
-        opacity: 0.95;
-      }
-
-      .install-banner-actions {
-        display: flex;
-        gap: 12px;
-        flex-shrink: 0;
-      }
-
-      .install-banner-btn {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-      }
-
-      .install-btn-primary {
-        background: white;
-        color: #4CAF50;
-      }
-
-      .install-btn-primary:hover {
-        background: #f5f5f5;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      .install-btn-secondary {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-      }
-
-      .install-btn-secondary:hover {
-        background: rgba(255, 255, 255, 0.3);
-      }
-
-      /* Mobile responsive for install banner */
-      @media (max-width: 768px) {
-        .install-banner {
-          padding: 12px 16px;
-        }
-
-        .install-banner-content {
-          flex-direction: column;
-          align-items: stretch;
-          gap: 12px;
-        }
-
-        .install-banner-text {
-          text-align: center;
-        }
-
-        .install-banner-actions {
-          justify-content: center;
-        }
-
-        .install-banner-btn {
-          flex: 1;
-        }
-      }
-
       /* ==================== RESPONSIVE DESIGN ==================== */
 
       /* Tablet and below (768px) */
@@ -4039,20 +3928,6 @@
         <div id="loadingText" class="loading-text">Patience discipline young Padawan !</div>
         <div class="loading-spinner-container">
           <div class="loading-spinner"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PWA Install Prompt -->
-    <div id="installBanner" class="install-banner" style="display: none;">
-      <div class="install-banner-content">
-        <div class="install-banner-text">
-          <strong>Install Catalogue App</strong>
-          <span>Install this app on your device for quick access and offline use.</span>
-        </div>
-        <div class="install-banner-actions">
-          <button id="installBtn" class="install-banner-btn install-btn-primary">Install</button>
-          <button id="dismissInstallBtn" class="install-banner-btn install-btn-secondary">Not now</button>
         </div>
       </div>
     </div>

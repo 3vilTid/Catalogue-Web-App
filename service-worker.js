@@ -1,8 +1,8 @@
 // Service Worker for Catalogue PWA
-// Version 8.5.0 - Override body top padding (18px → 2px/4px)
+// Version 9.0.0 - Remove PWA install banner
 
-const CACHE_NAME = 'catalogue-pwa-v8-5';
-const RUNTIME_CACHE = 'catalogue-runtime-v8-5';
+const CACHE_NAME = 'catalogue-pwa-v9-0';
+const RUNTIME_CACHE = 'catalogue-runtime-v9-0';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
