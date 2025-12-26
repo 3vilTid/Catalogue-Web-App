@@ -1,5 +1,5 @@
 // Service Worker for Catalogue PWA
-// Version 8.0.0 - Update favicon to use app logo dynamically
+// Version 8.0.0 - Use static favicon files from repository
 
 const CACHE_NAME = 'catalogue-pwa-v8';
 const RUNTIME_CACHE = 'catalogue-runtime-v8';
