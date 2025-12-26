@@ -20,9 +20,11 @@
     <script src="./api-config.js"></script>
     <script src="./api-client.js"></script>
 
-    <!-- Icons (using inline SVG data URIs) -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='white'%3EC%3C/text%3E%3C/svg%3E">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='white'%3EC%3C/text%3E%3C/svg%3E">
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 
     <title>Catalogue</title>
 
@@ -5285,12 +5287,6 @@
               const dataUrl = "data:" + json.mime + ";base64," + json.data;
               logoEl.src = dataUrl;
               logoEl.style.display = "block";
-
-              // Update favicon with the same logo
-              const favicon = document.querySelector('link[rel="icon"]');
-              if (favicon) {
-                favicon.href = dataUrl;
-              }
             } else {
               logoEl.style.display = "none";
             }
@@ -5302,12 +5298,6 @@
           // Regular URL - apply directly
           logoEl.src = url;
           logoEl.style.display = "block";
-
-          // Update favicon with the same logo
-          const favicon = document.querySelector('link[rel="icon"]');
-          if (favicon) {
-            favicon.href = url;
-          }
         }
       }
 
