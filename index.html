@@ -111,33 +111,44 @@
             const topHeader = document.querySelector('.top-header');
             const filtersRow = document.querySelector('.filters-row');
 
-            // IMMEDIATE reset: Remove fixed widths so table can resize naturally
+            // IMMEDIATE reset: Remove ALL fixed widths so elements can resize naturally
             if (typeof resetTableWidths === 'function') {
               resetTableWidths();
             }
 
-            // Force immediate reflow
+            // Force immediate reflow on ALL elements to clear cached dimensions
             if (table) void table.offsetWidth;
-            if (shell) void shell.offsetWidth;
+            if (shell) {
+              void shell.offsetWidth;
+              // Clear shell width immediately to prevent stale width from blocking natural resize
+              shell.style.width = '';
+              shell.style.minWidth = '';
+            }
+            if (topHeader) void topHeader.offsetWidth;
+            if (filtersRow) void filtersRow.offsetWidth;
 
-            // Wait for CSS orientation changes to fully apply
+            // Double timeout to ensure CSS orientation changes fully apply
             setTimeout(() => {
-              // Force complete layout recalculation
+              // Second stage: Force another complete layout recalculation
               if (table) void table.offsetWidth;
               if (shell) void shell.offsetWidth;
               if (topHeader) void topHeader.offsetWidth;
               if (filtersRow) void filtersRow.offsetWidth;
 
-              // Wait for layout to settle, then sync widths
+              // Third stage: Final RAF before syncing
               requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
+                  // Ensure one more reflow before reading dimensions
+                  if (table) void table.offsetWidth;
+                  if (shell) void shell.offsetWidth;
+
                   if (typeof syncTableWidthToHeaders === 'function') {
                     console.log('🔄 Syncing table widths after orientation change');
                     syncTableWidthToHeaders();
                   }
                 });
               });
-            }, 150); // Slightly longer delay for orientation changes
+            }, 200); // Increased delay for GitHub Pages mobile orientation changes
           }
         }
 
@@ -4031,6 +4042,35 @@
           grid-template-columns: minmax(0, 280px) minmax(0, 1fr) !important;
           grid-template-rows: auto !important;
         }
+
+        /* Also apply to inline expanded table rows (Open Detail View style) */
+        html.github-pages body.mobile-device.portrait .table-view .expanded-content-row .detail-layout {
+          display: grid !important;
+          grid-template-columns: minmax(0, 280px) minmax(0, 1fr) !important;
+          grid-template-rows: auto !important;
+        }
+      }
+
+      /* Grid layout for inline table expansions - outside media query for all screen sizes */
+      html.github-pages body.mobile-device.portrait .table-view .expanded-content-row .detail-layout {
+        display: grid !important;
+        grid-template-columns: minmax(0, 280px) minmax(0, 1fr) !important;
+        grid-template-rows: auto !important;
+        gap: 12px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .table-view .expanded-content-row #detailImgContainer {
+        grid-column: 1 !important;
+        min-width: 0 !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .table-view .expanded-content-row #detailContentContainer {
+        grid-column: 2 !important;
+        min-width: 0 !important;
       }
 
       /* MOBILE LANDSCAPE - Table Type: Images 50% size */
@@ -7834,6 +7874,11 @@
         const grid = document.getElementById("gridView");
         det.style.display = "block";
         grid.innerHTML = "";
+
+        // Reset table-specific header widths when entering detail view
+        if (typeof resetTableWidths === 'function') {
+          resetTableWidths();
+        }
 
         // Set data attribute for portrait side-by-side layout ONLY when Type=Table AND Style=Open Detail View
         const viewType = getMainViewType();
