@@ -110,16 +110,27 @@
             if (typeof resetTableWidths === 'function') {
               resetTableWidths();
             }
-            // Force a reflow to ensure layout updates
+
+            // Force reflow and give time for CSS to apply
             void grid.offsetHeight;
-            // Recalculate widths after layout settles
-            requestAnimationFrame(() => {
+
+            // Wait for orientation-specific styles to fully apply
+            setTimeout(() => {
+              // Force another reflow after orientation styles applied
+              void grid.offsetHeight;
+
+              // Use multiple RAF to ensure rendering is complete
               requestAnimationFrame(() => {
-                if (typeof syncTableWidthToHeaders === 'function') {
-                  syncTableWidthToHeaders();
-                }
+                requestAnimationFrame(() => {
+                  requestAnimationFrame(() => {
+                    if (typeof syncTableWidthToHeaders === 'function') {
+                      console.log('🔄 Syncing table widths after orientation change');
+                      syncTableWidthToHeaders();
+                    }
+                  });
+                });
               });
-            });
+            }, 100); // Small delay to ensure CSS orientation changes are applied
           }
         }
 
@@ -3800,11 +3811,11 @@
       }
 
       html.github-pages body.mobile-device.portrait .card-name {
-        font-size: 7px !important;
+        font-size: 10px !important;
       }
 
       html.github-pages body.mobile-device.portrait .card-sub {
-        font-size: 6px !important;
+        font-size: 9px !important;
       }
 
       html.github-pages body.mobile-device.portrait .detail-name {
@@ -3934,6 +3945,10 @@
       }
 
       /* MOBILE PORTRAIT - List Type: Text 60% size, Images 60% size */
+      html.github-pages body.mobile-device.portrait .list-view {
+        gap: 5px !important;
+      }
+
       html.github-pages body.mobile-device.portrait .list-view .list-item-name {
         font-size: 0.6em !important;
       }
@@ -3984,10 +3999,22 @@
       html.github-pages body.mobile-device.portrait #detailView[data-table-open-detail="true"] .detail-layout {
         display: grid !important;
         grid-template-columns: minmax(0, 280px) minmax(0, 1fr) !important;
+        grid-template-rows: auto !important;
         gap: 12px !important;
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
+        overflow: visible !important;
+      }
+
+      html.github-pages body.mobile-device.portrait #detailView[data-table-open-detail="true"] #detailImgContainer {
+        grid-column: 1 !important;
+        min-width: 0 !important;
+      }
+
+      html.github-pages body.mobile-device.portrait #detailView[data-table-open-detail="true"] #detailContentContainer {
+        grid-column: 2 !important;
+        min-width: 0 !important;
       }
 
       /* MOBILE LANDSCAPE - Table Type: Images 50% size */
@@ -5881,9 +5908,20 @@
             if (col.type === "image" && value) {
               // Image type: show small image
               const imgWrapper = document.createElement("div");
-              // 1.5x bigger (90px) for Mobile/Tablet Portrait, 60px otherwise
-              const imgSize = (document.body.classList.contains('mobile-device') || document.body.classList.contains('tablet-device')) &&
-                              document.body.classList.contains('portrait') ? '90px' : '60px';
+              // Image size: GitHub Pages uses 45px portrait/30px landscape, non-GitHub uses 90px portrait/60px default
+              let imgSize = '60px'; // Default size
+              if (document.documentElement.classList.contains('github-pages')) {
+                // GitHub Pages: 45px for mobile portrait, 30px for mobile landscape
+                if (document.body.classList.contains('mobile-device')) {
+                  imgSize = document.body.classList.contains('portrait') ? '45px' : '30px';
+                }
+              } else {
+                // Non-GitHub Pages: 90px for mobile/tablet portrait
+                if ((document.body.classList.contains('mobile-device') || document.body.classList.contains('tablet-device')) &&
+                    document.body.classList.contains('portrait')) {
+                  imgSize = '90px';
+                }
+              }
               imgWrapper.style.cssText = `width: ${imgSize}; height: ${imgSize}; position: relative; background: #e5e7eb; border-radius: 6px; overflow: hidden;`;
 
               const fileId = extractDriveFileId(value);
@@ -7046,9 +7084,20 @@
             if (col.type === "image" && value) {
               // Image type: show small image
               const imgWrapper = document.createElement("div");
-              // 1.5x bigger (90px) for Mobile/Tablet Portrait, 60px otherwise
-              const imgSize = (document.body.classList.contains('mobile-device') || document.body.classList.contains('tablet-device')) &&
-                              document.body.classList.contains('portrait') ? '90px' : '60px';
+              // Image size: GitHub Pages uses 45px portrait/30px landscape, non-GitHub uses 90px portrait/60px default
+              let imgSize = '60px'; // Default size
+              if (document.documentElement.classList.contains('github-pages')) {
+                // GitHub Pages: 45px for mobile portrait, 30px for mobile landscape
+                if (document.body.classList.contains('mobile-device')) {
+                  imgSize = document.body.classList.contains('portrait') ? '45px' : '30px';
+                }
+              } else {
+                // Non-GitHub Pages: 90px for mobile/tablet portrait
+                if ((document.body.classList.contains('mobile-device') || document.body.classList.contains('tablet-device')) &&
+                    document.body.classList.contains('portrait')) {
+                  imgSize = '90px';
+                }
+              }
               imgWrapper.style.cssText = `width: ${imgSize}; height: ${imgSize}; position: relative; background: #e5e7eb; border-radius: 6px; overflow: hidden;`;
 
               const fileId = extractDriveFileId(value);
