@@ -4017,6 +4017,15 @@
         min-width: 0 !important;
       }
 
+      /* Override media query for GitHub Pages mobile portrait - ensure grid layout wins */
+      @media (max-width: 768px) {
+        html.github-pages body.mobile-device.portrait #detailView[data-table-open-detail="true"] .detail-layout {
+          display: grid !important;
+          grid-template-columns: minmax(0, 280px) minmax(0, 1fr) !important;
+          grid-template-rows: auto !important;
+        }
+      }
+
       /* MOBILE LANDSCAPE - Table Type: Images 50% size */
       html.github-pages body.mobile-device.landscape .table-cell-img {
         width: 30px !important;
