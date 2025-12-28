@@ -123,8 +123,12 @@
               // Wait for orientation CSS to fully apply, then re-render
               setTimeout(() => {
                 // Re-render the entire list to recalculate all table dimensions
-                if (typeof renderList === 'function' && typeof currentFilteredData !== 'undefined') {
-                  renderList(currentFilteredData);
+                // Use currentDisplayedItems which stores the currently displayed data
+                if (typeof renderList === 'function' && currentDisplayedItems && currentDisplayedItems.length > 0) {
+                  renderList(currentDisplayedItems);
+                } else if (typeof applyFiltersAndSorting === 'function') {
+                  // Fallback: re-apply filters and sorting (for main layer)
+                  applyFiltersAndSorting();
                 }
               }, 100); // Short delay to let CSS settle
             } else {
