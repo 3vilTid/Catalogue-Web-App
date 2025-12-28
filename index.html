@@ -120,6 +120,11 @@
             if (isGitHubPages && isMobile) {
               console.log('🔄 Re-rendering table view for orientation change on GitHub Pages mobile');
 
+              // IMMEDIATE reset of table widths before re-render
+              if (typeof resetTableWidths === 'function') {
+                resetTableWidths();
+              }
+
               // Wait for orientation CSS to fully apply, then re-render
               setTimeout(() => {
                 // Re-render the entire list to recalculate all table dimensions
