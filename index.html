@@ -110,11 +110,15 @@
             if (typeof resetTableWidths === 'function') {
               resetTableWidths();
             }
-            // Recalculate widths after a brief delay to allow layout to settle
+            // Force a reflow to ensure layout updates
+            void grid.offsetHeight;
+            // Recalculate widths after layout settles
             requestAnimationFrame(() => {
-              if (typeof syncTableWidthToHeaders === 'function') {
-                syncTableWidthToHeaders();
-              }
+              requestAnimationFrame(() => {
+                if (typeof syncTableWidthToHeaders === 'function') {
+                  syncTableWidthToHeaders();
+                }
+              });
             });
           }
         }
@@ -3796,11 +3800,11 @@
       }
 
       html.github-pages body.mobile-device.portrait .card-name {
-        font-size: 13px !important;
+        font-size: 7px !important;
       }
 
       html.github-pages body.mobile-device.portrait .card-sub {
-        font-size: 11px !important;
+        font-size: 6px !important;
       }
 
       html.github-pages body.mobile-device.portrait .detail-name {
@@ -3929,15 +3933,6 @@
         gap: 6px !important;
       }
 
-      /* MOBILE PORTRAIT - Cards Type: Text 50% size */
-      html.github-pages body.mobile-device.portrait .grid .item-name {
-        font-size: 11px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .grid .item-subtitle {
-        font-size: 10px !important;
-      }
-
       /* MOBILE PORTRAIT - List Type: Text 60% size, Images 60% size */
       html.github-pages body.mobile-device.portrait .list-view .list-item-name {
         font-size: 0.6em !important;
@@ -3962,9 +3957,9 @@
         font-size: 0.6em !important;
       }
 
-      html.github-pages body.mobile-device.portrait .table-view .table-cell-img {
-        width: 30px !important;
-        height: 30px !important;
+      html.github-pages body.mobile-device.portrait .table-cell-img {
+        width: 45px !important;
+        height: 45px !important;
       }
 
       html.github-pages body.mobile-device.portrait .table-view .data-table td {
@@ -3987,12 +3982,16 @@
 
       /* MOBILE PORTRAIT - Table Open Detail View: Landscape layout (image left, text right) */
       html.github-pages body.mobile-device.portrait #detailView[data-table-open-detail="true"] .detail-layout {
+        display: grid !important;
         grid-template-columns: minmax(0, 280px) minmax(0, 1fr) !important;
         gap: 12px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
       }
 
       /* MOBILE LANDSCAPE - Table Type: Images 50% size */
-      html.github-pages body.mobile-device.landscape .table-view .table-cell-img {
+      html.github-pages body.mobile-device.landscape .table-cell-img {
         width: 30px !important;
         height: 30px !important;
       }
