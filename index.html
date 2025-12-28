@@ -937,7 +937,7 @@
         flex-direction: row;
         align-items: center;
         gap: 16px;
-        padding: 12px;
+        padding: 5px 12px;
         background: rgba(255, 255, 255, 0.98);
         border-radius: 12px;
         box-shadow: 0 4px 12px rgba(148, 163, 184, 0.2);
@@ -3931,11 +3931,11 @@
 
       /* MOBILE PORTRAIT - Cards Type: Text 50% size */
       html.github-pages body.mobile-device.portrait .grid .item-name {
-        font-size: 0.5em !important;
+        font-size: 11px !important;
       }
 
       html.github-pages body.mobile-device.portrait .grid .item-subtitle {
-        font-size: 0.5em !important;
+        font-size: 10px !important;
       }
 
       /* MOBILE PORTRAIT - List Type: Text 60% size, Images 60% size */
@@ -3967,14 +3967,28 @@
         height: 30px !important;
       }
 
-      /* MOBILE PORTRAIT - Breadcrumbs: 110% size */
+      html.github-pages body.mobile-device.portrait .table-view .data-table td {
+        padding: 7px 16px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .table-view .data-table th {
+        padding: 7px 16px !important;
+      }
+
+      /* MOBILE PORTRAIT - Breadcrumbs: 12px */
       html.github-pages body.mobile-device.portrait #breadcrumbNav {
-        font-size: 14.3px !important;
+        font-size: 12px !important;
       }
 
       html.github-pages body.mobile-device.portrait #breadcrumbNav a,
       html.github-pages body.mobile-device.portrait #breadcrumbNav span {
-        font-size: 14.3px !important;
+        font-size: 12px !important;
+      }
+
+      /* MOBILE PORTRAIT - Table Open Detail View: Landscape layout (image left, text right) */
+      html.github-pages body.mobile-device.portrait #detailView[data-table-open-detail="true"] .detail-layout {
+        grid-template-columns: minmax(0, 280px) minmax(0, 1fr) !important;
+        gap: 12px !important;
       }
 
       /* MOBILE LANDSCAPE - Table Type: Images 50% size */
@@ -5541,6 +5555,11 @@
         det.style.display = "none";
         grid.innerHTML = "";
 
+        // Reset table widths when switching views
+        if (typeof resetTableWidths === 'function') {
+          resetTableWidths();
+        }
+
         // Store items for detail view navigation
         currentDisplayedItems = items;
         currentDetailIndex = -1;
@@ -6695,6 +6714,11 @@
         const det = document.getElementById("detailView");
         det.style.display = "none";
         grid.innerHTML = "";
+
+        // Reset table widths when switching views
+        if (typeof resetTableWidths === 'function') {
+          resetTableWidths();
+        }
 
         // Clear table filters when navigating to new view
         tableColumnFilters = {};
@@ -8216,6 +8240,11 @@
 
       function backToList() {
         document.getElementById("detailView").style.display = "none";
+
+        // Reset table widths when navigating back
+        if (typeof resetTableWidths === 'function') {
+          resetTableWidths();
+        }
 
         // Check if we're in layer navigation
         if (navigationStack.length > 0 || currentLayerIndex >= 0) {
