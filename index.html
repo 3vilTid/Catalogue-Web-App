@@ -106,31 +106,38 @@
           // Reset and recalculate table widths if in table view
           const grid = document.getElementById('gridView');
           if (grid && grid.classList.contains('table-view')) {
-            // Reset cached widths first
+            const table = document.querySelector('.data-table');
+            const shell = document.querySelector('.shell');
+            const topHeader = document.querySelector('.top-header');
+            const filtersRow = document.querySelector('.filters-row');
+
+            // IMMEDIATE reset: Remove fixed widths so table can resize naturally
             if (typeof resetTableWidths === 'function') {
               resetTableWidths();
             }
 
-            // Force reflow and give time for CSS to apply
-            void grid.offsetHeight;
+            // Force immediate reflow
+            if (table) void table.offsetWidth;
+            if (shell) void shell.offsetWidth;
 
-            // Wait for orientation-specific styles to fully apply
+            // Wait for CSS orientation changes to fully apply
             setTimeout(() => {
-              // Force another reflow after orientation styles applied
-              void grid.offsetHeight;
+              // Force complete layout recalculation
+              if (table) void table.offsetWidth;
+              if (shell) void shell.offsetWidth;
+              if (topHeader) void topHeader.offsetWidth;
+              if (filtersRow) void filtersRow.offsetWidth;
 
-              // Use multiple RAF to ensure rendering is complete
+              // Wait for layout to settle, then sync widths
               requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                  requestAnimationFrame(() => {
-                    if (typeof syncTableWidthToHeaders === 'function') {
-                      console.log('🔄 Syncing table widths after orientation change');
-                      syncTableWidthToHeaders();
-                    }
-                  });
+                  if (typeof syncTableWidthToHeaders === 'function') {
+                    console.log('🔄 Syncing table widths after orientation change');
+                    syncTableWidthToHeaders();
+                  }
                 });
               });
-            }, 100); // Small delay to ensure CSS orientation changes are applied
+            }, 150); // Slightly longer delay for orientation changes
           }
         }
 
@@ -6135,7 +6142,7 @@
         html += '</div>';
 
         // Content container
-        html += '<div>';
+        html += '<div id="detailContentContainer">';
 
         // Title row with name
         html += '<div class="detail-title-row">' +
@@ -7873,7 +7880,7 @@
 
         html +=
           "</div>" +
-          "<div>" +
+          '<div id="detailContentContainer">' +
           '<div class="detail-title-row">' +
           '<div class="detail-name">' +
           (nameColumn ? (item[nameColumn.columnName] || "") : "") +
