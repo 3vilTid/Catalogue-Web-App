@@ -111,44 +111,63 @@
             const topHeader = document.querySelector('.top-header');
             const filtersRow = document.querySelector('.filters-row');
 
-            // IMMEDIATE reset: Remove ALL fixed widths so elements can resize naturally
-            if (typeof resetTableWidths === 'function') {
-              resetTableWidths();
-            }
+            // CRITICAL: For GitHub Pages mobile, completely re-render the table view
+            // This is necessary because table column widths get cached and don't update
+            // properly when orientation changes, even with forced reflows
+            const isGitHubPages = document.documentElement.classList.contains('github-pages');
+            const isMobile = document.body.classList.contains('mobile-device');
 
-            // Force immediate reflow on ALL elements to clear cached dimensions
-            if (table) void table.offsetWidth;
-            if (shell) {
-              void shell.offsetWidth;
-              // Clear shell width immediately to prevent stale width from blocking natural resize
-              shell.style.width = '';
-              shell.style.minWidth = '';
-            }
-            if (topHeader) void topHeader.offsetWidth;
-            if (filtersRow) void filtersRow.offsetWidth;
+            if (isGitHubPages && isMobile) {
+              console.log('🔄 Re-rendering table view for orientation change on GitHub Pages mobile');
 
-            // Double timeout to ensure CSS orientation changes fully apply
-            setTimeout(() => {
-              // Second stage: Force another complete layout recalculation
+              // Wait for orientation CSS to fully apply, then re-render
+              setTimeout(() => {
+                // Re-render the entire list to recalculate all table dimensions
+                if (typeof renderList === 'function' && typeof currentFilteredData !== 'undefined') {
+                  renderList(currentFilteredData);
+                }
+              }, 100); // Short delay to let CSS settle
+            } else {
+              // Non-GitHub Pages or desktop: Use normal width sync approach
+              // IMMEDIATE reset: Remove ALL fixed widths so elements can resize naturally
+              if (typeof resetTableWidths === 'function') {
+                resetTableWidths();
+              }
+
+              // Force immediate reflow on ALL elements to clear cached dimensions
               if (table) void table.offsetWidth;
-              if (shell) void shell.offsetWidth;
+              if (shell) {
+                void shell.offsetWidth;
+                // Clear shell width immediately to prevent stale width from blocking natural resize
+                shell.style.width = '';
+                shell.style.minWidth = '';
+              }
               if (topHeader) void topHeader.offsetWidth;
               if (filtersRow) void filtersRow.offsetWidth;
 
-              // Third stage: Final RAF before syncing
-              requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                  // Ensure one more reflow before reading dimensions
-                  if (table) void table.offsetWidth;
-                  if (shell) void shell.offsetWidth;
+              // Wait for CSS orientation changes to fully apply
+              setTimeout(() => {
+                // Force another complete layout recalculation
+                if (table) void table.offsetWidth;
+                if (shell) void shell.offsetWidth;
+                if (topHeader) void topHeader.offsetWidth;
+                if (filtersRow) void filtersRow.offsetWidth;
 
-                  if (typeof syncTableWidthToHeaders === 'function') {
-                    console.log('🔄 Syncing table widths after orientation change');
-                    syncTableWidthToHeaders();
-                  }
+                // Final RAF before syncing
+                requestAnimationFrame(() => {
+                  requestAnimationFrame(() => {
+                    // Ensure one more reflow before reading dimensions
+                    if (table) void table.offsetWidth;
+                    if (shell) void shell.offsetWidth;
+
+                    if (typeof syncTableWidthToHeaders === 'function') {
+                      console.log('🔄 Syncing table widths after orientation change');
+                      syncTableWidthToHeaders();
+                    }
+                  });
                 });
-              });
-            }, 200); // Increased delay for GitHub Pages mobile orientation changes
+              }, 150);
+            }
           }
         }
 
