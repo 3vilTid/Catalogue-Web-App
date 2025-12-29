@@ -6287,42 +6287,36 @@
         const shellPadding = parseInt(getComputedStyle(shell).paddingLeft) + parseInt(getComputedStyle(shell).paddingRight);
         const viewportWidth = window.innerWidth;
 
-        // Check if GitHub Pages mobile
+        // ALWAYS set headers to match table width on ALL devices
+        // This makes headers "follow down" when scrolling
+        const widthToSet = tableWidth + 'px';
+        topHeader.style.width = widthToSet;
+        topHeader.style.minWidth = widthToSet;
+        filtersRow.style.width = widthToSet;
+        filtersRow.style.minWidth = widthToSet;
+
+        // CRITICAL FIX: Prevent shell width from exceeding viewport on GitHub Pages mobile
+        // This prevents unwanted zoom when orientation changes
         const isGitHubPages = document.documentElement.classList.contains('github-pages');
         const isMobile = document.body.classList.contains('mobile-device');
 
         if (isGitHubPages && isMobile) {
-          // GITHUB PAGES MOBILE: More careful width management to preserve sticky headers and fixed bottom bar
+          // On GitHub Pages mobile, NEVER set shell wider than viewport
+          // This prevents zoom-in/zoom-out bugs during orientation changes
           const maxAllowedWidth = viewportWidth;
           const desiredShellWidth = tableWidth + shellPadding;
 
           if (desiredShellWidth <= maxAllowedWidth) {
-            // Table fits in viewport - safe to set all widths
-            const widthToSet = tableWidth + 'px';
-            topHeader.style.width = widthToSet;
-            topHeader.style.minWidth = widthToSet;
-            filtersRow.style.width = widthToSet;
-            filtersRow.style.minWidth = widthToSet;
+            // Table fits in viewport - set shell to table width
             shell.style.width = `${desiredShellWidth}px`;
-            shell.style.minWidth = '';
           } else {
-            // Table exceeds viewport - DON'T set widths to prevent breaking sticky/fixed positioning
-            // Let natural overflow-x: auto on body handle horizontal scrolling
-            topHeader.style.width = '';
-            topHeader.style.minWidth = '';
-            filtersRow.style.width = '';
-            filtersRow.style.minWidth = '';
+            // Table exceeds viewport - let shell be 100% width (allow horizontal scroll)
             shell.style.width = '';
             shell.style.maxWidth = '';
-            shell.style.minWidth = '';
           }
+          shell.style.minWidth = '';
         } else {
           // Non-GitHub Pages or desktop: Use original behavior
-          const widthToSet = tableWidth + 'px';
-          topHeader.style.width = widthToSet;
-          topHeader.style.minWidth = widthToSet;
-          filtersRow.style.width = widthToSet;
-          filtersRow.style.minWidth = widthToSet;
           shell.style.width = `${tableWidth + shellPadding}px`;
           shell.style.minWidth = '';
         }
