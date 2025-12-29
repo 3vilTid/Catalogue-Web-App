@@ -4106,6 +4106,8 @@
       html.github-pages body.mobile-device.portrait .dropdown-btn {
         font-size: 10.71px !important; /* 90% of 11.9px */
         padding: 2.8px 5.6px !important;
+        line-height: calc(10.71px + 2px) !important; /* Text height + 2px extra */
+        min-height: calc(10.71px + 2px + 5.6px) !important; /* Line height + vertical padding */
       }
 
       /* MOBILE PORTRAIT - Filter/Sort dropdown: 150-200px width range */
@@ -4145,7 +4147,19 @@
         right: auto !important;
       }
 
-      /* Note: All dropdowns now extend RIGHT from button to prevent left overflow */
+      /* ALL DEVICES & ORIENTATIONS - Filter button dropdown: align LEFT edge with button LEFT edge */
+      #filterWrapper .dropdown-menu,
+      #filterBtn + .dropdown-menu {
+        left: 0 !important;
+        right: auto !important;
+      }
+
+      /* ALL DEVICES & ORIENTATIONS - Sort button dropdown: align RIGHT edge with button RIGHT edge */
+      #sortWrapper .dropdown-menu,
+      #sortBtn + .dropdown-menu {
+        left: auto !important;
+        right: 0 !important;
+      }
 
       /* MOBILE PORTRAIT - Image close button: 60% of current size (GitHub Pages only) */
       html.github-pages body.mobile-device.portrait #imgOverlayClose {
@@ -4157,14 +4171,12 @@
         right: 12px !important; /* 60% of 20px */
       }
 
-      /* MOBILE PORTRAIT - Detail view gap: 8px total between search bar and detail content */
+      /* MOBILE PORTRAIT - Detail view gap: 8px BETWEEN containers (filters-row to detailView) */
       /* ULTRA-HIGH SPECIFICITY - Multiple redundant rules to ensure override */
 
-      /* Remove all margins from filters-row */
+      /* Remove bottom margin from filters-row container */
       html.github-pages body.mobile-device.portrait .filters-row,
       html.github-pages body.mobile-device.portrait.portrait .filters-row {
-        margin: 0px !important;
-        margin-top: 0px !important;
         margin-bottom: 0px !important;
       }
 
@@ -4176,19 +4188,20 @@
         margin-bottom: 0px !important;
       }
 
-      /* CRITICAL: detailView with DOUBLED ID selector for maximum specificity */
+      /* CRITICAL: detailView - 8px gap from filters-row + 10px internal padding */
       html.github-pages body.mobile-device.portrait #detailView#detailView {
-        margin: 0px 0px 0px 0px !important;
-        margin-top: 0px !important;
+        margin-top: 8px !important; /* Gap between containers */
         margin-bottom: 0px !important;
-        padding: 0px 16px 16px 16px !important; /* START WITH 0px gap to test if rule works */
-        padding-top: 0px !important; /* VERY OBVIOUS - should eliminate all gap */
+        margin-left: 0px !important;
+        margin-right: 0px !important;
+        padding: 10px 16px 16px 16px !important; /* Internal padding: 10px top */
+        padding-top: 10px !important; /* Space between container edge and items */
       }
 
       /* Backup rule with even higher specificity */
       html.github-pages body.mobile-device.portrait:not(.some-nonexistent-class) #detailView {
-        padding-top: 0px !important;
-        margin-top: 0px !important;
+        margin-top: 8px !important; /* Gap between containers */
+        padding-top: 10px !important; /* Internal padding */
       }
 
       /* MOBILE PORTRAIT - Breadcrumbs: 12px */
@@ -9750,10 +9763,35 @@
         document.querySelectorAll('input[name="sortField"]').forEach(radio => {
           radio.onchange = function() {
             sortField = this.value;
+
+            // Hide Order section when "No sorting" is selected
+            const sortDropdown = document.getElementById('sortDropdown');
+            const orderDivider = sortDropdown.querySelector('.dropdown-divider');
+            const orderSection = sortDropdown.querySelectorAll('.dropdown-section')[1]; // Second section is Order
+
+            if (sortField === 'none') {
+              if (orderDivider) orderDivider.style.display = 'none';
+              if (orderSection) orderSection.style.display = 'none';
+            } else {
+              if (orderDivider) orderDivider.style.display = 'block';
+              if (orderSection) orderSection.style.display = 'block';
+            }
+
             updateChipsUI();
             applyFiltersAndSorting();
           };
         });
+
+        // Initialize: Hide Order section on page load (default is "No sorting")
+        (() => {
+          const sortDropdown = document.getElementById('sortDropdown');
+          const orderDivider = sortDropdown.querySelector('.dropdown-divider');
+          const orderSection = sortDropdown.querySelectorAll('.dropdown-section')[1];
+          if (sortField === 'none') {
+            if (orderDivider) orderDivider.style.display = 'none';
+            if (orderSection) orderSection.style.display = 'none';
+          }
+        })();
 
         // Sort order radio buttons
         document.querySelectorAll('input[name="sortOrder"]').forEach(radio => {
