@@ -6282,35 +6282,50 @@
           return;
         }
 
-        // CRITICAL FIX: Skip width manipulation on GitHub Pages mobile devices
-        // Setting widths breaks position:sticky on table headers and causes bottom bar to be off-screen
-        const isGitHubPages = document.documentElement.classList.contains('github-pages');
-        const isMobile = document.body.classList.contains('mobile-device');
-
-        if (isGitHubPages && isMobile) {
-          // On GitHub Pages mobile: Do NOT manipulate widths
-          // Let sticky headers and fixed bottom bar work naturally
-          // Natural horizontal scroll will work if table is wide
-          console.log('📱 GitHub Pages mobile: Skipping width manipulation for sticky headers');
-          return;
-        }
-
         // Get the actual table width (use offsetWidth for correct visible width)
         const tableWidth = table.offsetWidth;
         const shellPadding = parseInt(getComputedStyle(shell).paddingLeft) + parseInt(getComputedStyle(shell).paddingRight);
         const viewportWidth = window.innerWidth;
 
-        // ALWAYS set headers to match table width on ALL devices (except GitHub Pages mobile)
-        // This makes headers "follow down" when scrolling
-        const widthToSet = tableWidth + 'px';
-        topHeader.style.width = widthToSet;
-        topHeader.style.minWidth = widthToSet;
-        filtersRow.style.width = widthToSet;
-        filtersRow.style.minWidth = widthToSet;
+        // Check if GitHub Pages mobile
+        const isGitHubPages = document.documentElement.classList.contains('github-pages');
+        const isMobile = document.body.classList.contains('mobile-device');
 
-        // Non-GitHub Pages or desktop: Use original behavior
-        shell.style.width = `${tableWidth + shellPadding}px`;
-        shell.style.minWidth = '';
+        if (isGitHubPages && isMobile) {
+          // GITHUB PAGES MOBILE: More careful width management to preserve sticky headers and fixed bottom bar
+          const maxAllowedWidth = viewportWidth;
+          const desiredShellWidth = tableWidth + shellPadding;
+
+          if (desiredShellWidth <= maxAllowedWidth) {
+            // Table fits in viewport - safe to set all widths
+            const widthToSet = tableWidth + 'px';
+            topHeader.style.width = widthToSet;
+            topHeader.style.minWidth = widthToSet;
+            filtersRow.style.width = widthToSet;
+            filtersRow.style.minWidth = widthToSet;
+            shell.style.width = `${desiredShellWidth}px`;
+            shell.style.minWidth = '';
+          } else {
+            // Table exceeds viewport - DON'T set widths to prevent breaking sticky/fixed positioning
+            // Let natural overflow-x: auto on body handle horizontal scrolling
+            topHeader.style.width = '';
+            topHeader.style.minWidth = '';
+            filtersRow.style.width = '';
+            filtersRow.style.minWidth = '';
+            shell.style.width = '';
+            shell.style.maxWidth = '';
+            shell.style.minWidth = '';
+          }
+        } else {
+          // Non-GitHub Pages or desktop: Use original behavior
+          const widthToSet = tableWidth + 'px';
+          topHeader.style.width = widthToSet;
+          topHeader.style.minWidth = widthToSet;
+          filtersRow.style.width = widthToSet;
+          filtersRow.style.minWidth = widthToSet;
+          shell.style.width = `${tableWidth + shellPadding}px`;
+          shell.style.minWidth = '';
+        }
       }
 
       // Reset header and shell widths when switching away from table view
