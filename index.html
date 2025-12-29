@@ -4172,25 +4172,12 @@
       }
 
       /* MOBILE PORTRAIT - Detail view gap: 8px BETWEEN containers (filters-row to detailView) */
-      /* ULTRA-HIGH SPECIFICITY - Multiple redundant rules to ensure override */
+      /* ONLY affects DETAIL view, NOT grid view */
 
-      /* Remove bottom margin from filters-row container */
-      html.github-pages body.mobile-device.portrait .filters-row,
-      html.github-pages body.mobile-device.portrait.portrait .filters-row {
-        margin-bottom: 0px !important;
-      }
-
-      /* Remove all margins from gridView */
-      html.github-pages body.mobile-device.portrait #gridView,
-      html.github-pages body.mobile-device.portrait.portrait #gridView {
-        margin: 0px !important;
-        margin-top: 0px !important;
-        margin-bottom: 0px !important;
-      }
-
-      /* CRITICAL: detailView - 8px gap from filters-row + 10px internal padding */
+      /* CRITICAL: detailView - negative margin to compensate for filters-row margin-bottom (14px) */
+      /* Gap calculation: filters-row margin-bottom (14px) + detailView margin-top (-6px) = 8px */
       html.github-pages body.mobile-device.portrait #detailView#detailView {
-        margin-top: 8px !important; /* Gap between containers */
+        margin-top: -6px !important; /* Negative margin to achieve 8px total gap (14px - 6px) */
         margin-bottom: 0px !important;
         margin-left: 0px !important;
         margin-right: 0px !important;
@@ -4200,7 +4187,7 @@
 
       /* Backup rule with even higher specificity */
       html.github-pages body.mobile-device.portrait:not(.some-nonexistent-class) #detailView {
-        margin-top: 8px !important; /* Gap between containers */
+        margin-top: -6px !important; /* Negative margin for 8px total gap */
         padding-top: 10px !important; /* Internal padding */
       }
 
@@ -9764,7 +9751,7 @@
           radio.onchange = function() {
             sortField = this.value;
 
-            // Hide Order section when "No sorting" is selected
+            // Hide Order section when "No sorting" is selected, show when sorting is active
             const sortDropdown = document.getElementById('sortDropdown');
             const orderDivider = sortDropdown.querySelector('.dropdown-divider');
             const orderSection = sortDropdown.querySelectorAll('.dropdown-section')[1]; // Second section is Order
@@ -9773,8 +9760,9 @@
               if (orderDivider) orderDivider.style.display = 'none';
               if (orderSection) orderSection.style.display = 'none';
             } else {
-              if (orderDivider) orderDivider.style.display = 'block';
-              if (orderSection) orderSection.style.display = 'block';
+              // Restore default display (empty string restores CSS default)
+              if (orderDivider) orderDivider.style.display = '';
+              if (orderSection) orderSection.style.display = '';
             }
 
             updateChipsUI();
