@@ -135,6 +135,24 @@
                   // Fallback: re-apply filters and sorting (for main layer)
                   applyFiltersAndSorting();
                 }
+
+                // CRITICAL: Force viewport zoom reset to prevent zoom-in/zoom-out bugs
+                // Wait for render to complete, then reset any browser-applied zoom
+                requestAnimationFrame(() => {
+                  // Reset viewport zoom by forcing scale to 1.0
+                  const viewportMeta = document.querySelector('meta[name="viewport"]');
+                  if (viewportMeta) {
+                    const originalContent = viewportMeta.getAttribute('content');
+                    // Temporarily force scale to 1.0
+                    viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no');
+                    // Restore original viewport settings after brief delay
+                    setTimeout(() => {
+                      viewportMeta.setAttribute('content', originalContent);
+                    }, 50);
+                  }
+                  // Also scroll to top-left to ensure clean state
+                  window.scrollTo(0, 0);
+                });
               }, 100); // Short delay to let CSS settle
             } else {
               // Non-GitHub Pages or desktop: Use normal width sync approach
@@ -4101,10 +4119,10 @@
         min-width: 0 !important;
       }
 
-      /* MOBILE LANDSCAPE - Table Type: Images 50% size */
+      /* MOBILE LANDSCAPE - Table Type: Images bigger by 5px each side (40px total) */
       html.github-pages body.mobile-device.landscape .table-cell-img {
-        width: 30px !important;
-        height: 30px !important;
+        width: 40px !important;
+        height: 40px !important;
       }
 
       /* MOBILE LANDSCAPE - List Type: Images 60% size */
@@ -5992,12 +6010,12 @@
             if (col.type === "image" && value) {
               // Image type: show small image
               const imgWrapper = document.createElement("div");
-              // Image size: GitHub Pages uses 45px portrait/30px landscape, non-GitHub uses 90px portrait/60px default
+              // Image size: GitHub Pages uses 45px portrait/40px landscape, non-GitHub uses 90px portrait/60px default
               let imgSize = '60px'; // Default size
               if (document.documentElement.classList.contains('github-pages')) {
-                // GitHub Pages: 45px for mobile portrait, 30px for mobile landscape
+                // GitHub Pages: 45px for mobile portrait, 40px for mobile landscape
                 if (document.body.classList.contains('mobile-device')) {
-                  imgSize = document.body.classList.contains('portrait') ? '45px' : '30px';
+                  imgSize = document.body.classList.contains('portrait') ? '45px' : '40px';
                 }
               } else {
                 // Non-GitHub Pages: 90px for mobile/tablet portrait
@@ -6084,6 +6102,7 @@
         // Get the actual table width (use offsetWidth for correct visible width)
         const tableWidth = table.offsetWidth;
         const shellPadding = parseInt(getComputedStyle(shell).paddingLeft) + parseInt(getComputedStyle(shell).paddingRight);
+        const viewportWidth = window.innerWidth;
 
         // ALWAYS set headers to match table width on ALL devices
         // This makes headers "follow down" when scrolling
@@ -6093,9 +6112,31 @@
         filtersRow.style.width = widthToSet;
         filtersRow.style.minWidth = widthToSet;
 
-        // Set shell width to fit content properly
-        shell.style.width = `${tableWidth + shellPadding}px`;
-        shell.style.minWidth = '';
+        // CRITICAL FIX: Prevent shell width from exceeding viewport on GitHub Pages mobile
+        // This prevents unwanted zoom when orientation changes
+        const isGitHubPages = document.documentElement.classList.contains('github-pages');
+        const isMobile = document.body.classList.contains('mobile-device');
+
+        if (isGitHubPages && isMobile) {
+          // On GitHub Pages mobile, NEVER set shell wider than viewport
+          // This prevents zoom-in/zoom-out bugs during orientation changes
+          const maxAllowedWidth = viewportWidth;
+          const desiredShellWidth = tableWidth + shellPadding;
+
+          if (desiredShellWidth <= maxAllowedWidth) {
+            // Table fits in viewport - set shell to table width
+            shell.style.width = `${desiredShellWidth}px`;
+          } else {
+            // Table exceeds viewport - let shell be 100% width (allow horizontal scroll)
+            shell.style.width = '';
+            shell.style.maxWidth = '';
+          }
+          shell.style.minWidth = '';
+        } else {
+          // Non-GitHub Pages or desktop: Use original behavior
+          shell.style.width = `${tableWidth + shellPadding}px`;
+          shell.style.minWidth = '';
+        }
       }
 
       // Reset header and shell widths when switching away from table view
@@ -7168,12 +7209,12 @@
             if (col.type === "image" && value) {
               // Image type: show small image
               const imgWrapper = document.createElement("div");
-              // Image size: GitHub Pages uses 45px portrait/30px landscape, non-GitHub uses 90px portrait/60px default
+              // Image size: GitHub Pages uses 45px portrait/40px landscape, non-GitHub uses 90px portrait/60px default
               let imgSize = '60px'; // Default size
               if (document.documentElement.classList.contains('github-pages')) {
-                // GitHub Pages: 45px for mobile portrait, 30px for mobile landscape
+                // GitHub Pages: 45px for mobile portrait, 40px for mobile landscape
                 if (document.body.classList.contains('mobile-device')) {
-                  imgSize = document.body.classList.contains('portrait') ? '45px' : '30px';
+                  imgSize = document.body.classList.contains('portrait') ? '45px' : '40px';
                 }
               } else {
                 // Non-GitHub Pages: 90px for mobile/tablet portrait
