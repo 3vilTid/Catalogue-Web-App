@@ -4108,21 +4108,21 @@
         padding: 2.8px 5.6px !important;
       }
 
-      /* MOBILE PORTRAIT - Filter/Sort dropdown: max 180px with text wrapping, 90% text size, stay on screen */
+      /* MOBILE PORTRAIT - Filter/Sort dropdown: FIXED 200px width */
       html.github-pages body.mobile-device.portrait .dropdown-menu {
-        width: auto !important;
-        min-width: auto !important;
-        max-width: min(180px, calc(100vw - 20px)) !important; /* Clamp to screen width */
+        width: 200px !important;
+        min-width: 200px !important;
+        max-width: 200px !important;
         white-space: normal !important;
         word-wrap: break-word !important;
         font-size: 0.315em !important; /* 90% of 0.35em = 31.5% of original */
       }
 
-      /* MOBILE LANDSCAPE - Filter/Sort dropdown: max 220px with text wrapping, 90% text size, stay on screen */
+      /* MOBILE LANDSCAPE - Filter/Sort dropdown: FIXED 230px width */
       html.github-pages body.mobile-device.landscape .dropdown-menu {
-        width: auto !important;
-        min-width: auto !important;
-        max-width: min(220px, calc(100vw - 20px)) !important; /* Clamp to screen width */
+        width: 230px !important;
+        min-width: 230px !important;
+        max-width: 230px !important;
         white-space: normal !important;
         word-wrap: break-word !important;
         font-size: 0.315em !important; /* 90% of 0.35em = 31.5% of original */
@@ -4158,17 +4158,20 @@
       }
 
       /* MOBILE PORTRAIT - Detail view gap: 8px total between search bar and detail content */
-      html.github-pages body.mobile-device.portrait .shell:has(#detailView[style*="display: block"]) .filters-row {
+      /* Override ALL spacing to ensure 8px gap - more robust than :has() selector */
+      html.github-pages body.mobile-device.portrait .filters-row {
         margin-bottom: 0px !important;
       }
 
-      html.github-pages body.mobile-device.portrait .shell:has(#detailView[style*="display: block"]) #gridView {
-        margin-top: 0px !important; /* Remove gridView margin when detail view is showing */
+      html.github-pages body.mobile-device.portrait #gridView {
+        margin-top: 0px !important;
+        margin-bottom: 0px !important;
       }
 
       html.github-pages body.mobile-device.portrait #detailView {
-        margin-top: 0px !important; /* Remove default margin */
-        padding-top: 8px !important; /* Use padding instead for 8px gap */
+        margin-top: 0px !important;
+        margin-bottom: 0px !important;
+        padding: 8px 16px 16px 16px !important; /* top=8px (gap), other sides=16px */
       }
 
       /* MOBILE PORTRAIT - Breadcrumbs: 12px */
