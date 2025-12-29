@@ -1585,7 +1585,7 @@
         justify-content: center;
         background: rgba(15, 23, 42, 0.75);
         backdrop-filter: blur(4px);
-        z-index: 60;
+        z-index: 20000; /* Above everything including bottom-bar (9999), top-header, filters-row */
       }
 
       .modal-card {
@@ -3987,7 +3987,7 @@
       }
 
       html.github-pages body.mobile-device.portrait .shell {
-        padding: 0 6px 46px 6px !important;
+        padding: 0 6px 120px 6px !important; /* Increased from 46px to 120px to account for bottom bar (100px + buffer) */
       }
 
       html.github-pages body.mobile-device.landscape .shell {
@@ -4171,13 +4171,13 @@
         right: 12px !important; /* 60% of 20px */
       }
 
-      /* MOBILE PORTRAIT - Detail view gap: push to -12px for testing */
+      /* MOBILE PORTRAIT - Detail view gap: -14px (perfect alignment) */
       /* ONLY affects DETAIL view, NOT grid view */
 
       /* CRITICAL: detailView - negative margin to compensate for filters-row margin-bottom (14px) */
-      /* Gap calculation: filters-row margin-bottom (14px) + detailView margin-top (-12px) = 2px */
+      /* Gap calculation: filters-row margin-bottom (14px) + detailView margin-top (-14px) = 0px (flush) */
       html.github-pages body.mobile-device.portrait #detailView#detailView {
-        margin-top: -12px !important; /* Negative margin to achieve smaller gap (14px - 12px = 2px) */
+        margin-top: -14px !important; /* Negative margin for flush alignment (14px - 14px = 0px) */
         margin-bottom: 0px !important;
         margin-left: 0px !important;
         margin-right: 0px !important;
@@ -4187,7 +4187,7 @@
 
       /* Backup rule with even higher specificity */
       html.github-pages body.mobile-device.portrait:not(.some-nonexistent-class) #detailView {
-        margin-top: -12px !important; /* Negative margin for smaller gap */
+        margin-top: -14px !important; /* Negative margin for flush alignment */
         padding-top: 10px !important; /* Internal padding */
       }
 
@@ -4195,6 +4195,24 @@
       /* Gap calculation: filters-row margin-bottom (14px) + gridView margin-top (-9px) = 5px */
       html.github-pages body.mobile-device.portrait #gridView {
         margin-top: -9px !important; /* Negative margin to achieve 5px total gap (14px - 9px) */
+      }
+
+      /* MOBILE PORTRAIT - Add/Edit modal: Reduce text box sizes by 50% */
+      html.github-pages body.mobile-device.portrait .modal-card input,
+      html.github-pages body.mobile-device.portrait .modal-card textarea,
+      html.github-pages body.mobile-device.portrait .modal-card select {
+        padding: 3.5px 4.5px !important; /* 50% of 7px 9px */
+        font-size: 6.5px !important; /* 50% of 13px */
+        margin: 1.5px 0 5px !important; /* 50% of 3px 0 10px */
+      }
+
+      html.github-pages body.mobile-device.portrait .modal-card label {
+        font-size: 6px !important; /* 50% of 12px */
+      }
+
+      html.github-pages body.mobile-device.portrait .modal-card h3 {
+        font-size: 8px !important; /* 50% of 16px */
+        margin: 0 0 5px !important; /* 50% of 0 0 10px */
       }
 
       /* MOBILE PORTRAIT - Breadcrumbs: 12px */
@@ -9759,16 +9777,38 @@
 
             // Hide Order section when "No sorting" is selected, SHOW when sorting is active
             const sortDropdown = document.getElementById('sortDropdown');
-            const orderDivider = sortDropdown.querySelector('.dropdown-divider');
-            const orderSection = sortDropdown.querySelectorAll('.dropdown-section')[1]; // Second section is Order
+            if (sortDropdown) {
+              const orderDivider = sortDropdown.querySelector('.dropdown-divider');
+              const orderSection = sortDropdown.querySelectorAll('.dropdown-section')[1]; // Second section is Order
 
-            if (sortField === 'none') {
-              if (orderDivider) orderDivider.style.display = 'none';
-              if (orderSection) orderSection.style.display = 'none';
-            } else {
-              // EXPLICITLY show - set to 'block' to ensure visibility
-              if (orderDivider) orderDivider.style.display = 'block';
-              if (orderSection) orderSection.style.display = 'block';
+              console.log('Sort field changed to:', sortField);
+              console.log('Order section found:', orderSection);
+              console.log('Order divider found:', orderDivider);
+
+              if (sortField === 'none') {
+                if (orderDivider) {
+                  orderDivider.style.display = 'none';
+                  console.log('Hiding order divider');
+                }
+                if (orderSection) {
+                  orderSection.style.display = 'none';
+                  console.log('Hiding order section');
+                }
+              } else {
+                // EXPLICITLY show - set to 'block' to ensure visibility
+                if (orderDivider) {
+                  orderDivider.style.display = 'block';
+                  orderDivider.style.visibility = 'visible';
+                  orderDivider.style.opacity = '1';
+                  console.log('Showing order divider');
+                }
+                if (orderSection) {
+                  orderSection.style.display = 'block';
+                  orderSection.style.visibility = 'visible';
+                  orderSection.style.opacity = '1';
+                  console.log('Showing order section');
+                }
+              }
             }
 
             updateChipsUI();
