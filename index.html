@@ -4108,9 +4108,26 @@
         padding: 2.8px 5.6px !important; /* 35% of 8px 16px */
       }
 
-      /* MOBILE PORTRAIT - Detail view gap: 10px between search bar and detail content */
+      /* MOBILE (PORTRAIT & LANDSCAPE) - Filter/Sort dropdown width: fit content and prevent overflow */
+      html.github-pages body.mobile-device .dropdown-menu {
+        width: max-content !important; /* Fit text content */
+        min-width: auto !important; /* Remove fixed 200px minimum */
+        max-width: calc(100vw - 40px) !important; /* Prevent overflow beyond viewport */
+      }
+
+      /* MOBILE (PORTRAIT & LANDSCAPE) - Dropdowns in right-side filters: align to right to prevent overflow */
+      html.github-pages body.mobile-device .filters-right .dropdown-menu {
+        left: auto !important;
+        right: 0 !important;
+      }
+
+      /* MOBILE PORTRAIT - Detail view gap: 8px total (0px + 8px) between search bar and detail content */
       html.github-pages body.mobile-device.portrait .shell:has(#detailView[style*="display: block"]) .filters-row {
-        margin-bottom: 10px !important;
+        margin-bottom: 0px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait #detailView {
+        margin-top: 8px !important;
       }
 
       /* MOBILE PORTRAIT - Breadcrumbs: 12px */
