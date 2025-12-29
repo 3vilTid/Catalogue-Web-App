@@ -4108,22 +4108,48 @@
         padding: 2.8px 5.6px !important; /* 35% of 8px 16px */
       }
 
-      /* MOBILE (PORTRAIT & LANDSCAPE) - Filter/Sort dropdown width: fit content and prevent overflow */
-      html.github-pages body.mobile-device .dropdown-menu {
-        width: max-content !important; /* Fit text content */
+      /* MOBILE PORTRAIT - Filter/Sort dropdown width: max 90px with text wrapping */
+      html.github-pages body.mobile-device.portrait .dropdown-menu {
+        width: auto !important;
         min-width: auto !important; /* Remove fixed 200px minimum */
-        max-width: calc(100vw - 40px) !important; /* Prevent overflow beyond viewport */
+        max-width: 90px !important; /* Max width for portrait */
+        white-space: normal !important; /* Allow text wrapping */
+        word-wrap: break-word !important;
       }
 
-      /* MOBILE (PORTRAIT & LANDSCAPE) - Dropdowns in right-side filters: align to right to prevent overflow */
+      /* MOBILE LANDSCAPE - Filter/Sort dropdown width: max 125px with text wrapping */
+      html.github-pages body.mobile-device.landscape .dropdown-menu {
+        width: auto !important;
+        min-width: auto !important; /* Remove fixed 200px minimum */
+        max-width: 125px !important; /* Max width for landscape */
+        white-space: normal !important; /* Allow text wrapping */
+        word-wrap: break-word !important;
+      }
+
+      /* MOBILE (PORTRAIT & LANDSCAPE) - Dropdown items: allow text wrapping */
+      html.github-pages body.mobile-device .dropdown-item {
+        white-space: normal !important;
+        word-wrap: break-word !important;
+      }
+
+      html.github-pages body.mobile-device .dropdown-item span {
+        white-space: normal !important;
+        word-wrap: break-word !important;
+      }
+
+      /* MOBILE (PORTRAIT & LANDSCAPE) - Dropdowns in right-side filters: align to right */
       html.github-pages body.mobile-device .filters-right .dropdown-menu {
         left: auto !important;
         right: 0 !important;
       }
 
-      /* MOBILE PORTRAIT - Detail view gap: 8px total (0px + 8px) between search bar and detail content */
+      /* MOBILE PORTRAIT - Detail view gap: 8px total between search bar and detail content */
       html.github-pages body.mobile-device.portrait .shell:has(#detailView[style*="display: block"]) .filters-row {
         margin-bottom: 0px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .shell:has(#detailView[style*="display: block"]) #gridView {
+        margin-top: 0px !important; /* Remove gridView margin when detail view is showing */
       }
 
       html.github-pages body.mobile-device.portrait #detailView {
