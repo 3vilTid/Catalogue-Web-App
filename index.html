@@ -4108,21 +4108,21 @@
         padding: 2.8px 5.6px !important;
       }
 
-      /* MOBILE PORTRAIT - Filter/Sort dropdown: FIXED 200px width */
+      /* MOBILE PORTRAIT - Filter/Sort dropdown: 150-200px width range */
       html.github-pages body.mobile-device.portrait .dropdown-menu {
-        width: 200px !important;
-        min-width: 200px !important;
+        min-width: 150px !important;
         max-width: 200px !important;
+        width: auto !important;
         white-space: normal !important;
         word-wrap: break-word !important;
         font-size: 0.315em !important; /* 90% of 0.35em = 31.5% of original */
       }
 
-      /* MOBILE LANDSCAPE - Filter/Sort dropdown: FIXED 230px width */
+      /* MOBILE LANDSCAPE - Filter/Sort dropdown: 160-230px width range */
       html.github-pages body.mobile-device.landscape .dropdown-menu {
-        width: 230px !important;
-        min-width: 230px !important;
+        min-width: 160px !important;
         max-width: 230px !important;
+        width: auto !important;
         white-space: normal !important;
         word-wrap: break-word !important;
         font-size: 0.315em !important; /* 90% of 0.35em = 31.5% of original */
@@ -4139,13 +4139,13 @@
         word-wrap: break-word !important;
       }
 
-      /* MOBILE (PORTRAIT & LANDSCAPE) - Dropdowns in right-side filters: align to right, clamped by max-width */
-      html.github-pages body.mobile-device .filters-right .dropdown-menu {
-        left: auto !important;
-        right: 0 !important;
+      /* MOBILE (PORTRAIT & LANDSCAPE) - Dropdowns: align to LEFT to prevent overflow off screen */
+      html.github-pages body.mobile-device .dropdown-menu {
+        left: 0 !important;
+        right: auto !important;
       }
 
-      /* Note: max-width with min() ensures dropdown never exceeds viewport, preventing overflow */
+      /* Note: All dropdowns now extend RIGHT from button to prevent left overflow */
 
       /* MOBILE PORTRAIT - Image close button: 60% of current size (GitHub Pages only) */
       html.github-pages body.mobile-device.portrait #imgOverlayClose {
@@ -4158,20 +4158,37 @@
       }
 
       /* MOBILE PORTRAIT - Detail view gap: 8px total between search bar and detail content */
-      /* Override ALL spacing to ensure 8px gap - more robust than :has() selector */
-      html.github-pages body.mobile-device.portrait .filters-row {
-        margin-bottom: 0px !important;
-      }
+      /* ULTRA-HIGH SPECIFICITY - Multiple redundant rules to ensure override */
 
-      html.github-pages body.mobile-device.portrait #gridView {
+      /* Remove all margins from filters-row */
+      html.github-pages body.mobile-device.portrait .filters-row,
+      html.github-pages body.mobile-device.portrait.portrait .filters-row {
+        margin: 0px !important;
         margin-top: 0px !important;
         margin-bottom: 0px !important;
       }
 
-      html.github-pages body.mobile-device.portrait #detailView {
+      /* Remove all margins from gridView */
+      html.github-pages body.mobile-device.portrait #gridView,
+      html.github-pages body.mobile-device.portrait.portrait #gridView {
+        margin: 0px !important;
         margin-top: 0px !important;
         margin-bottom: 0px !important;
-        padding: 8px 16px 16px 16px !important; /* top=8px (gap), other sides=16px */
+      }
+
+      /* CRITICAL: detailView with DOUBLED ID selector for maximum specificity */
+      html.github-pages body.mobile-device.portrait #detailView#detailView {
+        margin: 0px 0px 0px 0px !important;
+        margin-top: 0px !important;
+        margin-bottom: 0px !important;
+        padding: 0px 16px 16px 16px !important; /* START WITH 0px gap to test if rule works */
+        padding-top: 0px !important; /* VERY OBVIOUS - should eliminate all gap */
+      }
+
+      /* Backup rule with even higher specificity */
+      html.github-pages body.mobile-device.portrait:not(.some-nonexistent-class) #detailView {
+        padding-top: 0px !important;
+        margin-top: 0px !important;
       }
 
       /* MOBILE PORTRAIT - Breadcrumbs: 12px */
