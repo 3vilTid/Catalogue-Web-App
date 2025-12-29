@@ -4074,56 +4074,58 @@
       }
 
       html.github-pages body.mobile-device.portrait .dropdown-section-title {
-        font-size: 9.8px !important; /* 35% of 28px */
-        padding: 4.2px 5.6px !important; /* 35% of 12px 16px */
+        font-size: 8.82px !important; /* 90% of 9.8px (31.5% of 28px) */
+        padding: 4.2px 5.6px !important;
       }
 
       html.github-pages body.mobile-device.portrait .dropdown-item {
-        font-size: 12.6px !important; /* 35% of 36px */
-        padding: 5.6px 7px !important; /* 35% of 16px 20px */
-        gap: 5.6px !important; /* 35% of 16px */
+        font-size: 11.34px !important; /* 90% of 12.6px (31.5% of 36px) */
+        padding: 5.6px 7px !important;
+        gap: 5.6px !important;
       }
 
       html.github-pages body.mobile-device.portrait .dropdown-item input[type="checkbox"],
       html.github-pages body.mobile-device.portrait .dropdown-item input[type="radio"] {
-        width: 12.6px !important; /* 35% of 36px */
-        height: 12.6px !important; /* 35% of 36px */
-        min-width: 12.6px !important;
-        min-height: 12.6px !important;
+        width: 11.34px !important; /* 90% of 12.6px */
+        height: 11.34px !important; /* 90% of 12.6px */
+        min-width: 11.34px !important;
+        min-height: 11.34px !important;
       }
 
       html.github-pages body.mobile-device.portrait .dropdown-item input[type="checkbox"]:checked::after {
-        top: 2.1px !important; /* 35% of 6px */
-        left: 2.1px !important; /* 35% of 6px */
-        width: 7px !important; /* 35% of 20px */
-        height: 7px !important; /* 35% of 20px */
+        top: 1.89px !important; /* 90% of 2.1px */
+        left: 1.89px !important; /* 90% of 2.1px */
+        width: 6.3px !important; /* 90% of 7px */
+        height: 6.3px !important; /* 90% of 7px */
       }
 
       html.github-pages body.mobile-device.portrait .dropdown-item span {
-        font-size: 12.6px !important; /* 35% of 36px */
+        font-size: 11.34px !important; /* 90% of 12.6px */
       }
 
       html.github-pages body.mobile-device.portrait .dropdown-btn {
-        font-size: 11.9px !important; /* 35% of 34px */
-        padding: 2.8px 5.6px !important; /* 35% of 8px 16px */
+        font-size: 10.71px !important; /* 90% of 11.9px */
+        padding: 2.8px 5.6px !important;
       }
 
-      /* MOBILE PORTRAIT - Filter/Sort dropdown width: max 90px with text wrapping */
+      /* MOBILE PORTRAIT - Filter/Sort dropdown: max 160px with text wrapping, 90% text size */
       html.github-pages body.mobile-device.portrait .dropdown-menu {
         width: auto !important;
         min-width: auto !important; /* Remove fixed 200px minimum */
-        max-width: 90px !important; /* Max width for portrait */
+        max-width: 160px !important; /* Max width for portrait */
         white-space: normal !important; /* Allow text wrapping */
         word-wrap: break-word !important;
+        font-size: 0.315em !important; /* 90% of 0.35em = 31.5% of original */
       }
 
-      /* MOBILE LANDSCAPE - Filter/Sort dropdown width: max 125px with text wrapping */
+      /* MOBILE LANDSCAPE - Filter/Sort dropdown: max 200px with text wrapping, 90% text size */
       html.github-pages body.mobile-device.landscape .dropdown-menu {
         width: auto !important;
         min-width: auto !important; /* Remove fixed 200px minimum */
-        max-width: 125px !important; /* Max width for landscape */
+        max-width: 200px !important; /* Max width for landscape */
         white-space: normal !important; /* Allow text wrapping */
         word-wrap: break-word !important;
+        font-size: 0.315em !important; /* 90% of 0.35em = 31.5% of original */
       }
 
       /* MOBILE (PORTRAIT & LANDSCAPE) - Dropdown items: allow text wrapping */
@@ -4153,7 +4155,8 @@
       }
 
       html.github-pages body.mobile-device.portrait #detailView {
-        margin-top: 8px !important;
+        margin-top: 0px !important; /* Remove default margin */
+        padding-top: 8px !important; /* Use padding instead for 8px gap */
       }
 
       /* MOBILE PORTRAIT - Breadcrumbs: 12px */
