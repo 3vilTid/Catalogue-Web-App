@@ -4108,22 +4108,22 @@
         padding: 2.8px 5.6px !important;
       }
 
-      /* MOBILE PORTRAIT - Filter/Sort dropdown: max 160px with text wrapping, 90% text size */
+      /* MOBILE PORTRAIT - Filter/Sort dropdown: max 180px with text wrapping, 90% text size, stay on screen */
       html.github-pages body.mobile-device.portrait .dropdown-menu {
         width: auto !important;
-        min-width: auto !important; /* Remove fixed 200px minimum */
-        max-width: 160px !important; /* Max width for portrait */
-        white-space: normal !important; /* Allow text wrapping */
+        min-width: auto !important;
+        max-width: min(180px, calc(100vw - 20px)) !important; /* Clamp to screen width */
+        white-space: normal !important;
         word-wrap: break-word !important;
         font-size: 0.315em !important; /* 90% of 0.35em = 31.5% of original */
       }
 
-      /* MOBILE LANDSCAPE - Filter/Sort dropdown: max 200px with text wrapping, 90% text size */
+      /* MOBILE LANDSCAPE - Filter/Sort dropdown: max 220px with text wrapping, 90% text size, stay on screen */
       html.github-pages body.mobile-device.landscape .dropdown-menu {
         width: auto !important;
-        min-width: auto !important; /* Remove fixed 200px minimum */
-        max-width: 200px !important; /* Max width for landscape */
-        white-space: normal !important; /* Allow text wrapping */
+        min-width: auto !important;
+        max-width: min(220px, calc(100vw - 20px)) !important; /* Clamp to screen width */
+        white-space: normal !important;
         word-wrap: break-word !important;
         font-size: 0.315em !important; /* 90% of 0.35em = 31.5% of original */
       }
@@ -4139,10 +4139,22 @@
         word-wrap: break-word !important;
       }
 
-      /* MOBILE (PORTRAIT & LANDSCAPE) - Dropdowns in right-side filters: align to right */
+      /* MOBILE (PORTRAIT & LANDSCAPE) - Dropdowns in right-side filters: align to right, clamped by max-width */
       html.github-pages body.mobile-device .filters-right .dropdown-menu {
         left: auto !important;
         right: 0 !important;
+      }
+
+      /* Note: max-width with min() ensures dropdown never exceeds viewport, preventing overflow */
+
+      /* MOBILE PORTRAIT - Image close button: 60% of current size (GitHub Pages only) */
+      html.github-pages body.mobile-device.portrait #imgOverlayClose {
+        font-size: 19.2px !important; /* 60% of 32px */
+        padding: 4.8px 8.4px !important; /* 60% of 8px 14px */
+        min-width: 28.8px !important; /* 60% of 48px */
+        min-height: 28.8px !important; /* 60% of 48px */
+        top: 12px !important; /* 60% of 20px */
+        right: 12px !important; /* 60% of 20px */
       }
 
       /* MOBILE PORTRAIT - Detail view gap: 8px total between search bar and detail content */
