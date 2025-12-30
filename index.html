@@ -4008,6 +4008,28 @@
 
       html.github-pages body.mobile-device.landscape .top-header {
         margin-top: 0 !important;
+        /* CRITICAL FIX: Override media query (max-width: 768px) that forces column layout */
+        /* Keep header in row layout for all landscape widths, even below 768px */
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+      }
+
+      /* Ensure left-block stays in row and doesn't center */
+      html.github-pages body.mobile-device.landscape .left-block {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+      }
+
+      /* Ensure right-block stays in row and aligns properly */
+      html.github-pages body.mobile-device.landscape .right-block {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        width: auto !important;
       }
 
       /* Grid gap - 50% size */
