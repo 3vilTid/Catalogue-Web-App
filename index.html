@@ -13,13 +13,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Catalogue">
 
-    <!-- PWA Manifest - Static file for GitHub Pages -->
-    <link rel="manifest" href="./manifest.json">
-
-    <!-- API Configuration and Client (GitHub Pages Migration) -->
-    <script src="./api-config.js"></script>
-    <script src="./api-client.js"></script>
-
     <!-- Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -28,18 +21,7 @@
 
     <title>Catalogue</title>
 
-    <!-- GitHub Pages Detection - Add marker class -->
-    <script>
-      (function() {
-        const isGitHubPages = window.location.hostname.includes('github.io');
-        if (isGitHubPages) {
-          document.documentElement.classList.add('github-pages');
-          console.log('🌐 GitHub Pages detected - applying specific mobile portrait styles');
-        }
-      })();
-    </script>
-
-    <!-- CRITICAL: Device Detection - Must run FIRST in head -->
+    <!-- Device Detection -->
     <script>
       (function() {
         const ua = navigator.userAgent || navigator.vendor || window.opera;
@@ -65,7 +47,6 @@
         const deviceClass = isTablet ? 'tablet-device' : (isMobile ? 'mobile-device' : 'desktop-device');
 
         // Immediately set on HTML (blocks before page renders)
-        // Remove other device classes but preserve other classes like 'github-pages'
         document.documentElement.classList.remove('mobile-device', 'tablet-device', 'desktop-device');
         document.documentElement.classList.add(deviceClass);
         document.documentElement.setAttribute('data-device', deviceClass);
@@ -111,97 +92,44 @@
             const topHeader = document.querySelector('.top-header');
             const filtersRow = document.querySelector('.filters-row');
 
-            // CRITICAL: For GitHub Pages mobile, completely re-render the table view
-            // This is necessary because table column widths get cached and don't update
-            // properly when orientation changes, even with forced reflows
-            const isGitHubPages = document.documentElement.classList.contains('github-pages');
-            const isMobile = document.body.classList.contains('mobile-device');
+            // IMMEDIATE reset: Remove ALL fixed widths so elements can resize naturally
+            if (typeof resetTableWidths === 'function') {
+              resetTableWidths();
+            }
 
-            if (isGitHubPages && isMobile) {
-              console.log('🔄 Re-rendering table view for orientation change on GitHub Pages mobile');
+            // Force immediate reflow on ALL elements to clear cached dimensions
+            if (table) void table.offsetWidth;
+            if (shell) {
+              void shell.offsetWidth;
+              // Clear shell width immediately to prevent stale width from blocking natural resize
+              shell.style.width = '';
+              shell.style.minWidth = '';
+            }
+            if (topHeader) void topHeader.offsetWidth;
+            if (filtersRow) void filtersRow.offsetWidth;
 
-              // IMMEDIATE reset of table widths before re-render
-              if (typeof resetTableWidths === 'function') {
-                resetTableWidths();
-              }
-
-              // Wait for orientation CSS to fully apply, then re-render
-              setTimeout(() => {
-                // Re-render based on current view type to preserve correct rendering
-                if (currentView === "layer" && currentLayerIndex >= 0) {
-                  // In layer view - re-render the layer
-                  const layerName = layerConfig[currentLayerIndex].layerName;
-                  const parentFilter = navigationStack.length > 0
-                    ? navigationStack[navigationStack.length - 1].itemName
-                    : null;
-                  renderLayerView(currentLayerIndex, parentFilter);
-                } else if (typeof renderList === 'function' && currentDisplayedItems && currentDisplayedItems.length > 0) {
-                  // In main list view - re-render the list
-                  renderList(currentDisplayedItems);
-                } else if (typeof applyFiltersAndSorting === 'function') {
-                  // Fallback: re-apply filters and sorting (for main layer)
-                  applyFiltersAndSorting();
-                }
-
-                // CRITICAL: Force viewport zoom reset to prevent zoom-in/zoom-out bugs
-                // Wait for render to complete, then reset any browser-applied zoom
-                requestAnimationFrame(() => {
-                  // Reset viewport zoom by forcing scale to 1.0
-                  const viewportMeta = document.querySelector('meta[name="viewport"]');
-                  if (viewportMeta) {
-                    const originalContent = viewportMeta.getAttribute('content');
-                    // Temporarily force scale to 1.0
-                    viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no');
-                    // Restore original viewport settings after brief delay
-                    setTimeout(() => {
-                      viewportMeta.setAttribute('content', originalContent);
-                    }, 50);
-                  }
-                  // Also scroll to top-left to ensure clean state
-                  window.scrollTo(0, 0);
-                });
-              }, 100); // Short delay to let CSS settle
-            } else {
-              // Non-GitHub Pages or desktop: Use normal width sync approach
-              // IMMEDIATE reset: Remove ALL fixed widths so elements can resize naturally
-              if (typeof resetTableWidths === 'function') {
-                resetTableWidths();
-              }
-
-              // Force immediate reflow on ALL elements to clear cached dimensions
+            // Wait for CSS orientation changes to fully apply
+            setTimeout(() => {
+              // Force another complete layout recalculation
               if (table) void table.offsetWidth;
-              if (shell) {
-                void shell.offsetWidth;
-                // Clear shell width immediately to prevent stale width from blocking natural resize
-                shell.style.width = '';
-                shell.style.minWidth = '';
-              }
+              if (shell) void shell.offsetWidth;
               if (topHeader) void topHeader.offsetWidth;
               if (filtersRow) void filtersRow.offsetWidth;
 
-              // Wait for CSS orientation changes to fully apply
-              setTimeout(() => {
-                // Force another complete layout recalculation
-                if (table) void table.offsetWidth;
-                if (shell) void shell.offsetWidth;
-                if (topHeader) void topHeader.offsetWidth;
-                if (filtersRow) void filtersRow.offsetWidth;
-
-                // Final RAF before syncing
+              // Final RAF before syncing
+              requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                  requestAnimationFrame(() => {
-                    // Ensure one more reflow before reading dimensions
-                    if (table) void table.offsetWidth;
-                    if (shell) void shell.offsetWidth;
+                  // Ensure one more reflow before reading dimensions
+                  if (table) void table.offsetWidth;
+                  if (shell) void shell.offsetWidth;
 
-                    if (typeof syncTableWidthToHeaders === 'function') {
-                      console.log('🔄 Syncing table widths after orientation change');
-                      syncTableWidthToHeaders();
-                    }
-                  });
+                  if (typeof syncTableWidthToHeaders === 'function') {
+                    console.log('🔄 Syncing table widths after orientation change');
+                    syncTableWidthToHeaders();
+                  }
                 });
-              }, 150);
-            }
+              });
+            }, 150);
           }
         }
 
@@ -3676,674 +3604,8 @@
         }
       }
 
-
-      /* ==================== GITHUB PAGES MOBILE PORTRAIT - 50% scaled down ==================== */
-      /*  GitHub Pages renders mobile portrait at 2x size - scale down to 50% to match Apps Script */
-
-      html.github-pages body.mobile-device.portrait .top-header {
-        padding: 5px 10px 5px 10px !important;
-        margin-bottom: 4px !important;
-        position: relative !important;
-        min-height: auto !important;
-        height: auto !important;
-        max-height: none !important;
-        align-items: flex-start !important;
-      }
-
-      /* Ensure center-block doesn't create vertical space */
-      html.github-pages body.mobile-device.portrait .center-block {
-        display: none !important;
-        height: 0 !important;
-        min-height: 0 !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        flex: 0 !important;
-      }
-
-      /* Remove internal margins/gaps that create vertical space */
-      html.github-pages body.mobile-device.portrait .left-block {
-        margin: 0 !important;
-        gap: 5px !important;
-        align-items: center !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .app-text-block {
-        margin: 0 !important;
-        gap: 0 !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .catalog-row {
-        margin: 0 !important;
-        padding: 0 !important;
-        gap: 3px !important;
-        height: auto !important;
-        min-height: 0 !important;
-        line-height: 1 !important;
-      }
-
-      /* Position user info block in top right corner */
-      html.github-pages body.mobile-device.portrait .right-block {
-        position: absolute !important;
-        top: 5px !important;
-        right: 10px !important;
-        flex-direction: column !important;
-        align-items: flex-end !important;
-        gap: 3px !important;
-        z-index: 10 !important;
-      }
-
-      /* Reduce size of "Signed in" text and user pill */
-      html.github-pages body.mobile-device.portrait .right-block > div:first-of-type {
-        font-size: 8px !important;
-        gap: 3px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .user-pill {
-        padding: 2px 5px !important;
-        font-size: 8px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .user-email {
-        font-size: 8px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .profile-badge {
-        font-size: 7px !important;
-        padding: 1px 4px !important;
-      }
-
-
-      html.github-pages body.mobile-device.portrait .app-logo {
-        width: 48px !important;
-        height: 48px !important;
-        min-width: 48px !important;
-        min-height: 48px !important;
-        max-width: 48px !important;
-        max-height: 48px !important;
-        margin: 0 !important;
-        display: block !important;
-      }
-
-      /* Hide logo white square while loading */
-      html.github-pages body.mobile-device.portrait .app-logo:not([src]),
-      html.github-pages body.mobile-device.portrait .app-logo[src=""],
-      html.github-pages body.mobile-device.portrait .app-logo[style*="display: none"] {
-        visibility: hidden !important;
-        opacity: 0 !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .app-name {
-        font-size: 15px !important;
-        line-height: 1 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        display: block !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .catalog-name {
-        font-size: 12.5px !important;
-        line-height: 1 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        display: block !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .catalog-label {
-        font-size: 10px !important;
-        line-height: 1 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        display: inline !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .catalog-label,
-      html.github-pages body.mobile-device.portrait .user-role {
-        font-size: 9px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .user-email {
-        font-size: 9px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .profile-badge {
-        font-size: 8px !important;
-        padding: 1px 5px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .btn-toolbar,
-      html.github-pages body.mobile-device.portrait .btn-primary,
-      html.github-pages body.mobile-device.portrait .btn-secondary {
-        height: 26px !important;
-        min-height: 26px !important;
-        padding: 0 14px !important;
-        font-size: 9.5px !important;
-        line-height: 26px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait #logoutBtn {
-        height: 18px !important;
-        min-height: 18px !important;
-        padding: 0 8px !important;
-        font-size: 8px !important;
-        line-height: 18px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait #filterBtn,
-      html.github-pages body.mobile-device.portrait #sortBtn,
-      html.github-pages body.mobile-device.portrait #backToListBtn {
-        height: 26px !important;
-        min-height: 26px !important;
-        padding: 0 14px !important;
-        font-size: 9.5px !important;
-        line-height: 26px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait #sheetBtn,
-      html.github-pages body.mobile-device.portrait #addBtn {
-        height: 26px !important;
-        min-height: 26px !important;
-        padding: 0 14px !important;
-        font-size: 9.5px !important;
-        line-height: 26px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .search-wrapper,
-      html.github-pages body.mobile-device.portrait #searchWrapper {
-        height: 26px !important;
-        min-height: 26px !important;
-        max-height: 26px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .search-input,
-      html.github-pages body.mobile-device.portrait #searchInput {
-        height: 26px !important;
-        min-height: 26px !important;
-        max-height: 26px !important;
-        font-size: 9.5px !important;
-        padding: 0 13px 0 5px !important;
-        width: 100% !important;
-        max-width: 113px !important;
-        line-height: 26px !important;
-        box-sizing: border-box !important;
-        border-width: 1px !important;
-        vertical-align: middle !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .clear-search-btn {
-        width: 8px !important;
-        height: 8px !important;
-        font-size: 9px !important;
-        right: 3px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .item-card {
-        min-height: 90px;
-        padding: 6px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .card-name {
-        font-size: 10px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .card-sub {
-        font-size: 9px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .detail-name {
-        font-size: 18.75px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .detail-subtitle {
-        font-size: 15.625px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .detail-topcorner {
-        font-size: 15.625px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .detail-meta {
-        font-size: 12.5px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .detail-field {
-        font-size: 13.75px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .detail-field-label {
-        font-size: 13.75px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .detail-field-value {
-        font-size: 13.75px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .link-pill {
-        font-size: 12px !important;
-        padding: 5px 9px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait #breadcrumbNav {
-        font-size: 7.5px !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        line-height: 1 !important;
-      }
-
-      html.github-pages body.mobile-device.portrait #breadcrumbNav a,
-      html.github-pages body.mobile-device.portrait #breadcrumbNav span {
-        font-size: 8px !important;
-        padding: 0 2px !important;
-        margin: 0 !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .filters-row {
-
-        padding: 5px 9px !important;
-
-        gap: 0.5px !important;
-    
-      }
-
-    
-      html.github-pages body.mobile-device.portrait .filters-left {
-        gap: 0.2px !important;
-        margin: 0 !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .filters-right {
-        gap: 0.2px !important;
-        margin: 0 !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .filters-row * {
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-      }
-
-      /* Bottom bar and tab switcher - 35% size */
-      html.github-pages body.mobile-device.portrait .bottom-bar {
-        padding: 7px 7px 11px 7px !important;
-        min-height: 35px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .tab-switcher-btn {
-        height: 25px !important;
-        min-height: 25px !important;
-        font-size: 11px !important;
-        padding: 0 11px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .tab-switcher-menu {
-        font-size: 11px !important;
-        max-height: 175px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .tab-menu-item {
-        font-size: 11px !important;
-        padding: 6px 7px !important;
-        min-height: 25px !important;
-      }
-
-      /* Fix body top padding for mobile devices */
-      html.github-pages body.mobile-device.portrait {
-        padding-top: 4px !important;
-      }
-
-      html.github-pages body.mobile-device.landscape {
-        padding-top: 4px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .shell {
-        padding: 0 6px 120px 6px !important; /* Increased from 46px to 120px to account for bottom bar (100px + buffer) */
-      }
-
-      html.github-pages body.mobile-device.landscape .shell {
-        padding-left: 6px !important;
-        padding-right: 6px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .top-header {
-        margin-top: 0 !important;
-      }
-
-      html.github-pages body.mobile-device.landscape .top-header {
-        margin-top: 0 !important;
-      }
-
-      /* Grid gap - 50% size */
-      html.github-pages body.mobile-device.portrait .grid {
-        gap: 6px !important;
-      }
-
-      /* MOBILE PORTRAIT - List Type: Text 60% size, Images 60% size */
-      html.github-pages body.mobile-device.portrait .list-view {
-        gap: 5px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .list-view .list-item-name {
-        font-size: 0.6em !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .list-view .list-item-sub {
-        font-size: 0.6em !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .list-view .list-item-img-wrapper {
-        width: 60px !important;
-        height: 60px !important;
-        min-width: 60px !important;
-      }
-
-      /* MOBILE PORTRAIT - Table Type: Text and Headers 60% size, Images 50% size */
-      html.github-pages body.mobile-device.portrait .table-view .data-table td {
-        font-size: 0.6em !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .table-view .data-table th {
-        font-size: 0.6em !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .table-cell-img {
-        width: 45px !important;
-        height: 45px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .table-view .data-table td {
-        padding: 7px 16px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .table-view .data-table th {
-        padding: 7px 16px !important;
-      }
-
-      /* MOBILE PORTRAIT - Table dropdown menu sizing */
-      html.github-pages body.mobile-device.portrait .table-menu-button-row .table-menu-button {
-        font-size: 12px !important; /* 60% of base 20px */
-        padding: 6px 12px !important; /* 60% of base 10px 20px */
-      }
-
-      html.github-pages body.mobile-device.portrait .table-column-menu {
-        font-size: 0.9em !important; /* 90% for all dropdown content */
-      }
-
-      html.github-pages body.mobile-device.portrait .table-menu-title {
-        font-size: 9.9px !important; /* 90% of base 11px */
-      }
-
-      html.github-pages body.mobile-device.portrait .table-menu-button:not(.table-menu-button-row .table-menu-button) {
-        font-size: 11.7px !important; /* 90% of base 13px */
-        padding: 7.2px 10.8px !important; /* 90% of base 8px 12px */
-      }
-
-      /* MOBILE PORTRAIT - Filter/Sort dropdown sizing (35% of actual size) */
-      html.github-pages body.mobile-device.portrait .dropdown-menu {
-        font-size: 0.35em !important; /* 35% base size */
-      }
-
-      html.github-pages body.mobile-device.portrait .dropdown-section-title {
-        font-size: 8.82px !important; /* 90% of 9.8px (31.5% of 28px) */
-        padding: 4.2px 5.6px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .dropdown-item {
-        font-size: 11.34px !important; /* 90% of 12.6px (31.5% of 36px) */
-        padding: 5.6px 7px !important;
-        gap: 5.6px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .dropdown-item input[type="checkbox"],
-      html.github-pages body.mobile-device.portrait .dropdown-item input[type="radio"] {
-        width: 11.34px !important; /* 90% of 12.6px */
-        height: 11.34px !important; /* 90% of 12.6px */
-        min-width: 11.34px !important;
-        min-height: 11.34px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .dropdown-item input[type="checkbox"]:checked::after {
-        top: 1.89px !important; /* 90% of 2.1px */
-        left: 1.89px !important; /* 90% of 2.1px */
-        width: 6.3px !important; /* 90% of 7px */
-        height: 6.3px !important; /* 90% of 7px */
-      }
-
-      html.github-pages body.mobile-device.portrait .dropdown-item span {
-        font-size: 11.34px !important; /* 90% of 12.6px */
-      }
-
-      html.github-pages body.mobile-device.portrait .dropdown-btn {
-        font-size: 10.71px !important; /* 90% of 11.9px */
-        padding: 2.8px 5.6px !important;
-        line-height: calc(10.71px + 2px) !important; /* Text height + 2px extra */
-        min-height: calc(10.71px + 2px + 5.6px) !important; /* Line height + vertical padding */
-      }
-
-      /* MOBILE PORTRAIT - Filter/Sort dropdown: 150-200px width range */
-      html.github-pages body.mobile-device.portrait .dropdown-menu {
-        min-width: 150px !important;
-        max-width: 200px !important;
-        width: auto !important;
-        white-space: normal !important;
-        word-wrap: break-word !important;
-        font-size: 0.315em !important; /* 90% of 0.35em = 31.5% of original */
-      }
-
-      /* MOBILE LANDSCAPE - Filter/Sort dropdown: 160-230px width range */
-      html.github-pages body.mobile-device.landscape .dropdown-menu {
-        min-width: 160px !important;
-        max-width: 230px !important;
-        width: auto !important;
-        white-space: normal !important;
-        word-wrap: break-word !important;
-        font-size: 0.315em !important; /* 90% of 0.35em = 31.5% of original */
-      }
-
-      /* MOBILE (PORTRAIT & LANDSCAPE) - Dropdown items: allow text wrapping */
-      html.github-pages body.mobile-device .dropdown-item {
-        white-space: normal !important;
-        word-wrap: break-word !important;
-      }
-
-      html.github-pages body.mobile-device .dropdown-item span {
-        white-space: normal !important;
-        word-wrap: break-word !important;
-      }
-
-      /* MOBILE (PORTRAIT & LANDSCAPE) - Dropdowns: align to LEFT to prevent overflow off screen */
-      html.github-pages body.mobile-device .dropdown-menu {
-        left: 0 !important;
-        right: auto !important;
-      }
-
-      /* ALL DEVICES & ORIENTATIONS - Filter button dropdown: align LEFT edge with button LEFT edge */
-      #filterWrapper .dropdown-menu,
-      #filterBtn + .dropdown-menu {
-        left: 0 !important;
-        right: auto !important;
-      }
-
-      /* ALL DEVICES & ORIENTATIONS - Sort button dropdown: align RIGHT edge with button RIGHT edge */
-      #sortWrapper .dropdown-menu,
-      #sortBtn + .dropdown-menu {
-        left: auto !important;
-        right: 0 !important;
-      }
-
-      /* MOBILE PORTRAIT - Image close button: 60% of current size (GitHub Pages only) */
-      html.github-pages body.mobile-device.portrait #imgOverlayClose {
-        font-size: 19.2px !important; /* 60% of 32px */
-        padding: 4.8px 8.4px !important; /* 60% of 8px 14px */
-        min-width: 28.8px !important; /* 60% of 48px */
-        min-height: 28.8px !important; /* 60% of 48px */
-        top: 12px !important; /* 60% of 20px */
-        right: 12px !important; /* 60% of 20px */
-      }
-
-      /* MOBILE PORTRAIT - Detail view gap: -14px (perfect alignment) */
-      /* ONLY affects DETAIL view, NOT grid view */
-
-      /* CRITICAL: detailView - negative margin to compensate for filters-row margin-bottom (14px) */
-      /* Gap calculation: filters-row margin-bottom (14px) + detailView margin-top (-14px) = 0px (flush) */
-      html.github-pages body.mobile-device.portrait #detailView#detailView {
-        margin-top: -14px !important; /* Negative margin for flush alignment (14px - 14px = 0px) */
-        margin-bottom: 0px !important;
-        margin-left: 0px !important;
-        margin-right: 0px !important;
-        padding: 10px 16px 16px 16px !important; /* Internal padding: 10px top */
-        padding-top: 10px !important; /* Space between container edge and items */
-      }
-
-      /* Backup rule with even higher specificity */
-      html.github-pages body.mobile-device.portrait:not(.some-nonexistent-class) #detailView {
-        margin-top: -14px !important; /* Negative margin for flush alignment */
-        padding-top: 10px !important; /* Internal padding */
-      }
-
-      /* MOBILE PORTRAIT - Grid view gap: 5px BETWEEN containers (filters-row to gridView) */
-      /* Gap calculation: filters-row margin-bottom (14px) + gridView margin-top (-9px) = 5px */
-      html.github-pages body.mobile-device.portrait #gridView {
-        margin-top: -9px !important; /* Negative margin to achieve 5px total gap (14px - 9px) */
-      }
-
-      /* MOBILE PORTRAIT - Add/Edit modal: Reduce text box sizes by 50% */
-      html.github-pages body.mobile-device.portrait .modal-card input,
-      html.github-pages body.mobile-device.portrait .modal-card textarea,
-      html.github-pages body.mobile-device.portrait .modal-card select {
-        padding: 3.5px 4.5px !important; /* 50% of 7px 9px */
-        font-size: 6.5px !important; /* 50% of 13px */
-        margin: 1.5px 0 5px !important; /* 50% of 3px 0 10px */
-      }
-
-      html.github-pages body.mobile-device.portrait .modal-card label {
-        font-size: 6px !important; /* 50% of 12px */
-      }
-
-      html.github-pages body.mobile-device.portrait .modal-card h3 {
-        font-size: 8px !important; /* 50% of 16px */
-        margin: 0 0 5px !important; /* 50% of 0 0 10px */
-      }
-
-      /* MOBILE PORTRAIT - Breadcrumbs: 12px */
-      html.github-pages body.mobile-device.portrait #breadcrumbNav {
-        font-size: 12px !important;
-      }
-
-      html.github-pages body.mobile-device.portrait #breadcrumbNav a,
-      html.github-pages body.mobile-device.portrait #breadcrumbNav span {
-        font-size: 12px !important;
-      }
-
-      /* MOBILE PORTRAIT - Table Open Detail View: Landscape layout (image left, text right) */
-      html.github-pages body.mobile-device.portrait #detailView[data-table-open-detail="true"] .detail-layout {
-        display: grid !important;
-        grid-template-columns: minmax(0, 280px) minmax(0, 1fr) !important;
-        grid-template-rows: auto !important;
-        gap: 12px !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-        overflow: visible !important;
-      }
-
-      html.github-pages body.mobile-device.portrait #detailView[data-table-open-detail="true"] #detailImgContainer {
-        grid-column: 1 !important;
-        min-width: 0 !important;
-      }
-
-      html.github-pages body.mobile-device.portrait #detailView[data-table-open-detail="true"] #detailContentContainer {
-        grid-column: 2 !important;
-        min-width: 0 !important;
-      }
-
-      /* Override media query for GitHub Pages mobile portrait - ensure grid layout wins */
-      @media (max-width: 768px) {
-        html.github-pages body.mobile-device.portrait #detailView[data-table-open-detail="true"] .detail-layout {
-          display: grid !important;
-          grid-template-columns: minmax(0, 280px) minmax(0, 1fr) !important;
-          grid-template-rows: auto !important;
-        }
-
-        /* Also apply to inline expanded table rows (Open Detail View style) */
-        html.github-pages body.mobile-device.portrait .table-view .expanded-content-row .detail-layout {
-          display: grid !important;
-          grid-template-columns: minmax(0, 280px) minmax(0, 1fr) !important;
-          grid-template-rows: auto !important;
-        }
-      }
-
-      /* Grid layout for inline table expansions - outside media query for all screen sizes */
-      html.github-pages body.mobile-device.portrait .table-view .expanded-content-row .detail-layout {
-        display: grid !important;
-        grid-template-columns: minmax(0, 280px) minmax(0, 1fr) !important;
-        grid-template-rows: auto !important;
-        gap: 12px !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-        overflow: visible !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .table-view .expanded-content-row #detailImgContainer {
-        grid-column: 1 !important;
-        min-width: 0 !important;
-      }
-
-      html.github-pages body.mobile-device.portrait .table-view .expanded-content-row #detailContentContainer {
-        grid-column: 2 !important;
-        min-width: 0 !important;
-      }
-
-      /* MOBILE LANDSCAPE - Table Type: Images 45px */
-      html.github-pages body.mobile-device.landscape .table-cell-img {
-        width: 45px !important;
-        height: 45px !important;
-      }
-
-      /* MOBILE LANDSCAPE - Table Type: All text 90% and row height 80% */
-      html.github-pages body.mobile-device.landscape .table-view .data-table th {
-        font-size: 0.9em !important;
-        padding-top: 0.8em !important;
-        padding-bottom: 0.8em !important;
-      }
-
-      html.github-pages body.mobile-device.landscape .table-view .data-table td {
-        font-size: 0.9em !important;
-        padding-top: 0.8em !important;
-        padding-bottom: 0.8em !important;
-      }
-
-      html.github-pages body.mobile-device.landscape .table-view .data-table tr {
-        height: 80% !important;
-      }
-
-      /* MOBILE LANDSCAPE - List Type: Images 60% size */
-      html.github-pages body.mobile-device.landscape .list-view .list-item-img-wrapper {
-        width: 60px !important;
-        height: 60px !important;
-        min-width: 60px !important;
-      }
-
     </style>
 
-    <!-- PWA Configuration Note -->
-    <script>
-      // ============================================
-      // IMPORTANT: Service Worker Limitation
-      // ============================================
-      // Google Apps Script cannot serve service workers with the correct MIME type
-      // (it serves everything as text/html instead of application/javascript).
-      // This means:
-      //   - No true PWA "Install" prompt in Chrome/Edge
-      //   - No offline functionality
-      //   - Users can still use "Add to Home screen" for bookmark-style shortcuts
-      //   - The manifest is still served for basic home screen icon support
-      //
-      // To get full PWA support, the app would need to be hosted on a platform
-      // that can serve static files (GitHub Pages, Netlify, Vercel, etc.)
-      // ============================================
-
-      console.log('ℹ️ PWA Note: Service worker not available on Google Apps Script');
-      console.log('ℹ️ Use "Add to Home screen" from browser menu for a shortcut');
-    </script>
   </head>
 
   <body>
@@ -5178,9 +4440,6 @@
       // Navigation state for back button handling
       let currentView = "list"; // "list", "layer", or "detail"
 
-      // Flag to track if we've performed the initial re-render fix for GitHub Pages mobile
-      let hasPerformedInitialRerenderFix = false;
-
       // Display view types for each layer and main items (cards, list, table)
       let layer1ViewType = "cards"; // Layer 1 view type - set from Google Sheet D12
       let layer2ViewType = "cards"; // Layer 2 view type - set from Google Sheet D13
@@ -5468,8 +4727,7 @@
           }
 
           // 3. Fetch from network (slow, only if not cached)
-          // For GitHub Pages deployment, use API_CONFIG.APPS_SCRIPT_URL
-          // For Apps Script deployment, use imageProxyBaseUrl from settings
+          // Use imageProxyBaseUrl from settings
           const base = (window.API_CONFIG && window.API_CONFIG.APPS_SCRIPT_URL &&
                        window.API_CONFIG.APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL_HERE')
                        ? window.API_CONFIG.APPS_SCRIPT_URL.replace(/\/exec$/, '/exec')
@@ -5549,8 +4807,7 @@
         if (fileId) {
           // It's a Drive URL - fetch via proxy
           try {
-            // For GitHub Pages deployment, use API_CONFIG.APPS_SCRIPT_URL
-            // For Apps Script deployment, use imageProxyBaseUrl from settings
+            // Use imageProxyBaseUrl from settings
             const base = (window.API_CONFIG && window.API_CONFIG.APPS_SCRIPT_URL &&
                          window.API_CONFIG.APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL_HERE')
                          ? window.API_CONFIG.APPS_SCRIPT_URL.replace(/\/exec$/, '/exec')
@@ -5594,8 +4851,7 @@
         if (fileId) {
           // It's a Drive URL - fetch via proxy
           try {
-            // For GitHub Pages deployment, use API_CONFIG.APPS_SCRIPT_URL
-            // For Apps Script deployment, use imageProxyBaseUrl from settings
+            // Use imageProxyBaseUrl from settings
             const base = (window.API_CONFIG && window.API_CONFIG.APPS_SCRIPT_URL &&
                          window.API_CONFIG.APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL_HERE')
                          ? window.API_CONFIG.APPS_SCRIPT_URL.replace(/\/exec$/, '/exec')
@@ -6203,19 +5459,11 @@
             if (col.type === "image" && value) {
               // Image type: show small image
               const imgWrapper = document.createElement("div");
-              // Image size: GitHub Pages uses 45px portrait/45px landscape, non-GitHub uses 90px portrait/60px default
+              // Image size: 90px for mobile/tablet portrait, 60px default
               let imgSize = '60px'; // Default size
-              if (document.documentElement.classList.contains('github-pages')) {
-                // GitHub Pages: 45px for both mobile portrait and landscape
-                if (document.body.classList.contains('mobile-device')) {
-                  imgSize = '45px';
-                }
-              } else {
-                // Non-GitHub Pages: 90px for mobile/tablet portrait
-                if ((document.body.classList.contains('mobile-device') || document.body.classList.contains('tablet-device')) &&
-                    document.body.classList.contains('portrait')) {
-                  imgSize = '90px';
-                }
+              if ((document.body.classList.contains('mobile-device') || document.body.classList.contains('tablet-device')) &&
+                  document.body.classList.contains('portrait')) {
+                imgSize = '90px';
               }
               imgWrapper.style.cssText = `width: ${imgSize}; height: ${imgSize}; position: relative; background: #e5e7eb; border-radius: 6px; overflow: hidden;`;
 
@@ -6273,62 +5521,9 @@
         grid.appendChild(table);
 
         // Sync header widths with table after rendering
-        // On GitHub Pages mobile, add delay to ensure CSS has fully applied
-        const isGitHubPages = document.documentElement.classList.contains('github-pages');
-        const isMobile = document.body.classList.contains('mobile-device');
-
-        if (isGitHubPages && isMobile) {
-          // Match the delay used during orientation changes (100ms)
-          // This ensures CSS for portrait/landscape has fully applied before calculating widths
-          setTimeout(() => {
-            syncTableWidthToHeaders();
-          }, 100);
-        } else {
-          requestAnimationFrame(() => {
-            syncTableWidthToHeaders();
-          });
-        }
-
-        // CRITICAL FIX: Force complete re-render on initial load (GitHub Pages mobile only)
-        // This replicates what orientation change does - destroys and recreates table
-        // Fixes the permanent issue where headers don't stick on first load
-        if (isGitHubPages && isMobile && !hasPerformedInitialRerenderFix && currentView === "list") {
-          hasPerformedInitialRerenderFix = true;
-
-          console.log('🔄 Forcing complete re-render to fix initial layout (GitHub Pages mobile)');
-
-          // Wait for initial render to complete, then force complete re-render
-          setTimeout(() => {
-            // Do exactly what orientation change does
-            if (typeof resetTableWidths === 'function') {
-              resetTableWidths();
-            }
-
-            // Re-render completely (destroys and recreates table - same as orientation change)
-            if (currentDisplayedItems && currentDisplayedItems.length > 0) {
-              renderList(currentDisplayedItems);
-            } else if (typeof applyFiltersAndSorting === 'function') {
-              applyFiltersAndSorting();
-            }
-
-            // CRITICAL: Add viewport manipulation HERE (not in renderTableView)
-            // This runs ONCE during forced re-render, same timing as orientation change
-            requestAnimationFrame(() => {
-              const viewportMeta = document.querySelector('meta[name="viewport"]');
-              if (viewportMeta) {
-                const originalContent = viewportMeta.getAttribute('content');
-                // Temporarily force scale to 1.0 to reset browser viewport state
-                viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no');
-                // Restore original viewport settings after brief delay
-                setTimeout(() => {
-                  viewportMeta.setAttribute('content', originalContent);
-                }, 50);
-              }
-              // Scroll to top-left to ensure clean state
-              window.scrollTo(0, 0);
-            });
-          }, 300); // Wait longer to ensure initial render is complete
-        }
+        requestAnimationFrame(() => {
+          syncTableWidthToHeaders();
+        });
       }
 
       // Synchronize top-header and filters-row width with table width
@@ -6358,31 +5553,9 @@
         filtersRow.style.width = widthToSet;
         filtersRow.style.minWidth = widthToSet;
 
-        // CRITICAL FIX: Prevent shell width from exceeding viewport on GitHub Pages mobile
-        // This prevents unwanted zoom when orientation changes
-        const isGitHubPages = document.documentElement.classList.contains('github-pages');
-        const isMobile = document.body.classList.contains('mobile-device');
-
-        if (isGitHubPages && isMobile) {
-          // On GitHub Pages mobile, NEVER set shell wider than viewport
-          // This prevents zoom-in/zoom-out bugs during orientation changes
-          const maxAllowedWidth = viewportWidth;
-          const desiredShellWidth = tableWidth + shellPadding;
-
-          if (desiredShellWidth <= maxAllowedWidth) {
-            // Table fits in viewport - set shell to table width
-            shell.style.width = `${desiredShellWidth}px`;
-          } else {
-            // Table exceeds viewport - let shell be 100% width (allow horizontal scroll)
-            shell.style.width = '';
-            shell.style.maxWidth = '';
-          }
-          shell.style.minWidth = '';
-        } else {
-          // Non-GitHub Pages or desktop: Use original behavior
-          shell.style.width = `${tableWidth + shellPadding}px`;
-          shell.style.minWidth = '';
-        }
+        // Set shell width to accommodate table width
+        shell.style.width = `${tableWidth + shellPadding}px`;
+        shell.style.minWidth = '';
       }
 
       // Reset header and shell widths when switching away from table view
@@ -7455,19 +6628,11 @@
             if (col.type === "image" && value) {
               // Image type: show small image
               const imgWrapper = document.createElement("div");
-              // Image size: GitHub Pages uses 45px portrait/45px landscape, non-GitHub uses 90px portrait/60px default
+              // Image size: 90px for mobile/tablet portrait, 60px default
               let imgSize = '60px'; // Default size
-              if (document.documentElement.classList.contains('github-pages')) {
-                // GitHub Pages: 45px for both mobile portrait and landscape
-                if (document.body.classList.contains('mobile-device')) {
-                  imgSize = '45px';
-                }
-              } else {
-                // Non-GitHub Pages: 90px for mobile/tablet portrait
-                if ((document.body.classList.contains('mobile-device') || document.body.classList.contains('tablet-device')) &&
-                    document.body.classList.contains('portrait')) {
-                  imgSize = '90px';
-                }
+              if ((document.body.classList.contains('mobile-device') || document.body.classList.contains('tablet-device')) &&
+                  document.body.classList.contains('portrait')) {
+                imgSize = '90px';
               }
               imgWrapper.style.cssText = `width: ${imgSize}; height: ${imgSize}; position: relative; background: #e5e7eb; border-radius: 6px; overflow: hidden;`;
 
@@ -7510,21 +6675,9 @@
         grid.appendChild(table);
 
         // Sync header widths with table after rendering
-        // On GitHub Pages mobile, add delay to ensure CSS has fully applied
-        const isGitHubPages = document.documentElement.classList.contains('github-pages');
-        const isMobile = document.body.classList.contains('mobile-device');
-
-        if (isGitHubPages && isMobile) {
-          // Match the delay used during orientation changes (100ms)
-          // This ensures CSS for portrait/landscape has fully applied before calculating widths
-          setTimeout(() => {
-            syncTableWidthToHeaders();
-          }, 100);
-        } else {
-          requestAnimationFrame(() => {
-            syncTableWidthToHeaders();
-          });
-        }
+        requestAnimationFrame(() => {
+          syncTableWidthToHeaders();
+        });
       }
 
       // Handle layer item click - navigate to next layer or show filtered main items
@@ -8613,8 +7766,7 @@
 
           // If not cached, it should already be in memory from grid view
           // But fetch anyway as fallback
-          // For GitHub Pages deployment, use API_CONFIG.APPS_SCRIPT_URL
-          // For Apps Script deployment, use imageProxyBaseUrl from settings
+          // Use imageProxyBaseUrl from settings
           const base = (window.API_CONFIG && window.API_CONFIG.APPS_SCRIPT_URL &&
                        window.API_CONFIG.APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL_HERE')
                        ? window.API_CONFIG.APPS_SCRIPT_URL.replace(/\/exec$/, '/exec')
@@ -10017,35 +9169,5 @@
       };
     </script>
 
-    <!-- Service Worker Registration (GitHub Pages PWA Support) -->
-    <script>
-      // Register service worker for PWA functionality
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./service-worker.js')
-            .then((registration) => {
-              console.log('✅ Service Worker registered successfully:', registration.scope);
-
-              // Check for updates
-              registration.addEventListener('updatefound', () => {
-                const newWorker = registration.installing;
-                console.log('🔄 Service Worker update found');
-
-                newWorker.addEventListener('statechange', () => {
-                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    console.log('✨ New Service Worker installed, refresh to update');
-                    // Optionally show a notification to the user
-                  }
-                });
-              });
-            })
-            .catch((error) => {
-              console.warn('⚠️ Service Worker registration failed:', error);
-            });
-        });
-      } else {
-        console.warn('⚠️ Service Workers are not supported in this browser');
-      }
-    </script>
   </body>
         </html>
