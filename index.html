@@ -6282,23 +6282,6 @@
           // This ensures CSS for portrait/landscape has fully applied before calculating widths
           setTimeout(() => {
             syncTableWidthToHeaders();
-
-            // CRITICAL: Force viewport recalculation (same as orientation change)
-            // This fixes the permanent issue where headers don't stick on initial load
-            requestAnimationFrame(() => {
-              const viewportMeta = document.querySelector('meta[name="viewport"]');
-              if (viewportMeta) {
-                const originalContent = viewportMeta.getAttribute('content');
-                // Temporarily force scale to 1.0 to reset browser viewport state
-                viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no');
-                // Restore original viewport settings after brief delay
-                setTimeout(() => {
-                  viewportMeta.setAttribute('content', originalContent);
-                }, 50);
-              }
-              // Scroll to top-left to ensure clean state
-              window.scrollTo(0, 0);
-            });
           }, 100);
         } else {
           requestAnimationFrame(() => {
@@ -7519,23 +7502,6 @@
           // This ensures CSS for portrait/landscape has fully applied before calculating widths
           setTimeout(() => {
             syncTableWidthToHeaders();
-
-            // CRITICAL: Force viewport recalculation (same as orientation change)
-            // This fixes the permanent issue where headers don't stick on initial load
-            requestAnimationFrame(() => {
-              const viewportMeta = document.querySelector('meta[name="viewport"]');
-              if (viewportMeta) {
-                const originalContent = viewportMeta.getAttribute('content');
-                // Temporarily force scale to 1.0 to reset browser viewport state
-                viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no');
-                // Restore original viewport settings after brief delay
-                setTimeout(() => {
-                  viewportMeta.setAttribute('content', originalContent);
-                }, 50);
-              }
-              // Scroll to top-left to ensure clean state
-              window.scrollTo(0, 0);
-            });
           }, 100);
         } else {
           requestAnimationFrame(() => {
