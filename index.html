@@ -6295,61 +6295,53 @@
         grid.appendChild(table);
 
         // Sync header widths with table after rendering
-        // On GitHub Pages mobile, add delay to ensure CSS has fully applied
         const isGitHubPages = document.documentElement.classList.contains('github-pages');
         const isMobile = document.body.classList.contains('mobile-device');
 
-        if (isGitHubPages && isMobile) {
-          // Match the delay used during orientation changes (100ms)
-          // This ensures CSS for portrait/landscape has fully applied before calculating widths
-          setTimeout(() => {
-            syncTableWidthToHeaders();
-          }, 100);
-        } else {
-          requestAnimationFrame(() => {
-            syncTableWidthToHeaders();
-          });
-        }
-
         // CRITICAL FIX: Force complete re-render on initial load (GitHub Pages mobile only)
-        // This replicates what orientation change does - destroys and recreates table
-        // Fixes the permanent issue where headers don't stick on first load
+        // This must happen BEFORE the normal sync to replicate orientation change behavior
         if (isGitHubPages && isMobile && !hasPerformedInitialRerenderFix && currentView === "list") {
           hasPerformedInitialRerenderFix = true;
 
           console.log('🔄 Forcing complete re-render to fix initial layout (GitHub Pages mobile)');
 
-          // Wait for initial render to complete, then force complete re-render
-          setTimeout(() => {
-            // Do exactly what orientation change does
-            if (typeof resetTableWidths === 'function') {
-              resetTableWidths();
-            }
+          // IMMEDIATE reset - same as orientation change (no delay)
+          if (typeof resetTableWidths === 'function') {
+            resetTableWidths();
+          }
 
-            // Re-render completely (destroys and recreates table - same as orientation change)
+          // Wait for CSS to apply, then re-render (100ms like orientation change)
+          setTimeout(() => {
+            // Re-render completely (destroys and recreates table)
             if (currentDisplayedItems && currentDisplayedItems.length > 0) {
               renderList(currentDisplayedItems);
             } else if (typeof applyFiltersAndSorting === 'function') {
               applyFiltersAndSorting();
             }
 
-            // CRITICAL: Add viewport manipulation HERE (not in renderTableView)
-            // This runs ONCE during forced re-render, same timing as orientation change
+            // Viewport manipulation and scroll (same as orientation change)
             requestAnimationFrame(() => {
               const viewportMeta = document.querySelector('meta[name="viewport"]');
               if (viewportMeta) {
                 const originalContent = viewportMeta.getAttribute('content');
-                // Temporarily force scale to 1.0 to reset browser viewport state
                 viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no');
-                // Restore original viewport settings after brief delay
                 setTimeout(() => {
                   viewportMeta.setAttribute('content', originalContent);
                 }, 50);
               }
-              // Scroll to top-left to ensure clean state
               window.scrollTo(0, 0);
             });
-          }, 300); // Wait longer to ensure initial render is complete
+          }, 100); // Same 100ms delay as orientation change
+        } else if (isGitHubPages && isMobile) {
+          // Normal sync for subsequent renders (not initial load)
+          setTimeout(() => {
+            syncTableWidthToHeaders();
+          }, 100);
+        } else {
+          // Non-GitHub Pages or desktop
+          requestAnimationFrame(() => {
+            syncTableWidthToHeaders();
+          });
         }
       }
 
