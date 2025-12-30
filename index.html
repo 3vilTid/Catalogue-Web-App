@@ -127,9 +127,16 @@
 
               // Wait for orientation CSS to fully apply, then re-render
               setTimeout(() => {
-                // Re-render the entire list to recalculate all table dimensions
-                // Use currentDisplayedItems which stores the currently displayed data
-                if (typeof renderList === 'function' && currentDisplayedItems && currentDisplayedItems.length > 0) {
+                // Re-render based on current view type
+                if (currentView === "layer" && currentLayerIndex >= 0) {
+                  // Re-render layer view to recalculate dimensions
+                  const currentLayer = navigationStack[navigationStack.length - 1];
+                  if (currentLayer && typeof renderLayerView === 'function') {
+                    const parentFilterName = currentLayer.itemName || null;
+                    renderLayerView(currentLayerIndex, parentFilterName);
+                  }
+                } else if (typeof renderList === 'function' && currentDisplayedItems && currentDisplayedItems.length > 0) {
+                  // Re-render the entire main list to recalculate all table dimensions
                   renderList(currentDisplayedItems);
                 } else if (typeof applyFiltersAndSorting === 'function') {
                   // Fallback: re-apply filters and sorting (for main layer)
@@ -7445,6 +7452,40 @@
 
         table.appendChild(tbody);
         grid.appendChild(table);
+
+        // CRITICAL: For GitHub Pages mobile, apply the same layout fixes that run on orientation change
+        // This ensures sticky headers and bottom bar positioning work correctly when entering a layer
+        const isGitHubPages = document.documentElement.classList.contains('github-pages');
+        const isMobile = document.body.classList.contains('mobile-device');
+
+        if (isGitHubPages && isMobile) {
+          console.log('🔄 Applying layout refresh for layer table view on GitHub Pages mobile');
+
+          // Use requestAnimationFrame to ensure DOM has settled after table render
+          requestAnimationFrame(() => {
+            // Force layout recalculation to fix sticky headers and bottom bar
+            if (typeof syncTableWidthToHeaders === 'function') {
+              syncTableWidthToHeaders();
+            }
+
+            // CRITICAL: Force viewport zoom reset to prevent zoom-in/zoom-out bugs
+            // This is the same fix applied during orientation changes
+            requestAnimationFrame(() => {
+              const viewportMeta = document.querySelector('meta[name="viewport"]');
+              if (viewportMeta) {
+                const originalContent = viewportMeta.getAttribute('content');
+                // Temporarily force scale to 1.0
+                viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no');
+                // Restore original viewport settings after brief delay
+                setTimeout(() => {
+                  viewportMeta.setAttribute('content', originalContent);
+                }, 50);
+              }
+              // Scroll to top-left to ensure clean state
+              window.scrollTo(0, 0);
+            });
+          });
+        }
       }
 
       // Handle layer item click - navigate to next layer or show filtered main items
