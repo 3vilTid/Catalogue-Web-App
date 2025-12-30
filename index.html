@@ -6299,18 +6299,33 @@
         const isMobile = document.body.classList.contains('mobile-device');
 
         // CRITICAL FIX: Force complete re-render on initial load (GitHub Pages mobile only)
-        // This must happen BEFORE the normal sync to replicate orientation change behavior
+        // Must replicate EVERYTHING orientation change does, including tab switcher positioning
         if (isGitHubPages && isMobile && !hasPerformedInitialRerenderFix && currentView === "list") {
           hasPerformedInitialRerenderFix = true;
 
           console.log('🔄 Forcing complete re-render to fix initial layout (GitHub Pages mobile)');
 
-          // IMMEDIATE reset - same as orientation change (no delay)
+          // STEP 1: Move tab switcher (same as orientation change does FIRST)
+          if (typeof handleTabSwitcherPosition === 'function') {
+            handleTabSwitcherPosition();
+          }
+
+          // STEP 2: IMMEDIATE reset - same as orientation change (no delay)
           if (typeof resetTableWidths === 'function') {
             resetTableWidths();
           }
 
-          // Wait for CSS to apply, then re-render (100ms like orientation change)
+          // STEP 3: Force browser reflows to clear cached layouts
+          const shell = document.querySelector('.shell');
+          const topHeader = document.querySelector('.top-header');
+          const filtersRow = document.querySelector('.filters-row');
+          const tableEl = document.querySelector('.data-table');
+          if (shell) void shell.offsetHeight;
+          if (topHeader) void topHeader.offsetHeight;
+          if (filtersRow) void filtersRow.offsetHeight;
+          if (tableEl) void tableEl.offsetHeight;
+
+          // STEP 4: Wait for CSS to apply, then re-render (100ms like orientation change)
           setTimeout(() => {
             // Re-render completely (destroys and recreates table)
             if (currentDisplayedItems && currentDisplayedItems.length > 0) {
@@ -6319,7 +6334,7 @@
               applyFiltersAndSorting();
             }
 
-            // Viewport manipulation and scroll (same as orientation change)
+            // STEP 5: Viewport manipulation and scroll (same as orientation change)
             requestAnimationFrame(() => {
               const viewportMeta = document.querySelector('meta[name="viewport"]');
               if (viewportMeta) {
@@ -6330,6 +6345,14 @@
                 }, 50);
               }
               window.scrollTo(0, 0);
+
+              // STEP 6: Force final reflow after everything
+              requestAnimationFrame(() => {
+                const finalShell = document.querySelector('.shell');
+                const finalTable = document.querySelector('.data-table');
+                if (finalShell) void finalShell.offsetHeight;
+                if (finalTable) void finalTable.offsetHeight;
+              });
             });
           }, 100); // Same 100ms delay as orientation change
         } else if (isGitHubPages && isMobile) {
