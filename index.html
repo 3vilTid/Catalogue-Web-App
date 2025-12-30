@@ -127,9 +127,16 @@
 
               // Wait for orientation CSS to fully apply, then re-render
               setTimeout(() => {
-                // Re-render the entire list to recalculate all table dimensions
-                // Use currentDisplayedItems which stores the currently displayed data
-                if (typeof renderList === 'function' && currentDisplayedItems && currentDisplayedItems.length > 0) {
+                // Re-render based on current view type to preserve correct rendering
+                if (currentView === "layer" && currentLayerIndex >= 0) {
+                  // In layer view - re-render the layer
+                  const layerName = layerConfig[currentLayerIndex].layerName;
+                  const parentFilter = navigationStack.length > 0
+                    ? navigationStack[navigationStack.length - 1].itemName
+                    : null;
+                  renderLayerView(currentLayerIndex, parentFilter);
+                } else if (typeof renderList === 'function' && currentDisplayedItems && currentDisplayedItems.length > 0) {
+                  // In main list view - re-render the list
                   renderList(currentDisplayedItems);
                 } else if (typeof applyFiltersAndSorting === 'function') {
                   // Fallback: re-apply filters and sorting (for main layer)
@@ -6263,9 +6270,21 @@
         grid.appendChild(table);
 
         // Sync header widths with table after rendering
-        requestAnimationFrame(() => {
-          syncTableWidthToHeaders();
-        });
+        // On GitHub Pages mobile, add delay to ensure CSS has fully applied
+        const isGitHubPages = document.documentElement.classList.contains('github-pages');
+        const isMobile = document.body.classList.contains('mobile-device');
+
+        if (isGitHubPages && isMobile) {
+          // Match the delay used during orientation changes (100ms)
+          // This ensures CSS for portrait/landscape has fully applied before calculating widths
+          setTimeout(() => {
+            syncTableWidthToHeaders();
+          }, 100);
+        } else {
+          requestAnimationFrame(() => {
+            syncTableWidthToHeaders();
+          });
+        }
       }
 
       // Synchronize top-header and filters-row width with table width
@@ -7445,6 +7464,23 @@
 
         table.appendChild(tbody);
         grid.appendChild(table);
+
+        // Sync header widths with table after rendering
+        // On GitHub Pages mobile, add delay to ensure CSS has fully applied
+        const isGitHubPages = document.documentElement.classList.contains('github-pages');
+        const isMobile = document.body.classList.contains('mobile-device');
+
+        if (isGitHubPages && isMobile) {
+          // Match the delay used during orientation changes (100ms)
+          // This ensures CSS for portrait/landscape has fully applied before calculating widths
+          setTimeout(() => {
+            syncTableWidthToHeaders();
+          }, 100);
+        } else {
+          requestAnimationFrame(() => {
+            syncTableWidthToHeaders();
+          });
+        }
       }
 
       // Handle layer item click - navigate to next layer or show filtered main items
