@@ -62,12 +62,12 @@ Edit the `manifest.json` file to change your app name:
 
 ### Replace Icon Files
 Upload these files to `assets/icons/` folder on GitHub:
-- `android-chrome-192x192.png`
-- `android-chrome-512x512.png`
-- `apple-touch-icon.png`
-- `favicon-32x32.png`
-- `favicon-16x16.png`
-- `favicon.ico`
+- **`android-chrome-192x192.png`** - Used for Android home screen icon and app drawer when installed as PWA
+- **`android-chrome-512x512.png`** - Used for Android splash screen and high-resolution displays when installed as PWA (mobile app icon)
+- **`apple-touch-icon.png`** - Used for iOS/iPadOS home screen icon when installed as PWA or saved to home screen
+- **`favicon-32x32.png`** - Used in browser tabs and bookmarks on desktop (standard size)
+- **`favicon-16x16.png`** - Used in browser tabs on smaller displays or when multiple tabs are open (browser page icon)
+- **`favicon.ico`** - Fallback icon for older browsers and Windows taskbar when app is pinned
 
 ---
 
