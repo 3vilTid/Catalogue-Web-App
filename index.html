@@ -6310,6 +6310,23 @@
             } else if (typeof applyFiltersAndSorting === 'function') {
               applyFiltersAndSorting();
             }
+
+            // CRITICAL: Add viewport manipulation HERE (not in renderTableView)
+            // This runs ONCE during forced re-render, same timing as orientation change
+            requestAnimationFrame(() => {
+              const viewportMeta = document.querySelector('meta[name="viewport"]');
+              if (viewportMeta) {
+                const originalContent = viewportMeta.getAttribute('content');
+                // Temporarily force scale to 1.0 to reset browser viewport state
+                viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no');
+                // Restore original viewport settings after brief delay
+                setTimeout(() => {
+                  viewportMeta.setAttribute('content', originalContent);
+                }, 50);
+              }
+              // Scroll to top-left to ensure clean state
+              window.scrollTo(0, 0);
+            });
           }, 300); // Wait longer to ensure initial render is complete
         }
       }
