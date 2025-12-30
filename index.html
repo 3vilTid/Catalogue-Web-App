@@ -7445,6 +7445,11 @@
 
         table.appendChild(tbody);
         grid.appendChild(table);
+
+        // Sync header widths with table after rendering
+        requestAnimationFrame(() => {
+          syncTableWidthToHeaders();
+        });
       }
 
       // Handle layer item click - navigate to next layer or show filtered main items
