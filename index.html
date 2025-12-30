@@ -13,6 +13,13 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Catalogue">
 
+    <!-- PWA Manifest - Static file for GitHub Pages -->
+    <link rel="manifest" href="./manifest.json">
+
+    <!-- API Configuration and Client (GitHub Pages Migration) -->
+    <script src="./api-config.js"></script>
+    <script src="./api-client.js"></script>
+
     <!-- Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -9167,6 +9174,37 @@
 
 
       };
+    </script>
+
+    <!-- Service Worker Registration (GitHub Pages PWA Support) -->
+    <script>
+      // Register service worker for PWA functionality
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./service-worker.js')
+            .then((registration) => {
+              console.log('✅ Service Worker registered successfully:', registration.scope);
+
+              // Check for updates
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                console.log('🔄 Service Worker update found');
+
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('✨ New Service Worker installed, refresh to update');
+                    // Optionally show a notification to the user
+                  }
+                });
+              });
+            })
+            .catch((error) => {
+              console.warn('⚠️ Service Worker registration failed:', error);
+            });
+        });
+      } else {
+        console.warn('⚠️ Service Workers are not supported in this browser');
+      }
     </script>
 
   </body>
