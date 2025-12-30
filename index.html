@@ -5178,6 +5178,9 @@
       // Navigation state for back button handling
       let currentView = "list"; // "list", "layer", or "detail"
 
+      // Flag to track if we've performed the initial re-render fix for GitHub Pages mobile
+      let hasPerformedInitialRerenderFix = false;
+
       // Display view types for each layer and main items (cards, list, table)
       let layer1ViewType = "cards"; // Layer 1 view type - set from Google Sheet D12
       let layer2ViewType = "cards"; // Layer 2 view type - set from Google Sheet D13
@@ -6301,6 +6304,30 @@
           requestAnimationFrame(() => {
             syncTableWidthToHeaders();
           });
+        }
+
+        // CRITICAL FIX: Force complete re-render on initial load (GitHub Pages mobile only)
+        // This replicates what orientation change does - destroys and recreates table
+        // Fixes the permanent issue where headers don't stick on first load
+        if (isGitHubPages && isMobile && !hasPerformedInitialRerenderFix && currentView === "list") {
+          hasPerformedInitialRerenderFix = true;
+
+          console.log('🔄 Forcing complete re-render to fix initial layout (GitHub Pages mobile)');
+
+          // Wait for initial render to complete, then force complete re-render
+          setTimeout(() => {
+            // Do exactly what orientation change does
+            if (typeof resetTableWidths === 'function') {
+              resetTableWidths();
+            }
+
+            // Re-render completely (destroys and recreates table - same as orientation change)
+            if (currentDisplayedItems && currentDisplayedItems.length > 0) {
+              renderList(currentDisplayedItems);
+            } else if (typeof applyFiltersAndSorting === 'function') {
+              applyFiltersAndSorting();
+            }
+          }, 300); // Wait longer to ensure initial render is complete
         }
       }
 
