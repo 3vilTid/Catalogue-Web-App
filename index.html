@@ -6270,9 +6270,27 @@
         grid.appendChild(table);
 
         // Sync header widths with table after rendering
-        requestAnimationFrame(() => {
-          syncTableWidthToHeaders();
-        });
+        const isGitHubPages = document.documentElement.classList.contains('github-pages');
+        const isMobile = document.body.classList.contains('mobile-device');
+
+        if (isGitHubPages && isMobile) {
+          // CRITICAL: Reset ALL fixed widths immediately so elements can resize naturally
+          if (typeof resetTableWidths === 'function') {
+            resetTableWidths();
+          }
+
+          // Wait for DOM and CSS to settle before syncing widths
+          setTimeout(() => {
+            if (typeof syncTableWidthToHeaders === 'function') {
+              syncTableWidthToHeaders();
+            }
+          }, 100);
+        } else {
+          // Non-GitHub Pages or desktop: use normal timing
+          requestAnimationFrame(() => {
+            syncTableWidthToHeaders();
+          });
+        }
       }
 
       // Synchronize top-header and filters-row width with table width
@@ -7461,8 +7479,14 @@
         if (isGitHubPages && isMobile) {
           console.log('🔄 Applying layout refresh for layer table view on GitHub Pages mobile');
 
-          // Use requestAnimationFrame to ensure DOM has settled after table render
-          requestAnimationFrame(() => {
+          // CRITICAL: Reset ALL fixed widths immediately so elements can resize naturally
+          // This is the same first step that happens during orientation changes
+          if (typeof resetTableWidths === 'function') {
+            resetTableWidths();
+          }
+
+          // Wait for DOM and CSS to settle before syncing widths
+          setTimeout(() => {
             // Force layout recalculation to fix sticky headers and bottom bar
             if (typeof syncTableWidthToHeaders === 'function') {
               syncTableWidthToHeaders();
@@ -7484,7 +7508,7 @@
               // Scroll to top-left to ensure clean state
               window.scrollTo(0, 0);
             });
-          });
+          }, 100); // Match the delay used during orientation changes
         }
       }
 
