@@ -18,7 +18,7 @@ When viewing the Main Table on GitHub Pages mobile / Tablet deployment, the foll
 - Headers should remain visible when scrolling down through table rows
 - This works perfectly on desktop and after orientation change
 
-#### B. Bottom Padding / Tabs Positioning Incorrect
+#### B. Bottom Padding ("fixed bottom bar" or "sticky footer") / Tabs Positioning Incorrect
 - The tab switcher and bottom bar are not positioned correctly on initial load
 - User must scroll down to reach the bottom padding/tabs
 - The bottom bar should be immediately visible at the viewport bottom
