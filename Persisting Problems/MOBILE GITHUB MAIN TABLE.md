@@ -332,7 +332,7 @@ if (isGitHubPages && isMobile && !hasPerformedInitialRerenderFix && currentView 
 
 ---
 
-### Fix #7: Dispatch Resize Event (CURRENT - 2025-12-30)
+### Fix #7: Dispatch Resize Event (2025-12-30)
 **Commit:** ffe3c7a
 **File:** index.html:6301-6327 (`renderTableView`)
 
@@ -370,6 +370,139 @@ if (isGitHubPages && isMobile && !hasPerformedInitialRerenderFix && currentView 
 - Waits 200ms to ensure DOM is ready
 
 **Result:** STILL DOESN'T WORK - The problem persists despite this elegant solution.
+
+---
+
+### Fix #8: Remove Width Constraints + CSS !important + Include Tablets (2025-12-31)
+**Commit:** e5bfc77 (REVERTED in 308e7da)
+**Files Modified:** index.html (multiple locations)
+
+**Root Cause Identified:** The previous fix (commit 586f0ec) solved sticky headers/bottom bar by constraining widths, but this broke the natural flexbox resizing of:
+- `.top-header` (contains logo, tab switcher, user info)
+- `.filters-row` (contains search bar and filter buttons)
+
+Additionally, the orientation change fix was only applied to `mobile-device`, not `tablet-device`, so tablets had broken orientation handling.
+
+**Approach:**
+This was a comprehensive, multi-faceted approach that made changes across JavaScript and CSS:
+
+**1. JavaScript Changes - `syncTableWidthToHeaders()` (Lines ~6377-6461):**
+- **REMOVED** width setting on `.top-header` and `.filters-row`
+- These containers now resize naturally via flexbox
+- Table headers (`<th>`) use CSS `position: sticky` (no JS needed)
+- Only manage shell width to prevent viewport zoom
+- Include `tablet-device` in all mobile checks
+
+**2. JavaScript Changes - `updateOrientation()` (Lines ~122-206):**
+- Include `tablet-device` in orientation change handler
+- Tablets now get the same re-render fix as mobile devices
+- Fixes orientation change bugs on tablet devices
+
+**3. JavaScript Changes - `resetTableWidths()` (Lines ~6384-6402):**
+- Only reset shell width (not header containers)
+- Also clear `maxWidth` to ensure clean state
+
+**4. CSS Enhancements (Lines ~4121-4138):**
+- Force sticky positioning on table headers for mobile/tablet with `!important`
+- Force fixed positioning on bottom bar for mobile/tablet portrait with `!important`
+
+**Code Changes:**
+
+```javascript
+// In syncTableWidthToHeaders()
+const isGitHubPages = document.documentElement.classList.contains('github-pages');
+const isMobile = document.body.classList.contains('mobile-device');
+const isTablet = document.body.classList.contains('tablet-device');
+
+if (isGitHubPages && (isMobile || isTablet)) {
+  // On GitHub Pages mobile/tablet, NEVER set shell wider than viewport
+  const maxAllowedWidth = viewportWidth;
+  const desiredShellWidth = tableWidth + shellPadding;
+
+  if (desiredShellWidth <= maxAllowedWidth) {
+    shell.style.width = `${desiredShellWidth}px`;
+  } else {
+    shell.style.width = '';
+    shell.style.maxWidth = '';
+  }
+}
+
+// CRITICAL: Do NOT set widths on .top-header or .filters-row
+// This was breaking the flexbox resizing of logo, search bar, and user info containers
+```
+
+```css
+/* CRITICAL FIX: Ensure sticky table headers work on mobile/tablet */
+html.github-pages body.mobile-device .data-table th,
+html.github-pages body.tablet-device .data-table th {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 100 !important;
+  background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
+}
+
+/* CRITICAL FIX: Ensure bottom bar stays fixed on mobile/tablet portrait */
+html.github-pages body.mobile-device.portrait .bottom-bar,
+html.github-pages body.tablet-device.portrait .bottom-bar {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 9999 !important;
+}
+```
+
+**Expected Results:**
+- ✅ Sticky table headers work correctly
+- ✅ Bottom bar (with tabs) stays fixed at bottom
+- ✅ Logo container resizes properly
+- ✅ Search bar container resizes properly
+- ✅ User info container resizes properly
+- ✅ Orientation changes work on BOTH mobile AND tablet devices
+- ✅ No viewport auto-zoom issues
+
+**Why This Should Work:**
+- Removes the width constraints that were breaking flexbox containers
+- Uses CSS `!important` to force critical positioning styles
+- Extends all fixes to tablets, not just mobile phones
+- Relies on native CSS `position: sticky` instead of JavaScript width manipulation
+- Prevents viewport zoom by managing only the shell width
+
+**Actual Result:** **STILL DOESN'T WORK** - The sticky headers and bottom bar positioning issues persist on initial load.
+
+**Why It Was Reverted (2025-12-31, commit 308e7da):**
+
+Despite being the most comprehensive fix yet, addressing multiple potential root causes simultaneously:
+
+1. **Core bug remained unfixed:** The sticky headers still did not work on initial load
+2. **Bottom bar positioning still incorrect:** The bottom bar was still not positioned correctly on initial load
+3. **Self-healing phenomenon persists:** The bug still mysteriously fixes itself after one orientation change, indicating we're still missing the critical browser state change that orientation triggers
+4. **Didn't address the fundamental issue:** While the fix improved tablet support and removed problematic width constraints, it did not solve the fundamental initial render issue on GitHub Pages mobile
+
+**Key Lessons Learned:**
+
+Even with multiple simultaneous changes (removing width constraints, adding CSS `!important` overrides, extending to tablets, and relying on native CSS positioning), the bug persists. This strongly suggests the issue is **NOT** related to:
+
+- ❌ Width calculations interfering with sticky positioning
+- ❌ CSS specificity/cascade issues
+- ❌ Tablet vs mobile device differences
+- ❌ Flexbox container sizing conflicts
+- ❌ Insufficient `!important` declarations
+
+**The Real Problem Must Be:**
+
+The problem must lie elsewhere - likely in:
+- Browser rendering timing/lifecycle events
+- Cached layout state that only physical orientation change clears
+- Some browser-internal initialization condition
+- A fundamental difference in how the browser processes initial page load vs. orientation change events
+
+The fact that an actual device orientation change permanently fixes everything suggests there's a **browser-level state change** that we cannot replicate programmatically, even with:
+- Direct function calls
+- Event dispatching
+- Forced reflows
+- Viewport manipulation
+- Complete DOM re-renders
 
 ---
 
