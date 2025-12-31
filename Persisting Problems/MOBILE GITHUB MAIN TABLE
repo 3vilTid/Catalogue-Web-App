@@ -11,7 +11,7 @@
 
 ### Current Behavior
 
-When viewing the Main Table on GitHub Pages mobile deployment, the following issues occur **on initial load only**:
+When viewing the Main Table on GitHub Pages mobile / Tablet deployment, the following issues occur **on initial load only**:
 
 #### A. Sticky Headers Not Working
 - Table headers (`<th>` elements with `position: sticky`) do not stick to the top when scrolling
@@ -32,7 +32,7 @@ When viewing the Main Table on GitHub Pages mobile deployment, the following iss
 
 ### The "Self-Healing" Phenomenon
 
-**CRITICAL OBSERVATION:** Changing device orientation **ONCE** permanently fixes all issues:
+**CRITICAL OBSERVATION:** Changing device orientation **ONCE** permanently fixes all issues On mobile device only (not on tablet):
 
 ```
 User Flow WITHOUT Orientation Change:
@@ -770,8 +770,8 @@ setTimeout(() => {
 ### What We Know About The Bug
 - 🐛 Only occurs on **initial load** on GitHub Pages mobile
 - 🐛 Does NOT occur on subsequent renders
-- 🐛 Does NOT occur on desktop or non-GitHub Pages
-- 🐛 Does NOT occur after orientation change (even once)
+- 🐛 Does NOT occur on desktop or non-GitHub Pages 
+- 🐛 Does NOT occur after orientation change on mobile (even once)
 - 🐛 Affects both sticky headers AND bottom bar positioning
 
 ### The Mystery
