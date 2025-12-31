@@ -3131,11 +3131,16 @@
       /* Ensure symmetrical margins - adjust container padding */
       body.mobile-device.portrait #detailView,
       body.tablet-device.portrait #detailView {
-        padding: 5px 16px !important;
+        padding: 16px !important;
         margin-left: 0;
         margin-right: 0;
         width: 100%;
         box-sizing: border-box;
+      }
+
+      /* Reduce vertical padding to 5px only for Table + Open Detail View */
+      body.mobile-device.portrait #detailView[data-table-open-detail="true"] {
+        padding: 5px 16px !important;
       }
 
       /* Detail view layout - PORTRAIT: Use landscape-style side-by-side layout ONLY for Table + Open Detail View */
