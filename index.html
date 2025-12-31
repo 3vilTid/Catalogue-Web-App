@@ -3182,9 +3182,11 @@
         box-sizing: border-box;
       }
 
-      /* Reduce vertical padding to 5px only for Table + Open Detail View */
+      /* Reduce vertical padding and margin to 5px only for Table + Open Detail View */
       body.mobile-device.portrait #detailView[data-table-open-detail="true"] {
         padding: 5px 16px !important;
+        margin-top: 5px !important;
+        margin-bottom: 5px !important;
       }
 
       /* Detail view layout - PORTRAIT: Use landscape-style side-by-side layout ONLY for Table + Open Detail View */
@@ -3419,12 +3421,7 @@
         min-height: 48px !important;
       }
 
-      /* Exception: Make edit and delete buttons in detail view 40% of their size on mobile portrait */
-      body.mobile-device.portrait .detail-actions .btn-danger,
-      body.mobile-device.portrait .detail-actions .btn-secondary {
-        transform: scale(0.4) !important;
-        transform-origin: left center !important;
-      }
+      /* Removed: Edit and delete buttons in detail view now use normal size on mobile portrait for better usability */
 
       /* Form inputs bigger in portrait */
       body.mobile-device.portrait input[type="text"],
