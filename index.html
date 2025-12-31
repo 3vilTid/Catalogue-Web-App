@@ -60,16 +60,25 @@
 
         const deviceClass = isTablet ? 'tablet-device' : (isMobile ? 'mobile-device' : 'desktop-device');
 
+        // Detect platform (GitHub Pages vs Google Apps Script)
+        const isGitHubPages = typeof google === 'undefined' || !google.script;
+        const platformClass = isGitHubPages ? 'github-pages' : 'appscript';
+
+        console.log('🌐 Platform detected:', platformClass);
+
         // Immediately set on HTML (blocks before page renders)
-        document.documentElement.className = deviceClass;
+        document.documentElement.className = deviceClass + ' ' + platformClass;
         document.documentElement.setAttribute('data-device', deviceClass);
+        document.documentElement.setAttribute('data-platform', platformClass);
         console.log('🔧 Device class set on HTML (blocking):', deviceClass);
+        console.log('🔧 Platform class set on HTML:', platformClass);
 
         // Set on body as soon as it's available (early, before full DOM load)
         function setBodyClass() {
           if (document.body) {
-            document.body.className = deviceClass;
+            document.body.className = deviceClass + ' ' + platformClass;
             console.log('✅ Device: ' + deviceClass + ' (body class set early)');
+            console.log('✅ Platform: ' + platformClass);
             updateOrientation();
           } else {
             setTimeout(setBodyClass, 1);
@@ -3175,18 +3184,18 @@
         gap: 16px;
       }
 
-      /* Reduce margin to 5px for detail-two-column-grid in mobile portrait for Open Detail View table mode */
-      body.mobile-device.portrait #detailView[data-table-open-detail="true"] .detail-two-column-grid {
+      /* Reduce margin to 5px for detail-two-column-grid in GITHUB PAGES mobile portrait ONLY for Open Detail View table mode */
+      body.github-pages.mobile-device.portrait #detailView[data-table-open-detail="true"] .detail-two-column-grid {
         margin-top: 5px !important;
         margin-bottom: 5px !important;
       }
 
-      /* Reduce padding and margin for expanded table row detail view in mobile portrait */
-      body.mobile-device.portrait .expanded-content-row > td > div {
+      /* Reduce padding and margin for expanded table row detail view in GITHUB PAGES mobile portrait ONLY */
+      body.github-pages.mobile-device.portrait .expanded-content-row > td > div {
         padding: 5px 16px !important;
       }
 
-      body.mobile-device.portrait .expanded-content-row div[style*="grid-template-columns"] {
+      body.github-pages.mobile-device.portrait .expanded-content-row div[style*="grid-template-columns"] {
         margin-top: 5px !important;
         margin-bottom: 5px !important;
       }
