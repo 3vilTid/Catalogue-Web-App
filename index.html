@@ -3,37 +3,41 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="description" content="Catalogue web application">
 
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#4CAF50">
+    <meta name="theme-color" content="#46599c">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Catalogue">
 
-    <!-- PWA Manifest - Served from server with proper MIME type -->
-    <script>
-      // Set manifest URL dynamically to use actual browser URL
-      (function() {
-        const actualUrl = window.location.origin + window.location.pathname;
-        const manifestUrl = actualUrl + '?manifest=true';
+    <!-- PWA Manifest - Static file for GitHub Pages -->
+    <link rel="manifest" href="./manifest.json">
 
-        const link = document.createElement('link');
-        link.rel = 'manifest';
-        link.href = manifestUrl;
-        document.head.appendChild(link);
+    <!-- API Configuration and Client (GitHub Pages Migration) -->
+    <script src="./api-config.js"></script>
+    <script src="./api-client.js"></script>
 
-        console.log('📄 PWA Manifest URL:', manifestUrl);
-      })();
-    </script>
-
-    <!-- Icons (using inline SVG data URIs) -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='white'%3EC%3C/text%3E%3C/svg%3E">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='120' fill='white'%3EC%3C/text%3E%3C/svg%3E">
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
 
     <title>Catalogue</title>
+
+    <!-- GitHub Pages Detection - Add marker class -->
+    <script>
+      (function() {
+        const isGitHubPages = window.location.hostname.includes('github.io');
+        if (isGitHubPages) {
+          document.documentElement.classList.add('github-pages');
+          console.log('🌐 GitHub Pages detected - applying specific mobile portrait styles');
+        }
+      })();
+    </script>
 
     <!-- CRITICAL: Device Detection - Must run FIRST in head -->
     <script>
@@ -89,46 +93,170 @@
         function updateOrientation() {
           if (!document.body) return;
 
+          console.log('🔍 [DIAGNOSTIC] ==========================================');
+          console.log('🔍 [DIAGNOSTIC] updateOrientation() TRIGGERED');
+          console.log('🔍 [DIAGNOSTIC] ==========================================');
+          console.log('  - Viewport:', window.innerWidth + 'x' + window.innerHeight);
+
           document.body.classList.remove('landscape', 'portrait');
           const isLandscape = window.innerWidth > window.innerHeight;
           if (isLandscape) {
             document.body.classList.add('landscape');
             document.documentElement.setAttribute('data-orientation', 'landscape');
-            console.log('📱 Orientation: Landscape');
+            console.log('  ✅ Orientation: Landscape');
           } else {
             document.body.classList.add('portrait');
             document.documentElement.setAttribute('data-orientation', 'portrait');
-            console.log('📱 Orientation: Portrait');
+            console.log('  ✅ Orientation: Portrait');
           }
 
           // Move tab switcher based on orientation
           handleTabSwitcherPosition();
+
+          // Reset and recalculate table widths if in table view
+          const grid = document.getElementById('gridView');
+          if (grid && grid.classList.contains('table-view')) {
+            const table = document.querySelector('.data-table');
+            const shell = document.querySelector('.shell');
+            const topHeader = document.querySelector('.top-header');
+            const filtersRow = document.querySelector('.filters-row');
+
+            // CRITICAL: For GitHub Pages mobile, completely re-render the table view
+            // This is necessary because table column widths get cached and don't update
+            // properly when orientation changes, even with forced reflows
+            const isGitHubPages = document.documentElement.classList.contains('github-pages');
+            const isMobile = document.body.classList.contains('mobile-device');
+
+            if (isGitHubPages && isMobile) {
+              console.log('🔄 Re-rendering table view for orientation change on GitHub Pages mobile');
+
+              // IMMEDIATE reset of table widths before re-render
+              if (typeof resetTableWidths === 'function') {
+                resetTableWidths();
+              }
+
+              // Wait for orientation CSS to fully apply, then re-render
+              setTimeout(() => {
+                // Re-render based on current view type to preserve correct rendering
+                if (currentView === "layer" && currentLayerIndex >= 0) {
+                  // In layer view - re-render the layer
+                  const layerName = layerConfig[currentLayerIndex].layerName;
+                  const parentFilter = navigationStack.length > 0
+                    ? navigationStack[navigationStack.length - 1].itemName
+                    : null;
+                  renderLayerView(currentLayerIndex, parentFilter);
+                } else if (typeof renderList === 'function' && currentDisplayedItems && currentDisplayedItems.length > 0) {
+                  // In main list view - re-render the list
+                  renderList(currentDisplayedItems);
+                } else if (typeof applyFiltersAndSorting === 'function') {
+                  // Fallback: re-apply filters and sorting (for main layer)
+                  applyFiltersAndSorting();
+                }
+
+                // CRITICAL: Force viewport zoom reset to prevent zoom-in/zoom-out bugs
+                // Wait for render to complete, then reset any browser-applied zoom
+                requestAnimationFrame(() => {
+                  // Reset viewport zoom by forcing scale to 1.0
+                  const viewportMeta = document.querySelector('meta[name="viewport"]');
+                  if (viewportMeta) {
+                    const originalContent = viewportMeta.getAttribute('content');
+                    // Temporarily force scale to 1.0
+                    viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no');
+                    // Restore original viewport settings after brief delay
+                    setTimeout(() => {
+                      viewportMeta.setAttribute('content', originalContent);
+                    }, 50);
+                  }
+                  // Also scroll to top-left to ensure clean state
+                  window.scrollTo(0, 0);
+                });
+              }, 100); // Short delay to let CSS settle
+            } else {
+              // Non-GitHub Pages or desktop: Use normal width sync approach
+              // IMMEDIATE reset: Remove ALL fixed widths so elements can resize naturally
+              if (typeof resetTableWidths === 'function') {
+                resetTableWidths();
+              }
+
+              // Force immediate reflow on ALL elements to clear cached dimensions
+              if (table) void table.offsetWidth;
+              if (shell) {
+                void shell.offsetWidth;
+                // Clear shell width immediately to prevent stale width from blocking natural resize
+                shell.style.width = '';
+                shell.style.minWidth = '';
+              }
+              if (topHeader) void topHeader.offsetWidth;
+              if (filtersRow) void filtersRow.offsetWidth;
+
+              // Wait for CSS orientation changes to fully apply
+              setTimeout(() => {
+                // Force another complete layout recalculation
+                if (table) void table.offsetWidth;
+                if (shell) void shell.offsetWidth;
+                if (topHeader) void topHeader.offsetWidth;
+                if (filtersRow) void filtersRow.offsetWidth;
+
+                // Final RAF before syncing
+                requestAnimationFrame(() => {
+                  requestAnimationFrame(() => {
+                    // Ensure one more reflow before reading dimensions
+                    if (table) void table.offsetWidth;
+                    if (shell) void shell.offsetWidth;
+
+                    if (typeof syncTableWidthToHeaders === 'function') {
+                      console.log('🔄 Syncing table widths after orientation change');
+                      syncTableWidthToHeaders();
+                    }
+                  });
+                });
+              }, 150);
+            }
+          }
         }
 
         // Handle moving tab switcher between header and bottom bar
         function handleTabSwitcherPosition() {
+          console.log('🔍 [DIAGNOSTIC] handleTabSwitcherPosition() called');
+
           const tabSwitcher = document.getElementById('tabSwitcherWrapper');
           const bottomBarContent = document.getElementById('bottomBarContent');
           const centerBlock = document.querySelector('.top-header .center-block');
 
           // Only proceed if all elements exist
-          if (!tabSwitcher || !bottomBarContent || !centerBlock) return;
+          if (!tabSwitcher || !bottomBarContent || !centerBlock) {
+            console.log('  - Elements missing:', {
+              tabSwitcher: !!tabSwitcher,
+              bottomBarContent: !!bottomBarContent,
+              centerBlock: !!centerBlock
+            });
+            return;
+          }
 
           const deviceClass = document.body.className.split(' ')[0]; // mobile-device, tablet-device, or desktop-device
           const isMobileOrTablet = deviceClass === 'mobile-device' || deviceClass === 'tablet-device';
           const isPortrait = document.body.classList.contains('portrait');
 
+          console.log('  - Device class:', deviceClass);
+          console.log('  - Is mobile/tablet:', isMobileOrTablet);
+          console.log('  - Is portrait:', isPortrait);
+          console.log('  - Current parent:', tabSwitcher.parentElement.id || tabSwitcher.parentElement.className);
+
           if (isMobileOrTablet && isPortrait) {
             // Move to bottom bar in portrait mode
             if (tabSwitcher.parentElement !== bottomBarContent) {
               bottomBarContent.appendChild(tabSwitcher);
-              console.log('📱 Moved tab switcher to bottom bar');
+              console.log('  ✅ Moved tab switcher to bottom bar');
+            } else {
+              console.log('  ✅ Tab switcher already in bottom bar');
             }
           } else {
             // Move back to header in landscape or desktop
             if (tabSwitcher.parentElement !== centerBlock) {
               centerBlock.appendChild(tabSwitcher);
-              console.log('📱 Moved tab switcher to header');
+              console.log('  ✅ Moved tab switcher to header');
+            } else {
+              console.log('  ✅ Tab switcher already in header');
             }
           }
         }
@@ -896,20 +1024,26 @@
       .list-view.style-simple {
         display: flex;
         flex-direction: column;
+        max-width: 100%;
+        overflow-x: hidden;
       }
 
       /* List Style: Double - 2 columns */
       .list-view.style-double {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
+        max-width: 100%;
+        overflow-x: hidden;
       }
 
       /* List Style: Triple - 3 columns */
       .list-view.style-triple {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 12px;
+        max-width: 100%;
+        overflow-x: hidden;
       }
 
       .list-item {
@@ -917,12 +1051,14 @@
         flex-direction: row;
         align-items: center;
         gap: 16px;
-        padding: 12px;
+        padding: 5px 12px;
         background: rgba(255, 255, 255, 0.98);
         border-radius: 12px;
         box-shadow: 0 4px 12px rgba(148, 163, 184, 0.2);
         cursor: pointer;
         transition: transform 0.12s ease, box-shadow 0.12s ease;
+        min-width: 0;
+        max-width: 100%;
       }
 
       .list-item:hover {
@@ -938,6 +1074,7 @@
         overflow: hidden;
         border-radius: 8px;
         background: #e5e7eb;
+        flex-shrink: 0;
       }
 
       .list-item-details {
@@ -945,17 +1082,25 @@
         display: flex;
         flex-direction: column;
         gap: 4px;
+        min-width: 0;
+        overflow: hidden;
       }
 
       .list-item-name {
         font-size: 16px;
         font-weight: 600;
         color: var(--text-main);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .list-item-sub {
         font-size: 14px;
         color: var(--text-soft);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       /* Table View ---------------------------------------------------------- */
@@ -1475,7 +1620,7 @@
         justify-content: center;
         background: rgba(15, 23, 42, 0.75);
         backdrop-filter: blur(4px);
-        z-index: 60;
+        z-index: 20000; /* Above everything including bottom-bar (9999), top-header, filters-row */
       }
 
       .modal-card {
@@ -2231,117 +2376,6 @@
         border-top-color: #3b82f6;
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
-      }
-
-      /* ==================== PWA INSTALL BANNER ==================== */
-
-      .install-banner {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-        color: white;
-        padding: 16px 20px;
-        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-        z-index: 9999;
-        animation: slideUp 0.3s ease-out;
-      }
-
-      @keyframes slideUp {
-        from {
-          transform: translateY(100%);
-        }
-        to {
-          transform: translateY(0);
-        }
-      }
-
-      .install-banner-content {
-        max-width: 1200px;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-      }
-
-      .install-banner-text {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-
-      .install-banner-text strong {
-        font-size: 16px;
-        font-weight: 600;
-      }
-
-      .install-banner-text span {
-        font-size: 14px;
-        opacity: 0.95;
-      }
-
-      .install-banner-actions {
-        display: flex;
-        gap: 12px;
-        flex-shrink: 0;
-      }
-
-      .install-banner-btn {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-      }
-
-      .install-btn-primary {
-        background: white;
-        color: #4CAF50;
-      }
-
-      .install-btn-primary:hover {
-        background: #f5f5f5;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      .install-btn-secondary {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-      }
-
-      .install-btn-secondary:hover {
-        background: rgba(255, 255, 255, 0.3);
-      }
-
-      /* Mobile responsive for install banner */
-      @media (max-width: 768px) {
-        .install-banner {
-          padding: 12px 16px;
-        }
-
-        .install-banner-content {
-          flex-direction: column;
-          align-items: stretch;
-          gap: 12px;
-        }
-
-        .install-banner-text {
-          text-align: center;
-        }
-
-        .install-banner-actions {
-          justify-content: center;
-        }
-
-        .install-banner-btn {
-          flex: 1;
-        }
       }
 
       /* ==================== RESPONSIVE DESIGN ==================== */
@@ -3694,6 +3728,675 @@
           grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
         }
       }
+
+
+      /* ==================== GITHUB PAGES MOBILE PORTRAIT - 50% scaled down ==================== */
+      /*  GitHub Pages renders mobile portrait at 2x size - scale down to 50% to match Apps Script */
+
+      html.github-pages body.mobile-device.portrait .top-header {
+        padding: 5px 10px 5px 10px !important;
+        margin-bottom: 4px !important;
+        position: relative !important;
+        min-height: auto !important;
+        height: auto !important;
+        max-height: none !important;
+        align-items: flex-start !important;
+      }
+
+      /* Ensure center-block doesn't create vertical space */
+      html.github-pages body.mobile-device.portrait .center-block {
+        display: none !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        flex: 0 !important;
+      }
+
+      /* Remove internal margins/gaps that create vertical space */
+      html.github-pages body.mobile-device.portrait .left-block {
+        margin: 0 !important;
+        gap: 5px !important;
+        align-items: center !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .app-text-block {
+        margin: 0 !important;
+        gap: 0 !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .catalog-row {
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 3px !important;
+        height: auto !important;
+        min-height: 0 !important;
+        line-height: 1 !important;
+      }
+
+      /* Position user info block in top right corner */
+      html.github-pages body.mobile-device.portrait .right-block {
+        position: absolute !important;
+        top: 5px !important;
+        right: 10px !important;
+        flex-direction: column !important;
+        align-items: flex-end !important;
+        gap: 3px !important;
+        z-index: 10 !important;
+      }
+
+      /* Reduce size of "Signed in" text and user pill */
+      html.github-pages body.mobile-device.portrait .right-block > div:first-of-type {
+        font-size: 8px !important;
+        gap: 3px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .user-pill {
+        padding: 2px 5px !important;
+        font-size: 8px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .user-email {
+        font-size: 8px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .profile-badge {
+        font-size: 7px !important;
+        padding: 1px 4px !important;
+      }
+
+
+      html.github-pages body.mobile-device.portrait .app-logo {
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
+        max-width: 48px !important;
+        max-height: 48px !important;
+        margin: 0 !important;
+        display: block !important;
+      }
+
+      /* Hide logo white square while loading */
+      html.github-pages body.mobile-device.portrait .app-logo:not([src]),
+      html.github-pages body.mobile-device.portrait .app-logo[src=""],
+      html.github-pages body.mobile-device.portrait .app-logo[style*="display: none"] {
+        visibility: hidden !important;
+        opacity: 0 !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .app-name {
+        font-size: 15px !important;
+        line-height: 1 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .catalog-name {
+        font-size: 12.5px !important;
+        line-height: 1 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .catalog-label {
+        font-size: 10px !important;
+        line-height: 1 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: inline !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .catalog-label,
+      html.github-pages body.mobile-device.portrait .user-role {
+        font-size: 9px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .user-email {
+        font-size: 9px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .profile-badge {
+        font-size: 8px !important;
+        padding: 1px 5px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .btn-toolbar,
+      html.github-pages body.mobile-device.portrait .btn-primary,
+      html.github-pages body.mobile-device.portrait .btn-secondary {
+        height: 26px !important;
+        min-height: 26px !important;
+        padding: 0 14px !important;
+        font-size: 9.5px !important;
+        line-height: 26px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait #logoutBtn {
+        height: 18px !important;
+        min-height: 18px !important;
+        padding: 0 8px !important;
+        font-size: 8px !important;
+        line-height: 18px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait #filterBtn,
+      html.github-pages body.mobile-device.portrait #sortBtn,
+      html.github-pages body.mobile-device.portrait #backToListBtn {
+        height: 26px !important;
+        min-height: 26px !important;
+        padding: 0 14px !important;
+        font-size: 9.5px !important;
+        line-height: 26px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait #sheetBtn,
+      html.github-pages body.mobile-device.portrait #addBtn {
+        height: 26px !important;
+        min-height: 26px !important;
+        padding: 0 14px !important;
+        font-size: 9.5px !important;
+        line-height: 26px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .search-wrapper,
+      html.github-pages body.mobile-device.portrait #searchWrapper {
+        height: 26px !important;
+        min-height: 26px !important;
+        max-height: 26px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .search-input,
+      html.github-pages body.mobile-device.portrait #searchInput {
+        height: 26px !important;
+        min-height: 26px !important;
+        max-height: 26px !important;
+        font-size: 9.5px !important;
+        padding: 0 13px 0 5px !important;
+        width: 100% !important;
+        max-width: 113px !important;
+        line-height: 26px !important;
+        box-sizing: border-box !important;
+        border-width: 1px !important;
+        vertical-align: middle !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .clear-search-btn {
+        width: 8px !important;
+        height: 8px !important;
+        font-size: 9px !important;
+        right: 3px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .item-card {
+        min-height: 90px;
+        padding: 6px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .card-name {
+        font-size: 10px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .card-sub {
+        font-size: 9px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .detail-name {
+        font-size: 18.75px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .detail-subtitle {
+        font-size: 15.625px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .detail-topcorner {
+        font-size: 15.625px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .detail-meta {
+        font-size: 12.5px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .detail-field {
+        font-size: 13.75px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .detail-field-label {
+        font-size: 13.75px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .detail-field-value {
+        font-size: 13.75px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .link-pill {
+        font-size: 12px !important;
+        padding: 5px 9px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait #breadcrumbNav {
+        font-size: 7.5px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1 !important;
+      }
+
+      html.github-pages body.mobile-device.portrait #breadcrumbNav a,
+      html.github-pages body.mobile-device.portrait #breadcrumbNav span {
+        font-size: 8px !important;
+        padding: 0 2px !important;
+        margin: 0 !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .filters-row {
+
+        padding: 5px 9px !important;
+
+        gap: 0.5px !important;
+    
+      }
+
+    
+      html.github-pages body.mobile-device.portrait .filters-left {
+        gap: 0.2px !important;
+        margin: 0 !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .filters-right {
+        gap: 0.2px !important;
+        margin: 0 !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .filters-row * {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+      }
+
+      /* Bottom bar and tab switcher - 35% size */
+      html.github-pages body.mobile-device.portrait .bottom-bar {
+        padding: 7px 7px 11px 7px !important;
+        min-height: 35px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .tab-switcher-btn {
+        height: 25px !important;
+        min-height: 25px !important;
+        font-size: 11px !important;
+        padding: 0 11px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .tab-switcher-menu {
+        font-size: 11px !important;
+        max-height: 175px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .tab-menu-item {
+        font-size: 11px !important;
+        padding: 6px 7px !important;
+        min-height: 25px !important;
+      }
+
+      /* Fix body top padding for mobile devices */
+      html.github-pages body.mobile-device.portrait {
+        padding-top: 4px !important;
+      }
+
+      html.github-pages body.mobile-device.landscape {
+        padding-top: 4px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .shell {
+        padding: 0 6px 120px 6px !important; /* Increased from 46px to 120px to account for bottom bar (100px + buffer) */
+      }
+
+      html.github-pages body.mobile-device.landscape .shell {
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .top-header {
+        margin-top: 0 !important;
+      }
+
+      html.github-pages body.mobile-device.landscape .top-header {
+        margin-top: 0 !important;
+        /* CRITICAL FIX: Override media query (max-width: 768px) that forces column layout */
+        /* Keep header in row layout for all landscape widths, even below 768px */
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+      }
+
+      /* Ensure left-block stays in row and doesn't center */
+      html.github-pages body.mobile-device.landscape .left-block {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+      }
+
+      /* Ensure right-block stays in row and aligns properly */
+      html.github-pages body.mobile-device.landscape .right-block {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        width: auto !important;
+      }
+
+      /* Grid gap - 50% size */
+      html.github-pages body.mobile-device.portrait .grid {
+        gap: 6px !important;
+      }
+
+      /* MOBILE PORTRAIT - List Type: Text 60% size, Images 60% size */
+      html.github-pages body.mobile-device.portrait .list-view {
+        gap: 5px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .list-view .list-item-name {
+        font-size: 0.6em !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .list-view .list-item-sub {
+        font-size: 0.6em !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .list-view .list-item-img-wrapper {
+        width: 60px !important;
+        height: 60px !important;
+        min-width: 60px !important;
+      }
+
+      /* MOBILE PORTRAIT - Table Type: Text and Headers 60% size, Images 50% size */
+      html.github-pages body.mobile-device.portrait .table-view .data-table td {
+        font-size: 0.6em !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .table-view .data-table th {
+        font-size: 0.6em !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .table-cell-img {
+        width: 45px !important;
+        height: 45px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .table-view .data-table td {
+        padding: 7px 16px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .table-view .data-table th {
+        padding: 7px 16px !important;
+      }
+
+      /* MOBILE PORTRAIT - Table dropdown menu sizing */
+      html.github-pages body.mobile-device.portrait .table-menu-button-row .table-menu-button {
+        font-size: 12px !important; /* 60% of base 20px */
+        padding: 6px 12px !important; /* 60% of base 10px 20px */
+      }
+
+      html.github-pages body.mobile-device.portrait .table-column-menu {
+        font-size: 0.9em !important; /* 90% for all dropdown content */
+      }
+
+      html.github-pages body.mobile-device.portrait .table-menu-title {
+        font-size: 9.9px !important; /* 90% of base 11px */
+      }
+
+      html.github-pages body.mobile-device.portrait .table-menu-button:not(.table-menu-button-row .table-menu-button) {
+        font-size: 11.7px !important; /* 90% of base 13px */
+        padding: 7.2px 10.8px !important; /* 90% of base 8px 12px */
+      }
+
+      /* MOBILE PORTRAIT - Filter/Sort dropdown sizing (35% of actual size) */
+      html.github-pages body.mobile-device.portrait .dropdown-menu {
+        font-size: 0.35em !important; /* 35% base size */
+      }
+
+      html.github-pages body.mobile-device.portrait .dropdown-section-title {
+        font-size: 8.82px !important; /* 90% of 9.8px (31.5% of 28px) */
+        padding: 4.2px 5.6px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .dropdown-item {
+        font-size: 11.34px !important; /* 90% of 12.6px (31.5% of 36px) */
+        padding: 5.6px 7px !important;
+        gap: 5.6px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .dropdown-item input[type="checkbox"],
+      html.github-pages body.mobile-device.portrait .dropdown-item input[type="radio"] {
+        width: 11.34px !important; /* 90% of 12.6px */
+        height: 11.34px !important; /* 90% of 12.6px */
+        min-width: 11.34px !important;
+        min-height: 11.34px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .dropdown-item input[type="checkbox"]:checked::after {
+        top: 1.89px !important; /* 90% of 2.1px */
+        left: 1.89px !important; /* 90% of 2.1px */
+        width: 6.3px !important; /* 90% of 7px */
+        height: 6.3px !important; /* 90% of 7px */
+      }
+
+      html.github-pages body.mobile-device.portrait .dropdown-item span {
+        font-size: 11.34px !important; /* 90% of 12.6px */
+      }
+
+      html.github-pages body.mobile-device.portrait .dropdown-btn {
+        font-size: 10.71px !important; /* 90% of 11.9px */
+        padding: 2.8px 5.6px !important;
+        line-height: calc(10.71px + 2px) !important; /* Text height + 2px extra */
+        min-height: calc(10.71px + 2px + 5.6px) !important; /* Line height + vertical padding */
+      }
+
+      /* MOBILE PORTRAIT - Filter/Sort dropdown: 150-200px width range */
+      html.github-pages body.mobile-device.portrait .dropdown-menu {
+        min-width: 150px !important;
+        max-width: 200px !important;
+        width: auto !important;
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        font-size: 0.315em !important; /* 90% of 0.35em = 31.5% of original */
+      }
+
+      /* MOBILE LANDSCAPE - Filter/Sort dropdown: 160-230px width range */
+      html.github-pages body.mobile-device.landscape .dropdown-menu {
+        min-width: 160px !important;
+        max-width: 230px !important;
+        width: auto !important;
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        font-size: 0.315em !important; /* 90% of 0.35em = 31.5% of original */
+      }
+
+      /* MOBILE (PORTRAIT & LANDSCAPE) - Dropdown items: allow text wrapping */
+      html.github-pages body.mobile-device .dropdown-item {
+        white-space: normal !important;
+        word-wrap: break-word !important;
+      }
+
+      html.github-pages body.mobile-device .dropdown-item span {
+        white-space: normal !important;
+        word-wrap: break-word !important;
+      }
+
+      /* MOBILE (PORTRAIT & LANDSCAPE) - Dropdowns: align to LEFT to prevent overflow off screen */
+      html.github-pages body.mobile-device .dropdown-menu {
+        left: 0 !important;
+        right: auto !important;
+      }
+
+      /* ALL DEVICES & ORIENTATIONS - Filter button dropdown: align LEFT edge with button LEFT edge */
+      #filterWrapper .dropdown-menu,
+      #filterBtn + .dropdown-menu {
+        left: 0 !important;
+        right: auto !important;
+      }
+
+      /* ALL DEVICES & ORIENTATIONS - Sort button dropdown: align RIGHT edge with button RIGHT edge */
+      #sortWrapper .dropdown-menu,
+      #sortBtn + .dropdown-menu {
+        left: auto !important;
+        right: 0 !important;
+      }
+
+      /* MOBILE PORTRAIT - Image close button: 60% of current size (GitHub Pages only) */
+      html.github-pages body.mobile-device.portrait #imgOverlayClose {
+        font-size: 19.2px !important; /* 60% of 32px */
+        padding: 4.8px 8.4px !important; /* 60% of 8px 14px */
+        min-width: 28.8px !important; /* 60% of 48px */
+        min-height: 28.8px !important; /* 60% of 48px */
+        top: 12px !important; /* 60% of 20px */
+        right: 12px !important; /* 60% of 20px */
+      }
+
+      /* MOBILE PORTRAIT - Detail view gap: -14px (perfect alignment) */
+      /* ONLY affects DETAIL view, NOT grid view */
+
+      /* CRITICAL: detailView - negative margin to compensate for filters-row margin-bottom (14px) */
+      /* Gap calculation: filters-row margin-bottom (14px) + detailView margin-top (-14px) = 0px (flush) */
+      html.github-pages body.mobile-device.portrait #detailView#detailView {
+        margin-top: -14px !important; /* Negative margin for flush alignment (14px - 14px = 0px) */
+        margin-bottom: 0px !important;
+        margin-left: 0px !important;
+        margin-right: 0px !important;
+        padding: 10px 16px 16px 16px !important; /* Internal padding: 10px top */
+        padding-top: 10px !important; /* Space between container edge and items */
+      }
+
+      /* Backup rule with even higher specificity */
+      html.github-pages body.mobile-device.portrait:not(.some-nonexistent-class) #detailView {
+        margin-top: -14px !important; /* Negative margin for flush alignment */
+        padding-top: 10px !important; /* Internal padding */
+      }
+
+      /* MOBILE PORTRAIT - Grid view gap: 5px BETWEEN containers (filters-row to gridView) */
+      /* Gap calculation: filters-row margin-bottom (14px) + gridView margin-top (-9px) = 5px */
+      html.github-pages body.mobile-device.portrait #gridView {
+        margin-top: -9px !important; /* Negative margin to achieve 5px total gap (14px - 9px) */
+      }
+
+      /* MOBILE PORTRAIT - Add/Edit modal: Reduce text box sizes by 50% */
+      html.github-pages body.mobile-device.portrait .modal-card input,
+      html.github-pages body.mobile-device.portrait .modal-card textarea,
+      html.github-pages body.mobile-device.portrait .modal-card select {
+        padding: 3.5px 4.5px !important; /* 50% of 7px 9px */
+        font-size: 6.5px !important; /* 50% of 13px */
+        margin: 1.5px 0 5px !important; /* 50% of 3px 0 10px */
+      }
+
+      html.github-pages body.mobile-device.portrait .modal-card label {
+        font-size: 6px !important; /* 50% of 12px */
+      }
+
+      html.github-pages body.mobile-device.portrait .modal-card h3 {
+        font-size: 8px !important; /* 50% of 16px */
+        margin: 0 0 5px !important; /* 50% of 0 0 10px */
+      }
+
+      /* MOBILE PORTRAIT - Breadcrumbs: 12px */
+      html.github-pages body.mobile-device.portrait #breadcrumbNav {
+        font-size: 12px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait #breadcrumbNav a,
+      html.github-pages body.mobile-device.portrait #breadcrumbNav span {
+        font-size: 12px !important;
+      }
+
+      /* MOBILE PORTRAIT - Table Open Detail View: Landscape layout (image left, text right) */
+      html.github-pages body.mobile-device.portrait #detailView[data-table-open-detail="true"] .detail-layout {
+        display: grid !important;
+        grid-template-columns: minmax(0, 280px) minmax(0, 1fr) !important;
+        grid-template-rows: auto !important;
+        gap: 12px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+      }
+
+      html.github-pages body.mobile-device.portrait #detailView[data-table-open-detail="true"] #detailImgContainer {
+        grid-column: 1 !important;
+        min-width: 0 !important;
+      }
+
+      html.github-pages body.mobile-device.portrait #detailView[data-table-open-detail="true"] #detailContentContainer {
+        grid-column: 2 !important;
+        min-width: 0 !important;
+      }
+
+      /* Override media query for GitHub Pages mobile portrait - ensure grid layout wins */
+      @media (max-width: 768px) {
+        html.github-pages body.mobile-device.portrait #detailView[data-table-open-detail="true"] .detail-layout {
+          display: grid !important;
+          grid-template-columns: minmax(0, 280px) minmax(0, 1fr) !important;
+          grid-template-rows: auto !important;
+        }
+
+        /* Also apply to inline expanded table rows (Open Detail View style) */
+        html.github-pages body.mobile-device.portrait .table-view .expanded-content-row .detail-layout {
+          display: grid !important;
+          grid-template-columns: minmax(0, 280px) minmax(0, 1fr) !important;
+          grid-template-rows: auto !important;
+        }
+      }
+
+      /* Grid layout for inline table expansions - outside media query for all screen sizes */
+      html.github-pages body.mobile-device.portrait .table-view .expanded-content-row .detail-layout {
+        display: grid !important;
+        grid-template-columns: minmax(0, 280px) minmax(0, 1fr) !important;
+        grid-template-rows: auto !important;
+        gap: 12px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .table-view .expanded-content-row #detailImgContainer {
+        grid-column: 1 !important;
+        min-width: 0 !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .table-view .expanded-content-row #detailContentContainer {
+        grid-column: 2 !important;
+        min-width: 0 !important;
+      }
+
+      /* MOBILE LANDSCAPE - Table Type: Images 45px */
+      html.github-pages body.mobile-device.landscape .table-cell-img {
+        width: 45px !important;
+        height: 45px !important;
+      }
+
+      /* MOBILE LANDSCAPE - Table Type: All text 90% and row height 80% */
+      html.github-pages body.mobile-device.landscape .table-view .data-table th {
+        font-size: 0.9em !important;
+        padding-top: 0.8em !important;
+        padding-bottom: 0.8em !important;
+      }
+
+      html.github-pages body.mobile-device.landscape .table-view .data-table td {
+        font-size: 0.9em !important;
+        padding-top: 0.8em !important;
+        padding-bottom: 0.8em !important;
+      }
+
+      html.github-pages body.mobile-device.landscape .table-view .data-table tr {
+        height: 80% !important;
+      }
+
+      /* MOBILE LANDSCAPE - List Type: Images 60% size */
+      html.github-pages body.mobile-device.landscape .list-view .list-item-img-wrapper {
+        width: 60px !important;
+        height: 60px !important;
+        min-width: 60px !important;
+      }
+
     </style>
 
     <!-- PWA Configuration Note -->
@@ -3725,20 +4428,6 @@
         <div id="loadingText" class="loading-text">Patience discipline young Padawan !</div>
         <div class="loading-spinner-container">
           <div class="loading-spinner"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PWA Install Prompt -->
-    <div id="installBanner" class="install-banner" style="display: none;">
-      <div class="install-banner-content">
-        <div class="install-banner-text">
-          <strong>Install Catalogue App</strong>
-          <span>Install this app on your device for quick access and offline use.</span>
-        </div>
-        <div class="install-banner-actions">
-          <button id="installBtn" class="install-banner-btn install-btn-primary">Install</button>
-          <button id="dismissInstallBtn" class="install-banner-btn install-btn-secondary">Not now</button>
         </div>
       </div>
     </div>
@@ -4851,7 +5540,12 @@
           }
 
           // 3. Fetch from network (slow, only if not cached)
-          const base = imageProxyBaseUrl || "";
+          // For GitHub Pages deployment, use API_CONFIG.APPS_SCRIPT_URL
+          // For Apps Script deployment, use imageProxyBaseUrl from settings
+          const base = (window.API_CONFIG && window.API_CONFIG.APPS_SCRIPT_URL &&
+                       window.API_CONFIG.APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL_HERE')
+                       ? window.API_CONFIG.APPS_SCRIPT_URL.replace(/\/exec$/, '/exec')
+                       : (imageProxyBaseUrl || "");
           const url = base.replace(/\/$/, "") + "?img=" + encodeURIComponent(fileId);
 
           console.log('Loading image from:', url);
@@ -4927,7 +5621,12 @@
         if (fileId) {
           // It's a Drive URL - fetch via proxy
           try {
-            const base = imageProxyBaseUrl || "";
+            // For GitHub Pages deployment, use API_CONFIG.APPS_SCRIPT_URL
+            // For Apps Script deployment, use imageProxyBaseUrl from settings
+            const base = (window.API_CONFIG && window.API_CONFIG.APPS_SCRIPT_URL &&
+                         window.API_CONFIG.APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL_HERE')
+                         ? window.API_CONFIG.APPS_SCRIPT_URL.replace(/\/exec$/, '/exec')
+                         : (imageProxyBaseUrl || "");
             const proxyUrl = base.replace(/\/$/, "") + "?img=" + encodeURIComponent(fileId);
 
             const response = await fetch(proxyUrl);
@@ -4967,7 +5666,12 @@
         if (fileId) {
           // It's a Drive URL - fetch via proxy
           try {
-            const base = imageProxyBaseUrl || "";
+            // For GitHub Pages deployment, use API_CONFIG.APPS_SCRIPT_URL
+            // For Apps Script deployment, use imageProxyBaseUrl from settings
+            const base = (window.API_CONFIG && window.API_CONFIG.APPS_SCRIPT_URL &&
+                         window.API_CONFIG.APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL_HERE')
+                         ? window.API_CONFIG.APPS_SCRIPT_URL.replace(/\/exec$/, '/exec')
+                         : (imageProxyBaseUrl || "");
             const proxyUrl = base.replace(/\/$/, "") + "?img=" + encodeURIComponent(fileId);
 
             const response = await fetch(proxyUrl);
@@ -5244,6 +5948,11 @@
         det.style.display = "none";
         grid.innerHTML = "";
 
+        // Reset table widths when switching views
+        if (typeof resetTableWidths === 'function') {
+          resetTableWidths();
+        }
+
         // Store items for detail view navigation
         currentDisplayedItems = items;
         currentDetailIndex = -1;
@@ -5441,6 +6150,17 @@
 
       // Render Table View (spreadsheet-style)
       function renderTableView(items, grid) {
+        // 🔍 DIAGNOSTIC: Log table render state
+        console.log('🔍 [DIAGNOSTIC] renderTableView() called');
+        console.log('  - Body classes:', document.body.className);
+        console.log('  - Portrait class:', document.body.classList.contains('portrait'));
+        console.log('  - Landscape class:', document.body.classList.contains('landscape'));
+        console.log('  - Mobile device:', document.body.classList.contains('mobile-device'));
+        console.log('  - Tablet device:', document.body.classList.contains('tablet-device'));
+        console.log('  - GitHub Pages:', document.documentElement.classList.contains('github-pages'));
+        console.log('  - Current view:', currentView);
+        console.log('  - Viewport:', window.innerWidth + 'x' + window.innerHeight);
+
         grid.classList.remove('grid', 'list-view');
         grid.classList.add('table-view');
 
@@ -5566,9 +6286,20 @@
             if (col.type === "image" && value) {
               // Image type: show small image
               const imgWrapper = document.createElement("div");
-              // 1.5x bigger (90px) for Mobile/Tablet Portrait, 60px otherwise
-              const imgSize = (document.body.classList.contains('mobile-device') || document.body.classList.contains('tablet-device')) &&
-                              document.body.classList.contains('portrait') ? '90px' : '60px';
+              // Image size: GitHub Pages uses 45px portrait/45px landscape, non-GitHub uses 90px portrait/60px default
+              let imgSize = '60px'; // Default size
+              if (document.documentElement.classList.contains('github-pages')) {
+                // GitHub Pages: 45px for both mobile portrait and landscape
+                if (document.body.classList.contains('mobile-device')) {
+                  imgSize = '45px';
+                }
+              } else {
+                // Non-GitHub Pages: 90px for mobile/tablet portrait
+                if ((document.body.classList.contains('mobile-device') || document.body.classList.contains('tablet-device')) &&
+                    document.body.classList.contains('portrait')) {
+                  imgSize = '90px';
+                }
+              }
               imgWrapper.style.cssText = `width: ${imgSize}; height: ${imgSize}; position: relative; background: #e5e7eb; border-radius: 6px; overflow: hidden;`;
 
               const fileId = extractDriveFileId(value);
@@ -5624,10 +6355,30 @@
         table.appendChild(tbody);
         grid.appendChild(table);
 
+        console.log('🔍 [DIAGNOSTIC] Table appended to DOM');
+        console.log('  - Table element exists:', !!table);
+        console.log('  - Table in DOM:', document.contains(table));
+        console.log('  - Table offsetHeight:', table.offsetHeight);
+
         // Sync header widths with table after rendering
-        requestAnimationFrame(() => {
-          syncTableWidthToHeaders();
-        });
+        const isGitHubPages = document.documentElement.classList.contains('github-pages');
+        const isMobile = document.body.classList.contains('mobile-device');
+
+        if (isGitHubPages && isMobile) {
+          // GitHub Pages mobile: Use 100ms delay for CSS to apply
+          console.log('🔍 [DIAGNOSTIC] Scheduling syncTableWidthToHeaders() in 100ms (GitHub Pages mobile)');
+          setTimeout(() => {
+            syncTableWidthToHeaders();
+          }, 100);
+        } else {
+          // Non-GitHub Pages or desktop
+          console.log('🔍 [DIAGNOSTIC] Scheduling syncTableWidthToHeaders() via requestAnimationFrame');
+          requestAnimationFrame(() => {
+            syncTableWidthToHeaders();
+          });
+        }
+
+        console.log('🔍 [DIAGNOSTIC] renderTableView() complete');
       }
 
       // Synchronize top-header and filters-row width with table width
@@ -5641,12 +6392,22 @@
 
         // Only run if we're in table view and elements exist
         if (!grid || !grid.classList.contains('table-view') || !table || !topHeader || !filtersRow || !shell) {
+          console.log('🔍 [DIAGNOSTIC] syncTableWidthToHeaders() - elements missing, aborting');
           return;
         }
+
+        console.log('🔍 [DIAGNOSTIC] syncTableWidthToHeaders() called');
 
         // Get the actual table width (use offsetWidth for correct visible width)
         const tableWidth = table.offsetWidth;
         const shellPadding = parseInt(getComputedStyle(shell).paddingLeft) + parseInt(getComputedStyle(shell).paddingRight);
+        const viewportWidth = window.innerWidth;
+
+        console.log('  - Table width:', tableWidth);
+        console.log('  - Shell padding:', shellPadding);
+        console.log('  - Viewport width:', viewportWidth);
+        console.log('  - Shell current width:', shell.style.width || 'auto');
+        console.log('  - Shell offsetWidth:', shell.offsetWidth);
 
         // ALWAYS set headers to match table width on ALL devices
         // This makes headers "follow down" when scrolling
@@ -5656,9 +6417,57 @@
         filtersRow.style.width = widthToSet;
         filtersRow.style.minWidth = widthToSet;
 
-        // Set shell width to fit content properly
-        shell.style.width = `${tableWidth + shellPadding}px`;
-        shell.style.minWidth = '';
+        // CRITICAL FIX: Prevent shell width from exceeding viewport on GitHub Pages mobile
+        // This prevents unwanted zoom when orientation changes
+        const isGitHubPages = document.documentElement.classList.contains('github-pages');
+        const isMobile = document.body.classList.contains('mobile-device');
+
+        if (isGitHubPages && isMobile) {
+          // On GitHub Pages mobile, NEVER set shell wider than viewport
+          // This prevents zoom-in/zoom-out bugs during orientation changes
+          const maxAllowedWidth = viewportWidth;
+          const desiredShellWidth = tableWidth + shellPadding;
+
+          console.log('  - Desired shell width:', desiredShellWidth);
+          console.log('  - Max allowed width:', maxAllowedWidth);
+
+          if (desiredShellWidth <= maxAllowedWidth) {
+            // Table fits in viewport - set shell to table width
+            shell.style.width = `${desiredShellWidth}px`;
+            console.log('  ✅ Shell width set to:', desiredShellWidth + 'px');
+          } else {
+            // Table exceeds viewport - let shell be 100% width (allow horizontal scroll)
+            shell.style.width = '';
+            shell.style.maxWidth = '';
+            console.log('  ✅ Shell width cleared (table exceeds viewport)');
+          }
+          shell.style.minWidth = '';
+        } else {
+          // Non-GitHub Pages or desktop: Use original behavior
+          shell.style.width = `${tableWidth + shellPadding}px`;
+          shell.style.minWidth = '';
+          console.log('  ✅ Shell width set (desktop/non-GH):', (tableWidth + shellPadding) + 'px');
+        }
+
+        // 🔍 DIAGNOSTIC: Check sticky header computed styles
+        const firstHeader = table.querySelector('th');
+        if (firstHeader) {
+          const headerStyles = getComputedStyle(firstHeader);
+          console.log('  - Sticky header computed position:', headerStyles.position);
+          console.log('  - Sticky header top:', headerStyles.top);
+          console.log('  - Sticky header z-index:', headerStyles.zIndex);
+        }
+
+        // 🔍 DIAGNOSTIC: Check bottom bar
+        const bottomBar = document.querySelector('.bottom-bar');
+        if (bottomBar) {
+          const bottomBarStyles = getComputedStyle(bottomBar);
+          console.log('  - Bottom bar display:', bottomBarStyles.display);
+          console.log('  - Bottom bar position:', bottomBarStyles.position);
+          console.log('  - Bottom bar bottom:', bottomBarStyles.bottom);
+        }
+
+        console.log('🔍 [DIAGNOSTIC] syncTableWidthToHeaders() complete');
       }
 
       // Reset header and shell widths when switching away from table view
@@ -5773,7 +6582,7 @@
         html += '</div>';
 
         // Content container
-        html += '<div>';
+        html += '<div id="detailContentContainer">';
 
         // Title row with name
         html += '<div class="detail-title-row">' +
@@ -6424,6 +7233,11 @@
         det.style.display = "none";
         grid.innerHTML = "";
 
+        // Reset table widths when switching views
+        if (typeof resetTableWidths === 'function') {
+          resetTableWidths();
+        }
+
         // Clear table filters when navigating to new view
         tableColumnFilters = {};
         tableSortColumn = null;
@@ -6751,9 +7565,20 @@
             if (col.type === "image" && value) {
               // Image type: show small image
               const imgWrapper = document.createElement("div");
-              // 1.5x bigger (90px) for Mobile/Tablet Portrait, 60px otherwise
-              const imgSize = (document.body.classList.contains('mobile-device') || document.body.classList.contains('tablet-device')) &&
-                              document.body.classList.contains('portrait') ? '90px' : '60px';
+              // Image size: GitHub Pages uses 45px portrait/45px landscape, non-GitHub uses 90px portrait/60px default
+              let imgSize = '60px'; // Default size
+              if (document.documentElement.classList.contains('github-pages')) {
+                // GitHub Pages: 45px for both mobile portrait and landscape
+                if (document.body.classList.contains('mobile-device')) {
+                  imgSize = '45px';
+                }
+              } else {
+                // Non-GitHub Pages: 90px for mobile/tablet portrait
+                if ((document.body.classList.contains('mobile-device') || document.body.classList.contains('tablet-device')) &&
+                    document.body.classList.contains('portrait')) {
+                  imgSize = '90px';
+                }
+              }
               imgWrapper.style.cssText = `width: ${imgSize}; height: ${imgSize}; position: relative; background: #e5e7eb; border-radius: 6px; overflow: hidden;`;
 
               const fileId = extractDriveFileId(value);
@@ -6793,6 +7618,23 @@
 
         table.appendChild(tbody);
         grid.appendChild(table);
+
+        // Sync header widths with table after rendering
+        // On GitHub Pages mobile, add delay to ensure CSS has fully applied
+        const isGitHubPages = document.documentElement.classList.contains('github-pages');
+        const isMobile = document.body.classList.contains('mobile-device');
+
+        if (isGitHubPages && isMobile) {
+          // Match the delay used during orientation changes (100ms)
+          // This ensures CSS for portrait/landscape has fully applied before calculating widths
+          setTimeout(() => {
+            syncTableWidthToHeaders();
+          }, 100);
+        } else {
+          requestAnimationFrame(() => {
+            syncTableWidthToHeaders();
+          });
+        }
       }
 
       // Handle layer item click - navigate to next layer or show filtered main items
@@ -7475,6 +8317,11 @@
         det.style.display = "block";
         grid.innerHTML = "";
 
+        // Reset table-specific header widths when entering detail view
+        if (typeof resetTableWidths === 'function') {
+          resetTableWidths();
+        }
+
         // Set data attribute for portrait side-by-side layout ONLY when Type=Table AND Style=Open Detail View
         const viewType = getMainViewType();
         const style = getMainStyle();
@@ -7520,7 +8367,7 @@
 
         html +=
           "</div>" +
-          "<div>" +
+          '<div id="detailContentContainer">' +
           '<div class="detail-title-row">' +
           '<div class="detail-name">' +
           (nameColumn ? (item[nameColumn.columnName] || "") : "") +
@@ -7876,7 +8723,12 @@
 
           // If not cached, it should already be in memory from grid view
           // But fetch anyway as fallback
-          const base = imageProxyBaseUrl || "";
+          // For GitHub Pages deployment, use API_CONFIG.APPS_SCRIPT_URL
+          // For Apps Script deployment, use imageProxyBaseUrl from settings
+          const base = (window.API_CONFIG && window.API_CONFIG.APPS_SCRIPT_URL &&
+                       window.API_CONFIG.APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL_HERE')
+                       ? window.API_CONFIG.APPS_SCRIPT_URL.replace(/\/exec$/, '/exec')
+                       : (imageProxyBaseUrl || "");
           const url = base.replace(/\/$/, "") + "?img=" + encodeURIComponent(fileId);
 
           const response = await fetch(url);
@@ -7939,6 +8791,11 @@
 
       function backToList() {
         document.getElementById("detailView").style.display = "none";
+
+        // Reset table widths when navigating back
+        if (typeof resetTableWidths === 'function') {
+          resetTableWidths();
+        }
 
         // Check if we're in layer navigation
         if (navigationStack.length > 0 || currentLayerIndex >= 0) {
@@ -9107,10 +9964,58 @@
         document.querySelectorAll('input[name="sortField"]').forEach(radio => {
           radio.onchange = function() {
             sortField = this.value;
+
+            // Hide Order section when "No sorting" is selected, SHOW when sorting is active
+            const sortDropdown = document.getElementById('sortDropdown');
+            if (sortDropdown) {
+              const orderDivider = sortDropdown.querySelector('.dropdown-divider');
+              const orderSection = sortDropdown.querySelectorAll('.dropdown-section')[1]; // Second section is Order
+
+              console.log('Sort field changed to:', sortField);
+              console.log('Order section found:', orderSection);
+              console.log('Order divider found:', orderDivider);
+
+              if (sortField === 'none') {
+                if (orderDivider) {
+                  orderDivider.style.display = 'none';
+                  console.log('Hiding order divider');
+                }
+                if (orderSection) {
+                  orderSection.style.display = 'none';
+                  console.log('Hiding order section');
+                }
+              } else {
+                // EXPLICITLY show - set to 'block' to ensure visibility
+                if (orderDivider) {
+                  orderDivider.style.display = 'block';
+                  orderDivider.style.visibility = 'visible';
+                  orderDivider.style.opacity = '1';
+                  console.log('Showing order divider');
+                }
+                if (orderSection) {
+                  orderSection.style.display = 'block';
+                  orderSection.style.visibility = 'visible';
+                  orderSection.style.opacity = '1';
+                  console.log('Showing order section');
+                }
+              }
+            }
+
             updateChipsUI();
             applyFiltersAndSorting();
           };
         });
+
+        // Initialize: Hide Order section on page load (default is "No sorting")
+        (() => {
+          const sortDropdown = document.getElementById('sortDropdown');
+          const orderDivider = sortDropdown.querySelector('.dropdown-divider');
+          const orderSection = sortDropdown.querySelectorAll('.dropdown-section')[1];
+          if (sortField === 'none') {
+            if (orderDivider) orderDivider.style.display = 'none';
+            if (orderSection) orderSection.style.display = 'none';
+          }
+        })();
 
         // Sort order radio buttons
         document.querySelectorAll('input[name="sortOrder"]').forEach(radio => {
@@ -9216,86 +10121,41 @@
         // Initialize image zoom handlers
         setupImageZoom();
 
-        // ==================== PWA INSTALL BANNER LOGIC ====================
+        // ==================== PWA INSTALL BANNER LOGIC (removed) ====================
 
-        // Show/hide install banner based on PWA install availability
-        function setupInstallBanner() {
-          const installBanner = document.getElementById('installBanner');
-          const installBtn = document.getElementById('installBtn');
-          const dismissBtn = document.getElementById('dismissInstallBtn');
-
-          if (!installBanner || !installBtn || !dismissBtn) {
-            console.log('⚠️ Install banner elements not found');
-            return;
-          }
-
-          // Check if user previously dismissed the banner
-          const installDismissed = localStorage.getItem('pwaInstallDismissed');
-
-          // Listen for the deferred prompt event
-          window.addEventListener('beforeinstallprompt', (e) => {
-            console.log('💾 PWA install prompt intercepted');
-
-            // Show banner if not previously dismissed
-            if (!installDismissed) {
-              installBanner.style.display = 'block';
-              console.log('📢 Showing install banner');
-            } else {
-              console.log('🚫 Install banner previously dismissed');
-            }
-          });
-
-          // Handle install button click
-          installBtn.addEventListener('click', async () => {
-            console.log('👆 Install button clicked');
-
-            if (!window.deferredPrompt) {
-              console.log('⚠️ No deferred prompt available');
-              return;
-            }
-
-            // Show the install prompt
-            window.deferredPrompt.prompt();
-
-            // Wait for the user's response
-            const { outcome } = await window.deferredPrompt.userChoice;
-            console.log(`👤 User response to install prompt: ${outcome}`);
-
-            // Hide the banner regardless of outcome
-            installBanner.style.display = 'none';
-
-            // Clear the deferred prompt
-            window.deferredPrompt = null;
-
-            // Track the outcome
-            if (outcome === 'accepted') {
-              console.log('✅ User accepted the install prompt');
-              localStorage.setItem('pwaInstallDismissed', 'true');
-            } else {
-              console.log('❌ User dismissed the install prompt');
-            }
-          });
-
-          // Handle dismiss button click
-          dismissBtn.addEventListener('click', () => {
-            console.log('👆 Dismiss button clicked');
-            installBanner.style.display = 'none';
-            localStorage.setItem('pwaInstallDismissed', 'true');
-            console.log('💾 Install banner dismissed by user');
-          });
-
-          // Listen for successful app installation
-          window.addEventListener('appinstalled', () => {
-            console.log('✅ PWA was installed successfully');
-            installBanner.style.display = 'none';
-            localStorage.setItem('pwaInstallDismissed', 'true');
-          });
-        }
-
-        // Initialize install banner after DOM is ready
-        setupInstallBanner();
 
       };
+    </script>
+
+    <!-- Service Worker Registration (GitHub Pages PWA Support) -->
+    <script>
+      // Register service worker for PWA functionality
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./service-worker.js')
+            .then((registration) => {
+              console.log('✅ Service Worker registered successfully:', registration.scope);
+
+              // Check for updates
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                console.log('🔄 Service Worker update found');
+
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('✨ New Service Worker installed, refresh to update');
+                    // Optionally show a notification to the user
+                  }
+                });
+              });
+            })
+            .catch((error) => {
+              console.warn('⚠️ Service Worker registration failed:', error);
+            });
+        });
+      } else {
+        console.warn('⚠️ Service Workers are not supported in this browser');
+      }
     </script>
   </body>
         </html>

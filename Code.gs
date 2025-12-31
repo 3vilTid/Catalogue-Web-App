@@ -190,6 +190,36 @@ function getColumnConfig(sheetName) {
  **************************************************/
 
 function doGet(e) {
+  // Handle API function calls from GitHub Pages (GET method to avoid CORS preflight)
+  if (e && e.parameter && e.parameter.function) {
+    try {
+      var functionName = e.parameter.function;
+      var params = [];
+
+      // Parse parameters if provided
+      if (e.parameter.parameters) {
+        try {
+          params = JSON.parse(e.parameter.parameters);
+        } catch (parseError) {
+          return createApiResponse_({
+            error: 'Invalid parameters JSON',
+            message: parseError.toString()
+          }, 400);
+        }
+      }
+
+      // Use the same function routing as doPost
+      return handleApiCall_(functionName, params);
+
+    } catch (error) {
+      Logger.log('doGet API error: ' + error);
+      return createApiResponse_({
+        error: 'Server error',
+        message: error.toString()
+      }, 500);
+    }
+  }
+
   // Serve PWA manifest
   if (e && e.parameter && e.parameter.manifest) {
     return serveManifest_();
@@ -207,6 +237,111 @@ function doGet(e) {
   }
 
   return serveUi_(e);
+}
+
+/**
+ * Handle POST requests for API calls from GitHub Pages frontend
+ * Enables CORS and routes function calls to appropriate handlers
+ */
+function doPost(e) {
+  try {
+    // Parse the request body
+    var requestData;
+    try {
+      requestData = JSON.parse(e.postData.contents);
+    } catch (parseError) {
+      return createApiResponse_({
+        error: 'Invalid JSON in request body',
+        message: parseError.toString()
+      }, 400);
+    }
+
+    // Extract function name and parameters
+    var functionName = requestData.function;
+    var params = requestData.parameters || [];
+
+    if (!functionName) {
+      return createApiResponse_({
+        error: 'Missing function name',
+        message: 'Request must include a "function" field'
+      }, 400);
+    }
+
+    return handleApiCall_(functionName, params);
+
+  } catch (error) {
+    Logger.log('doPost error: ' + error);
+    return createApiResponse_({
+      error: 'Server error',
+      message: error.toString()
+    }, 500);
+  }
+}
+
+/**
+ * Handle API function calls (used by both doGet and doPost)
+ */
+function handleApiCall_(functionName, params) {
+  // Map of allowed API functions
+  var allowedFunctions = {
+    'requestOTP': requestOTP,
+    'verifyOTP': verifyOTP,
+    'verifySession': verifySession,
+    'logout': logout,
+    'getInitialData': getInitialData,
+    'getTabData': getTabData,
+    'getMainData': getMainData,
+    'getHeaders': getHeaders,
+    'addMainRow': addMainRow,
+    'getItemByName': getItemByName,
+    'editItem': editItem,
+    'deleteItem': deleteItem,
+    'getSettings': getSettings,
+    'getLayerConfig': getLayerConfig,
+    'getLayerData': getLayerData,
+    'getColumnConfig': getColumnConfig,
+    'getTabsConfig': getTabsConfig
+  };
+
+  // Check if function is allowed
+  if (!allowedFunctions[functionName]) {
+    return createApiResponse_({
+      error: 'Function not found',
+      message: 'The function "' + functionName + '" is not available via API'
+    }, 404);
+  }
+
+  // Call the function with parameters
+  var result;
+  try {
+    var targetFunction = allowedFunctions[functionName];
+    result = targetFunction.apply(null, params);
+  } catch (execError) {
+    Logger.log('Error executing ' + functionName + ': ' + execError);
+    return createApiResponse_({
+      error: 'Function execution error',
+      message: execError.toString(),
+      function: functionName
+    }, 500);
+  }
+
+  // Return successful response
+  return createApiResponse_(result, 200);
+}
+
+/**
+ * Create API response with CORS headers
+ */
+function createApiResponse_(data, statusCode) {
+  var output = ContentService.createTextOutput(JSON.stringify(data));
+  output.setMimeType(ContentService.MimeType.JSON);
+
+  // Add CORS headers to allow requests from GitHub Pages
+  // Note: Google Apps Script doesn't support custom HTTP headers in the traditional way
+  // The CORS policy is handled by Google's infrastructure
+  // Web apps deployed as "Anyone" or "Anyone with the link" automatically allow CORS
+
+  return output;
 }
 
 function doGetImage(e) {
