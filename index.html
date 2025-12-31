@@ -122,15 +122,14 @@
             const topHeader = document.querySelector('.top-header');
             const filtersRow = document.querySelector('.filters-row');
 
-            // CRITICAL: For GitHub Pages mobile/tablet, completely re-render the table view
+            // CRITICAL: For GitHub Pages mobile, completely re-render the table view
             // This is necessary because table column widths get cached and don't update
             // properly when orientation changes, even with forced reflows
             const isGitHubPages = document.documentElement.classList.contains('github-pages');
             const isMobile = document.body.classList.contains('mobile-device');
-            const isTablet = document.body.classList.contains('tablet-device');
 
-            if (isGitHubPages && (isMobile || isTablet)) {
-              console.log('🔄 Re-rendering table view for orientation change on GitHub Pages mobile/tablet');
+            if (isGitHubPages && isMobile) {
+              console.log('🔄 Re-rendering table view for orientation change on GitHub Pages mobile');
 
               // IMMEDIATE reset of table widths before re-render
               if (typeof resetTableWidths === 'function') {
@@ -4118,25 +4117,6 @@
         font-size: 0.9em !important; /* 90% for all dropdown content */
       }
 
-      /* CRITICAL FIX: Ensure sticky table headers work on mobile/tablet */
-      html.github-pages body.mobile-device .data-table th,
-      html.github-pages body.tablet-device .data-table th {
-        position: sticky !important;
-        top: 0 !important;
-        z-index: 100 !important;
-        background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
-      }
-
-      /* CRITICAL FIX: Ensure bottom bar stays fixed on mobile/tablet portrait */
-      html.github-pages body.mobile-device.portrait .bottom-bar,
-      html.github-pages body.tablet-device.portrait .bottom-bar {
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        z-index: 9999 !important;
-      }
-
       html.github-pages body.mobile-device.portrait .table-menu-title {
         font-size: 9.9px !important; /* 90% of base 11px */
       }
@@ -6377,15 +6357,17 @@
         console.log('🔍 [DIAGNOSTIC] renderTableView() complete');
       }
 
-      // Synchronize shell width for table scrolling
-      // CRITICAL: Do NOT set widths on .top-header or .filters-row - they need to resize naturally
+      // Synchronize top-header and filters-row width with table width
+      // This ensures headers extend to match table width when table exceeds viewport
       function syncTableWidthToHeaders() {
         const grid = document.getElementById("gridView");
+        const topHeader = document.querySelector(".top-header");
+        const filtersRow = document.querySelector(".filters-row");
         const table = document.querySelector(".data-table");
         const shell = document.querySelector(".shell");
 
         // Only run if we're in table view and elements exist
-        if (!grid || !grid.classList.contains('table-view') || !table || !shell) {
+        if (!grid || !grid.classList.contains('table-view') || !table || !topHeader || !filtersRow || !shell) {
           console.log('🔍 [DIAGNOSTIC] syncTableWidthToHeaders() - elements missing, aborting');
           return;
         }
@@ -6403,18 +6385,21 @@
         console.log('  - Shell current width:', shell.style.width || 'auto');
         console.log('  - Shell offsetWidth:', shell.offsetWidth);
 
-        // CRITICAL: Do NOT set widths on .top-header or .filters-row
-        // This was breaking the flexbox resizing of logo, search bar, and user info containers
-        // The table headers (<th>) already have position: sticky in CSS and work correctly
+        // ALWAYS set headers to match table width on ALL devices
+        // This makes headers "follow down" when scrolling
+        const widthToSet = tableWidth + 'px';
+        topHeader.style.width = widthToSet;
+        topHeader.style.minWidth = widthToSet;
+        filtersRow.style.width = widthToSet;
+        filtersRow.style.minWidth = widthToSet;
 
-        // CRITICAL FIX: Prevent shell width from exceeding viewport on GitHub Pages mobile/tablet
+        // CRITICAL FIX: Prevent shell width from exceeding viewport on GitHub Pages mobile
         // This prevents unwanted zoom when orientation changes
         const isGitHubPages = document.documentElement.classList.contains('github-pages');
         const isMobile = document.body.classList.contains('mobile-device');
-        const isTablet = document.body.classList.contains('tablet-device');
 
-        if (isGitHubPages && (isMobile || isTablet)) {
-          // On GitHub Pages mobile/tablet, NEVER set shell wider than viewport
+        if (isGitHubPages && isMobile) {
+          // On GitHub Pages mobile, NEVER set shell wider than viewport
           // This prevents zoom-in/zoom-out bugs during orientation changes
           const maxAllowedWidth = viewportWidth;
           const desiredShellWidth = tableWidth + shellPadding;
@@ -6461,15 +6446,23 @@
         console.log('🔍 [DIAGNOSTIC] syncTableWidthToHeaders() complete');
       }
 
-      // Reset shell width when switching away from table view
-      // CRITICAL: Do NOT reset .top-header or .filters-row - they were never modified
+      // Reset header and shell widths when switching away from table view
       function resetTableWidths() {
+        const topHeader = document.querySelector(".top-header");
+        const filtersRow = document.querySelector(".filters-row");
         const shell = document.querySelector(".shell");
 
+        if (topHeader) {
+          topHeader.style.width = '';
+          topHeader.style.minWidth = '';
+        }
+        if (filtersRow) {
+          filtersRow.style.width = '';
+          filtersRow.style.minWidth = '';
+        }
         if (shell) {
           shell.style.width = '';
           shell.style.minWidth = '';
-          shell.style.maxWidth = '';
         }
       }
 
