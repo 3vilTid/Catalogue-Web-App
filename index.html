@@ -3,7 +3,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="description" content="Catalogue web application">
 
@@ -4024,11 +4024,19 @@
 
       html.github-pages body.mobile-device.portrait .shell {
         padding: 0 6px 120px 6px !important; /* Increased from 46px to 120px to account for bottom bar (100px + buffer) */
+        /* CRITICAL FIX: Prevent shell from exceeding viewport width (prevents auto-zoom) */
+        max-width: 100vw !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
       }
 
       html.github-pages body.mobile-device.landscape .shell {
         padding-left: 6px !important;
         padding-right: 6px !important;
+        /* CRITICAL FIX: Prevent shell from exceeding viewport width (prevents auto-zoom) */
+        max-width: 100vw !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
       }
 
       html.github-pages body.mobile-device.portrait .top-header {
@@ -4105,6 +4113,17 @@
 
       html.github-pages body.mobile-device.portrait .table-view .data-table th {
         padding: 7px 16px !important;
+      }
+
+      /* CRITICAL FIX: Ensure table never exceeds viewport (prevents auto-zoom) */
+      html.github-pages body.mobile-device.portrait .data-table {
+        max-width: 100vw !important;
+        width: auto !important;
+      }
+
+      html.github-pages body.mobile-device.landscape .data-table {
+        max-width: 100vw !important;
+        width: auto !important;
       }
 
       /* MOBILE PORTRAIT - Table dropdown menu sizing */
@@ -6385,9 +6404,15 @@
         console.log('  - Shell current width:', shell.style.width || 'auto');
         console.log('  - Shell offsetWidth:', shell.offsetWidth);
 
+        // Check environment once
+        const isGitHubPages = document.documentElement.classList.contains('github-pages');
+        const isMobile = document.body.classList.contains('mobile-device');
+
         // ALWAYS set headers to match table width on ALL devices
         // This makes headers "follow down" when scrolling
-        const widthToSet = tableWidth + 'px';
+        // CRITICAL FIX: On mobile, constrain to viewport width to prevent auto-zoom
+        const maxHeaderWidth = (isGitHubPages && isMobile) ? Math.min(tableWidth, viewportWidth) : tableWidth;
+        const widthToSet = maxHeaderWidth + 'px';
         topHeader.style.width = widthToSet;
         topHeader.style.minWidth = widthToSet;
         filtersRow.style.width = widthToSet;
@@ -6395,8 +6420,6 @@
 
         // CRITICAL FIX: Prevent shell width from exceeding viewport on GitHub Pages mobile
         // This prevents unwanted zoom when orientation changes
-        const isGitHubPages = document.documentElement.classList.contains('github-pages');
-        const isMobile = document.body.classList.contains('mobile-device');
 
         if (isGitHubPages && isMobile) {
           // On GitHub Pages mobile, NEVER set shell wider than viewport
