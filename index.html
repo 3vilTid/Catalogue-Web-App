@@ -74,10 +74,16 @@
         // Set on body as soon as it's available (early, before full DOM load)
         function setBodyClass() {
           if (document.body) {
+            console.log('🔍 [DIAGNOSTIC] ==========================================');
+            console.log('🔍 [DIAGNOSTIC] INITIAL PAGE LOAD - setBodyClass()');
+            console.log('🔍 [DIAGNOSTIC] ==========================================');
+            console.log('  - Device class to set:', deviceClass);
+
             // Remove other device classes but preserve other classes
             document.body.classList.remove('mobile-device', 'tablet-device', 'desktop-device');
             document.body.classList.add(deviceClass);
-            console.log('✅ Device: ' + deviceClass + ' (body class set early)');
+            console.log('✅ Device class set:', deviceClass);
+
             updateOrientation();
           } else {
             setTimeout(setBodyClass, 1);
@@ -88,16 +94,21 @@
         function updateOrientation() {
           if (!document.body) return;
 
+          console.log('🔍 [DIAGNOSTIC] ==========================================');
+          console.log('🔍 [DIAGNOSTIC] updateOrientation() TRIGGERED');
+          console.log('🔍 [DIAGNOSTIC] ==========================================');
+          console.log('  - Viewport:', window.innerWidth + 'x' + window.innerHeight);
+
           document.body.classList.remove('landscape', 'portrait');
           const isLandscape = window.innerWidth > window.innerHeight;
           if (isLandscape) {
             document.body.classList.add('landscape');
             document.documentElement.setAttribute('data-orientation', 'landscape');
-            console.log('📱 Orientation: Landscape');
+            console.log('  ✅ Orientation: Landscape');
           } else {
             document.body.classList.add('portrait');
             document.documentElement.setAttribute('data-orientation', 'portrait');
-            console.log('📱 Orientation: Portrait');
+            console.log('  ✅ Orientation: Portrait');
           }
 
           // Move tab switcher based on orientation
@@ -207,28 +218,46 @@
 
         // Handle moving tab switcher between header and bottom bar
         function handleTabSwitcherPosition() {
+          console.log('🔍 [DIAGNOSTIC] handleTabSwitcherPosition() called');
+
           const tabSwitcher = document.getElementById('tabSwitcherWrapper');
           const bottomBarContent = document.getElementById('bottomBarContent');
           const centerBlock = document.querySelector('.top-header .center-block');
 
           // Only proceed if all elements exist
-          if (!tabSwitcher || !bottomBarContent || !centerBlock) return;
+          if (!tabSwitcher || !bottomBarContent || !centerBlock) {
+            console.log('  - Elements missing:', {
+              tabSwitcher: !!tabSwitcher,
+              bottomBarContent: !!bottomBarContent,
+              centerBlock: !!centerBlock
+            });
+            return;
+          }
 
           const deviceClass = document.body.className.split(' ')[0]; // mobile-device, tablet-device, or desktop-device
           const isMobileOrTablet = deviceClass === 'mobile-device' || deviceClass === 'tablet-device';
           const isPortrait = document.body.classList.contains('portrait');
 
+          console.log('  - Device class:', deviceClass);
+          console.log('  - Is mobile/tablet:', isMobileOrTablet);
+          console.log('  - Is portrait:', isPortrait);
+          console.log('  - Current parent:', tabSwitcher.parentElement.id || tabSwitcher.parentElement.className);
+
           if (isMobileOrTablet && isPortrait) {
             // Move to bottom bar in portrait mode
             if (tabSwitcher.parentElement !== bottomBarContent) {
               bottomBarContent.appendChild(tabSwitcher);
-              console.log('📱 Moved tab switcher to bottom bar');
+              console.log('  ✅ Moved tab switcher to bottom bar');
+            } else {
+              console.log('  ✅ Tab switcher already in bottom bar');
             }
           } else {
             // Move back to header in landscape or desktop
             if (tabSwitcher.parentElement !== centerBlock) {
               centerBlock.appendChild(tabSwitcher);
-              console.log('📱 Moved tab switcher to header');
+              console.log('  ✅ Moved tab switcher to header');
+            } else {
+              console.log('  ✅ Tab switcher already in header');
             }
           }
         }
@@ -6097,6 +6126,17 @@
 
       // Render Table View (spreadsheet-style)
       function renderTableView(items, grid) {
+        // 🔍 DIAGNOSTIC: Log table render state
+        console.log('🔍 [DIAGNOSTIC] renderTableView() called');
+        console.log('  - Body classes:', document.body.className);
+        console.log('  - Portrait class:', document.body.classList.contains('portrait'));
+        console.log('  - Landscape class:', document.body.classList.contains('landscape'));
+        console.log('  - Mobile device:', document.body.classList.contains('mobile-device'));
+        console.log('  - Tablet device:', document.body.classList.contains('tablet-device'));
+        console.log('  - GitHub Pages:', document.documentElement.classList.contains('github-pages'));
+        console.log('  - Current view:', currentView);
+        console.log('  - Viewport:', window.innerWidth + 'x' + window.innerHeight);
+
         grid.classList.remove('grid', 'list-view');
         grid.classList.add('table-view');
 
@@ -6291,21 +6331,30 @@
         table.appendChild(tbody);
         grid.appendChild(table);
 
+        console.log('🔍 [DIAGNOSTIC] Table appended to DOM');
+        console.log('  - Table element exists:', !!table);
+        console.log('  - Table in DOM:', document.contains(table));
+        console.log('  - Table offsetHeight:', table.offsetHeight);
+
         // Sync header widths with table after rendering
         const isGitHubPages = document.documentElement.classList.contains('github-pages');
         const isMobile = document.body.classList.contains('mobile-device');
 
         if (isGitHubPages && isMobile) {
           // GitHub Pages mobile: Use 100ms delay for CSS to apply
+          console.log('🔍 [DIAGNOSTIC] Scheduling syncTableWidthToHeaders() in 100ms (GitHub Pages mobile)');
           setTimeout(() => {
             syncTableWidthToHeaders();
           }, 100);
         } else {
           // Non-GitHub Pages or desktop
+          console.log('🔍 [DIAGNOSTIC] Scheduling syncTableWidthToHeaders() via requestAnimationFrame');
           requestAnimationFrame(() => {
             syncTableWidthToHeaders();
           });
         }
+
+        console.log('🔍 [DIAGNOSTIC] renderTableView() complete');
       }
 
       // Synchronize top-header and filters-row width with table width
@@ -6319,13 +6368,22 @@
 
         // Only run if we're in table view and elements exist
         if (!grid || !grid.classList.contains('table-view') || !table || !topHeader || !filtersRow || !shell) {
+          console.log('🔍 [DIAGNOSTIC] syncTableWidthToHeaders() - elements missing, aborting');
           return;
         }
+
+        console.log('🔍 [DIAGNOSTIC] syncTableWidthToHeaders() called');
 
         // Get the actual table width (use offsetWidth for correct visible width)
         const tableWidth = table.offsetWidth;
         const shellPadding = parseInt(getComputedStyle(shell).paddingLeft) + parseInt(getComputedStyle(shell).paddingRight);
         const viewportWidth = window.innerWidth;
+
+        console.log('  - Table width:', tableWidth);
+        console.log('  - Shell padding:', shellPadding);
+        console.log('  - Viewport width:', viewportWidth);
+        console.log('  - Shell current width:', shell.style.width || 'auto');
+        console.log('  - Shell offsetWidth:', shell.offsetWidth);
 
         // ALWAYS set headers to match table width on ALL devices
         // This makes headers "follow down" when scrolling
@@ -6346,20 +6404,46 @@
           const maxAllowedWidth = viewportWidth;
           const desiredShellWidth = tableWidth + shellPadding;
 
+          console.log('  - Desired shell width:', desiredShellWidth);
+          console.log('  - Max allowed width:', maxAllowedWidth);
+
           if (desiredShellWidth <= maxAllowedWidth) {
             // Table fits in viewport - set shell to table width
             shell.style.width = `${desiredShellWidth}px`;
+            console.log('  ✅ Shell width set to:', desiredShellWidth + 'px');
           } else {
             // Table exceeds viewport - let shell be 100% width (allow horizontal scroll)
             shell.style.width = '';
             shell.style.maxWidth = '';
+            console.log('  ✅ Shell width cleared (table exceeds viewport)');
           }
           shell.style.minWidth = '';
         } else {
           // Non-GitHub Pages or desktop: Use original behavior
           shell.style.width = `${tableWidth + shellPadding}px`;
           shell.style.minWidth = '';
+          console.log('  ✅ Shell width set (desktop/non-GH):', (tableWidth + shellPadding) + 'px');
         }
+
+        // 🔍 DIAGNOSTIC: Check sticky header computed styles
+        const firstHeader = table.querySelector('th');
+        if (firstHeader) {
+          const headerStyles = getComputedStyle(firstHeader);
+          console.log('  - Sticky header computed position:', headerStyles.position);
+          console.log('  - Sticky header top:', headerStyles.top);
+          console.log('  - Sticky header z-index:', headerStyles.zIndex);
+        }
+
+        // 🔍 DIAGNOSTIC: Check bottom bar
+        const bottomBar = document.querySelector('.bottom-bar');
+        if (bottomBar) {
+          const bottomBarStyles = getComputedStyle(bottomBar);
+          console.log('  - Bottom bar display:', bottomBarStyles.display);
+          console.log('  - Bottom bar position:', bottomBarStyles.position);
+          console.log('  - Bottom bar bottom:', bottomBarStyles.bottom);
+        }
+
+        console.log('🔍 [DIAGNOSTIC] syncTableWidthToHeaders() complete');
       }
 
       // Reset header and shell widths when switching away from table view
