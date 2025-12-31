@@ -3175,6 +3175,22 @@
         gap: 16px;
       }
 
+      /* Reduce margin to 5px for detail-two-column-grid in mobile portrait for Open Detail View table mode */
+      body.mobile-device.portrait #detailView[data-table-open-detail="true"] .detail-two-column-grid {
+        margin-top: 5px !important;
+        margin-bottom: 5px !important;
+      }
+
+      /* Reduce padding and margin for expanded table row detail view in mobile portrait */
+      body.mobile-device.portrait .expanded-content-row > td > div {
+        padding: 5px 16px !important;
+      }
+
+      body.mobile-device.portrait .expanded-content-row div[style*="grid-template-columns"] {
+        margin-top: 5px !important;
+        margin-bottom: 5px !important;
+      }
+
       body.mobile-device.portrait .detail-img-wrapper,
       body.tablet-device.portrait .detail-img-wrapper {
         width: 100% !important;
@@ -3345,9 +3361,9 @@
       body.tablet-device.portrait .back-btn,
       body.tablet-device.portrait .sort-btn,
       body.tablet-device.portrait .filter-pill {
-        min-height: 80px !important;
-        font-size: 28px !important;
-        padding: 12px 24px !important;
+        min-height: 96px !important;
+        font-size: 34px !important;
+        padding: 14px 29px !important;
       }
 
       /* Make Filter and Sort button text even bigger */
