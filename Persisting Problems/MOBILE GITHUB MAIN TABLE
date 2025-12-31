@@ -1,0 +1,840 @@
+# MOBILE GITHUB PAGES - MAIN TABLE PERSISTENT BUG
+
+**Date Created:** 2025-12-30
+**Status:** UNRESOLVED
+**Severity:** HIGH - Affects core functionality on mobile GitHub Pages deployment
+**Platform:** GitHub Pages Mobile (iOS/Android browsers)
+
+---
+
+## 1. PROBLEM DESCRIPTION
+
+### Current Behavior
+
+When viewing the Main Table on GitHub Pages mobile / Tablet deployment, the following issues occur **on initial load only**:
+
+#### A. Sticky Headers Not Working
+- Table headers (`<th>` elements with `position: sticky`) do not stick to the top when scrolling
+- Headers should remain visible when scrolling down through table rows
+- This works perfectly on desktop and after orientation change
+
+#### B. Bottom Padding ("fixed bottom bar" or "sticky footer") / Tabs Positioning Incorrect
+- The tab switcher and bottom bar are not positioned correctly on initial load
+- User must scroll down to reach the bottom padding/tabs
+- The bottom bar should be immediately visible at the viewport bottom
+- Padding calculations appear incorrect
+
+#### C. UI Glitch on First Load
+- Brief visual glitch occurs for ~2-3 seconds on first load
+- Table renders, then layout breaks
+- Happens ONLY on first visit to main layer table
+- Does not occur on subsequent visits (e.g., Layer 1 → Main Layer → Layer 1 → Main Layer)
+
+### The "Self-Healing" Phenomenon
+
+**CRITICAL OBSERVATION:** Changing device orientation **ONCE** permanently fixes all issues On mobile device only (not on tablet):
+
+```
+User Flow WITHOUT Orientation Change:
+Layer 1 → Main Layer → [GLITCH] → [STICKY HEADERS BROKEN] → [BOTTOM PADDING WRONG]
+
+User Flow WITH Orientation Change (once):
+Layer 1 → Main Layer → [GLITCH] → [STICKY HEADERS BROKEN] → Change orientation →
+[ALL ISSUES FIXED PERMANENTLY]
+
+After Fix:
+Layer 1 → Main Layer → Layer 1 → Main Layer → [NO PROBLEMS EVER AGAIN]
+```
+
+**This suggests:** The orientation change handler performs some operation that clears browser state that the initial render does not.
+
+### Current Setup
+- Only Layer 1 is currently implemented with this architecture
+- Bug manifests when navigating from Layer 1 to Main Layer for the first time
+- Once orientation changes on Main Layer, the issue never recurs for the session
+
+---
+
+## 2. ALL ATTEMPTED FIXES (CHRONOLOGICAL)
+
+### Fix #1: Conditional Width Setting (2025-12-29)
+**Commit:** ef1fe5a
+**File:** index.html:6332-6382 (`syncTableWidthToHeaders`)
+
+**Approach:**
+- Only set container widths if table fits within viewport
+- Clear widths if table exceeds viewport to preserve `position: sticky` and `position: fixed`
+
+**Code:**
+```javascript
+const isGitHubPages = document.documentElement.classList.contains('github-pages');
+const isMobile = document.body.classList.contains('mobile-device');
+
+if (isGitHubPages && isMobile) {
+  const maxAllowedWidth = viewportWidth;
+  const desiredShellWidth = tableWidth + shellPadding;
+
+  if (desiredShellWidth <= maxAllowedWidth) {
+    shell.style.width = `${desiredShellWidth}px`;
+  } else {
+    shell.style.width = '';
+    shell.style.maxWidth = '';
+  }
+}
+```
+
+**Result:** Partial improvement, helped preserve sticky positioning but didn't fix the initial load issue.
+
+---
+
+### Fix #2: 100ms Delay for Sync (2025-12-30)
+**Commit:** 1f328ca
+**File:** index.html:6301-6327 (`renderTableView`)
+
+**Root Cause Identified:** Portrait/landscape CSS wasn't fully applied before measuring widths
+
+**Approach:**
+- Increased delay from `requestAnimationFrame` (~16ms) to 100ms for GitHub Pages mobile
+- Matches the timing used in orientation change handler
+
+**Code:**
+```javascript
+if (isGitHubPages && isMobile) {
+  setTimeout(() => {
+    syncTableWidthToHeaders();
+  }, 100);  // Increased from requestAnimationFrame
+} else {
+  requestAnimationFrame(() => {
+    syncTableWidthToHeaders();
+  });
+}
+```
+
+**Result:** Improved timing but still not sufficient. Headers worked for a few seconds then broke.
+
+---
+
+### Fix #3: Viewport Meta Manipulation (2025-12-30)
+**Commit:** 33d7edc
+**File:** index.html:6301-6327 (`renderTableView`)
+
+**Root Cause Identified:** Browser zoom state wasn't being reset like in orientation change
+
+**Approach:**
+- Added viewport meta tag manipulation to force scale reset
+- Added scroll-to-top command
+- Borrowed from orientation change handler
+
+**Code:**
+```javascript
+setTimeout(() => {
+  syncTableWidthToHeaders();
+
+  requestAnimationFrame(() => {
+    const viewportMeta = document.querySelector('meta[name="viewport"]');
+    if (viewportMeta) {
+      const originalContent = viewportMeta.getAttribute('content');
+      // Force scale to 1.0
+      viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no');
+      setTimeout(() => {
+        viewportMeta.setAttribute('content', originalContent);
+      }, 50);
+    }
+    window.scrollTo(0, 0);
+  });
+}, 100);
+```
+
+**Result:** Better - fixed zoom-related issues, but still broke after a few seconds. Viewport alone was insufficient.
+
+---
+
+### Fix #4: Force Complete Re-render (2025-12-30)
+**Commit:** 5c5f404
+**File:** index.html:6301-6327 (`renderTableView`)
+
+**Root Cause Identified:** Browser caches DOM layout state on initial render; only destroying and recreating clears this cache
+
+**Approach:**
+- After initial table render, completely destroy and recreate table
+- Uses `renderList()` to force full DOM recreation
+- Added global flag `hasPerformedInitialRerenderFix` to run only once
+
+**Code:**
+```javascript
+if (isGitHubPages && isMobile && !hasPerformedInitialRerenderFix && currentView === "list") {
+  hasPerformedInitialRerenderFix = true;
+
+  setTimeout(() => {
+    if (typeof resetTableWidths === 'function') {
+      resetTableWidths();
+    }
+
+    // Completely destroy and recreate table
+    if (currentDisplayedItems && currentDisplayedItems.length > 0) {
+      renderList(currentDisplayedItems);
+    } else if (typeof applyFiltersAndSorting === 'function') {
+      applyFiltersAndSorting();
+    }
+
+    // Viewport manipulation
+    requestAnimationFrame(() => {
+      const viewportMeta = document.querySelector('meta[name="viewport"]');
+      if (viewportMeta) {
+        const originalContent = viewportMeta.getAttribute('content');
+        viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no');
+        setTimeout(() => {
+          viewportMeta.setAttribute('content', originalContent);
+        }, 50);
+      }
+      window.scrollTo(0, 0);
+    });
+  }, 300);  // 300ms delay
+}
+```
+
+**Result:** SIGNIFICANT IMPROVEMENT! Sticky headers stayed persistent. But timing was still off.
+
+**Issue:** Used 300ms delay instead of orientation change's 100ms.
+
+---
+
+### Fix #5: Match Orientation Change Exactly (2025-12-30)
+**Commit:** d4ab9d9
+**File:** index.html:6301-6327 (`renderTableView`)
+
+**Root Cause Refined:** Timing and sequence didn't exactly match orientation change handler
+
+**Approach:**
+- Changed delay from 300ms to 100ms (exact match)
+- Moved forced re-render BEFORE normal sync to prevent interference
+- IMMEDIATE width reset (no delay) before the 100ms wait
+- Simplified sequence to match orientation change
+
+**Key Changes:**
+1. Immediate `resetTableWidths()` call (no delay)
+2. 100ms delay (not 300ms) before re-render
+3. Forced re-render runs BEFORE normal sync path
+
+**Code:**
+```javascript
+if (isGitHubPages && isMobile && !hasPerformedInitialRerenderFix && currentView === "list") {
+  hasPerformedInitialRerenderFix = true;
+
+  // IMMEDIATE reset - same as orientation change (no delay)
+  if (typeof resetTableWidths === 'function') {
+    resetTableWidths();
+  }
+
+  // Wait for CSS to apply, then re-render (100ms like orientation change)
+  setTimeout(() => {
+    if (currentDisplayedItems && currentDisplayedItems.length > 0) {
+      renderList(currentDisplayedItems);
+    }
+
+    // Viewport manipulation and scroll
+    requestAnimationFrame(() => {
+      const viewportMeta = document.querySelector('meta[name="viewport"]');
+      if (viewportMeta) {
+        const originalContent = viewportMeta.getAttribute('content');
+        viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no');
+        setTimeout(() => {
+          viewportMeta.setAttribute('content', originalContent);
+        }, 50);
+      }
+      window.scrollTo(0, 0);
+    });
+  }, 100);  // CORRECT: Same 100ms as orientation change
+}
+```
+
+**Result:** Much better! Closer to working, but still subtle differences from orientation change.
+
+---
+
+### Fix #6: Full 6-Step Replication (2025-12-30)
+**Commit:** 2caf495
+**File:** index.html:6301-6327 (`renderTableView`)
+
+**Root Cause Refined:** Orientation change handler does MORE than just re-render
+
+**Key Discovery:** The orientation change handler has 6 critical steps:
+1. Move tab switcher (fixes bottom bar positioning)
+2. IMMEDIATE width reset
+3. Force browser reflows to clear cached layouts
+4. Wait 100ms then re-render
+5. Viewport manipulation + scroll
+6. Force final reflow after everything
+
+**Approach:** Replicate ALL 6 steps exactly
+
+**Code:**
+```javascript
+if (isGitHubPages && isMobile && !hasPerformedInitialRerenderFix && currentView === "list") {
+  hasPerformedInitialRerenderFix = true;
+
+  // STEP 1: Move tab switcher
+  if (typeof handleTabSwitcherPosition === 'function') {
+    handleTabSwitcherPosition();
+  }
+
+  // STEP 2: IMMEDIATE reset
+  if (typeof resetTableWidths === 'function') {
+    resetTableWidths();
+  }
+
+  // STEP 3: Force browser reflows
+  const shell = document.querySelector('.shell');
+  const topHeader = document.querySelector('.top-header');
+  const filtersRow = document.querySelector('.filters-row');
+  const tableEl = document.querySelector('.data-table');
+  if (shell) void shell.offsetHeight;
+  if (topHeader) void topHeader.offsetHeight;
+  if (filtersRow) void filtersRow.offsetHeight;
+  if (tableEl) void tableEl.offsetHeight;
+
+  // STEP 4: Wait 100ms then re-render
+  setTimeout(() => {
+    if (currentDisplayedItems && currentDisplayedItems.length > 0) {
+      renderList(currentDisplayedItems);
+    }
+
+    // STEP 5: Viewport manipulation + scroll
+    requestAnimationFrame(() => {
+      const viewportMeta = document.querySelector('meta[name="viewport"]');
+      if (viewportMeta) {
+        const originalContent = viewportMeta.getAttribute('content');
+        viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no');
+        setTimeout(() => {
+          viewportMeta.setAttribute('content', originalContent);
+        }, 50);
+      }
+      window.scrollTo(0, 0);
+
+      // STEP 6: Force final reflow
+      requestAnimationFrame(() => {
+        const finalShell = document.querySelector('.shell');
+        const finalTable = document.querySelector('.data-table');
+        if (finalShell) void finalShell.offsetHeight;
+        if (finalTable) void finalTable.offsetHeight;
+      });
+    });
+  }, 100);
+}
+```
+
+**Techniques Used:**
+- **Forced reflows:** `void element.offsetHeight` forces browser to recalculate layout
+- **Tab switcher positioning:** Must be done BEFORE other layout calculations
+- **Multiple reflows:** At beginning and end to clear cache at different stages
+
+**Result:** Most comprehensive attempt. Very close to working, but still had subtle timing/execution differences.
+
+---
+
+### Fix #7: Dispatch Resize Event (CURRENT - 2025-12-30)
+**Commit:** ffe3c7a
+**File:** index.html:6301-6327 (`renderTableView`)
+
+**Key Insight:** Don't replicate the orientation change logic - just trigger the handler!
+
+**Approach:**
+- Instead of manually replicating all 6 steps, simply dispatch a resize event
+- The `updateOrientation()` handler already works perfectly
+- Let the proven handler do its job
+
+**Code:**
+```javascript
+if (isGitHubPages && isMobile && !hasPerformedInitialRerenderFix && currentView === "list") {
+  hasPerformedInitialRerenderFix = true;
+
+  console.log('🔄 Dispatching resize event to trigger orientation change handler');
+
+  // Trigger the resize event after a delay to ensure DOM is ready
+  setTimeout(() => {
+    window.dispatchEvent(new Event('resize'));
+    // Dispatch twice with delay to ensure it triggers
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+      console.log('✅ Resize events dispatched');
+    }, 100);
+  }, 200);
+}
+```
+
+**Why This Should Work:**
+- Uses battle-tested `updateOrientation()` handler
+- No risk of subtle differences in manual replication
+- Handles all 6 steps automatically
+- Dispatched twice for reliability
+- Waits 200ms to ensure DOM is ready
+
+**Result:** STILL DOESN'T WORK - The problem persists despite this elegant solution.
+
+---
+
+## 3. CODE THAT MAY BE USELESS NOW
+
+### A. Previous Fix Attempts (Lines 6301-6327)
+**Current Code Block:** All the fix attempts from #2-#7 are still in the codebase, but only the latest (resize dispatch) is active.
+
+**Status:** The earlier approaches (fixes #2-#6) are now superseded by the resize dispatch approach.
+
+**Recommendation:** These earlier fix attempts in comments/history should be removed if we find a working solution, to reduce code complexity.
+
+---
+
+### B. Forced Reflow Code
+**Location:** index.html (from Fix #6, if still present)
+
+```javascript
+// STEP 3: Force browser reflows
+const shell = document.querySelector('.shell');
+const topHeader = document.querySelector('.top-header');
+const filtersRow = document.querySelector('.filters-row');
+const tableEl = document.querySelector('.data-table');
+if (shell) void shell.offsetHeight;
+if (topHeader) void topHeader.offsetHeight;
+if (filtersRow) void filtersRow.offsetHeight;
+if (tableEl) void tableEl.offsetHeight;
+```
+
+**Status:** Replaced by resize event dispatch
+**Recommendation:** Can be removed if not currently in use
+
+---
+
+### C. Tab Switcher Positioning in Fix
+**Location:** index.html (from Fix #6)
+
+```javascript
+// STEP 1: Move tab switcher
+if (typeof handleTabSwitcherPosition === 'function') {
+  handleTabSwitcherPosition();
+}
+```
+
+**Status:** Now handled by the resize event triggering `updateOrientation()`
+**Recommendation:** Can be removed from the fix code since resize event handles it
+
+---
+
+### D. Viewport Manipulation in Fix
+**Location:** index.html (from Fixes #3-#6)
+
+All the manual viewport meta manipulation code in the fix section is now redundant since the resize event triggers `updateOrientation()` which already does this.
+
+**Recommendation:** Can be removed to simplify code
+
+---
+
+### E. Manual Re-render Call in Fix
+**Location:** index.html (from Fixes #4-#6)
+
+```javascript
+if (currentDisplayedItems && currentDisplayedItems.length > 0) {
+  renderList(currentDisplayedItems);
+}
+```
+
+**Status:** `updateOrientation()` already handles re-rendering
+**Recommendation:** Redundant - can be removed
+
+---
+
+### SUMMARY: What to Keep vs Remove
+
+**KEEP:**
+- `hasPerformedInitialRerenderFix` flag (Line 5181) - still needed
+- `updateOrientation()` handler (Lines 88-206) - CRITICAL, works perfectly
+- `handleTabSwitcherPosition()` (Lines 209-234) - used by orientation handler
+- `syncTableWidthToHeaders()` (Lines 6332-6382) - still needed for normal syncing
+- `resetTableWidths()` (Lines 6384-6402) - used by orientation handler
+- Current resize dispatch fix (Lines 6301-6327) - our current approach
+
+**POTENTIALLY REMOVE (if we find working solution):**
+- All manual replication code from Fixes #3-#6 (forced reflows, tab switcher calls, viewport manipulation in fix, manual re-render)
+- Just keep the resize dispatch or the final working solution
+
+---
+
+## 4. POSSIBLE SOLUTIONS - NEW APPROACHES
+
+### Approach A: Race Condition Analysis
+**Theory:** The resize event is dispatched but the table isn't fully in the DOM yet
+
+**Investigation Needed:**
+- Use `MutationObserver` to watch for table insertion
+- Only dispatch resize AFTER table is confirmed in DOM
+- May need to wait for styles to compute as well
+
+**Code Concept:**
+```javascript
+const observer = new MutationObserver((mutations) => {
+  const table = document.querySelector('.data-table');
+  if (table && table.offsetHeight > 0) {
+    observer.disconnect();
+    // NOW dispatch resize
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 100);
+  }
+});
+observer.observe(document.body, { childList: true, subtree: true });
+```
+
+---
+
+### Approach B: Direct Handler Call (Not Event)
+**Theory:** Event dispatch might be queued/delayed; direct function call is immediate
+
+**Investigation Needed:**
+- Instead of `window.dispatchEvent(new Event('resize'))`, directly call `updateOrientation()`
+- This ensures immediate execution without event queue delays
+
+**Code Concept:**
+```javascript
+if (isGitHubPages && isMobile && !hasPerformedInitialRerenderFix && currentView === "list") {
+  hasPerformedInitialRerenderFix = true;
+
+  setTimeout(() => {
+    // Direct call instead of event dispatch
+    if (typeof updateOrientation === 'function') {
+      updateOrientation();
+    }
+  }, 200);
+}
+```
+
+**Advantage:** No event propagation delays, immediate execution
+
+---
+
+### Approach C: CSS Animation Frame Timing
+**Theory:** The browser hasn't finished painting/compositing the initial render
+
+**Investigation Needed:**
+- Use multiple `requestAnimationFrame` calls (double RAF pattern)
+- Ensures we're AFTER the paint, not just after layout
+
+**Code Concept:**
+```javascript
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    // NOW we're after browser has painted
+    window.dispatchEvent(new Event('resize'));
+  });
+});
+```
+
+**Reference:** Double RAF is a known pattern for waiting until after paint completes
+
+---
+
+### Approach D: Wait for Specific CSS Properties
+**Theory:** Sticky positioning requires specific computed styles to be ready
+
+**Investigation Needed:**
+- Check if `getComputedStyle(header).position === 'sticky'`
+- Only trigger fix when this is confirmed
+- May need to poll until it's set
+
+**Code Concept:**
+```javascript
+function waitForStickyPositioning() {
+  const header = document.querySelector('.data-table th');
+  if (!header) {
+    requestAnimationFrame(waitForStickyPositioning);
+    return;
+  }
+
+  const style = getComputedStyle(header);
+  if (style.position === 'sticky') {
+    // NOW trigger fix
+    window.dispatchEvent(new Event('resize'));
+  } else {
+    requestAnimationFrame(waitForStickyPositioning);
+  }
+}
+```
+
+---
+
+### Approach E: Force Repaint Before Fix
+**Theory:** Browser needs a repaint cycle before the fix can work
+
+**Investigation Needed:**
+- Force a style change that triggers repaint
+- Use classic CSS repaint hack
+
+**Code Concept:**
+```javascript
+// Force repaint with display property change
+const shell = document.querySelector('.shell');
+shell.style.display = 'none';
+shell.offsetHeight; // Force reflow
+shell.style.display = '';
+
+// NOW trigger fix
+setTimeout(() => {
+  window.dispatchEvent(new Event('resize'));
+}, 100);
+```
+
+---
+
+### Approach F: iOS-Specific Scroll Fix
+**Theory:** iOS Safari has known issues with `position: sticky` and scroll containers
+
+**Investigation Needed:**
+- Check if `-webkit-overflow-scrolling: touch` is interfering
+- Try adding/removing this property
+- iOS Safari sometimes needs explicit scroll events
+
+**Code Concept:**
+```javascript
+// Ensure proper overflow scrolling
+document.querySelector('.shell').style.webkitOverflowScrolling = 'touch';
+
+// Force scroll event
+window.scrollTo(0, 1);
+setTimeout(() => {
+  window.scrollTo(0, 0);
+}, 50);
+```
+
+---
+
+### Approach G: Intersection Observer
+**Theory:** Sticky headers might need the intersection observer to activate
+
+**Investigation Needed:**
+- Create IntersectionObserver for header elements
+- Let browser's native sticky positioning system activate naturally
+- This might trigger internal browser mechanisms
+
+**Code Concept:**
+```javascript
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    // Just observing might trigger browser's sticky calculations
+  });
+}, { threshold: [0, 1] });
+
+document.querySelectorAll('.data-table th').forEach(header => {
+  observer.observe(header);
+});
+```
+
+---
+
+### Approach H: Completely Different Architecture
+**Theory:** The fundamental approach is flawed; need a different table rendering strategy
+
+**Investigation Needed:**
+- Use a different sticky header library (e.g., StickyTableHeaders.js)
+- Or implement sticky headers with JavaScript position management instead of CSS
+- Or use CSS Grid instead of `<table>` element
+
+**Code Concept:**
+Instead of relying on browser's `position: sticky`, manually calculate and position headers:
+
+```javascript
+function manualStickyHeaders() {
+  const table = document.querySelector('.data-table');
+  const headers = document.querySelectorAll('.data-table th');
+
+  window.addEventListener('scroll', () => {
+    const tableTop = table.getBoundingClientRect().top;
+    headers.forEach(header => {
+      if (tableTop < 0) {
+        header.style.position = 'fixed';
+        header.style.top = '0';
+      } else {
+        header.style.position = 'sticky';
+      }
+    });
+  });
+}
+```
+
+---
+
+### Approach I: GitHub Pages Specific CSS Override
+**Theory:** GitHub Pages applies additional CSS/constraints we're not accounting for
+
+**Investigation Needed:**
+- Inspect computed styles on GitHub Pages vs local
+- Look for differences in cascade/specificity
+- May need `!important` overrides for GitHub Pages specifically
+
+**Code Concept:**
+```css
+/* GitHub Pages mobile specific overrides */
+html.github-pages body.mobile-device .data-table th {
+  position: -webkit-sticky !important;  /* iOS Safari */
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;  /* Higher z-index */
+}
+```
+
+---
+
+### Approach J: Delay Initial Render Itself
+**Theory:** We're fixing after render, but maybe we should delay the render until everything is ready
+
+**Investigation Needed:**
+- Don't render table immediately on load
+- Wait for fonts, images, stylesheets to fully load
+- Use `document.fonts.ready` promise
+
+**Code Concept:**
+```javascript
+// In renderTableView, before creating table
+if (isGitHubPages && isMobile && !hasPerformedInitialRerenderFix) {
+  hasPerformedInitialRerenderFix = true;
+
+  // Wait for everything to load
+  Promise.all([
+    document.fonts.ready,
+    new Promise(resolve => {
+      if (document.readyState === 'complete') {
+        resolve();
+      } else {
+        window.addEventListener('load', resolve);
+      }
+    })
+  ]).then(() => {
+    // NOW render the table
+    // ... normal render code ...
+  });
+  return; // Don't render immediately
+}
+```
+
+---
+
+### Approach K: Progressive Enhancement
+**Theory:** Start with a simpler table, then enhance it
+
+**Investigation Needed:**
+- Render basic table first (no sticky, no complex positioning)
+- Then progressively add sticky headers after a delay
+- This ensures base layout is solid before enhancements
+
+**Code Concept:**
+```javascript
+// Initial render without sticky
+headers.forEach(header => {
+  header.style.position = 'static';
+});
+
+// After delay, add sticky
+setTimeout(() => {
+  headers.forEach(header => {
+    header.style.position = 'sticky';
+  });
+}, 500);
+```
+
+---
+
+## 5. RECOMMENDED NEXT STEPS
+
+### Priority 1: Quick Wins (Try These First)
+1. **Approach B:** Direct function call instead of event dispatch
+2. **Approach C:** Double RAF pattern
+3. **Approach A:** MutationObserver to confirm table in DOM
+
+### Priority 2: Deeper Investigation
+4. **Approach D:** Wait for sticky CSS property confirmation
+5. **Approach F:** iOS-specific scroll handling
+6. **Approach I:** GitHub Pages CSS overrides with !important
+
+### Priority 3: Architectural Changes (If All Else Fails)
+7. **Approach H:** Different table rendering strategy
+8. **Approach J:** Delay initial render until fully loaded
+9. **Approach K:** Progressive enhancement approach
+
+---
+
+## 6. KEY TECHNICAL INSIGHTS
+
+### What We Know Works
+- ✅ The `updateOrientation()` handler (Lines 88-206) works **perfectly**
+- ✅ Manual orientation change fixes everything **permanently**
+- ✅ Complete table destruction and recreation clears browser cache
+- ✅ 100ms delay allows CSS to apply properly
+
+### What We Know About The Bug
+- 🐛 Only occurs on **initial load** on GitHub Pages mobile
+- 🐛 Does NOT occur on subsequent renders
+- 🐛 Does NOT occur on desktop or non-GitHub Pages 
+- 🐛 Does NOT occur after orientation change on mobile (even once)
+- 🐛 Affects both sticky headers AND bottom bar positioning
+
+### The Mystery
+❓ **Why does dispatching the resize event (which triggers the working handler) still not work?**
+
+Possible reasons:
+- Event is dispatched too early (before DOM is ready)
+- Event is queued and executes in wrong order
+- Browser state is fundamentally different between initial load vs orientation change
+- There's a browser-internal flag/state that orientation change sets but event dispatch doesn't
+
+---
+
+## 7. CODE FILE LOCATIONS
+
+| Component | File Location | Line Numbers |
+|-----------|--------------|--------------|
+| Main table renderer | index.html | 6102-6328 |
+| Current fix (resize dispatch) | index.html | 6301-6327 |
+| Orientation handler (WORKING) | index.html | 88-206 |
+| Tab switcher positioning | index.html | 209-234 |
+| Width sync function | index.html | 6332-6382 |
+| Width reset function | index.html | 6384-6402 |
+| Fix flag | index.html | 5181 |
+| Sticky headers CSS | index.html | 1079-1090 |
+| Bottom bar CSS | index.html | 3499-3520 |
+| Bottom padding CSS | index.html | 3570-3578 |
+
+---
+
+## 8. BROWSER/PLATFORM DETAILS
+
+**Affected Browsers:**
+- Mobile Safari (iOS)
+- Chrome Mobile (Android)
+- Any mobile browser on GitHub Pages deployment
+
+**NOT Affected:**
+- Desktop browsers (any)
+- Mobile browsers on regular Apps Script deployment
+- After orientation change on mobile GitHub Pages
+
+**Platform Specifics:**
+- GitHub Pages uses 35% scaling for mobile (vs 100% on desktop)
+- Different CSS rules apply via `.github-pages` class
+- May have additional GitHub Pages infrastructure affecting rendering
+
+---
+
+## CONCLUSION
+
+This bug has proven remarkably resistant to conventional fixes. We've successfully identified that:
+
+1. The orientation change handler works perfectly
+2. Replicating its logic manually doesn't work
+3. Dispatching events to trigger it doesn't work
+4. The issue is specific to GitHub Pages mobile initial load
+
+The solution likely lies in understanding what browser-internal state changes during orientation change that we cannot replicate programmatically. This may require:
+
+- Browser vendor debugging tools
+- Detailed performance profiling
+- Analysis of browser internals (Chromium/WebKit source)
+- Or a completely different architectural approach
+
+The fact that it works perfectly after one orientation change suggests there IS a solution - we just haven't found the exact trigger yet.
