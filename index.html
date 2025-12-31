@@ -64,26 +64,25 @@
 
         const deviceClass = isTablet ? 'tablet-device' : (isMobile ? 'mobile-device' : 'desktop-device');
 
+        // Detect platform (GitHub Pages vs Google Apps Script)
+        const isGitHubPages = typeof google === 'undefined' || !google.script;
+        const platformClass = isGitHubPages ? 'github-pages' : 'appscript';
+
+        console.log('🌐 Platform detected:', platformClass);
+
         // Immediately set on HTML (blocks before page renders)
-        // Remove other device classes but preserve other classes like 'github-pages'
-        document.documentElement.classList.remove('mobile-device', 'tablet-device', 'desktop-device');
-        document.documentElement.classList.add(deviceClass);
+        document.documentElement.className = deviceClass + ' ' + platformClass;
         document.documentElement.setAttribute('data-device', deviceClass);
+        document.documentElement.setAttribute('data-platform', platformClass);
         console.log('🔧 Device class set on HTML (blocking):', deviceClass);
+        console.log('🔧 Platform class set on HTML:', platformClass);
 
         // Set on body as soon as it's available (early, before full DOM load)
         function setBodyClass() {
           if (document.body) {
-            console.log('🔍 [DIAGNOSTIC] ==========================================');
-            console.log('🔍 [DIAGNOSTIC] INITIAL PAGE LOAD - setBodyClass()');
-            console.log('🔍 [DIAGNOSTIC] ==========================================');
-            console.log('  - Device class to set:', deviceClass);
-
-            // Remove other device classes but preserve other classes
-            document.body.classList.remove('mobile-device', 'tablet-device', 'desktop-device');
-            document.body.classList.add(deviceClass);
-            console.log('✅ Device class set:', deviceClass);
-
+            document.body.className = deviceClass + ' ' + platformClass;
+            console.log('✅ Device: ' + deviceClass + ' (body class set early)');
+            console.log('✅ Platform: ' + platformClass);
             updateOrientation();
           } else {
             setTimeout(setBodyClass, 1);
@@ -3219,6 +3218,22 @@
         gap: 16px;
       }
 
+      /* Reduce margin to 5px for detail-two-column-grid in GITHUB PAGES mobile portrait ONLY for Open Detail View table mode */
+      body.github-pages.mobile-device.portrait #detailView[data-table-open-detail="true"] .detail-two-column-grid {
+        margin-top: 5px !important;
+        margin-bottom: 5px !important;
+      }
+
+      /* Reduce padding and margin for expanded table row detail view in GITHUB PAGES mobile portrait ONLY */
+      body.github-pages.mobile-device.portrait .expanded-content-row > td > div {
+        padding: 5px 16px !important;
+      }
+
+      body.github-pages.mobile-device.portrait .expanded-content-row div[style*="grid-template-columns"] {
+        margin-top: 5px !important;
+        margin-bottom: 5px !important;
+      }
+
       body.mobile-device.portrait .detail-img-wrapper,
       body.tablet-device.portrait .detail-img-wrapper {
         width: 100% !important;
@@ -3389,9 +3404,9 @@
       body.tablet-device.portrait .back-btn,
       body.tablet-device.portrait .sort-btn,
       body.tablet-device.portrait .filter-pill {
-        min-height: 80px !important;
-        font-size: 28px !important;
-        padding: 12px 24px !important;
+        min-height: 96px !important;
+        font-size: 34px !important;
+        padding: 14px 29px !important;
       }
 
       /* Make Filter and Sort button text even bigger */
