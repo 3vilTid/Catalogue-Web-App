@@ -3131,7 +3131,7 @@
       /* Ensure symmetrical margins - adjust container padding */
       body.mobile-device.portrait #detailView,
       body.tablet-device.portrait #detailView {
-        padding: 16px !important;
+        padding: 5px 16px !important;
         margin-left: 0;
         margin-right: 0;
         width: 100%;
@@ -3370,9 +3370,10 @@
         min-height: 48px !important;
       }
 
-      /* Exception: Make delete button in detail view 30% of its size on mobile portrait */
-      body.mobile-device.portrait .detail-actions .btn-danger {
-        transform: scale(0.3) !important;
+      /* Exception: Make edit and delete buttons in detail view 40% of their size on mobile portrait */
+      body.mobile-device.portrait .detail-actions .btn-danger,
+      body.mobile-device.portrait .detail-actions .btn-secondary {
+        transform: scale(0.4) !important;
         transform-origin: left center !important;
       }
 
@@ -5940,6 +5941,31 @@
                 displayVal +
                 "</div>";
             }
+          }
+        }
+
+        // Add Edit and Delete buttons (respecting user profile)
+        if (user && user.profile !== "Viewer") {
+          const editable = canEditItem(item);
+          const deletable = canDeleteItem(item);
+
+          if (editable || deletable) {
+            html += '<div class="detail-actions">';
+            if (editable) {
+              const itemName = nameColumn ? (item[nameColumn.columnName] || "") : "";
+              html +=
+                '<button class="btn-secondary" onclick="openEdit(\'' +
+                itemName.replace(/'/g, "\\'") +
+                "')\">✏ Edit</button>";
+            }
+            if (deletable) {
+              const itemName = nameColumn ? (item[nameColumn.columnName] || "") : "";
+              html +=
+                '<button class="btn-danger" onclick="confirmDelete(\'' +
+                itemName.replace(/'/g, "\\'") +
+                "')\">🗑 Delete</button>";
+            }
+            html += "</div>";
           }
         }
 
