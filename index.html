@@ -3414,6 +3414,12 @@
         min-height: 48px !important;
       }
 
+      /* Exception: Make delete button in detail view 30% of its size on mobile portrait */
+      body.mobile-device.portrait .detail-actions .btn-danger {
+        transform: scale(0.3) !important;
+        transform-origin: left center !important;
+      }
+
       /* Form inputs bigger in portrait */
       body.mobile-device.portrait input[type="text"],
       body.mobile-device.portrait input[type="email"],
