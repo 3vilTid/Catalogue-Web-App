@@ -5200,9 +5200,6 @@
       // Navigation state for back button handling
       let currentView = "list"; // "list", "layer", or "detail"
 
-      // Flag to track if we've performed the initial re-render fix for GitHub Pages mobile
-      let hasPerformedInitialRerenderFix = false;
-
       // Display view types for each layer and main items (cards, list, table)
       let layer1ViewType = "cards"; // Layer 1 view type - set from Google Sheet D12
       let layer2ViewType = "cards"; // Layer 2 view type - set from Google Sheet D13
@@ -6298,24 +6295,8 @@
         const isGitHubPages = document.documentElement.classList.contains('github-pages');
         const isMobile = document.body.classList.contains('mobile-device');
 
-        // CRITICAL FIX: Trigger resize event on initial load (GitHub Pages mobile only)
-        // Since orientation change WORKS perfectly, just trigger that event instead of replicating
-        if (isGitHubPages && isMobile && !hasPerformedInitialRerenderFix && currentView === "list") {
-          hasPerformedInitialRerenderFix = true;
-
-          console.log('🔄 Dispatching resize event to trigger orientation change handler (GitHub Pages mobile)');
-
-          // Trigger the resize event after a delay to ensure DOM is ready
-          setTimeout(() => {
-            window.dispatchEvent(new Event('resize'));
-            // Dispatch twice with delay to ensure it triggers
-            setTimeout(() => {
-              window.dispatchEvent(new Event('resize'));
-              console.log('✅ Resize events dispatched');
-            }, 100);
-          }, 200);
-        } else if (isGitHubPages && isMobile) {
-          // Normal sync for subsequent renders (not initial load)
+        if (isGitHubPages && isMobile) {
+          // GitHub Pages mobile: Use 100ms delay for CSS to apply
           setTimeout(() => {
             syncTableWidthToHeaders();
           }, 100);
