@@ -98,11 +98,12 @@ function indexOfHeader_(headers, name) {
   return -1;
 }
 
-function getMainSheet_() {
+function getMainSheet_(sheetName) {
+  sheetName = sheetName || 'Main'; // Default to 'Main' for backwards compatibility
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sh = ss.getSheetByName("Main");
+  var sh = ss.getSheetByName(sheetName);
   if (!sh) {
-    throw new Error("Sheet 'Main' not found.");
+    throw new Error("Sheet '" + sheetName + "' not found.");
   }
   return sh;
 }
@@ -1172,7 +1173,7 @@ function getHeaders(sheetName) {
  * CRUD Operations (Requires Authentication)
  **************************************************/
 
-function addMainRow(obj, token) {
+function addMainRow(obj, token, mainSheetName, columnConfigSheetName) {
   try {
     // Verify session
     var sessionResult = verifySession(token);
@@ -1187,11 +1188,11 @@ function addMainRow(obj, token) {
       throw new Error("You don't have permission to add items.");
     }
 
-    var sh = getMainSheet_();
+    var sh = getMainSheet_(mainSheetName);
     var headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
 
     // Auto-fill columns with "addedby" special role
-    var configs = getColumnConfig();
+    var configs = getColumnConfig(columnConfigSheetName);
     for (var i = 0; i < configs.length; i++) {
       if (configs[i].specialRole === "addedby") {
         obj[configs[i].columnName] = user.email;
@@ -1212,7 +1213,7 @@ function addMainRow(obj, token) {
   }
 }
 
-function getItemByName(name, token) {
+function getItemByName(name, token, mainSheetName, columnConfigSheetName) {
   try {
     // Verify session
     var sessionResult = verifySession(token);
@@ -1220,12 +1221,12 @@ function getItemByName(name, token) {
       throw new Error("Authentication required.");
     }
 
-    var sh = getMainSheet_();
+    var sh = getMainSheet_(mainSheetName);
     var data = sh.getDataRange().getValues();
     if (data.length < 2) return null;
 
     // Get column config to identify date columns
-    var configs = getColumnConfig();
+    var configs = getColumnConfig(columnConfigSheetName);
     var dateColumns = {};
     for (var i = 0; i < configs.length; i++) {
       if (configs[i].type === "date") {
@@ -1269,7 +1270,7 @@ function getItemByName(name, token) {
   }
 }
 
-function editItem(name, updates, token) {
+function editItem(name, updates, token, mainSheetName) {
   try {
     // Verify session
     var sessionResult = verifySession(token);
@@ -1279,7 +1280,7 @@ function editItem(name, updates, token) {
 
     var user = sessionResult.user;
 
-    var sh = getMainSheet_();
+    var sh = getMainSheet_(mainSheetName);
     var data = sh.getDataRange().getValues();
     if (data.length < 2) throw new Error("Item not found.");
 
@@ -1322,7 +1323,7 @@ function editItem(name, updates, token) {
   }
 }
 
-function deleteItem(name, token) {
+function deleteItem(name, token, mainSheetName) {
   try {
     // Verify session
     var sessionResult = verifySession(token);
@@ -1332,7 +1333,7 @@ function deleteItem(name, token) {
 
     var user = sessionResult.user;
 
-    var sh = getMainSheet_();
+    var sh = getMainSheet_(mainSheetName);
     var data = sh.getDataRange().getValues();
     if (data.length < 2) throw new Error("Item not found.");
 
