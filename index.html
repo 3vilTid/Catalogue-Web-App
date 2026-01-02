@@ -4018,6 +4018,17 @@ DETECTION SYSTEM (working correctly):
         min-height: 35px !important;
       }
 
+      /* CRITICAL: Ensure bottom bar is ALWAYS fixed at bottom for GitHub Pages portrait (fixes Table type bug) */
+      html.github-pages body.mobile-device.portrait .bottom-bar,
+      html.github-pages body.tablet-device.portrait .bottom-bar {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 9999 !important;
+        display: flex !important;
+      }
+
       html.github-pages body.mobile-device.portrait .tab-switcher-btn {
         height: 25px !important;
         min-height: 25px !important;
