@@ -10277,8 +10277,10 @@ DETECTION SYSTEM (working correctly):
           const pwaInstallBtn = document.getElementById('pwaInstallBtn');
           const pwaInstallDismiss = document.getElementById('pwaInstallDismiss');
 
-          // Check if user has previously dismissed the banner (stored in localStorage)
-          const bannerDismissed = localStorage.getItem('pwaInstallBannerDismissed');
+          // Check if app is already installed (stored permanently in localStorage)
+          const appInstalled = localStorage.getItem('pwaAppInstalled');
+          // Check if user dismissed banner this session (sessionStorage - resets on page refresh)
+          const bannerDismissedThisSession = sessionStorage.getItem('pwaInstallBannerDismissed');
 
           // Listen for the beforeinstallprompt event
           window.addEventListener('beforeinstallprompt', (e) => {
@@ -10288,8 +10290,8 @@ DETECTION SYSTEM (working correctly):
             // Store the event for later use
             deferredPrompt = e;
 
-            // Show the install banner if not previously dismissed
-            if (!bannerDismissed && pwaInstallBanner) {
+            // Show the install banner if app not installed and not dismissed this session
+            if (!appInstalled && !bannerDismissedThisSession && pwaInstallBanner) {
               pwaInstallBanner.style.display = 'block';
               console.log('📱 PWA: Showing install banner');
             }
@@ -10321,15 +10323,15 @@ DETECTION SYSTEM (working correctly):
             });
           }
 
-          // Handle dismiss button click
+          // Handle dismiss button click - only hides for current session
           if (pwaInstallDismiss) {
             pwaInstallDismiss.addEventListener('click', () => {
-              console.log('📱 PWA: Banner dismissed');
+              console.log('📱 PWA: Banner dismissed for this session');
               if (pwaInstallBanner) {
                 pwaInstallBanner.style.display = 'none';
               }
-              // Remember that user dismissed the banner
-              localStorage.setItem('pwaInstallBannerDismissed', 'true');
+              // Only remember dismissal for this session (will show again on refresh)
+              sessionStorage.setItem('pwaInstallBannerDismissed', 'true');
             });
           }
 
@@ -10342,8 +10344,8 @@ DETECTION SYSTEM (working correctly):
             }
             // Clear the deferred prompt
             deferredPrompt = null;
-            // Mark as installed so banner doesn't show again
-            localStorage.setItem('pwaInstallBannerDismissed', 'true');
+            // Mark as installed permanently so banner never shows again
+            localStorage.setItem('pwaAppInstalled', 'true');
           });
 
           console.log('📱 PWA: Install banner logic initialized');
