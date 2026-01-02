@@ -4366,6 +4366,18 @@ DETECTION SYSTEM (working correctly):
         min-width: 0 !important;
       }
 
+      /* MOBILE PORTRAIT - Table Open Detail View: Reduce internal padding to 5px top/bottom */
+      html.github-pages body.mobile-device.portrait .table-view .expanded-content-row td > div {
+        padding-top: 5px !important;
+        padding-bottom: 5px !important;
+      }
+
+      /* MOBILE LANDSCAPE - Table Open Detail View: Reduce internal padding to 8px top/bottom */
+      html.github-pages body.mobile-device.landscape .table-view .expanded-content-row td > div {
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
+      }
+
       /* MOBILE LANDSCAPE - Table Type: Images 45px */
       html.github-pages body.mobile-device.landscape .table-cell-img {
         width: 45px !important;
