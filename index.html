@@ -46,7 +46,7 @@ DETECTION SYSTEM (working correctly):
 <html>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="description" content="Catalogue web application">
 
@@ -186,21 +186,8 @@ DETECTION SYSTEM (working correctly):
                   applyFiltersAndSorting();
                 }
 
-                // CRITICAL: Force viewport zoom reset to prevent zoom-in/zoom-out bugs
-                // Wait for render to complete, then reset any browser-applied zoom
+                // Scroll to top-left to ensure clean state after orientation change
                 requestAnimationFrame(() => {
-                  // Reset viewport zoom by forcing scale to 1.0
-                  const viewportMeta = document.querySelector('meta[name="viewport"]');
-                  if (viewportMeta) {
-                    const originalContent = viewportMeta.getAttribute('content');
-                    // Temporarily force scale to 1.0
-                    viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no');
-                    // Restore original viewport settings after brief delay
-                    setTimeout(() => {
-                      viewportMeta.setAttribute('content', originalContent);
-                    }, 50);
-                  }
-                  // Also scroll to top-left to ensure clean state
                   window.scrollTo(0, 0);
                 });
               }, 100); // Short delay to let CSS settle
