@@ -3720,6 +3720,145 @@ DETECTION SYSTEM (working correctly):
       }
 
 
+      /* ==================== PWA INSTALL BANNER (GitHub Pages Only) ==================== */
+      /* Hidden by default, shown via JavaScript when beforeinstallprompt fires */
+
+      html.github-pages .pwa-install-banner {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        z-index: 10000;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.3s ease-out;
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      html.github-pages .pwa-install-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        max-width: 600px;
+        margin: 0 auto;
+        gap: 16px;
+      }
+
+      html.github-pages .pwa-install-icon {
+        font-size: 32px;
+        flex-shrink: 0;
+      }
+
+      html.github-pages .pwa-install-text {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      html.github-pages .pwa-install-text strong {
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      html.github-pages .pwa-install-text span {
+        font-size: 13px;
+        opacity: 0.9;
+      }
+
+      html.github-pages .pwa-install-buttons {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-shrink: 0;
+      }
+
+      html.github-pages .pwa-install-btn {
+        background: white;
+        color: #4CAF50;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      html.github-pages .pwa-install-btn:hover {
+        background: #f0f0f0;
+        transform: scale(1.05);
+      }
+
+      html.github-pages .pwa-dismiss-btn {
+        background: transparent;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+      }
+
+      html.github-pages .pwa-dismiss-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: white;
+      }
+
+      /* Mobile adjustments for PWA banner */
+      html.github-pages body.mobile-device .pwa-install-content {
+        padding: 12px 16px;
+        gap: 12px;
+      }
+
+      html.github-pages body.mobile-device .pwa-install-icon {
+        font-size: 28px;
+      }
+
+      html.github-pages body.mobile-device .pwa-install-text strong {
+        font-size: 14px;
+      }
+
+      html.github-pages body.mobile-device .pwa-install-text span {
+        font-size: 12px;
+      }
+
+      html.github-pages body.mobile-device .pwa-install-btn {
+        padding: 8px 18px;
+        font-size: 13px;
+      }
+
+      html.github-pages body.mobile-device .pwa-dismiss-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+      }
+
+      /* Tablet adjustments */
+      html.github-pages body.tablet-device .pwa-install-content {
+        max-width: 700px;
+        padding: 14px 24px;
+      }
+
+
       /* ==================== GITHUB PAGES MOBILE PORTRAIT - 50% scaled down ==================== */
       /*  GitHub Pages renders mobile portrait at 2x size - scale down to 50% to match Apps Script */
 
@@ -4433,6 +4572,21 @@ DETECTION SYSTEM (working correctly):
   </head>
 
   <body>
+    <!-- PWA Install Banner (GitHub Pages only) -->
+    <div id="pwaInstallBanner" class="pwa-install-banner" style="display: none;">
+      <div class="pwa-install-content">
+        <div class="pwa-install-icon">📱</div>
+        <div class="pwa-install-text">
+          <strong>Install App</strong>
+          <span>Add to your home screen for quick access</span>
+        </div>
+        <div class="pwa-install-buttons">
+          <button id="pwaInstallBtn" class="pwa-install-btn">Install</button>
+          <button id="pwaInstallDismiss" class="pwa-dismiss-btn">✕</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Loading Screen Overlay -->
     <div id="loadingScreen" class="loading-screen">
       <div class="loading-content">
@@ -10115,7 +10269,85 @@ DETECTION SYSTEM (working correctly):
         // Initialize image zoom handlers
         setupImageZoom();
 
-        // ==================== PWA INSTALL BANNER LOGIC (removed) ====================
+        // ==================== PWA INSTALL BANNER LOGIC (GitHub Pages Only) ====================
+        // Only run on GitHub Pages - check for the github-pages class on html element
+        if (document.documentElement.classList.contains('github-pages')) {
+          let deferredPrompt = null;
+          const pwaInstallBanner = document.getElementById('pwaInstallBanner');
+          const pwaInstallBtn = document.getElementById('pwaInstallBtn');
+          const pwaInstallDismiss = document.getElementById('pwaInstallDismiss');
+
+          // Check if user has previously dismissed the banner (stored in localStorage)
+          const bannerDismissed = localStorage.getItem('pwaInstallBannerDismissed');
+
+          // Listen for the beforeinstallprompt event
+          window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('📱 PWA: beforeinstallprompt event fired');
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Store the event for later use
+            deferredPrompt = e;
+
+            // Show the install banner if not previously dismissed
+            if (!bannerDismissed && pwaInstallBanner) {
+              pwaInstallBanner.style.display = 'block';
+              console.log('📱 PWA: Showing install banner');
+            }
+          });
+
+          // Handle install button click
+          if (pwaInstallBtn) {
+            pwaInstallBtn.addEventListener('click', async () => {
+              console.log('📱 PWA: Install button clicked');
+              if (!deferredPrompt) {
+                console.log('📱 PWA: No deferred prompt available');
+                return;
+              }
+
+              // Hide the banner
+              if (pwaInstallBanner) {
+                pwaInstallBanner.style.display = 'none';
+              }
+
+              // Show the install prompt
+              deferredPrompt.prompt();
+
+              // Wait for the user to respond to the prompt
+              const { outcome } = await deferredPrompt.userChoice;
+              console.log('📱 PWA: User choice:', outcome);
+
+              // Clear the deferred prompt
+              deferredPrompt = null;
+            });
+          }
+
+          // Handle dismiss button click
+          if (pwaInstallDismiss) {
+            pwaInstallDismiss.addEventListener('click', () => {
+              console.log('📱 PWA: Banner dismissed');
+              if (pwaInstallBanner) {
+                pwaInstallBanner.style.display = 'none';
+              }
+              // Remember that user dismissed the banner
+              localStorage.setItem('pwaInstallBannerDismissed', 'true');
+            });
+          }
+
+          // Listen for successful installation
+          window.addEventListener('appinstalled', () => {
+            console.log('📱 PWA: App was successfully installed');
+            // Hide the banner
+            if (pwaInstallBanner) {
+              pwaInstallBanner.style.display = 'none';
+            }
+            // Clear the deferred prompt
+            deferredPrompt = null;
+            // Mark as installed so banner doesn't show again
+            localStorage.setItem('pwaInstallBannerDismissed', 'true');
+          });
+
+          console.log('📱 PWA: Install banner logic initialized');
+        }
 
 
       };
