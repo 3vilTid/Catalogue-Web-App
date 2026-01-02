@@ -1,12 +1,12 @@
 {
-  "name": "Catalogue Web App",
-  "short_name": "Catalogue",
+  "name": "Marine creatures of Sumba",
+  "short_name": "Creatures",
   "description": "Catalogue web application for managing and browsing items",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "theme_color": "#4CAF50",
+  "theme_color": "#36488a",
   "background_color": "#ffffff",
   "prefer_related_applications": false,
   "icons": [
