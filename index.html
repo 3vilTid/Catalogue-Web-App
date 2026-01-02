@@ -4748,6 +4748,22 @@ DETECTION SYSTEM (working correctly):
         return localStorage.getItem(SESSION_TOKEN_KEY);
       }
 
+      // Get current tab's main sheet name
+      function getCurrentMainSheetName() {
+        if (tabsConfig.length > 0 && currentTabIndex >= 0 && currentTabIndex < tabsConfig.length) {
+          return tabsConfig[currentTabIndex].mainSheetName || 'Main';
+        }
+        return 'Main';
+      }
+
+      // Get current tab's column config sheet name
+      function getCurrentColumnConfigSheetName() {
+        if (tabsConfig.length > 0 && currentTabIndex >= 0 && currentTabIndex < tabsConfig.length) {
+          return tabsConfig[currentTabIndex].columnConfigSheetName || 'ColumnConfig';
+        }
+        return 'ColumnConfig';
+      }
+
       // Save session token and user to localStorage
       function saveSession(token, user) {
         localStorage.setItem(SESSION_TOKEN_KEY, token);
@@ -9398,7 +9414,7 @@ DETECTION SYSTEM (working correctly):
             closeEditModal();
             showToast("Error: " + error.message, "error");
           })
-          .getItemByName(name, token);
+          .getItemByName(name, token, getCurrentMainSheetName(), getCurrentColumnConfigSheetName());
       }
 
       function closeEditModal() {
@@ -9436,12 +9452,12 @@ DETECTION SYSTEM (working correctly):
                   computeUniqueValues();
                   applyFiltersAndSorting();
                 })
-                .getMainData();
+                .getMainData(getCurrentMainSheetName());
             })
             .withFailureHandler(function(error) {
               showToast("Error: " + error.message, "error");
             })
-            .addMainRow(obj, token);
+            .addMainRow(obj, token, getCurrentMainSheetName(), getCurrentColumnConfigSheetName());
         } else {
           // Editing existing item
           google.script.run
@@ -9454,12 +9470,12 @@ DETECTION SYSTEM (working correctly):
                   computeUniqueValues();
                   applyFiltersAndSorting();
                 })
-                .getMainData();
+                .getMainData(getCurrentMainSheetName());
             })
             .withFailureHandler(function(error) {
               showToast("Error: " + error.message, "error");
             })
-            .editItem(editingItemName, obj, token);
+            .editItem(editingItemName, obj, token, getCurrentMainSheetName());
         }
       }
 
@@ -9480,12 +9496,12 @@ DETECTION SYSTEM (working correctly):
                     computeUniqueValues();
                     applyFiltersAndSorting();
                   })
-                  .getMainData();
+                  .getMainData(getCurrentMainSheetName());
               })
               .withFailureHandler(function(error) {
                 showToast("Error: " + error.message, "error");
               })
-              .deleteItem(name, token);
+              .deleteItem(name, token, getCurrentMainSheetName());
           }
         );
       }
