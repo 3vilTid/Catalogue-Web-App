@@ -3728,7 +3728,7 @@ DETECTION SYSTEM (working correctly):
         bottom: 0;
         left: 0;
         right: 0;
-        background: linear-gradient(135deg, #36488a 0%, #2d3c73 100%);
+        background: linear-gradient(135deg, var(--pwa-theme-color, #36488a) 0%, var(--pwa-theme-color-dark, #2d3c73) 100%);
         color: white;
         z-index: 10000;
         box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
@@ -3787,7 +3787,7 @@ DETECTION SYSTEM (working correctly):
 
       html.github-pages .pwa-install-btn {
         background: white;
-        color: #36488a;
+        color: var(--pwa-theme-color, #36488a);
         border: none;
         padding: 10px 24px;
         border-radius: 25px;
@@ -10276,6 +10276,30 @@ DETECTION SYSTEM (working correctly):
           const pwaInstallBanner = document.getElementById('pwaInstallBanner');
           const pwaInstallBtn = document.getElementById('pwaInstallBtn');
           const pwaInstallDismiss = document.getElementById('pwaInstallDismiss');
+
+          // Fetch theme color from manifest.json and apply to CSS variables
+          fetch('./manifest.json')
+            .then(response => response.json())
+            .then(manifest => {
+              if (manifest.theme_color) {
+                const themeColor = manifest.theme_color;
+                // Create a darker variant for gradient (darken by ~15%)
+                const darkerColor = darkenColor(themeColor, 15);
+                document.documentElement.style.setProperty('--pwa-theme-color', themeColor);
+                document.documentElement.style.setProperty('--pwa-theme-color-dark', darkerColor);
+                console.log('📱 PWA: Theme color loaded from manifest:', themeColor);
+              }
+            })
+            .catch(err => console.warn('📱 PWA: Could not load manifest.json for theme color', err));
+
+          // Helper function to darken a hex color
+          function darkenColor(hex, percent) {
+            hex = hex.replace('#', '');
+            const r = Math.max(0, parseInt(hex.substring(0, 2), 16) - Math.round(2.55 * percent));
+            const g = Math.max(0, parseInt(hex.substring(2, 4), 16) - Math.round(2.55 * percent));
+            const b = Math.max(0, parseInt(hex.substring(4, 6), 16) - Math.round(2.55 * percent));
+            return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+          }
 
           // Check if app is already installed (stored permanently in localStorage)
           const appInstalled = localStorage.getItem('pwaAppInstalled');
