@@ -6740,6 +6740,31 @@ DETECTION SYSTEM (working correctly):
           }
         }
 
+        // Edit and Delete buttons (following user profile rules)
+        if (user && user.profile !== "Viewer") {
+          const editable = canEditItem(item);
+          const deletable = canDeleteItem(item);
+
+          if (editable || deletable) {
+            html += '<div class="detail-actions" style="margin-top: 16px;">';
+            if (editable) {
+              const itemName = nameColumn ? (item[nameColumn.columnName] || "") : "";
+              html +=
+                '<button class="btn-secondary" onclick="openEdit(\'' +
+                itemName.replace(/'/g, "\\'") +
+                "')\">✏ Edit</button>";
+            }
+            if (deletable) {
+              const itemName = nameColumn ? (item[nameColumn.columnName] || "") : "";
+              html +=
+                '<button class="btn-danger" onclick="confirmDelete(\'' +
+                itemName.replace(/'/g, "\\'") +
+                "')\">🗑 Delete</button>";
+            }
+            html += "</div>";
+          }
+        }
+
         html += '</div>'; // Close content container div
         html += '</div>'; // Close detail-layout
         html += '</div>'; // Close outer div
