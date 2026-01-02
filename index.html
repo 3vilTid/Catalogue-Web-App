@@ -9266,6 +9266,28 @@ DETECTION SYSTEM (working correctly):
         firstSection.querySelectorAll('input[name="sortField"]').forEach(radio => {
           radio.onchange = function() {
             sortField = this.value;
+
+            // Hide Order section when "No sorting" is selected, SHOW when sorting is active
+            const orderDivider = sortDropdown.querySelector('.dropdown-divider');
+            const orderSection = sortDropdown.querySelectorAll('.dropdown-section')[1]; // Second section is Order
+
+            if (sortField === 'none') {
+              if (orderDivider) orderDivider.style.display = 'none';
+              if (orderSection) orderSection.style.display = 'none';
+            } else {
+              // EXPLICITLY show - set to 'block' to ensure visibility
+              if (orderDivider) {
+                orderDivider.style.display = 'block';
+                orderDivider.style.visibility = 'visible';
+                orderDivider.style.opacity = '1';
+              }
+              if (orderSection) {
+                orderSection.style.display = 'block';
+                orderSection.style.visibility = 'visible';
+                orderSection.style.opacity = '1';
+              }
+            }
+
             updateChipsUI();
             applyFiltersAndSorting();
           };
