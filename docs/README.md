@@ -1071,6 +1071,31 @@ The app automatically detects your device type and applies appropriate styling:
 - **Table Detail View**: Always uses landscape-style layout, even in portrait mode
 - This ensures readability of two-column detail layout on all devices
 
+### UI Display Sections in index.html
+
+The `index.html` file has **6 UI displays** for different device/orientation combinations. Each has dedicated CSS sections:
+
+| UI Display | CSS Section Name | GitHub/Apps Script |
+|------------|------------------|-------------------|
+| **Desktop** | `DESKTOP DEVICE STYLES` | Same |
+| **Tablet Portrait** | `TABLET PORTRAIT - Reduced sizes (75% of mobile portrait)` | Same |
+| **Tablet Landscape** | Combined in `LANDSCAPE MODE` (tablet-specific selectors) | Same |
+| **Mobile Portrait (Apps Script)** | `DEVICE-BASED MOBILE & TABLET STYLES` + `PORTRAIT MODE - Larger text, bigger buttons` | Apps Script only |
+| **Mobile Portrait (GitHub Pages)** | `GITHUB PAGES MOBILE PORTRAIT - 50% scaled down` | GitHub Pages only |
+| **Mobile Landscape** | Combined in `LANDSCAPE MODE` (mobile-specific selectors) | Same (minor GitHub fixes) |
+
+**Important Notes:**
+- The `LANDSCAPE MODE` section is **combined** for both Mobile and Tablet with different CSS selectors:
+  - Mobile: `body.mobile-device.landscape`
+  - Tablet: `body.tablet-device.landscape`
+- The **main UI difference** between GitHub Pages and Apps Script is **Mobile Portrait only**
+- GitHub Pages Mobile Landscape has minor fixes (padding, flex-direction) but essentially same UI
+
+**Detection System (in `<head>`):**
+- Device detection: Sets `mobile-device` / `tablet-device` / `desktop-device` class
+- GitHub Pages detection: Sets `html.github-pages` class
+- Orientation detection: Sets `portrait` / `landscape` class
+
 ---
 
 ## Browser Support
