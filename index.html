@@ -8434,15 +8434,15 @@ DETECTION SYSTEM (working correctly):
       }
 
       // Load data for a specific tab
-      function loadTabData(tabIndex) {
+      async function loadTabData(tabIndex) {
         const token = getSessionToken();
         const tab = tabsConfig[tabIndex];
 
         console.log('📥 Loading data for tab:', tab.tabName);
 
-        // Check if we have cached data for this tab
+        // Check if we have in-memory cached data for this tab
         if (tabDataCache[tabIndex]) {
-          console.log('⚡ Using cached data for tab:', tab.tabName);
+          console.log('⚡ Using in-memory cached data for tab:', tab.tabName);
 
           // Restore from cache
           const cachedData = tabDataCache[tabIndex];
@@ -8477,6 +8477,49 @@ DETECTION SYSTEM (working correctly):
           updateChipsUI();
           updateFilterSortVisibility();
 
+          return;
+        }
+
+        // If offline, try to load from IndexedDB cache
+        if (isOfflineMode || !navigator.onLine) {
+          console.log('📴 Offline - trying IndexedDB cache for tab:', tabIndex);
+          if (window.offlineCache) {
+            const cachedTabData = await window.offlineCache.loadTabData(tabIndex);
+            if (cachedTabData) {
+              console.log('✅ Loaded tab data from IndexedDB cache');
+
+              // Restore from IndexedDB cache
+              layerConfig = cachedTabData.layerConfig || [];
+              layersData = cachedTabData.layersData || {};
+              allItems = cachedTabData.items || [];
+              columnConfig = cachedTabData.columnConfig || [];
+
+              // Store in memory cache too
+              tabDataCache[tabIndex] = cachedTabData;
+
+              // Initialize column configuration
+              loadColumnConfig();
+              computeUniqueValues();
+
+              // Restore tab state or navigate to home
+              restoreTabState(tabIndex);
+
+              // Render the view based on restored state
+              renderTabView();
+
+              // Update UI
+              updateCurrentTabName();
+              renderTabMenu();
+              updateBreadcrumb();
+              updateChipsUI();
+              updateFilterSortVisibility();
+
+              return;
+            }
+          }
+
+          // No cached data available
+          showToast('Tab data not available offline', 'warning');
           return;
         }
 
@@ -8515,7 +8558,7 @@ DETECTION SYSTEM (working correctly):
               console.log('✅ View types and styles updated for tab:', tab.tabName);
             }
 
-            // Cache the data for future use
+            // Cache the data in memory for future use
             tabDataCache[tabIndex] = {
               layerConfig: layerConfig,
               layersData: layersData,
@@ -8524,6 +8567,16 @@ DETECTION SYSTEM (working correctly):
               headers: headers,
               settings: tabData.settings
             };
+
+            // Also save to IndexedDB for offline use
+            if (window.offlineCache) {
+              window.offlineCache.saveTabData(tabIndex, {
+                layerConfig: layerConfig,
+                layersData: layersData,
+                items: allItems,
+                columnConfig: columnConfig
+              });
+            }
 
             // Initialize column configuration
             loadColumnConfig();
