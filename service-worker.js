@@ -1,18 +1,15 @@
 // Service Worker for Catalogue PWA
-// Version 10.0.0 - Add offline mode support
+// Version 9.1.0 - Adjust portrait top padding to 4px
 
-const CACHE_NAME = 'catalogue-pwa-v10-0';
-const RUNTIME_CACHE = 'catalogue-runtime-v10-0';
-const IMAGE_CACHE = 'catalogue-images-v10-0';
+const CACHE_NAME = 'catalogue-pwa-v9-1';
+const RUNTIME_CACHE = 'catalogue-runtime-v9-1';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './api-config.js',
-  './api-client.js',
-  './offline-cache.js'
+  './api-config.js'
 ];
 
 // Install event - precache assets
@@ -36,15 +33,13 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   console.log('[Service Worker] Activating...');
 
-  const currentCaches = [CACHE_NAME, RUNTIME_CACHE, IMAGE_CACHE];
-
   event.waitUntil(
     caches.keys()
       .then((cacheNames) => {
         return Promise.all(
           cacheNames
             .filter((cacheName) => {
-              return !currentCaches.includes(cacheName);
+              return cacheName !== CACHE_NAME && cacheName !== RUNTIME_CACHE;
             })
             .map((cacheName) => {
               console.log('[Service Worker] Deleting old cache:', cacheName);
@@ -69,45 +64,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip chrome-extension and other non-http(s) requests
-  if (!url.protocol.startsWith('http')) {
+  // Skip Apps Script API requests (always fetch from network)
+  if (url.hostname.includes('script.google.com') ||
+      url.hostname.includes('script.googleusercontent.com')) {
     return;
   }
 
-  // Handle image requests from Apps Script (cache them for offline)
-  if (url.hostname.includes('script.google.com') ||
-      url.hostname.includes('script.googleusercontent.com')) {
-
-    // Check if this is an image request (has img= parameter)
-    if (url.searchParams.has('img')) {
-      event.respondWith(
-        caches.open(IMAGE_CACHE)
-          .then((cache) => {
-            return cache.match(request)
-              .then((cachedResponse) => {
-                // Return cached image immediately if available
-                const fetchPromise = fetch(request)
-                  .then((networkResponse) => {
-                    // Cache the new image
-                    if (networkResponse && networkResponse.ok) {
-                      cache.put(request, networkResponse.clone());
-                    }
-                    return networkResponse;
-                  })
-                  .catch(() => {
-                    // Network failed, return cached if available
-                    return cachedResponse;
-                  });
-
-                // Return cached response immediately, or wait for network
-                return cachedResponse || fetchPromise;
-              });
-          })
-      );
-      return;
-    }
-
-    // Skip other Apps Script API requests (data should use IndexedDB)
+  // Skip chrome-extension and other non-http(s) requests
+  if (!url.protocol.startsWith('http')) {
     return;
   }
 
@@ -115,8 +79,8 @@ self.addEventListener('fetch', (event) => {
     // Try network first
     fetch(request)
       .then((response) => {
-        // Don't cache non-successful responses or opaque responses
-        if (!response || response.status !== 200) {
+        // Don't cache non-successful responses
+        if (!response || response.status !== 200 || response.type !== 'basic') {
           return response;
         }
 
@@ -141,6 +105,7 @@ self.addEventListener('fetch', (event) => {
             }
 
             // If not in cache and network failed, return offline page
+            // (You could create an offline.html for this)
             return new Response('Offline - Content not available', {
               status: 503,
               statusText: 'Service Unavailable',
