@@ -4476,6 +4476,81 @@ DETECTION SYSTEM (working correctly):
         margin: 0 0 5px !important; /* 50% of 0 0 10px */
       }
 
+      /* MOBILE PORTRAIT - Edit/Add Item Modal (modal-box): Reduce all UI by 50% */
+      html.github-pages body.mobile-device.portrait .modal-box {
+        padding: 12px 14px !important; /* 50% of 24px 28px */
+        border-radius: 8px !important; /* 50% of 16px */
+        min-width: unset !important;
+        width: 90% !important;
+        max-width: 280px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .modal-header {
+        margin-bottom: 10px !important; /* 50% of 20px */
+        padding-bottom: 8px !important; /* 50% of 16px */
+      }
+
+      html.github-pages body.mobile-device.portrait .modal-header h2 {
+        font-size: 10px !important; /* 50% of 20px */
+      }
+
+      html.github-pages body.mobile-device.portrait .modal-close-x {
+        font-size: 12px !important; /* 50% of 24px */
+        width: 16px !important; /* 50% of 32px */
+        height: 16px !important; /* 50% of 32px */
+        border-radius: 3px !important; /* 50% of 6px */
+      }
+
+      html.github-pages body.mobile-device.portrait .modal-body {
+        margin-bottom: 10px !important; /* 50% of 20px */
+      }
+
+      html.github-pages body.mobile-device.portrait .modal-body label {
+        font-size: 7px !important; /* 50% of 14px */
+        margin-bottom: 3px !important; /* 50% of 6px */
+        margin-top: 8px !important; /* 50% of 16px */
+      }
+
+      html.github-pages body.mobile-device.portrait .modal-body label:first-child {
+        margin-top: 0 !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .modal-body input[type="text"],
+      html.github-pages body.mobile-device.portrait .modal-body input[type="date"],
+      html.github-pages body.mobile-device.portrait .modal-body select,
+      html.github-pages body.mobile-device.portrait .modal-body textarea {
+        padding: 5px 6px !important; /* 50% of 10px 12px */
+        font-size: 7px !important; /* 50% of 14px */
+        border-radius: 4px !important; /* 50% of 8px */
+      }
+
+      html.github-pages body.mobile-device.portrait .modal-body input[type="checkbox"] {
+        width: 9px !important; /* 50% of 18px */
+        height: 9px !important; /* 50% of 18px */
+      }
+
+      html.github-pages body.mobile-device.portrait .modal-body label.checkbox-label {
+        gap: 5px !important; /* 50% of 10px */
+        margin-top: 6px !important; /* 50% of 12px */
+        font-size: 7px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .modal-footer {
+        margin-top: 12px !important; /* 50% of 24px */
+        padding-top: 8px !important; /* 50% of 16px */
+        gap: 5px !important; /* 50% of 10px */
+      }
+
+      html.github-pages body.mobile-device.portrait .modal-footer .btn-primary,
+      html.github-pages body.mobile-device.portrait .modal-footer .btn-secondary {
+        height: 18px !important; /* 50% of ~36px */
+        min-height: 18px !important;
+        padding: 0 8px !important;
+        font-size: 7px !important;
+        line-height: 18px !important;
+        border-radius: 4px !important;
+      }
+
       /* MOBILE PORTRAIT - Breadcrumbs: 12px */
       html.github-pages body.mobile-device.portrait #breadcrumbNav {
         font-size: 12px !important;
