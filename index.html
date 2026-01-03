@@ -62,7 +62,6 @@ DETECTION SYSTEM (working correctly):
     <!-- API Configuration and Client (GitHub Pages Migration) -->
     <script src="./api-config.js"></script>
     <script src="./api-client.js"></script>
-    <script src="./offline-cache.js"></script>
 
     <!-- Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
@@ -563,17 +562,6 @@ DETECTION SYSTEM (working correctly):
         letter-spacing: 0.04em;
         color: #ffffff;
         background: linear-gradient(135deg, #6366f1, #2563eb);
-      }
-
-      /* Offline mode badge styling */
-      .profile-badge.offline-mode {
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-        animation: offlinePulse 2s ease-in-out infinite;
-      }
-
-      @keyframes offlinePulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.7; }
       }
 
       /* Filters row --------------------------------------------------------- */
@@ -5370,106 +5358,6 @@ DETECTION SYSTEM (working correctly):
       let user = null;
       let settings = null;
       let columnConfig = [];
-      let isOfflineMode = false; // True when app is running from cache
-
-      // -------------------- Offline Mode Functions --------------------
-      function setOfflineMode(offline) {
-        isOfflineMode = offline;
-        const profileBadge = document.getElementById('userProfilePill');
-        const addBtn = document.getElementById('addBtn');
-
-        if (offline) {
-          // Update profile badge to show "Offline"
-          if (profileBadge) {
-            profileBadge.textContent = 'Offline';
-            profileBadge.classList.add('offline-mode');
-            profileBadge.style.display = 'inline';
-          }
-
-          // Disable add button
-          if (addBtn) {
-            addBtn.style.display = 'none';
-          }
-
-          // Show offline toast
-          const lastUpdated = window.offlineCache ? window.offlineCache.getLastUpdatedFormatted() : '';
-          showToast(`Offline mode - Data from ${lastUpdated}`, 'warning');
-
-          console.log('📴 App running in OFFLINE mode');
-        } else {
-          // Restore profile badge
-          if (profileBadge && user) {
-            profileBadge.textContent = user.profile || 'Viewer';
-            profileBadge.classList.remove('offline-mode');
-          }
-
-          console.log('📶 App running in ONLINE mode');
-        }
-
-        // Update edit/delete button visibility
-        updateOfflineButtonStates();
-      }
-
-      function updateOfflineButtonStates() {
-        // Disable all edit and delete buttons when offline
-        const editBtns = document.querySelectorAll('.btn-edit, [onclick*="editItem"], [onclick*="openEditModal"]');
-        const deleteBtns = document.querySelectorAll('.btn-danger, [onclick*="deleteItem"], [onclick*="confirmDelete"]');
-
-        editBtns.forEach(btn => {
-          if (isOfflineMode) {
-            btn.style.opacity = '0.5';
-            btn.style.pointerEvents = 'none';
-          } else {
-            btn.style.opacity = '';
-            btn.style.pointerEvents = '';
-          }
-        });
-
-        deleteBtns.forEach(btn => {
-          if (isOfflineMode) {
-            btn.style.opacity = '0.5';
-            btn.style.pointerEvents = 'none';
-          } else {
-            btn.style.opacity = '';
-            btn.style.pointerEvents = '';
-          }
-        });
-      }
-
-      // Cache app data after successful API load
-      async function cacheAppData() {
-        if (!window.offlineCache) return;
-
-        try {
-          await window.offlineCache.saveAppData({
-            settings: settings,
-            headers: headers,
-            items: allItems,
-            columnConfig: columnConfig,
-            layerConfig: layerConfig,
-            layersData: layersData,
-            tabsConfig: tabsConfig,
-            user: user
-          });
-        } catch (error) {
-          console.warn('Failed to cache app data:', error);
-        }
-      }
-
-      // Try to load from cache when offline
-      async function loadFromCache() {
-        if (!window.offlineCache) return null;
-
-        try {
-          const cachedData = await window.offlineCache.loadAppData();
-          if (cachedData && cachedData.items && cachedData.items.length > 0) {
-            return cachedData;
-          }
-        } catch (error) {
-          console.warn('Failed to load from cache:', error);
-        }
-        return null;
-      }
 
       // Helper to normalize view type from Google Sheet format to lowercase
       function normalizeViewType(viewValue) {
@@ -8434,15 +8322,15 @@ DETECTION SYSTEM (working correctly):
       }
 
       // Load data for a specific tab
-      async function loadTabData(tabIndex) {
+      function loadTabData(tabIndex) {
         const token = getSessionToken();
         const tab = tabsConfig[tabIndex];
 
         console.log('📥 Loading data for tab:', tab.tabName);
 
-        // Check if we have in-memory cached data for this tab
+        // Check if we have cached data for this tab
         if (tabDataCache[tabIndex]) {
-          console.log('⚡ Using in-memory cached data for tab:', tab.tabName);
+          console.log('⚡ Using cached data for tab:', tab.tabName);
 
           // Restore from cache
           const cachedData = tabDataCache[tabIndex];
@@ -8477,58 +8365,6 @@ DETECTION SYSTEM (working correctly):
           updateChipsUI();
           updateFilterSortVisibility();
 
-          return;
-        }
-
-        // If offline, try to load from IndexedDB cache
-        if (isOfflineMode || !navigator.onLine) {
-          console.log('📴 Offline - trying IndexedDB cache for tab:', tabIndex);
-          if (window.offlineCache) {
-            const cachedTabData = await window.offlineCache.loadTabData(tabIndex);
-            if (cachedTabData) {
-              console.log('✅ Loaded tab data from IndexedDB cache');
-
-              // Restore from IndexedDB cache
-              layerConfig = cachedTabData.layerConfig || [];
-              layersData = cachedTabData.layersData || {};
-              allItems = cachedTabData.items || [];
-              columnConfig = cachedTabData.columnConfig || [];
-              headers = cachedTabData.headers || headers;
-
-              // Restore settings if cached (includes tab-specific Type/Style)
-              if (cachedTabData.settings) {
-                settings = cachedTabData.settings;
-                // Re-initialize display view types and styles from the cached settings
-                initializeDisplayViewType();
-                console.log('✅ View types and styles restored from IndexedDB cache for tab:', tab.tabName);
-              }
-
-              // Store in memory cache too
-              tabDataCache[tabIndex] = cachedTabData;
-
-              // Initialize column configuration
-              loadColumnConfig();
-              computeUniqueValues();
-
-              // Restore tab state or navigate to home
-              restoreTabState(tabIndex);
-
-              // Render the view based on restored state
-              renderTabView();
-
-              // Update UI
-              updateCurrentTabName();
-              renderTabMenu();
-              updateBreadcrumb();
-              updateChipsUI();
-              updateFilterSortVisibility();
-
-              return;
-            }
-          }
-
-          // No cached data available
-          showToast('Tab data not available offline', 'warning');
           return;
         }
 
@@ -8567,7 +8403,7 @@ DETECTION SYSTEM (working correctly):
               console.log('✅ View types and styles updated for tab:', tab.tabName);
             }
 
-            // Cache the data in memory for future use
+            // Cache the data for future use
             tabDataCache[tabIndex] = {
               layerConfig: layerConfig,
               layersData: layersData,
@@ -8576,18 +8412,6 @@ DETECTION SYSTEM (working correctly):
               headers: headers,
               settings: tabData.settings
             };
-
-            // Also save to IndexedDB for offline use
-            if (window.offlineCache) {
-              window.offlineCache.saveTabData(tabIndex, {
-                layerConfig: layerConfig,
-                layersData: layersData,
-                items: allItems,
-                columnConfig: columnConfig,
-                settings: tabData.settings,
-                headers: headers
-              });
-            }
 
             // Initialize column configuration
             loadColumnConfig();
@@ -9948,55 +9772,18 @@ DETECTION SYSTEM (working correctly):
       async function init() {
         console.log('=== App Initialization Starting ===');
 
-        // Initialize IndexedDB for image cache
+        // Initialize IndexedDB
         try {
           await imageCacheDB.init();
-          console.log('✓ Image IndexedDB cache initialized');
+          console.log('✓ IndexedDB cache initialized');
         } catch (err) {
-          console.warn('Image IndexedDB not available:', err);
-        }
-
-        // Initialize offline cache for app data
-        if (window.offlineCache) {
-          try {
-            await window.offlineCache.init();
-            console.log('✓ Offline data cache initialized');
-          } catch (err) {
-            console.warn('Offline cache not available:', err);
-          }
+          console.warn('IndexedDB not available:', err);
         }
 
         // Setup lazy loading
         setupLazyLoading();
 
-        // Setup offline status change handler
-        if (window.offlineCache) {
-          window.offlineCache.onStatusChange = function(online) {
-            if (online && isOfflineMode) {
-              // Back online - offer to reload fresh data
-              showToast('Back online! Refresh for latest data.', 'success');
-            } else if (!online && !isOfflineMode) {
-              // Just went offline
-              setOfflineMode(true);
-            }
-          };
-        }
-
-        // First, check if we're offline and have cached data
-        if (!navigator.onLine) {
-          console.log('📴 Device is offline - attempting to load from cache...');
-          loadFromCache().then(cachedData => {
-            if (cachedData) {
-              loadAppFromCache(cachedData);
-            } else {
-              showToast('No internet connection and no cached data available.', 'error');
-              hideLoadingScreen();
-            }
-          });
-          return;
-        }
-
-        // Online - check app mode (public or private)
+        // First, check app mode (public or private)
         google.script.run
           .withSuccessHandler(function (appSettings) {
             console.log('App mode:', appSettings.appMode);
@@ -10041,76 +9828,11 @@ DETECTION SYSTEM (working correctly):
             console.log('Session token found - loading app...');
             loadPrivateApp(token);
           })
-          .withFailureHandler(async function(error) {
+          .withFailureHandler(function(error) {
             console.error('Error checking app mode:', error);
-
-            // If network error, try loading from cache
-            if (!navigator.onLine || error.message.includes('Failed to fetch') || error.message.includes('network')) {
-              console.log('📴 Network error - attempting to load from cache...');
-              const cachedData = await loadFromCache();
-              if (cachedData) {
-                loadAppFromCache(cachedData);
-                return;
-              }
-            }
-
             showToast('Error loading app settings', 'error');
           })
           .getSettings();
-      }
-
-      // Load app from cached data (offline mode)
-      function loadAppFromCache(cachedData) {
-        console.log('📂 Loading app from cache...');
-
-        // Set offline mode
-        setOfflineMode(true);
-
-        // Populate state from cached data
-        user = cachedData.user || { email: 'Offline', profile: 'Viewer' };
-        settings = cachedData.settings;
-        headers = cachedData.headers || [];
-        allItems = cachedData.items || [];
-        columnConfig = cachedData.columnConfig || [];
-        layerConfig = cachedData.layerConfig || [];
-        layersData = cachedData.layersData || {};
-        tabsConfig = cachedData.tabsConfig || [];
-
-        if (settings) {
-          // Update app title
-          if (settings.appName) {
-            document.title = settings.appName;
-            const loginAppName = document.getElementById('loginAppName');
-            if (loginAppName) loginAppName.textContent = settings.appName;
-          }
-
-          // Set image proxy URL
-          imageProxyBaseUrl = settings.deploymentUrl || "";
-        }
-
-        // Initialize display view type
-        initializeDisplayViewType();
-
-        // Load column configuration
-        loadColumnConfig();
-        computeUniqueValues();
-        updateHeaderUI();
-        applyRoleVisibility();
-        updateChipsUI();
-
-        // Initialize tabs if configured
-        initializeTabs();
-
-        // Show layers if configured, otherwise show main list
-        navigateToHome();
-
-        // Hide login screen and show app
-        hideLoginScreen();
-
-        // Hide loading screen - app is ready
-        hideLoadingScreen();
-
-        console.log('✅ App loaded from cache in offline mode');
       }
 
       function loadPublicApp() {
@@ -10177,22 +9899,9 @@ DETECTION SYSTEM (working correctly):
 
             // Hide loading screen - app is ready
             hideLoadingScreen();
-
-            // Cache data for offline use (in background)
-            cacheAppData();
           })
-          .withFailureHandler(async function(error) {
+          .withFailureHandler(function(error) {
             console.error('Error loading public app:', error);
-
-            // Try loading from cache if network error
-            if (!navigator.onLine || error.message.includes('Failed to fetch')) {
-              const cachedData = await loadFromCache();
-              if (cachedData) {
-                loadAppFromCache(cachedData);
-                return;
-              }
-            }
-
             showToast('Error loading catalogue: ' + error.message, 'error');
           })
           .getInitialData(null);  // No token needed in public mode
@@ -10256,22 +9965,9 @@ DETECTION SYSTEM (working correctly):
 
             // Show login button in header for "Public with Login" mode
             updateLoginButtonVisibility();
-
-            // Cache data for offline use (in background)
-            cacheAppData();
           })
-          .withFailureHandler(async function(error) {
+          .withFailureHandler(function(error) {
             console.error('Error loading public app with login option:', error);
-
-            // Try loading from cache if network error
-            if (!navigator.onLine || error.message.includes('Failed to fetch')) {
-              const cachedData = await loadFromCache();
-              if (cachedData) {
-                loadAppFromCache(cachedData);
-                return;
-              }
-            }
-
             showToast('Error loading catalogue: ' + error.message, 'error');
           })
           .getInitialData(null);  // No token needed initially
@@ -10349,22 +10045,9 @@ DETECTION SYSTEM (working correctly):
 
             // Hide loading screen - app is ready
             hideLoadingScreen();
-
-            // Cache data for offline use (in background)
-            cacheAppData();
           })
-          .withFailureHandler(async function(error) {
+          .withFailureHandler(function(error) {
             console.error('Error loading app:', error);
-
-            // Try loading from cache if network error
-            if (!navigator.onLine || error.message.includes('Failed to fetch')) {
-              const cachedData = await loadFromCache();
-              if (cachedData) {
-                loadAppFromCache(cachedData);
-                return;
-              }
-            }
-
             clearSession();
             showLoginScreen();
             showToast('Error loading catalogue: ' + error.message, 'error');
