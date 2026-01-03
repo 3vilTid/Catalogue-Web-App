@@ -4485,12 +4485,14 @@ DETECTION SYSTEM (working correctly):
         max-width: 280px !important;
       }
 
-      html.github-pages body.mobile-device.portrait .modal-header {
+      html.github-pages body.mobile-device.portrait .modal-header,
+      html.github-pages body.mobile-device.portrait #editModal .modal-header {
         margin-bottom: 5px !important;
         padding-bottom: 4px !important;
       }
 
-      html.github-pages body.mobile-device.portrait .modal-header h2 {
+      html.github-pages body.mobile-device.portrait .modal-header h2,
+      html.github-pages body.mobile-device.portrait #editModal .modal-header h2 {
         font-size: 15px !important;
       }
 
@@ -4501,8 +4503,11 @@ DETECTION SYSTEM (working correctly):
         border-radius: 3px !important;
       }
 
-      html.github-pages body.mobile-device.portrait .modal-body {
-        margin-bottom: 10px !important; /* 50% of 20px */
+      html.github-pages body.mobile-device.portrait .modal-body,
+      html.github-pages body.mobile-device.portrait #editModal .modal-body {
+        margin-bottom: 10px !important;
+        padding-top: 0 !important;
+        margin-top: 0 !important;
       }
 
       html.github-pages body.mobile-device.portrait .modal-body label {
