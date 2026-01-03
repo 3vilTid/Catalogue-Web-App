@@ -8493,6 +8493,15 @@ DETECTION SYSTEM (working correctly):
               layersData = cachedTabData.layersData || {};
               allItems = cachedTabData.items || [];
               columnConfig = cachedTabData.columnConfig || [];
+              headers = cachedTabData.headers || headers;
+
+              // Restore settings if cached (includes tab-specific Type/Style)
+              if (cachedTabData.settings) {
+                settings = cachedTabData.settings;
+                // Re-initialize display view types and styles from the cached settings
+                initializeDisplayViewType();
+                console.log('✅ View types and styles restored from IndexedDB cache for tab:', tab.tabName);
+              }
 
               // Store in memory cache too
               tabDataCache[tabIndex] = cachedTabData;
@@ -8574,7 +8583,9 @@ DETECTION SYSTEM (working correctly):
                 layerConfig: layerConfig,
                 layersData: layersData,
                 items: allItems,
-                columnConfig: columnConfig
+                columnConfig: columnConfig,
+                settings: tabData.settings,
+                headers: headers
               });
             }
 

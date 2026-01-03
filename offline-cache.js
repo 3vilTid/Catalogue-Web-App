@@ -237,6 +237,8 @@
         await this.save(`tab_${tabIndex}_columnConfig`, data.columnConfig);
         await this.save(`tab_${tabIndex}_layerConfig`, data.layerConfig);
         await this.save(`tab_${tabIndex}_layersData`, data.layersData);
+        await this.save(`tab_${tabIndex}_settings`, data.settings);
+        await this.save(`tab_${tabIndex}_headers`, data.headers);
         console.log(`💾 Tab ${tabIndex} data cached`);
         return true;
       } catch (error) {
@@ -250,18 +252,20 @@
      */
     async loadTabData(tabIndex) {
       try {
-        const [items, columnConfig, layerConfig, layersData] = await Promise.all([
+        const [items, columnConfig, layerConfig, layersData, settings, headers] = await Promise.all([
           this.get(`tab_${tabIndex}_items`),
           this.get(`tab_${tabIndex}_columnConfig`),
           this.get(`tab_${tabIndex}_layerConfig`),
-          this.get(`tab_${tabIndex}_layersData`)
+          this.get(`tab_${tabIndex}_layersData`),
+          this.get(`tab_${tabIndex}_settings`),
+          this.get(`tab_${tabIndex}_headers`)
         ]);
 
         if (!items) {
           return null;
         }
 
-        return { items, columnConfig, layerConfig, layersData };
+        return { items, columnConfig, layerConfig, layersData, settings, headers };
       } catch (error) {
         console.error(`❌ Failed to load tab ${tabIndex} from cache:`, error);
         return null;
