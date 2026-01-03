@@ -4477,23 +4477,18 @@ DETECTION SYSTEM (working correctly):
       }
 
       /* MOBILE PORTRAIT - Edit/Add Item Modal (modal-box): Reduce all UI by 50% */
-      html.github-pages body.mobile-device.portrait .modal-box,
-      html.github-pages body.mobile-device.portrait #editModal .modal-box,
-      html.github-pages body.mobile-device.portrait #editModal > .modal-box {
-        padding: 8px 10px !important; /* Reduced further */
-        border-radius: 8px !important;
+      html.github-pages body.mobile-device.portrait .modal-box {
+        padding: 12px 14px !important; /* 50% of 24px 28px */
+        border-radius: 8px !important; /* 50% of 16px */
         min-width: unset !important;
         width: 90% !important;
         max-width: 280px !important;
       }
 
       html.github-pages body.mobile-device.portrait .modal-header,
-      html.github-pages body.mobile-device.portrait #editModal .modal-header,
-      html.github-pages body.mobile-device.portrait .modal-box > .modal-header {
-        margin-bottom: 3px !important;
-        padding-bottom: 3px !important;
-        padding-top: 0 !important;
-        margin-top: 0 !important;
+      html.github-pages body.mobile-device.portrait #editModal .modal-header {
+        margin-bottom: 5px !important;
+        padding-bottom: 4px !important;
       }
 
       html.github-pages body.mobile-device.portrait .modal-header h2,
@@ -4511,6 +4506,8 @@ DETECTION SYSTEM (working correctly):
       html.github-pages body.mobile-device.portrait .modal-body,
       html.github-pages body.mobile-device.portrait #editModal .modal-body {
         margin-bottom: 10px !important;
+        padding-top: 0 !important;
+        margin-top: 0 !important;
       }
 
       html.github-pages body.mobile-device.portrait .modal-body label {
