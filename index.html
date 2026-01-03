@@ -9884,12 +9884,22 @@ DETECTION SYSTEM (working correctly):
       async function init() {
         console.log('=== App Initialization Starting ===');
 
-        // Initialize IndexedDB
+        // Initialize IndexedDB for image cache
         try {
           await imageCacheDB.init();
-          console.log('✓ IndexedDB cache initialized');
+          console.log('✓ Image IndexedDB cache initialized');
         } catch (err) {
-          console.warn('IndexedDB not available:', err);
+          console.warn('Image IndexedDB not available:', err);
+        }
+
+        // Initialize offline cache for app data
+        if (window.offlineCache) {
+          try {
+            await window.offlineCache.init();
+            console.log('✓ Offline data cache initialized');
+          } catch (err) {
+            console.warn('Offline cache not available:', err);
+          }
         }
 
         // Setup lazy loading
