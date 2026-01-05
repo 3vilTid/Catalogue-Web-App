@@ -6576,6 +6576,16 @@ DETECTION SYSTEM (working correctly):
           }
         }
 
+        // Hide columns that are completely empty across all items in current layer/view
+        columnsToShow = columnsToShow.filter(col => {
+          return items.some(item => {
+            const value = item[col.columnName];
+            if (value === undefined || value === null) return false;
+            if (typeof value === 'string' && value.trim() === '') return false;
+            return true; // Has a valid value
+          });
+        });
+
         // Apply table column filters
         let filteredItems = applyTableFilters(items, columnsToShow);
 
@@ -7816,11 +7826,21 @@ DETECTION SYSTEM (working correctly):
           { columnName: "Description", displayName: "Description", type: "text" }
         ];
 
+        // Hide columns that are completely empty across all items in current layer
+        const columnsToShow = layerColumns.filter(col => {
+          return items.some(item => {
+            const value = item[col.columnName];
+            if (value === undefined || value === null) return false;
+            if (typeof value === 'string' && value.trim() === '') return false;
+            return true; // Has a valid value
+          });
+        });
+
         // Apply table column filters
-        let filteredItems = applyTableFilters(items, layerColumns);
+        let filteredItems = applyTableFilters(items, columnsToShow);
 
         // Apply table sorting
-        filteredItems = applyTableSort(filteredItems, layerColumns);
+        filteredItems = applyTableSort(filteredItems, columnsToShow);
 
         const table = document.createElement("table");
         table.className = "data-table";
@@ -7829,8 +7849,8 @@ DETECTION SYSTEM (working correctly):
         const thead = document.createElement("thead");
         const headerRow = document.createElement("tr");
 
-        for (let i = 0; i < layerColumns.length; i++) {
-          const col = layerColumns[i];
+        for (let i = 0; i < columnsToShow.length; i++) {
+          const col = columnsToShow[i];
           const th = document.createElement("th");
           th.className = "table-header-cell";
           th.dataset.columnName = col.columnName; // Add data attribute for reliable identification
@@ -7856,7 +7876,7 @@ DETECTION SYSTEM (working correctly):
           }
 
           // Create dropdown menu
-          const menu = createTableColumnMenu(col, layerColumns);
+          const menu = createTableColumnMenu(col, columnsToShow);
           th.appendChild(menu);
 
           // Toggle menu on click
@@ -7898,8 +7918,8 @@ DETECTION SYSTEM (working correctly):
           row.className = "table-row";
 
           // Render each column
-          for (let j = 0; j < layerColumns.length; j++) {
-            const col = layerColumns[j];
+          for (let j = 0; j < columnsToShow.length; j++) {
+            const col = columnsToShow[j];
             const td = document.createElement("td");
             const value = item[col.columnName] || "";
 
