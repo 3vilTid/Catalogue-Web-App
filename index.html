@@ -6012,6 +6012,24 @@ DETECTION SYSTEM (working correctly):
         }
 
         const fileId = extractDriveFileId(url);
+        const cacheKey = 'logo_cache_' + (fileId || url);
+
+        // Check localStorage cache first for instant display
+        try {
+          const cached = localStorage.getItem(cacheKey);
+          if (cached) {
+            const cacheData = JSON.parse(cached);
+            // Check if cache is less than 24 hours old
+            if (cacheData.timestamp && (Date.now() - cacheData.timestamp) < 24 * 60 * 60 * 1000) {
+              console.log('⚡ Logo loaded from cache (instant)');
+              logoEl.src = cacheData.dataUrl;
+              logoEl.style.display = "block";
+              return;
+            }
+          }
+        } catch (e) {
+          // Cache read failed, continue to fetch
+        }
 
         if (fileId) {
           // It's a Drive URL - fetch via proxy
@@ -6031,6 +6049,17 @@ DETECTION SYSTEM (working correctly):
               const dataUrl = "data:" + json.mime + ";base64," + json.data;
               logoEl.src = dataUrl;
               logoEl.style.display = "block";
+
+              // Cache the logo for next time
+              try {
+                localStorage.setItem(cacheKey, JSON.stringify({
+                  dataUrl: dataUrl,
+                  timestamp: Date.now()
+                }));
+                console.log('💾 Logo cached for instant loading next time');
+              } catch (e) {
+                // Cache write failed (storage full?), ignore
+              }
             } else {
               logoEl.style.display = "none";
             }
@@ -6039,9 +6068,27 @@ DETECTION SYSTEM (working correctly):
             logoEl.style.display = "none";
           }
         } else {
-          // Regular URL - apply directly
+          // Regular URL - apply directly (and cache)
           logoEl.src = url;
           logoEl.style.display = "block";
+
+          // Cache regular URLs too
+          try {
+            localStorage.setItem(cacheKey, JSON.stringify({
+              dataUrl: url,
+              timestamp: Date.now()
+            }));
+          } catch (e) {
+            // Ignore cache errors
+          }
+        }
+      }
+
+      // Start loading logo early (called as soon as settings are available)
+      function preloadLogo() {
+        if (settings && settings.logoUrl) {
+          console.log('🚀 Starting early logo preload...');
+          applyLogoImage(settings.logoUrl); // Don't await - let it load in parallel
         }
       }
 
@@ -10058,6 +10105,9 @@ DETECTION SYSTEM (working correctly):
                 console.log('✓ Image proxy URL set to:', imageProxyBaseUrl);
               }
 
+              // Start loading logo early (in parallel with other setup)
+              preloadLogo();
+
               // Update app title
               if (settings.appName) {
                 document.title = settings.appName;
@@ -10125,6 +10175,9 @@ DETECTION SYSTEM (working correctly):
             // Setup image proxy if available
             if (settings && settings.deploymentUrl) {
               imageProxyBaseUrl = settings.deploymentUrl;
+
+              // Start loading logo early (in parallel with other setup)
+              preloadLogo();
 
               if (settings.appName) {
                 document.title = settings.appName;
@@ -10211,6 +10264,9 @@ DETECTION SYSTEM (working correctly):
               } else {
                 console.log('✓ Image proxy URL set to:', imageProxyBaseUrl);
               }
+
+              // Start loading logo early (in parallel with other setup)
+              preloadLogo();
 
               // Update app title
               if (settings.appName) {
