@@ -4578,6 +4578,28 @@ DETECTION SYSTEM (working correctly):
         border-radius: 4px !important;
       }
 
+      /* MOBILE PORTRAIT - Login Screen: Reduce buttons by 45% and inputs height by 70% */
+      html.github-pages body.mobile-device.portrait .login-btn,
+      html.github-pages body.mobile-device.portrait #loginSendCodeBtn,
+      html.github-pages body.mobile-device.portrait #loginVerifyBtn {
+        padding: 8px 24px !important; /* 55% of 14px vertical, keep width */
+        font-size: 8px !important; /* 55% of 15px */
+        min-height: unset !important;
+        height: auto !important;
+      }
+
+      html.github-pages body.mobile-device.portrait #loginBackBtn {
+        padding: 8px 16px !important;
+        font-size: 8px !important;
+        min-height: unset !important;
+        height: auto !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .login-input {
+        padding: 8px 16px !important; /* 70% of 12px vertical, keep horizontal */
+        font-size: 12px !important;
+      }
+
       /* MOBILE PORTRAIT - Breadcrumbs: 12px */
       html.github-pages body.mobile-device.portrait #breadcrumbNav {
         font-size: 12px !important;
