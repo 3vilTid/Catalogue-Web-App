@@ -4578,26 +4578,30 @@ DETECTION SYSTEM (working correctly):
         border-radius: 4px !important;
       }
 
-      /* MOBILE PORTRAIT - Login Screen: Reduce buttons by 45% and inputs height by 70% */
+      /* MOBILE PORTRAIT - Login Screen: Reduce buttons and inputs */
       html.github-pages body.mobile-device.portrait .login-btn,
       html.github-pages body.mobile-device.portrait #loginSendCodeBtn,
       html.github-pages body.mobile-device.portrait #loginVerifyBtn {
-        padding: 8px 24px !important; /* 55% of 14px vertical, keep width */
-        font-size: 8px !important; /* 55% of 15px */
+        padding: 14px 24px !important;
+        font-size: 12px !important;
         min-height: unset !important;
         height: auto !important;
       }
 
       html.github-pages body.mobile-device.portrait #loginBackBtn {
-        padding: 8px 16px !important;
-        font-size: 8px !important;
+        padding: 14px 16px !important;
+        font-size: 12px !important;
         min-height: unset !important;
         height: auto !important;
       }
 
-      html.github-pages body.mobile-device.portrait .login-input {
-        padding: 8px 16px !important; /* 70% of 12px vertical, keep horizontal */
+      html.github-pages body.mobile-device.portrait .login-input,
+      html.github-pages body.mobile-device.portrait #loginEmailInput,
+      html.github-pages body.mobile-device.portrait #loginCodeInput {
+        padding: 8px 16px !important; /* 70% of 12px vertical */
         font-size: 12px !important;
+        min-height: unset !important;
+        height: auto !important;
       }
 
       /* MOBILE PORTRAIT - Breadcrumbs: 12px */
