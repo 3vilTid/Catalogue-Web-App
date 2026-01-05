@@ -8579,6 +8579,65 @@ DETECTION SYSTEM (working correctly):
           .getTabData(tab.layersSheetName, tab.mainSheetName, tab.columnConfigSheetName, token);
       }
 
+      // Cache initial tab data (tab 0) that was loaded via getInitialData
+      function cacheInitialTabData() {
+        if (tabsConfig.length === 0) return;
+
+        // Store initial tab data in cache so switching back is instant
+        tabDataCache[0] = {
+          layerConfig: layerConfig,
+          layersData: layersData,
+          items: allItems,
+          columnConfig: columnConfig,
+          headers: headers,
+          settings: settings
+        };
+        console.log('💾 Initial tab (tab 0) cached for instant switching');
+      }
+
+      // Preload other tabs in background for instant switching
+      function preloadOtherTabs() {
+        if (tabsConfig.length <= 1) return;
+
+        console.log('🔄 Starting background preload for', tabsConfig.length - 1, 'other tab(s)...');
+
+        const token = getSessionToken();
+        let preloadedCount = 0;
+
+        // Preload tabs 1, 2, 3... (skip tab 0 which is already loaded)
+        for (let i = 1; i < tabsConfig.length; i++) {
+          const tabIndex = i;
+          const tab = tabsConfig[tabIndex];
+
+          // Skip if already cached
+          if (tabDataCache[tabIndex]) {
+            console.log('⚡ Tab', tabIndex, '(' + tab.tabName + ') already cached');
+            preloadedCount++;
+            continue;
+          }
+
+          // Fetch tab data in background
+          google.script.run
+            .withSuccessHandler(function(tabData) {
+              // Store in cache
+              tabDataCache[tabIndex] = {
+                layerConfig: tabData.layerConfig || [],
+                layersData: tabData.layersData || {},
+                items: tabData.items || [],
+                columnConfig: tabData.columnConfig || [],
+                headers: tabData.headers || [],
+                settings: tabData.settings
+              };
+              preloadedCount++;
+              console.log('✅ Preloaded tab', tabIndex, '(' + tab.tabName + ') -', preloadedCount, 'of', tabsConfig.length - 1, 'done');
+            })
+            .withFailureHandler(function(error) {
+              console.warn('⚠️ Failed to preload tab', tabIndex, '(' + tab.tabName + '):', error.message);
+            })
+            .getTabData(tab.layersSheetName, tab.mainSheetName, tab.columnConfigSheetName, token);
+        }
+      }
+
       // Helper function to render the current tab view
       function renderTabView() {
         if (currentView === "detail" && currentDetailIndex >= 0 && currentDisplayedItems[currentDetailIndex]) {
@@ -10019,6 +10078,10 @@ DETECTION SYSTEM (working correctly):
             // Initialize tabs if configured
             initializeTabs();
 
+            // Cache initial tab data and preload other tabs for instant switching
+            cacheInitialTabData();
+            preloadOtherTabs();
+
             // Show layers if configured, otherwise show main list
             navigateToHome();
 
@@ -10081,6 +10144,10 @@ DETECTION SYSTEM (working correctly):
 
             // Initialize tabs if configured
             initializeTabs();
+
+            // Cache initial tab data and preload other tabs for instant switching
+            cacheInitialTabData();
+            preloadOtherTabs();
 
             // Show layers if configured, otherwise show main list
             navigateToHome();
@@ -10164,6 +10231,10 @@ DETECTION SYSTEM (working correctly):
 
             // Initialize tabs if configured
             initializeTabs();
+
+            // Cache initial tab data and preload other tabs for instant switching
+            cacheInitialTabData();
+            preloadOtherTabs();
 
             // Show layers if configured, otherwise show main list
             navigateToHome();
