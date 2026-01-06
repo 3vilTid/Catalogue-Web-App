@@ -5676,6 +5676,9 @@ DETECTION SYSTEM (working correctly):
           document.getElementById("filterWrapper").style.display = "none";
           document.getElementById("sortWrapper").style.display = "none";
         }
+
+        // Update filters-row visibility after filter/sort visibility changes
+        updateFiltersRowVisibility();
       }
 
       // Update search bar visibility based on current layer/view
@@ -5707,6 +5710,59 @@ DETECTION SYSTEM (working correctly):
         }
 
         console.log('🔍 Search bar visibility:', showSearch, '(layer:', currentLayerIndex, ', view:', currentView + ')');
+
+        // Update filters-row visibility after search bar visibility changes
+        updateFiltersRowVisibility();
+      }
+
+      // Update filters-row visibility based on whether any child elements are visible
+      function updateFiltersRowVisibility() {
+        const filtersRow = document.querySelector('.filters-row');
+        if (!filtersRow) return;
+
+        // Check visibility of all child elements
+        const searchWrapper = document.getElementById('searchWrapper');
+        const breadcrumbNav = document.getElementById('breadcrumbNav');
+        const backToListBtn = document.getElementById('backToListBtn');
+        const filterWrapper = document.getElementById('filterWrapper');
+        const sortWrapper = document.getElementById('sortWrapper');
+        const sheetLinkBtn = document.getElementById('sheetLinkBtn');
+        const addItemBtn = document.getElementById('addItemBtn');
+
+        // Helper to check if element is visible (display !== 'none')
+        const isVisible = (el) => {
+          if (!el) return false;
+          const style = el.style.display;
+          return style !== 'none' && style !== '';
+        };
+
+        // Check if element is visible via computed style (for elements without inline style)
+        const isVisibleComputed = (el) => {
+          if (!el) return false;
+          const computed = window.getComputedStyle(el);
+          return computed.display !== 'none';
+        };
+
+        // Check if any element is visible
+        const hasVisibleContent =
+          isVisibleComputed(searchWrapper) ||
+          isVisibleComputed(breadcrumbNav) ||
+          isVisibleComputed(backToListBtn) ||
+          isVisibleComputed(filterWrapper) ||
+          isVisibleComputed(sortWrapper) ||
+          isVisibleComputed(sheetLinkBtn) ||
+          isVisibleComputed(addItemBtn);
+
+        if (hasVisibleContent) {
+          // Show filters-row with minimum height (search bar height + padding)
+          filtersRow.style.display = 'flex';
+          filtersRow.style.minHeight = '48px'; // Approximate search bar height + margin
+        } else {
+          // Hide filters-row entirely
+          filtersRow.style.display = 'none';
+        }
+
+        console.log('📋 Filters row visibility:', hasVisibleContent);
       }
 
       function formatDate(dateValue) {
@@ -8349,6 +8405,7 @@ DETECTION SYSTEM (working correctly):
         if (navigationStack.length === 0 && currentView !== "layer") {
           // No breadcrumb needed
           breadcrumbNav.style.display = "none";
+          updateFiltersRowVisibility();
           return;
         }
 
@@ -8363,6 +8420,7 @@ DETECTION SYSTEM (working correctly):
 
         breadcrumbNav.innerHTML = breadcrumbHTML;
         breadcrumbNav.style.display = "flex";
+        updateFiltersRowVisibility();
       }
 
       // Navigate to a specific breadcrumb level
