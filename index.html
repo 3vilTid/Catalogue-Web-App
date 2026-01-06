@@ -5756,7 +5756,14 @@ DETECTION SYSTEM (working correctly):
         if (hasVisibleContent) {
           // Show filters-row with minimum height (search bar height + padding)
           filtersRow.style.display = 'flex';
-          filtersRow.style.minHeight = '48px'; // Approximate search bar height + margin
+
+          // GitHub Pages Mobile Portrait has smaller search bar (26px), use smaller min-height
+          const isGitHubPagesMobilePortrait =
+            document.documentElement.classList.contains('github-pages') &&
+            document.body.classList.contains('mobile-device') &&
+            document.body.classList.contains('portrait');
+
+          filtersRow.style.minHeight = isGitHubPagesMobilePortrait ? '30px' : '48px';
         } else {
           // Hide filters-row entirely
           filtersRow.style.display = 'none';
