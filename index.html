@@ -8866,6 +8866,11 @@ DETECTION SYSTEM (working correctly):
             : null;
           console.log('🎨 Rendering LAYER view:', { currentLayerIndex, parentFilter });
           renderLayerView(currentLayerIndex, parentFilter);
+        } else if (currentView === "list" && navigationStack.length > 0) {
+          // Restore filtered list view (came from layer navigation)
+          const lastNav = navigationStack[navigationStack.length - 1];
+          console.log('🎨 Rendering filtered LIST view from layer:', lastNav);
+          showMainItemsFilteredByLayer(lastNav.layerIndex, lastNav.itemName);
         } else {
           // Navigate to home (Layer 1 or main list)
           console.log('🎨 Rendering HOME (else branch) - currentView:', currentView, 'currentLayerIndex:', currentLayerIndex);
