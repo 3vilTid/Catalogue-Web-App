@@ -550,8 +550,9 @@ function getTabsConfig() {
       return [];
     }
 
-    // Read tab configuration from B11:E20 (data rows, skipping header in row 10)
-    var tabRange = settingsSheet.getRange('B11:E20');
+    // Read tab configuration from B11:F20 (data rows, skipping header in row 10)
+    // Column F contains showSearch setting ("Yes" = visible, anything else = hidden)
+    var tabRange = settingsSheet.getRange('B11:F20');
     var tabValues = tabRange.getValues();
 
     var tabsConfig = [];
@@ -562,18 +563,25 @@ function getTabsConfig() {
       var layersSheetName = row[1]; // Column C
       var mainSheetName = row[2]; // Column D
       var columnConfigSheetName = row[3]; // Column E
+      var showSearchValue = row[4]; // Column F
 
       // Skip empty rows (check if tab name is empty)
       if (!tabName || tabName.toString().trim() === '') {
         continue;
       }
 
+      // showSearch: "Yes" = true, anything else (including blank) = false
+      var showSearch = String(showSearchValue || "").trim().toLowerCase() === "yes";
+
       tabsConfig.push({
         tabName: tabName.toString().trim(),
         layersSheetName: layersSheetName ? layersSheetName.toString().trim() : '',
         mainSheetName: mainSheetName ? mainSheetName.toString().trim() : '',
-        columnConfigSheetName: columnConfigSheetName ? columnConfigSheetName.toString().trim() : ''
+        columnConfigSheetName: columnConfigSheetName ? columnConfigSheetName.toString().trim() : '',
+        showSearch: showSearch
       });
+
+      Logger.log('Tab ' + (i + 1) + ': ' + tabName + ' (showSearch: ' + showSearch + ')');
     }
 
     Logger.log('Tabs config loaded: ' + tabsConfig.length + ' tabs');
