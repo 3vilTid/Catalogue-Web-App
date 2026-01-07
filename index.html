@@ -8565,6 +8565,8 @@ DETECTION SYSTEM (working correctly):
 
       // Save current tab state before switching
       function saveCurrentTabState() {
+        console.log('📦 SAVING state - currentTabIndex:', currentTabIndex, 'currentView:', currentView, 'currentLayerIndex:', currentLayerIndex, 'navStack:', JSON.stringify(navigationStack));
+
         tabStates[currentTabIndex] = {
           navigationStack: [...navigationStack],
           currentLayerIndex: currentLayerIndex,
@@ -8582,6 +8584,8 @@ DETECTION SYSTEM (working correctly):
 
       // Restore tab state after switching
       function restoreTabState(tabIndex) {
+        console.log('📂 RESTORING state for tab', tabIndex, '- tabStates[tabIndex] exists:', !!tabStates[tabIndex]);
+
         if (tabStates[tabIndex]) {
           const state = tabStates[tabIndex];
           navigationStack = [...state.navigationStack];
@@ -8598,6 +8602,7 @@ DETECTION SYSTEM (working correctly):
           document.getElementById("searchInput").value = searchQuery;
 
           console.log('📂 Restored state for tab', tabIndex, ':', state);
+          console.log('📂 After restore - currentView:', currentView, 'currentLayerIndex:', currentLayerIndex, 'navStack:', JSON.stringify(navigationStack));
         } else {
           // No saved state - initialize fresh
           navigationStack = [];
@@ -8843,7 +8848,15 @@ DETECTION SYSTEM (working correctly):
 
       // Helper function to render the current tab view
       function renderTabView() {
+        console.log('🎨 renderTabView called with:', {
+          currentView: currentView,
+          currentLayerIndex: currentLayerIndex,
+          navigationStackLength: navigationStack.length,
+          navigationStack: JSON.stringify(navigationStack)
+        });
+
         if (currentView === "detail" && currentDetailIndex >= 0 && currentDisplayedItems[currentDetailIndex]) {
+          console.log('🎨 Rendering DETAIL view');
           showDetails(currentDisplayedItems[currentDetailIndex], currentDetailIndex);
         } else if (currentView === "layer" && currentLayerIndex >= 0) {
           // Restore layer view using saved currentLayerIndex
@@ -8851,9 +8864,11 @@ DETECTION SYSTEM (working correctly):
           const parentFilter = navigationStack.length > 0
             ? navigationStack[navigationStack.length - 1].itemName
             : null;
+          console.log('🎨 Rendering LAYER view:', { currentLayerIndex, parentFilter });
           renderLayerView(currentLayerIndex, parentFilter);
         } else {
           // Navigate to home (Layer 1 or main list)
+          console.log('🎨 Rendering HOME (else branch) - currentView:', currentView, 'currentLayerIndex:', currentLayerIndex);
           navigateToHome();
         }
       }
