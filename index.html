@@ -5663,6 +5663,32 @@ DETECTION SYSTEM (working correctly):
 
       // -------------------- Helpers --------------------
 
+      // Centralized function to update ALL UI visibility (back button, search bar, filter/sort, filters-row)
+      // Call this after any view change (tab switch, layer change, entering detail view)
+      function updateAllUIVisibility() {
+        // 1. Update back button visibility
+        const backToListBtn = document.getElementById("backToListBtn");
+        if (backToListBtn) {
+          // Show back button only in detail view when no layers exist (breadcrumb handles navigation when layers exist)
+          // Also show in list view when no layers exist and we came from somewhere
+          if (currentView === "detail" && layerConfig.length === 0) {
+            backToListBtn.style.display = "inline-flex";
+          } else if (currentView === "list" && layerConfig.length === 0 && navigationStack.length > 0) {
+            backToListBtn.style.display = "inline-flex";
+          } else {
+            backToListBtn.style.display = "none";
+          }
+        }
+
+        // 2. Update search bar visibility
+        updateSearchBarVisibility();
+
+        // 3. Update filter/sort visibility (this also calls updateFiltersRowVisibility)
+        updateFilterSortVisibility();
+
+        console.log('🔄 UI visibility updated - view:', currentView, 'layerConfig.length:', layerConfig.length);
+      }
+
       // Update filter and sort button visibility based on available columns
       function updateFilterSortVisibility() {
         const hasFilterColumns = filterColumns && filterColumns.length > 0;
@@ -7756,11 +7782,8 @@ DETECTION SYSTEM (working correctly):
           renderLayerCardsView(standardizedItems, grid, layerIndex);
         }
 
-        // Update filter/sort button visibility based on view type
-        updateFilterSortVisibility();
-
-        // Update search bar visibility for this layer
-        updateSearchBarVisibility();
+        // Update all UI visibility (back button, search bar, filter/sort, filters-row)
+        updateAllUIVisibility();
       }
 
       // Render layer items as cards
@@ -8382,8 +8405,8 @@ DETECTION SYSTEM (working correctly):
         currentView = "list";
         renderList(filteredItems);
 
-        // Update UI for back button
-        updateLayerNavigationUI();
+        // Update breadcrumb for navigation
+        updateBreadcrumb();
 
         // Push history state
         history.pushState({
@@ -8391,8 +8414,8 @@ DETECTION SYSTEM (working correctly):
           layerFiltered: true
         }, "", "");
 
-        // Update search bar visibility for Main Layer
-        updateSearchBarVisibility();
+        // Update all UI visibility (back button, search bar, filter/sort, filters-row)
+        updateAllUIVisibility();
       }
 
       // Update UI elements for layer navigation
@@ -8491,20 +8514,14 @@ DETECTION SYSTEM (working correctly):
         currentLayerIndex = -1;
 
         if (layerConfig.length > 0) {
-          // Show Layer 1
+          // Show Layer 1 (renderLayerView calls updateAllUIVisibility at the end)
           renderLayerView(0, null);
-          document.getElementById("backToListBtn").style.display = "none";
-          document.getElementById("filterWrapper").style.display = "none";
-          document.getElementById("sortWrapper").style.display = "none";
         } else {
           // No layers - show main list
           currentView = "list";
           applyFiltersAndSorting();
-          document.getElementById("backToListBtn").style.display = "none";
-          // Show filter/sort only if columns are configured
-          updateFilterSortVisibility();
-          // Update search bar visibility for main list
-          updateSearchBarVisibility();
+          // Update all UI visibility
+          updateAllUIVisibility();
         }
 
         updateBreadcrumb();
@@ -8695,7 +8712,7 @@ DETECTION SYSTEM (working correctly):
           renderTabMenu();
           updateBreadcrumb();
           updateChipsUI();
-          updateFilterSortVisibility();
+          updateAllUIVisibility();
 
           return;
         }
@@ -8762,7 +8779,7 @@ DETECTION SYSTEM (working correctly):
             renderTabMenu();
             updateBreadcrumb();
             updateChipsUI();
-            updateFilterSortVisibility();
+            updateAllUIVisibility();
           })
           .withFailureHandler(function(error) {
             console.error('❌ Error loading tab data:', error);
@@ -8913,14 +8930,8 @@ DETECTION SYSTEM (working correctly):
         currentView = "detail";
         history.pushState({ view: "detail", index: index }, "", "");
 
-        // Show back button only if no layers (breadcrumb handles navigation when layers exist)
-        if (layerConfig.length === 0) {
-          document.getElementById("backToListBtn").style.display = "inline-flex";
-        } else {
-          document.getElementById("backToListBtn").style.display = "none";
-        }
-        document.getElementById("filterWrapper").style.display = "none";
-        document.getElementById("sortWrapper").style.display = "none";
+        // Update all UI visibility (back button, search bar, filter/sort, filters-row)
+        updateAllUIVisibility();
 
         // Add 'no-image' class if there's no image
         const hasImage = imageColumn && item[imageColumn.columnName];
