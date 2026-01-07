@@ -5715,22 +5715,16 @@ DETECTION SYSTEM (working correctly):
         updateFiltersRowVisibility();
       }
 
-      // Update search bar visibility based on current layer/view
+      // Update search bar visibility based on current tab's showSearch setting
+      // Search visibility is now per-tab (F11-F20 in Settings sheet), applies to entire tab (all layers + detail view)
       function updateSearchBarVisibility() {
         const searchWrapper = document.getElementById("searchWrapper");
         if (!searchWrapper) return;
 
+        // Get showSearch from current tab's config
         let showSearch = false;
-
-        if (currentView === "layer" && currentLayerIndex >= 0 && currentLayerIndex < layerConfig.length) {
-          // In a layer view (Layer 1, 2, or 3) - check that layer's showSearch setting
-          showSearch = layerConfig[currentLayerIndex].showSearch === true;
-        } else if (currentView === "list") {
-          // In main list view (Main Layer / Layer 4) - check mainLayerShowSearch
-          showSearch = mainLayerShowSearch === true;
-        } else if (layerConfig.length === 0) {
-          // No layers configured - use mainLayerShowSearch (treating whole app as Main Layer)
-          showSearch = mainLayerShowSearch === true;
+        if (tabsConfig && tabsConfig.length > 0 && currentTabIndex >= 0 && currentTabIndex < tabsConfig.length) {
+          showSearch = tabsConfig[currentTabIndex].showSearch === true;
         }
 
         // Show/hide search wrapper
@@ -5743,7 +5737,7 @@ DETECTION SYSTEM (working correctly):
           document.getElementById("clearSearchBtn").style.display = "none";
         }
 
-        console.log('🔍 Search bar visibility:', showSearch, '(layer:', currentLayerIndex, ', view:', currentView + ')');
+        console.log('🔍 Search bar visibility:', showSearch, '(tab:', currentTabIndex, ', tabName:', tabsConfig[currentTabIndex]?.tabName + ')');
 
         // Update filters-row visibility after search bar visibility changes
         updateFiltersRowVisibility();
