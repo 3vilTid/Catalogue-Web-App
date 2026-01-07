@@ -8846,16 +8846,12 @@ DETECTION SYSTEM (working correctly):
         if (currentView === "detail" && currentDetailIndex >= 0 && currentDisplayedItems[currentDetailIndex]) {
           showDetails(currentDisplayedItems[currentDetailIndex], currentDetailIndex);
         } else if (currentView === "layer" && currentLayerIndex >= 0) {
-          // Reconstruct layer view from navigation stack
-          if (navigationStack.length > 0) {
-            const lastNav = navigationStack[navigationStack.length - 1];
-            const parentFilter = navigationStack.length >= 2
-              ? navigationStack[navigationStack.length - 2].itemName
-              : null;
-            renderLayerView(lastNav.layerIndex, parentFilter);
-          } else {
-            renderLayerView(currentLayerIndex, null);
-          }
+          // Restore layer view using saved currentLayerIndex
+          // navigationStack stores layers we came FROM, so parent filter is the last item's itemName
+          const parentFilter = navigationStack.length > 0
+            ? navigationStack[navigationStack.length - 1].itemName
+            : null;
+          renderLayerView(currentLayerIndex, parentFilter);
         } else {
           // Navigate to home (Layer 1 or main list)
           navigateToHome();
