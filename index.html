@@ -8843,7 +8843,15 @@ DETECTION SYSTEM (working correctly):
 
       // Helper function to render the current tab view
       function renderTabView() {
+        console.log('🎨 renderTabView called with:', {
+          currentView: currentView,
+          currentLayerIndex: currentLayerIndex,
+          navigationStackLength: navigationStack.length,
+          navigationStack: JSON.stringify(navigationStack)
+        });
+
         if (currentView === "detail" && currentDetailIndex >= 0 && currentDisplayedItems[currentDetailIndex]) {
+          console.log('🎨 Rendering DETAIL view');
           showDetails(currentDisplayedItems[currentDetailIndex], currentDetailIndex);
         } else if (currentView === "layer" && currentLayerIndex >= 0) {
           // Restore layer view using saved currentLayerIndex
@@ -8851,9 +8859,11 @@ DETECTION SYSTEM (working correctly):
           const parentFilter = navigationStack.length > 0
             ? navigationStack[navigationStack.length - 1].itemName
             : null;
+          console.log('🎨 Rendering LAYER view:', { currentLayerIndex, parentFilter });
           renderLayerView(currentLayerIndex, parentFilter);
         } else {
           // Navigate to home (Layer 1 or main list)
+          console.log('🎨 Rendering HOME (else branch) - currentView:', currentView, 'currentLayerIndex:', currentLayerIndex);
           navigateToHome();
         }
       }
