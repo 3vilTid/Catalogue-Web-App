@@ -8565,6 +8565,8 @@ DETECTION SYSTEM (working correctly):
 
       // Save current tab state before switching
       function saveCurrentTabState() {
+        console.log('📦 SAVING state - currentTabIndex:', currentTabIndex, 'currentView:', currentView, 'currentLayerIndex:', currentLayerIndex, 'navStack:', JSON.stringify(navigationStack));
+
         tabStates[currentTabIndex] = {
           navigationStack: [...navigationStack],
           currentLayerIndex: currentLayerIndex,
@@ -8582,6 +8584,8 @@ DETECTION SYSTEM (working correctly):
 
       // Restore tab state after switching
       function restoreTabState(tabIndex) {
+        console.log('📂 RESTORING state for tab', tabIndex, '- tabStates[tabIndex] exists:', !!tabStates[tabIndex]);
+
         if (tabStates[tabIndex]) {
           const state = tabStates[tabIndex];
           navigationStack = [...state.navigationStack];
@@ -8598,6 +8602,7 @@ DETECTION SYSTEM (working correctly):
           document.getElementById("searchInput").value = searchQuery;
 
           console.log('📂 Restored state for tab', tabIndex, ':', state);
+          console.log('📂 After restore - currentView:', currentView, 'currentLayerIndex:', currentLayerIndex, 'navStack:', JSON.stringify(navigationStack));
         } else {
           // No saved state - initialize fresh
           navigationStack = [];
