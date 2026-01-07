@@ -5807,13 +5807,30 @@ DETECTION SYSTEM (working correctly):
           if (topHeader && isGitHubPagesMobilePortrait) {
             topHeader.style.marginBottom = '0';
           }
+
+          // Restore negative margins on grid/detail views (GitHub Pages Mobile Portrait only)
+          if (isGitHubPagesMobilePortrait) {
+            const gridView = document.getElementById('gridView');
+            const detailView = document.getElementById('detailView');
+            if (gridView) gridView.style.marginTop = '';  // Let CSS take over
+            if (detailView) detailView.style.marginTop = '';  // Let CSS take over
+          }
         } else {
           // Hide filters-row entirely
           filtersRow.style.display = 'none';
 
-          // Add 10px bottom margin to top-header when filters-row is hidden (GitHub Pages Mobile Portrait only)
-          if (topHeader && isGitHubPagesMobilePortrait) {
-            topHeader.style.marginBottom = '10px';
+          // GitHub Pages Mobile Portrait: adjust margins when filters-row is hidden
+          if (isGitHubPagesMobilePortrait) {
+            // Add margin to top-header
+            if (topHeader) {
+              topHeader.style.marginBottom = '10px';
+            }
+
+            // Remove negative margins on grid/detail views since filters-row is gone
+            const gridView = document.getElementById('gridView');
+            const detailView = document.getElementById('detailView');
+            if (gridView) gridView.style.marginTop = '0';
+            if (detailView) detailView.style.marginTop = '0';
           }
         }
 
