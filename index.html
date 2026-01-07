@@ -5803,17 +5803,18 @@ DETECTION SYSTEM (working correctly):
           // GitHub Pages Mobile Portrait has smaller search bar (26px), use smaller min-height
           filtersRow.style.minHeight = isGitHubPagesMobilePortrait ? '30px' : '48px';
 
-          // Remove margin from top-header when filters-row is visible
-          if (topHeader && isGitHubPagesMobilePortrait) {
-            topHeader.style.marginBottom = '0';
-          }
-
-          // Restore negative margins on grid/detail views (GitHub Pages Mobile Portrait only)
+          // GitHub Pages Mobile Portrait: restore normal margins when filters-row is visible
           if (isGitHubPagesMobilePortrait) {
+            // Remove margin from top-header
+            if (topHeader) {
+              topHeader.style.removeProperty('margin-bottom');
+            }
+
+            // Let CSS negative margins take over again
             const gridView = document.getElementById('gridView');
             const detailView = document.getElementById('detailView');
-            if (gridView) gridView.style.marginTop = '';  // Let CSS take over
-            if (detailView) detailView.style.marginTop = '';  // Let CSS take over
+            if (gridView) gridView.style.removeProperty('margin-top');
+            if (detailView) detailView.style.removeProperty('margin-top');
           }
         } else {
           // Hide filters-row entirely
@@ -5823,14 +5824,15 @@ DETECTION SYSTEM (working correctly):
           if (isGitHubPagesMobilePortrait) {
             // Add margin to top-header
             if (topHeader) {
-              topHeader.style.marginBottom = '10px';
+              topHeader.style.setProperty('margin-bottom', '10px', 'important');
             }
 
             // Remove negative margins on grid/detail views since filters-row is gone
+            // Must use setProperty with 'important' to override CSS !important rules
             const gridView = document.getElementById('gridView');
             const detailView = document.getElementById('detailView');
-            if (gridView) gridView.style.marginTop = '0';
-            if (detailView) detailView.style.marginTop = '0';
+            if (gridView) gridView.style.setProperty('margin-top', '0', 'important');
+            if (detailView) detailView.style.setProperty('margin-top', '0', 'important');
           }
         }
 
