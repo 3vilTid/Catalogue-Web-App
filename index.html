@@ -4102,10 +4102,12 @@ DETECTION SYSTEM (working correctly):
       }
 
       html.github-pages body.mobile-device.portrait .clear-search-btn {
-        width: 8px !important;
-        height: 8px !important;
-        font-size: 9px !important;
-        right: 3px !important;
+        width: 16px !important;
+        height: 16px !important;
+        min-width: 16px !important;
+        min-height: 16px !important;
+        font-size: 10px !important;
+        right: 5px !important;
       }
 
       html.github-pages body.mobile-device.portrait .item-card {
@@ -5756,7 +5758,14 @@ DETECTION SYSTEM (working correctly):
         if (hasVisibleContent) {
           // Show filters-row with minimum height (search bar height + padding)
           filtersRow.style.display = 'flex';
-          filtersRow.style.minHeight = '48px'; // Approximate search bar height + margin
+
+          // GitHub Pages Mobile Portrait has smaller search bar (26px), use smaller min-height
+          const isGitHubPagesMobilePortrait =
+            document.documentElement.classList.contains('github-pages') &&
+            document.body.classList.contains('mobile-device') &&
+            document.body.classList.contains('portrait');
+
+          filtersRow.style.minHeight = isGitHubPagesMobilePortrait ? '30px' : '48px';
         } else {
           // Hide filters-row entirely
           filtersRow.style.display = 'none';
