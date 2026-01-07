@@ -5787,20 +5787,34 @@ DETECTION SYSTEM (working correctly):
           isVisibleComputed(sheetLinkBtn) ||
           isVisibleComputed(addItemBtn);
 
+        // Check if we're on GitHub Pages Mobile Portrait
+        const isGitHubPagesMobilePortrait =
+          document.documentElement.classList.contains('github-pages') &&
+          document.body.classList.contains('mobile-device') &&
+          document.body.classList.contains('portrait');
+
+        // Get top-header for margin adjustment
+        const topHeader = document.querySelector('.top-header');
+
         if (hasVisibleContent) {
           // Show filters-row with minimum height (search bar height + padding)
           filtersRow.style.display = 'flex';
 
           // GitHub Pages Mobile Portrait has smaller search bar (26px), use smaller min-height
-          const isGitHubPagesMobilePortrait =
-            document.documentElement.classList.contains('github-pages') &&
-            document.body.classList.contains('mobile-device') &&
-            document.body.classList.contains('portrait');
-
           filtersRow.style.minHeight = isGitHubPagesMobilePortrait ? '30px' : '48px';
+
+          // Remove margin from top-header when filters-row is visible
+          if (topHeader && isGitHubPagesMobilePortrait) {
+            topHeader.style.marginBottom = '0';
+          }
         } else {
           // Hide filters-row entirely
           filtersRow.style.display = 'none';
+
+          // Add 5px bottom margin to top-header when filters-row is hidden (GitHub Pages Mobile Portrait only)
+          if (topHeader && isGitHubPagesMobilePortrait) {
+            topHeader.style.marginBottom = '5px';
+          }
         }
 
         console.log('📋 Filters row visibility:', hasVisibleContent);
