@@ -4763,7 +4763,6 @@ DETECTION SYSTEM (working correctly):
         background: var(--card-bg);
         border-radius: 12px;
         box-shadow: var(--shadow);
-        cursor: pointer;
       }
 
       .diaporama-vertical .diaporama-item {
@@ -7440,10 +7439,9 @@ DETECTION SYSTEM (working correctly):
           grid.innerHTML += itemHtml;
         }
 
-        // After rendering, load images and set up click handlers
+        // After rendering, load images (click handlers for zoom already in setupDiaporamaImages)
         setTimeout(() => {
           setupDiaporamaImages(grid);
-          setupMainDiaporamaClickHandlers(grid, items);
         }, 0);
       }
 
@@ -7668,23 +7666,6 @@ DETECTION SYSTEM (working correctly):
         return html;
       }
 
-      // Set up click handlers for Main diaporama items (opens detail view)
-      function setupMainDiaporamaClickHandlers(container, items) {
-        const diaporamaItems = container.querySelectorAll('.diaporama-item');
-        diaporamaItems.forEach((itemEl, index) => {
-          // Click on item (but not on image or links) opens detail view
-          itemEl.addEventListener('click', (e) => {
-            // Don't navigate if clicking on image, link, or button
-            if (e.target.closest('.diaporama-img') ||
-                e.target.closest('a') ||
-                e.target.closest('button')) {
-              return;
-            }
-            showDetails(items[index], index);
-          });
-        });
-      }
-
       // Show specific item in horizontal diaporama for Main view
       function showMainDiaporamaItem(index) {
         if (index < 0 || index >= currentDiaporamaItems.length) return;
@@ -7695,10 +7676,9 @@ DETECTION SYSTEM (working correctly):
 
         container.innerHTML = buildMainDiaporamaItemHtml(currentDiaporamaItems[index], index);
 
-        // Set up image and click handlers
+        // Set up image zoom handlers (no navigation on click - diaporama IS the detail view)
         setTimeout(() => {
           setupDiaporamaImages(container);
-          setupMainDiaporamaClickHandlers(container, currentDiaporamaItems);
         }, 0);
 
         // Update navigation button visibility
@@ -8941,10 +8921,9 @@ DETECTION SYSTEM (working correctly):
           grid.innerHTML += itemHtml;
         }
 
-        // After rendering, load images and set up click handlers
+        // After rendering, load images (click handlers for zoom already in setupDiaporamaImages)
         setTimeout(() => {
           setupDiaporamaImages(grid);
-          setupDiaporamaClickHandlers(grid, items, layerIndex);
         }, 0);
       }
 
@@ -9230,25 +9209,6 @@ DETECTION SYSTEM (working correctly):
         wrapper.appendChild(fullImg);
       }
 
-      // Set up click handlers for diaporama items (for layer navigation)
-      function setupDiaporamaClickHandlers(container, items, layerIndex) {
-        const diaporamaItems = container.querySelectorAll('.diaporama-item');
-        diaporamaItems.forEach((itemEl, index) => {
-          // Click on item (but not on image or links) navigates to next layer
-          itemEl.addEventListener('click', (e) => {
-            // Don't navigate if clicking on image, link, or button
-            if (e.target.closest('.diaporama-img') ||
-                e.target.closest('a') ||
-                e.target.closest('button')) {
-              return;
-            }
-            const standardItem = items[index];
-            const item = standardItem._rawLayerItem || standardItem;
-            onLayerItemClick(layerIndex, item, itemEl, index);
-          });
-        });
-      }
-
       // Diaporama state for horizontal navigation
       let currentDiaporamaItems = [];
       let currentDiaporamaIndex = 0;
@@ -9264,10 +9224,9 @@ DETECTION SYSTEM (working correctly):
 
         container.innerHTML = buildDiaporamaItemHtml(currentDiaporamaItems[index], index, currentDiaporamaLayerIndex);
 
-        // Set up image and click handlers
+        // Set up image zoom handlers (no navigation on click - diaporama IS the detail view)
         setTimeout(() => {
           setupDiaporamaImages(container);
-          setupDiaporamaClickHandlers(container, currentDiaporamaItems, currentDiaporamaLayerIndex);
         }, 0);
 
         // Update navigation button visibility
