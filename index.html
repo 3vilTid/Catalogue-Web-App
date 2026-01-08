@@ -4902,14 +4902,18 @@ DETECTION SYSTEM (working correctly):
         margin-top: 10px;
         word-wrap: break-word;
         overflow-wrap: break-word;
+        text-align: center;
       }
 
       .diaporama-bottom {
-        font-size: 12px;
-        color: var(--text-soft);
+        font-size: 13px;
         margin-top: 10px;
         word-wrap: break-word;
         overflow-wrap: break-word;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
       }
 
       /* Navigation buttons for horizontal mode */
@@ -7663,19 +7667,24 @@ DETECTION SYSTEM (working correctly):
           }
         }
 
-        // Bottom
-        const bottomBits = [];
+        // Bottom - handles external links and stacks them right to left
+        let bottomHtml = '';
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
           if (config.itemPlace !== "bottom") continue;
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
-            const displayVal = config.type === "date" ? formatDate(val) : val;
-            bottomBits.push(displayVal);
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              bottomHtml += '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              bottomHtml += '<span>' + displayVal + '</span>';
+            }
           }
         }
-        if (bottomBits.length > 0) {
-          html += '<div class="detail-meta diaporama-bottom">' + bottomBits.join(" • ") + '</div>';
+        if (bottomHtml) {
+          html += '<div class="diaporama-bottom">' + bottomHtml + '</div>';
         }
 
         html += '</div>'; // End below-picture
@@ -9118,15 +9127,24 @@ DETECTION SYSTEM (working correctly):
           }
         }
 
-        // Bottom
+        // Bottom - handles external links and stacks them right to left
+        let bottomHtml = '';
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
           if (config.itemPlace !== "bottom") continue;
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
-            const displayVal = config.type === "date" ? formatDate(val) : val;
-            html += '<div class="detail-field diaporama-bottom" style="font-size:11px;color:#9ca3af;">' + displayVal + '</div>';
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              bottomHtml += '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              bottomHtml += '<span>' + displayVal + '</span>';
+            }
           }
+        }
+        if (bottomHtml) {
+          html += '<div class="diaporama-bottom">' + bottomHtml + '</div>';
         }
 
         html += '</div>'; // End below-picture
