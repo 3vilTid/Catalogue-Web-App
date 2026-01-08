@@ -6927,6 +6927,8 @@ DETECTION SYSTEM (working correctly):
           renderListView(items, grid);
         } else if (viewType === 'table') {
           renderTableView(items, grid);
+        } else if (viewType === 'diaporama') {
+          renderDiaporamaView(items, grid);
         } else {
           // Default to cards view
           renderCardsView(items, grid);
@@ -7401,6 +7403,348 @@ DETECTION SYSTEM (working correctly):
           shell.style.width = '';
           shell.style.minWidth = '';
         }
+      }
+
+      // Render Diaporama View for Main items (slideshow-style view)
+      // Styles: 'Vertical' (all items stacked, scroll) or 'Horizontal' (one at a time, nav buttons/swipe)
+      function renderDiaporamaView(items, grid) {
+        grid.classList.remove('grid', 'list-view', 'table-view', 'grid-rectangle');
+        grid.classList.add('diaporama-view');
+
+        const style = getMainStyle();
+        const isHorizontal = style === 'Horizontal';
+
+        // Store items for navigation (used by horizontal style)
+        currentDiaporamaItems = items;
+        currentDiaporamaIndex = 0;
+        currentDiaporamaLayerIndex = -1; // -1 indicates Main view (not a layer)
+
+        if (isHorizontal) {
+          grid.classList.add('diaporama-horizontal');
+          grid.classList.remove('diaporama-vertical');
+          renderMainDiaporamaHorizontal(items, grid);
+        } else {
+          // Vertical - render all items stacked
+          grid.classList.add('diaporama-vertical');
+          grid.classList.remove('diaporama-horizontal');
+          renderMainDiaporamaVertical(items, grid);
+        }
+      }
+
+      // Render all diaporama items vertically for Main view (scrollable)
+      function renderMainDiaporamaVertical(items, grid) {
+        grid.innerHTML = '';
+
+        for (let i = 0; i < items.length; i++) {
+          const itemHtml = buildMainDiaporamaItemHtml(items[i], i);
+          grid.innerHTML += itemHtml;
+        }
+
+        // After rendering, load images and set up click handlers
+        setTimeout(() => {
+          setupDiaporamaImages(grid);
+          setupMainDiaporamaClickHandlers(grid, items);
+        }, 0);
+      }
+
+      // Render horizontal diaporama for Main view (one item at a time with navigation)
+      function renderMainDiaporamaHorizontal(items, grid) {
+        grid.innerHTML = '';
+
+        // Create container for the single visible item
+        const itemContainer = document.createElement('div');
+        itemContainer.id = 'diaporamaItemContainer';
+        itemContainer.className = 'diaporama-item-container';
+        grid.appendChild(itemContainer);
+
+        // Add navigation buttons for desktop
+        const isMobileOrTablet = document.body.classList.contains('mobile-device') ||
+                                  document.body.classList.contains('tablet-device');
+
+        if (!isMobileOrTablet) {
+          // Desktop: add nav buttons
+          const prevBtn = document.createElement('button');
+          prevBtn.id = 'diaporamaPrevBtn';
+          prevBtn.className = 'nav-arrow-btn nav-arrow-left diaporama-nav';
+          prevBtn.innerHTML = '&lt;';
+          prevBtn.onclick = () => navigateMainDiaporama(-1);
+          grid.appendChild(prevBtn);
+
+          const nextBtn = document.createElement('button');
+          nextBtn.id = 'diaporamaNextBtn';
+          nextBtn.className = 'nav-arrow-btn nav-arrow-right diaporama-nav';
+          nextBtn.innerHTML = '&gt;';
+          nextBtn.onclick = () => navigateMainDiaporama(1);
+          grid.appendChild(nextBtn);
+        }
+
+        // Render first item
+        showMainDiaporamaItem(0);
+
+        // Initialize swipe for mobile/tablet
+        if (isMobileOrTablet) {
+          initializeMainDiaporamaSwipe(grid);
+        }
+      }
+
+      // Build HTML for a single diaporama item in Main view
+      function buildMainDiaporamaItemHtml(item, index) {
+        const imageUrl = imageColumn && item[imageColumn.columnName] ? item[imageColumn.columnName] : '';
+        const name = primaryColumn && item[primaryColumn.columnName] ? item[primaryColumn.columnName] : '';
+
+        // Get SubId1, SubId2 from column config
+        let subId1 = '';
+        let subId2 = '';
+        if (categoryColumn && item[categoryColumn.columnName]) {
+          subId1 = item[categoryColumn.columnName];
+        }
+        if (placeColumn && item[placeColumn.columnName]) {
+          subId2 = item[placeColumn.columnName];
+        }
+
+        // Build HTML structure
+        let html = '<div class="diaporama-item" data-index="' + index + '">';
+
+        // === ABOVE PICTURE SECTION ===
+        html += '<div class="diaporama-above-picture">';
+
+        // Top Corner (positioned absolute)
+        const topCornerBits = [];
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "topcorner") continue;
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            const displayVal = config.type === "date" ? formatDate(val) : val;
+            topCornerBits.push(displayVal);
+          }
+        }
+        if (topCornerBits.length > 0) {
+          html += '<div class="detail-topcorner diaporama-topcorner">' + topCornerBits.join(" • ") + '</div>';
+        }
+
+        // Primary Identifier (centered)
+        html += '<div class="detail-name diaporama-name">' + name + '</div>';
+
+        // SubId1 (centered)
+        if (subId1) {
+          html += '<div class="detail-subtitle diaporama-subid1">' + subId1 + '</div>';
+        }
+
+        // Long text Up
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "longtextup") continue;
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              html += '<div class="detail-field diaporama-longtextup">' +
+                '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              html += '<div class="detail-field diaporama-longtextup"><span class="detail-label diaporama-field-label">' +
+                (config.displayName || config.columnName) + ':</span> ' + displayVal + '</div>';
+            }
+          }
+        }
+
+        html += '</div>'; // End above-picture
+
+        // === IMAGE SECTION ===
+        html += '<div class="diaporama-image-wrapper">';
+        if (imageUrl) {
+          const fileId = extractDriveFileId(imageUrl);
+          if (fileId) {
+            html += '<img class="diaporama-img" data-file-id="' + fileId + '" src="" alt="' + name + '" />';
+          } else {
+            html += '<img class="diaporama-img" data-raw-url="' + imageUrl + '" src="" alt="' + name + '" />';
+          }
+        } else {
+          html += '<div style="width:100%;height:200px;background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px);border-radius:8px;"></div>';
+        }
+        html += '</div>';
+
+        // === BELOW PICTURE SECTION ===
+        html += '<div class="diaporama-below-picture">';
+
+        // SubId2 (centered)
+        if (subId2) {
+          html += '<div class="detail-subtitle diaporama-subid2">' + subId2 + '</div>';
+        }
+
+        // Two column section: Detail Left and Detail Right
+        const leftFields = [];
+        const rightFields = [];
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace === "detailleft") {
+            leftFields.push(config);
+          } else if (config.itemPlace === "detailright") {
+            rightFields.push(config);
+          }
+        }
+
+        if (leftFields.length > 0 || rightFields.length > 0) {
+          html += '<div class="diaporama-two-column">';
+
+          // Left column
+          html += '<div class="diaporama-col-left">';
+          for (let i = 0; i < leftFields.length; i++) {
+            const config = leftFields[i];
+            const val = item[config.columnName];
+            if (val != null && String(val).trim() !== "") {
+              if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+                const linkLabel = config.displayName || config.columnName;
+                html += '<div class="diaporama-field">' +
+                  '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
+              } else {
+                const displayVal = config.type === "date" ? formatDate(val) : val;
+                html += '<div class="diaporama-field"><span class="diaporama-field-label">' +
+                  (config.displayName || config.columnName) + ':</span> ' + displayVal + '</div>';
+              }
+            }
+          }
+          html += '</div>';
+
+          // Right column
+          html += '<div class="diaporama-col-right">';
+          for (let i = 0; i < rightFields.length; i++) {
+            const config = rightFields[i];
+            const val = item[config.columnName];
+            if (val != null && String(val).trim() !== "") {
+              if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+                const linkLabel = config.displayName || config.columnName;
+                html += '<div class="diaporama-field">' +
+                  '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
+              } else {
+                const displayVal = config.type === "date" ? formatDate(val) : val;
+                html += '<div class="diaporama-field"><span class="diaporama-field-label">' +
+                  (config.displayName || config.columnName) + ':</span> ' + displayVal + '</div>';
+              }
+            }
+          }
+          html += '</div>';
+
+          html += '</div>'; // End two-column
+        }
+
+        // Long text Down
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "longtextdown") continue;
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              html += '<div class="detail-field diaporama-longtext-down">' +
+                '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              html += '<div class="detail-field diaporama-longtext-down"><span class="detail-label diaporama-field-label">' +
+                (config.displayName || config.columnName) + ':</span> ' + displayVal + '</div>';
+            }
+          }
+        }
+
+        // Bottom
+        const bottomBits = [];
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "bottom") continue;
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            const displayVal = config.type === "date" ? formatDate(val) : val;
+            bottomBits.push(displayVal);
+          }
+        }
+        if (bottomBits.length > 0) {
+          html += '<div class="detail-meta diaporama-bottom">' + bottomBits.join(" • ") + '</div>';
+        }
+
+        html += '</div>'; // End below-picture
+        html += '</div>'; // End diaporama-item
+
+        return html;
+      }
+
+      // Set up click handlers for Main diaporama items (opens detail view)
+      function setupMainDiaporamaClickHandlers(container, items) {
+        const diaporamaItems = container.querySelectorAll('.diaporama-item');
+        diaporamaItems.forEach((itemEl, index) => {
+          // Click on item (but not on image or links) opens detail view
+          itemEl.addEventListener('click', (e) => {
+            // Don't navigate if clicking on image, link, or button
+            if (e.target.closest('.diaporama-img') ||
+                e.target.closest('a') ||
+                e.target.closest('button')) {
+              return;
+            }
+            showDetails(items[index], index);
+          });
+        });
+      }
+
+      // Show specific item in horizontal diaporama for Main view
+      function showMainDiaporamaItem(index) {
+        if (index < 0 || index >= currentDiaporamaItems.length) return;
+        currentDiaporamaIndex = index;
+
+        const container = document.getElementById('diaporamaItemContainer');
+        if (!container) return;
+
+        container.innerHTML = buildMainDiaporamaItemHtml(currentDiaporamaItems[index], index);
+
+        // Set up image and click handlers
+        setTimeout(() => {
+          setupDiaporamaImages(container);
+          setupMainDiaporamaClickHandlers(container, currentDiaporamaItems);
+        }, 0);
+
+        // Update navigation button visibility
+        updateDiaporamaNavButtons();
+      }
+
+      // Navigate horizontal diaporama for Main view
+      function navigateMainDiaporama(direction) {
+        const newIndex = currentDiaporamaIndex + direction;
+        if (newIndex >= 0 && newIndex < currentDiaporamaItems.length) {
+          showMainDiaporamaItem(newIndex);
+        }
+      }
+
+      // Initialize swipe detection for horizontal diaporama in Main view (mobile/tablet)
+      function initializeMainDiaporamaSwipe(container) {
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        container.addEventListener('touchstart', (e) => {
+          touchStartX = e.changedTouches[0].screenX;
+          touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        container.addEventListener('touchend', (e) => {
+          const touchEndX = e.changedTouches[0].screenX;
+          const touchEndY = e.changedTouches[0].screenY;
+
+          // Don't navigate if image zoom is open
+          if (imageZoomState && imageZoomState.isOpen) return;
+
+          const swipeThreshold = 50;
+          const swipeDistanceX = touchEndX - touchStartX;
+          const swipeDistanceY = touchEndY - touchStartY;
+
+          // Only horizontal swipes more dominant than vertical
+          if (Math.abs(swipeDistanceX) > Math.abs(swipeDistanceY)) {
+            if (Math.abs(swipeDistanceX) > swipeThreshold) {
+              if (swipeDistanceX < 0) {
+                navigateMainDiaporama(1); // Swipe left = next
+              } else {
+                navigateMainDiaporama(-1); // Swipe right = prev
+              }
+            }
+          }
+        }, { passive: true });
       }
 
       // Handle main table row click - either show details or expand inline
