@@ -4733,22 +4733,30 @@ DETECTION SYSTEM (working correctly):
         box-sizing: border-box;
       }
 
+      /* Vertical style: scroll-snap for full-screen items */
       .diaporama-vertical {
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 0;
         overflow-y: auto;
+        scroll-snap-type: y mandatory;
+        /* Height = viewport - top-header - filters-row - bottom-bar - some padding */
+        height: calc(100vh - 180px);
       }
 
+      /* Horizontal style: single item view */
       .diaporama-horizontal {
         position: relative;
         overflow: hidden;
+        /* Height = viewport - top-header - filters-row - bottom-bar */
+        height: calc(100vh - 180px);
       }
 
       .diaporama-item-container {
         display: flex;
         flex-direction: row;
         transition: transform 0.3s ease;
+        height: 100%;
       }
 
       .diaporama-horizontal .diaporama-item-container {
@@ -4763,10 +4771,23 @@ DETECTION SYSTEM (working correctly):
         background: var(--card-bg);
         border-radius: 12px;
         box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
 
+      /* Vertical: each item snaps to screen, takes full available height */
       .diaporama-vertical .diaporama-item {
-        margin-bottom: 10px;
+        scroll-snap-align: start;
+        min-height: calc(100vh - 200px);
+        max-height: calc(100vh - 200px);
+        margin-bottom: 20px;
+      }
+
+      /* Horizontal: item takes full container height */
+      .diaporama-horizontal .diaporama-item {
+        height: 100%;
+        max-height: 100%;
       }
 
       /* Above picture section */
@@ -4774,6 +4795,7 @@ DETECTION SYSTEM (working correctly):
         position: relative;
         margin-bottom: 10px;
         text-align: center;
+        flex-shrink: 0;
       }
 
       .diaporama-name {
@@ -4811,18 +4833,22 @@ DETECTION SYSTEM (working correctly):
         overflow-wrap: break-word;
       }
 
-      /* Image wrapper */
+      /* Image wrapper - flexible to fill available space */
       .diaporama-image-wrapper {
         width: 100%;
         margin: 10px 0;
         display: flex;
         justify-content: center;
         align-items: center;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
       }
 
       .diaporama-img {
         width: 100%;
         max-width: 100%;
+        max-height: 100%;
         height: auto;
         object-fit: contain;
         border-radius: 8px;
@@ -4832,6 +4858,9 @@ DETECTION SYSTEM (working correctly):
       /* Below picture section */
       .diaporama-below-picture {
         margin-top: 10px;
+        flex-shrink: 0;
+        overflow-y: auto;
+        max-height: 30%;
       }
 
       .diaporama-subid2 {
@@ -7545,8 +7574,7 @@ DETECTION SYSTEM (working correctly):
                 '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
             } else {
               const displayVal = config.type === "date" ? formatDate(val) : val;
-              html += '<div class="detail-field diaporama-longtextup"><span class="detail-label diaporama-field-label">' +
-                (config.displayName || config.columnName) + ':</span> ' + displayVal + '</div>';
+              html += '<div class="detail-field diaporama-longtextup">' + displayVal + '</div>';
             }
           }
         }
@@ -7591,8 +7619,7 @@ DETECTION SYSTEM (working correctly):
                   '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
               } else {
                 const displayVal = config.type === "date" ? formatDate(val) : val;
-                html += '<div class="diaporama-field"><span class="diaporama-field-label">' +
-                  (config.displayName || config.columnName) + ':</span> ' + displayVal + '</div>';
+                html += '<div class="diaporama-field">' + displayVal + '</div>';
               }
             }
           }
@@ -7610,8 +7637,7 @@ DETECTION SYSTEM (working correctly):
                   '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
               } else {
                 const displayVal = config.type === "date" ? formatDate(val) : val;
-                html += '<div class="diaporama-field"><span class="diaporama-field-label">' +
-                  (config.displayName || config.columnName) + ':</span> ' + displayVal + '</div>';
+                html += '<div class="diaporama-field">' + displayVal + '</div>';
               }
             }
           }
@@ -7632,8 +7658,7 @@ DETECTION SYSTEM (working correctly):
                 '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
             } else {
               const displayVal = config.type === "date" ? formatDate(val) : val;
-              html += '<div class="detail-field diaporama-longtext-down"><span class="detail-label diaporama-field-label">' +
-                (config.displayName || config.columnName) + ':</span> ' + displayVal + '</div>';
+              html += '<div class="detail-field diaporama-longtext-down">' + displayVal + '</div>';
             }
           }
         }
@@ -9022,8 +9047,7 @@ DETECTION SYSTEM (working correctly):
                 '<a href="' + val + '" target="_blank" class="link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
             } else {
               const displayVal = config.type === "date" ? formatDate(val) : val;
-              html += '<div class="detail-field diaporama-longtextup"><span class="detail-label">' +
-                (config.displayName || config.columnName) + ':</span> ' + displayVal + '</div>';
+              html += '<div class="detail-field diaporama-longtextup">' + displayVal + '</div>';
             }
           }
         }
@@ -9060,8 +9084,7 @@ DETECTION SYSTEM (working correctly):
                 '<a href="' + val + '" target="_blank" class="link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
             } else {
               const displayVal = config.type === "date" ? formatDate(val) : val;
-              fieldHtml = '<div class="detail-field"><span class="detail-label">' +
-                (config.displayName || config.columnName) + ':</span> ' + displayVal + '</div>';
+              fieldHtml = '<div class="detail-field">' + displayVal + '</div>';
             }
             if (config.itemPlace === "detailleft") {
               leftColHtml += fieldHtml;
@@ -9090,8 +9113,7 @@ DETECTION SYSTEM (working correctly):
                 '<a href="' + val + '" target="_blank" class="link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
             } else {
               const displayVal = config.type === "date" ? formatDate(val) : val;
-              html += '<div class="detail-field diaporama-longtextdown"><span class="detail-label">' +
-                (config.displayName || config.columnName) + ':</span> ' + displayVal + '</div>';
+              html += '<div class="detail-field diaporama-longtextdown">' + displayVal + '</div>';
             }
           }
         }
