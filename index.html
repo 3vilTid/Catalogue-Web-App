@@ -6940,7 +6940,7 @@ DETECTION SYSTEM (working correctly):
       // Render Cards View (current default grid layout)
       function renderCardsView(items, grid) {
         grid.classList.add('grid');
-        grid.classList.remove('list-view', 'table-view');
+        grid.classList.remove('list-view', 'table-view', 'diaporama-view', 'diaporama-vertical', 'diaporama-horizontal');
 
         // Get style for main items
         const style = getMainStyle();
@@ -7028,7 +7028,7 @@ DETECTION SYSTEM (working correctly):
 
       // Render List View (vertical list with image left, details right)
       function renderListView(items, grid) {
-        grid.classList.remove('grid', 'table-view');
+        grid.classList.remove('grid', 'table-view', 'diaporama-view', 'diaporama-vertical', 'diaporama-horizontal');
         grid.classList.add('list-view');
 
         // Get style for main items
@@ -7109,7 +7109,7 @@ DETECTION SYSTEM (working correctly):
 
       // Render Table View (spreadsheet-style)
       function renderTableView(items, grid) {
-        grid.classList.remove('grid', 'list-view');
+        grid.classList.remove('grid', 'list-view', 'diaporama-view', 'diaporama-vertical', 'diaporama-horizontal');
         grid.classList.add('table-view');
 
         // Get style for main items
@@ -7521,12 +7521,16 @@ DETECTION SYSTEM (working correctly):
           html += '<div class="detail-topcorner diaporama-topcorner">' + topCornerBits.join(" • ") + '</div>';
         }
 
-        // Primary Identifier (centered)
-        html += '<div class="detail-name diaporama-name">' + name + '</div>';
+        // Primary Identifier - HIDDEN in diaporama layout
 
-        // SubId1 (centered)
+        // SubId1 (centered, same size as Primary ID in detail view)
         if (subId1) {
-          html += '<div class="detail-subtitle diaporama-subid1">' + subId1 + '</div>';
+          html += '<div class="detail-name diaporama-name">' + subId1 + '</div>';
+        }
+
+        // SubId2 (centered, above picture)
+        if (subId2) {
+          html += '<div class="detail-subtitle diaporama-subid1">' + subId2 + '</div>';
         }
 
         // Long text Up
@@ -7550,26 +7554,15 @@ DETECTION SYSTEM (working correctly):
         html += '</div>'; // End above-picture
 
         // === IMAGE SECTION ===
-        html += '<div class="diaporama-image-wrapper">';
-        if (imageUrl) {
-          const fileId = extractDriveFileId(imageUrl);
-          if (fileId) {
-            html += '<img class="diaporama-img" data-file-id="' + fileId + '" src="" alt="' + name + '" />';
-          } else {
-            html += '<img class="diaporama-img" data-raw-url="' + imageUrl + '" src="" alt="' + name + '" />';
-          }
-        } else {
+        html += '<div class="diaporama-image-wrapper" data-image-url="' + imageUrl + '">';
+        if (!imageUrl) {
           html += '<div style="width:100%;height:200px;background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px);border-radius:8px;"></div>';
         }
+        // Images will be loaded by setupDiaporamaImages() using data-image-url
         html += '</div>';
 
         // === BELOW PICTURE SECTION ===
         html += '<div class="diaporama-below-picture">';
-
-        // SubId2 (centered)
-        if (subId2) {
-          html += '<div class="detail-subtitle diaporama-subid2">' + subId2 + '</div>';
-        }
 
         // Two column section: Detail Left and Detail Right
         const leftFields = [];
@@ -8529,7 +8522,7 @@ DETECTION SYSTEM (working correctly):
       // Render layer items as cards
       function renderLayerCardsView(items, grid, layerIndex) {
         grid.classList.add('grid');
-        grid.classList.remove('list-view', 'table-view');
+        grid.classList.remove('list-view', 'table-view', 'diaporama-view', 'diaporama-vertical', 'diaporama-horizontal');
 
         // Get style for this layer
         const style = getStyleForLayer(layerIndex);
@@ -8616,7 +8609,7 @@ DETECTION SYSTEM (working correctly):
 
       // Render layer items as list
       function renderLayerListView(items, grid, layerIndex) {
-        grid.classList.remove('grid', 'table-view');
+        grid.classList.remove('grid', 'table-view', 'diaporama-view', 'diaporama-vertical', 'diaporama-horizontal');
         grid.classList.add('list-view');
 
         // Get style for this layer
@@ -8697,7 +8690,7 @@ DETECTION SYSTEM (working correctly):
 
       // Render layer items as table
       function renderLayerTableView(items, grid, layerIndex) {
-        grid.classList.remove('grid', 'list-view');
+        grid.classList.remove('grid', 'list-view', 'diaporama-view', 'diaporama-vertical', 'diaporama-horizontal');
         grid.classList.add('table-view');
 
         // Get style for this layer
@@ -9005,12 +8998,16 @@ DETECTION SYSTEM (working correctly):
           html += '<div class="detail-topcorner diaporama-topcorner">' + topCornerBits.join(" • ") + '</div>';
         }
 
-        // Primary Identifier (centered)
-        html += '<div class="detail-name diaporama-name">' + name + '</div>';
+        // Primary Identifier - HIDDEN in diaporama layout
 
-        // SubId1 (centered)
+        // SubId1 (centered, same size as Primary ID in detail view)
         if (subId1) {
-          html += '<div class="detail-subtitle diaporama-subid1">' + subId1 + '</div>';
+          html += '<div class="detail-name diaporama-name">' + subId1 + '</div>';
+        }
+
+        // SubId2 (centered, above picture)
+        if (subId2) {
+          html += '<div class="detail-subtitle diaporama-subid1">' + subId2 + '</div>';
         }
 
         // Long text Up
@@ -9043,10 +9040,7 @@ DETECTION SYSTEM (working correctly):
         // === BELOW PICTURE SECTION ===
         html += '<div class="diaporama-below-picture">';
 
-        // SubId2 (centered)
-        if (subId2) {
-          html += '<div class="detail-subtitle diaporama-subid2">' + subId2 + '</div>';
-        }
+        // SubId2 is now shown above picture, not below
 
         // Two-column grid for Detail Left / Detail Right
         let hasDetailColumns = false;
