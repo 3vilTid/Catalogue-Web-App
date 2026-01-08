@@ -4724,6 +4724,390 @@ DETECTION SYSTEM (working correctly):
         min-width: 60px !important;
       }
 
+      /* ==================== DIAPORAMA VIEW STYLES ==================== */
+
+      /* Base diaporama container */
+      .diaporama-view {
+        width: 100%;
+        padding: 10px;
+        box-sizing: border-box;
+      }
+
+      .diaporama-vertical {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        overflow-y: auto;
+      }
+
+      .diaporama-horizontal {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .diaporama-item-container {
+        display: flex;
+        flex-direction: row;
+        transition: transform 0.3s ease;
+      }
+
+      .diaporama-horizontal .diaporama-item-container {
+        width: 100%;
+      }
+
+      .diaporama-item {
+        flex-shrink: 0;
+        width: 100%;
+        padding: 15px;
+        box-sizing: border-box;
+        background: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        cursor: pointer;
+      }
+
+      .diaporama-vertical .diaporama-item {
+        margin-bottom: 10px;
+      }
+
+      /* Above picture section */
+      .diaporama-above-picture {
+        position: relative;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+
+      .diaporama-name {
+        font-size: 20px;
+        font-weight: 700;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        text-align: center;
+      }
+
+      .diaporama-topcorner {
+        position: absolute;
+        top: 0;
+        right: 0;
+        font-size: 14px;
+        color: #6b7280;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        text-align: right;
+      }
+
+      .diaporama-subid1 {
+        font-size: 14px;
+        color: #6b7280;
+        margin-top: 4px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        text-align: center;
+      }
+
+      .diaporama-longtext-up {
+        font-size: 13px;
+        margin-top: 8px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+
+      /* Image wrapper */
+      .diaporama-image-wrapper {
+        width: 100%;
+        margin: 10px 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .diaporama-img {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        object-fit: contain;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      /* Below picture section */
+      .diaporama-below-picture {
+        margin-top: 10px;
+      }
+
+      .diaporama-subid2 {
+        font-size: 14px;
+        color: #6b7280;
+        margin-bottom: 8px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        text-align: center;
+      }
+
+      .diaporama-two-column {
+        display: flex;
+        flex-direction: row;
+        gap: 16px;
+        margin-top: 10px;
+      }
+
+      .diaporama-col-left,
+      .diaporama-col-right {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .diaporama-field {
+        margin-bottom: 6px;
+        font-size: 13px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+      }
+
+      .diaporama-field-label {
+        font-weight: 600;
+      }
+
+      .diaporama-longtext-down {
+        font-size: 13px;
+        margin-top: 10px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+
+      .diaporama-bottom {
+        font-size: 12px;
+        color: var(--text-soft);
+        margin-top: 10px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+
+      /* Navigation buttons for horizontal mode */
+      .diaporama-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 20px;
+        cursor: pointer;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .diaporama-nav:hover {
+        background: rgba(0, 0, 0, 0.7);
+      }
+
+      .diaporama-nav.prev {
+        left: 10px;
+      }
+
+      .diaporama-nav.next {
+        right: 10px;
+      }
+
+      .diaporama-nav.hidden {
+        display: none;
+      }
+
+      /* Diaporama counter */
+      .diaporama-counter {
+        text-align: center;
+        margin-top: 10px;
+        font-size: 14px;
+        color: var(--text-soft);
+      }
+
+      /* Link pill in diaporama */
+      .diaporama-link-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 12px;
+        border-radius: 999px;
+        background: #ecfdf5;
+        color: #047857;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        margin-top: 10px;
+      }
+
+      /* ==================== DIAPORAMA - MOBILE LANDSCAPE ==================== */
+      body.mobile-device.landscape .diaporama-name {
+        font-size: 20px !important;
+      }
+
+      body.mobile-device.landscape .diaporama-subid1,
+      body.mobile-device.landscape .diaporama-subid2 {
+        font-size: 16px !important;
+      }
+
+      body.mobile-device.landscape .diaporama-topcorner {
+        font-size: 16px !important;
+      }
+
+      body.mobile-device.landscape .diaporama-bottom {
+        font-size: 16px !important;
+      }
+
+      body.mobile-device.landscape .diaporama-field,
+      body.mobile-device.landscape .diaporama-field-label,
+      body.mobile-device.landscape .diaporama-longtext-up,
+      body.mobile-device.landscape .diaporama-longtext-down {
+        font-size: 15px !important;
+      }
+
+      /* Hide nav buttons on mobile/tablet - use swipe instead */
+      body.mobile-device .diaporama-nav,
+      body.tablet-device .diaporama-nav {
+        display: none !important;
+      }
+
+      /* ==================== DIAPORAMA - TABLET LANDSCAPE ==================== */
+      body.tablet-device.landscape .diaporama-name {
+        font-size: 23px !important;
+      }
+
+      body.tablet-device.landscape .diaporama-subid1,
+      body.tablet-device.landscape .diaporama-subid2 {
+        font-size: 18px !important;
+      }
+
+      body.tablet-device.landscape .diaporama-topcorner {
+        font-size: 17px !important;
+      }
+
+      body.tablet-device.landscape .diaporama-bottom {
+        font-size: 17px !important;
+      }
+
+      body.tablet-device.landscape .diaporama-field,
+      body.tablet-device.landscape .diaporama-field-label,
+      body.tablet-device.landscape .diaporama-longtext-up,
+      body.tablet-device.landscape .diaporama-longtext-down {
+        font-size: 15px !important;
+      }
+
+      /* ==================== DIAPORAMA - MOBILE PORTRAIT ==================== */
+      body.mobile-device.portrait .diaporama-name {
+        font-size: 37.5px !important;
+      }
+
+      body.mobile-device.portrait .diaporama-subid1,
+      body.mobile-device.portrait .diaporama-subid2 {
+        font-size: 31.25px !important;
+      }
+
+      body.mobile-device.portrait .diaporama-topcorner {
+        font-size: 31.25px !important;
+      }
+
+      body.mobile-device.portrait .diaporama-bottom {
+        font-size: 25px !important;
+      }
+
+      body.mobile-device.portrait .diaporama-field,
+      body.mobile-device.portrait .diaporama-field-label,
+      body.mobile-device.portrait .diaporama-longtext-up,
+      body.mobile-device.portrait .diaporama-longtext-down {
+        font-size: 27.5px !important;
+      }
+
+      body.mobile-device.portrait .diaporama-link-pill {
+        font-size: 25px !important;
+        padding: 8px 16px !important;
+      }
+
+      body.mobile-device.portrait .diaporama-counter {
+        font-size: 25px !important;
+      }
+
+      /* ==================== DIAPORAMA - TABLET PORTRAIT ==================== */
+      body.tablet-device.portrait .diaporama-name {
+        font-size: 30px !important;
+      }
+
+      body.tablet-device.portrait .diaporama-subid1,
+      body.tablet-device.portrait .diaporama-subid2 {
+        font-size: 25px !important;
+      }
+
+      body.tablet-device.portrait .diaporama-topcorner {
+        font-size: 25px !important;
+      }
+
+      body.tablet-device.portrait .diaporama-bottom {
+        font-size: 25px !important;
+      }
+
+      body.tablet-device.portrait .diaporama-field,
+      body.tablet-device.portrait .diaporama-field-label,
+      body.tablet-device.portrait .diaporama-longtext-up,
+      body.tablet-device.portrait .diaporama-longtext-down {
+        font-size: 22px !important;
+      }
+
+      body.tablet-device.portrait .diaporama-link-pill {
+        font-size: 20px !important;
+        padding: 7px 14px !important;
+      }
+
+      body.tablet-device.portrait .diaporama-counter {
+        font-size: 20px !important;
+      }
+
+      /* ==================== DIAPORAMA - GITHUB PAGES MOBILE PORTRAIT (50% scaled) ==================== */
+      html.github-pages body.mobile-device.portrait .diaporama-name {
+        font-size: 18.75px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .diaporama-subid1,
+      html.github-pages body.mobile-device.portrait .diaporama-subid2 {
+        font-size: 15.625px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .diaporama-topcorner {
+        font-size: 15.625px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .diaporama-bottom {
+        font-size: 12.5px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .diaporama-field,
+      html.github-pages body.mobile-device.portrait .diaporama-field-label,
+      html.github-pages body.mobile-device.portrait .diaporama-longtext-up,
+      html.github-pages body.mobile-device.portrait .diaporama-longtext-down {
+        font-size: 13.75px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .diaporama-link-pill {
+        font-size: 12px !important;
+        padding: 5px 9px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .diaporama-counter {
+        font-size: 12px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .diaporama-item {
+        padding: 8px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .diaporama-view {
+        padding: 5px !important;
+      }
+
     </style>
 
     <!-- PWA Configuration Note -->
@@ -5499,7 +5883,7 @@ DETECTION SYSTEM (working correctly):
       function normalizeViewType(viewValue) {
         if (!viewValue) return 'cards';
         const normalized = String(viewValue).toLowerCase();
-        if (normalized === 'cards' || normalized === 'list' || normalized === 'table') {
+        if (normalized === 'cards' || normalized === 'list' || normalized === 'table' || normalized === 'diaporama') {
           return normalized;
         }
         return 'cards'; // Default fallback for invalid values
@@ -5512,6 +5896,7 @@ DETECTION SYSTEM (working correctly):
           if (viewType === 'cards') return 'Squared';
           if (viewType === 'list') return 'Simple';
           if (viewType === 'table') return 'Normal';
+          if (viewType === 'diaporama') return 'Vertical';
           return 'Squared';
         }
 
@@ -5519,7 +5904,8 @@ DETECTION SYSTEM (working correctly):
         const validStyles = {
           'cards': ['Squared', 'Rectangle', 'Circle'],
           'list': ['Simple', 'Double', 'Triple'],
-          'table': ['Normal', 'Open Detail View', 'No Detail View']
+          'table': ['Normal', 'Open Detail View', 'No Detail View'],
+          'diaporama': ['Vertical', 'Horizontal']
         };
 
         const allowed = validStyles[viewType] || [];
@@ -5534,6 +5920,7 @@ DETECTION SYSTEM (working correctly):
         if (viewType === 'cards') return 'Squared';
         if (viewType === 'list') return 'Simple';
         if (viewType === 'table') return 'Normal';
+        if (viewType === 'diaporama') return 'Vertical';
         return 'Squared';
       }
 
@@ -7804,6 +8191,8 @@ DETECTION SYSTEM (working correctly):
           renderLayerListView(standardizedItems, grid, layerIndex);
         } else if (viewType === 'table') {
           renderLayerTableView(standardizedItems, grid, layerIndex);
+        } else if (viewType === 'diaporama') {
+          renderLayerDiaporamaView(standardizedItems, grid, layerIndex);
         } else {
           // Default to cards view
           renderLayerCardsView(standardizedItems, grid, layerIndex);
@@ -8171,6 +8560,429 @@ DETECTION SYSTEM (working correctly):
             syncTableWidthToHeaders();
           });
         }
+      }
+
+      // Render layer items as diaporama (slideshow-style view)
+      // Styles: 'Vertical' (all items stacked, scroll) or 'Horizontal' (one at a time, nav buttons/swipe)
+      function renderLayerDiaporamaView(items, grid, layerIndex) {
+        grid.classList.remove('grid', 'list-view', 'table-view', 'grid-rectangle');
+        grid.classList.add('diaporama-view');
+
+        const style = getStyleForLayer(layerIndex);
+        const isHorizontal = style === 'Horizontal';
+
+        // Store items for navigation (used by horizontal style)
+        currentDiaporamaItems = items;
+        currentDiaporamaIndex = 0;
+        currentDiaporamaLayerIndex = layerIndex;
+
+        if (isHorizontal) {
+          grid.classList.add('diaporama-horizontal');
+          grid.classList.remove('diaporama-vertical');
+          renderDiaporamaHorizontal(items, grid, layerIndex);
+        } else {
+          // Vertical - render all items stacked
+          grid.classList.add('diaporama-vertical');
+          grid.classList.remove('diaporama-horizontal');
+          renderDiaporamaVertical(items, grid, layerIndex);
+        }
+      }
+
+      // Render all diaporama items vertically (scrollable)
+      function renderDiaporamaVertical(items, grid, layerIndex) {
+        grid.innerHTML = '';
+
+        for (let i = 0; i < items.length; i++) {
+          const itemHtml = buildDiaporamaItemHtml(items[i], i, layerIndex);
+          grid.innerHTML += itemHtml;
+        }
+
+        // After rendering, load images and set up click handlers
+        setTimeout(() => {
+          setupDiaporamaImages(grid);
+          setupDiaporamaClickHandlers(grid, items, layerIndex);
+        }, 0);
+      }
+
+      // Render horizontal diaporama (one item at a time with navigation)
+      function renderDiaporamaHorizontal(items, grid, layerIndex) {
+        grid.innerHTML = '';
+
+        // Create container for the single visible item
+        const itemContainer = document.createElement('div');
+        itemContainer.id = 'diaporamaItemContainer';
+        itemContainer.className = 'diaporama-item-container';
+        grid.appendChild(itemContainer);
+
+        // Add navigation buttons for desktop
+        const isMobileOrTablet = document.body.classList.contains('mobile-device') ||
+                                  document.body.classList.contains('tablet-device');
+
+        if (!isMobileOrTablet) {
+          // Desktop: add nav buttons
+          const prevBtn = document.createElement('button');
+          prevBtn.id = 'diaporamaPrevBtn';
+          prevBtn.className = 'nav-arrow-btn nav-arrow-left diaporama-nav';
+          prevBtn.innerHTML = '&lt;';
+          prevBtn.onclick = () => navigateDiaporama(-1);
+          grid.appendChild(prevBtn);
+
+          const nextBtn = document.createElement('button');
+          nextBtn.id = 'diaporamaNextBtn';
+          nextBtn.className = 'nav-arrow-btn nav-arrow-right diaporama-nav';
+          nextBtn.innerHTML = '&gt;';
+          nextBtn.onclick = () => navigateDiaporama(1);
+          grid.appendChild(nextBtn);
+        }
+
+        // Render first item
+        showDiaporamaItem(0);
+
+        // Initialize swipe for mobile/tablet
+        if (isMobileOrTablet) {
+          initializeDiaporamaSwipe(grid);
+        }
+      }
+
+      // Build HTML for a single diaporama item
+      function buildDiaporamaItemHtml(standardItem, index, layerIndex) {
+        const item = standardItem._rawLayerItem || standardItem;
+        const imageUrl = item["Picture Link"] || '';
+        const name = item["Names"] || '';
+        const description = item["Description"] || '';
+
+        // Get SubId1, SubId2 from column config
+        let subId1 = '';
+        let subId2 = '';
+        if (categoryColumn && item[categoryColumn.columnName]) {
+          subId1 = item[categoryColumn.columnName];
+        }
+        if (placeColumn && item[placeColumn.columnName]) {
+          subId2 = item[placeColumn.columnName];
+        }
+
+        // Build HTML structure
+        let html = '<div class="diaporama-item" data-index="' + index + '">';
+
+        // === ABOVE PICTURE SECTION ===
+        html += '<div class="diaporama-above-picture">';
+
+        // Top Corner (positioned absolute)
+        const topCornerBits = [];
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "topcorner") continue;
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            const displayVal = config.type === "date" ? formatDate(val) : val;
+            topCornerBits.push(displayVal);
+          }
+        }
+        if (topCornerBits.length > 0) {
+          html += '<div class="detail-topcorner diaporama-topcorner">' + topCornerBits.join(" • ") + '</div>';
+        }
+
+        // Primary Identifier (centered)
+        html += '<div class="detail-name diaporama-name">' + name + '</div>';
+
+        // SubId1 (centered)
+        if (subId1) {
+          html += '<div class="detail-subtitle diaporama-subid1">' + subId1 + '</div>';
+        }
+
+        // Long text Up
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "longtextup") continue;
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              html += '<div class="detail-field diaporama-longtextup">' +
+                '<a href="' + val + '" target="_blank" class="link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              html += '<div class="detail-field diaporama-longtextup"><span class="detail-label">' +
+                (config.displayName || config.columnName) + ':</span> ' + displayVal + '</div>';
+            }
+          }
+        }
+
+        html += '</div>'; // End above-picture
+
+        // === MAIN IMAGE ===
+        html += '<div class="diaporama-image-wrapper" data-image-url="' + imageUrl + '">';
+        if (imageUrl) {
+          html += '<div class="diaporama-img-placeholder"></div>';
+        }
+        html += '</div>';
+
+        // === BELOW PICTURE SECTION ===
+        html += '<div class="diaporama-below-picture">';
+
+        // SubId2 (centered)
+        if (subId2) {
+          html += '<div class="detail-subtitle diaporama-subid2">' + subId2 + '</div>';
+        }
+
+        // Two-column grid for Detail Left / Detail Right
+        let hasDetailColumns = false;
+        let leftColHtml = '';
+        let rightColHtml = '';
+
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "detailleft" && config.itemPlace !== "detailright") continue;
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            hasDetailColumns = true;
+            let fieldHtml = '';
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              fieldHtml = '<div class="detail-field">' +
+                '<a href="' + val + '" target="_blank" class="link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              fieldHtml = '<div class="detail-field"><span class="detail-label">' +
+                (config.displayName || config.columnName) + ':</span> ' + displayVal + '</div>';
+            }
+            if (config.itemPlace === "detailleft") {
+              leftColHtml += fieldHtml;
+            } else {
+              rightColHtml += fieldHtml;
+            }
+          }
+        }
+
+        if (hasDetailColumns) {
+          html += '<div class="diaporama-two-column">';
+          html += '<div class="diaporama-col-left">' + leftColHtml + '</div>';
+          html += '<div class="diaporama-col-right">' + rightColHtml + '</div>';
+          html += '</div>';
+        }
+
+        // Long text Down
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "longtextdown") continue;
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              html += '<div class="detail-field diaporama-longtextdown">' +
+                '<a href="' + val + '" target="_blank" class="link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              html += '<div class="detail-field diaporama-longtextdown"><span class="detail-label">' +
+                (config.displayName || config.columnName) + ':</span> ' + displayVal + '</div>';
+            }
+          }
+        }
+
+        // Bottom
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "bottom") continue;
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            const displayVal = config.type === "date" ? formatDate(val) : val;
+            html += '<div class="detail-field diaporama-bottom" style="font-size:11px;color:#9ca3af;">' + displayVal + '</div>';
+          }
+        }
+
+        html += '</div>'; // End below-picture
+        html += '</div>'; // End diaporama-item
+
+        return html;
+      }
+
+      // Set up images for diaporama items (lazy load with progressive loading)
+      function setupDiaporamaImages(container) {
+        const imageWrappers = container.querySelectorAll('.diaporama-image-wrapper');
+        imageWrappers.forEach(wrapper => {
+          const imageUrl = wrapper.dataset.imageUrl;
+          if (!imageUrl) return;
+
+          const fileId = extractDriveFileId(imageUrl);
+          if (fileId) {
+            loadDiaporamaImage(fileId, wrapper);
+          } else if (imageUrl) {
+            loadDiaporamaImageDirect(imageUrl, wrapper);
+          }
+        });
+      }
+
+      // Load diaporama image with progressive loading (similar to detail view)
+      async function loadDiaporamaImage(fileId, wrapper) {
+        try {
+          if (memoryCache.has(fileId)) {
+            const cached = memoryCache.get(fileId);
+            applyDiaporamaImage(wrapper, cached.thumbnail, cached.full);
+            return;
+          }
+
+          const dbCached = await imageCacheDB.get(fileId);
+          if (dbCached && dbCached.full) {
+            memoryCache.set(fileId, { full: dbCached.full, thumbnail: dbCached.thumbnail });
+            applyDiaporamaImage(wrapper, dbCached.thumbnail, dbCached.full);
+            return;
+          }
+
+          // Fetch from server
+          const base = (window.API_CONFIG && window.API_CONFIG.APPS_SCRIPT_URL &&
+                       window.API_CONFIG.APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL_HERE')
+                       ? window.API_CONFIG.APPS_SCRIPT_URL.replace(/\/exec$/, '/exec')
+                       : (imageProxyBaseUrl || "");
+          const url = base.replace(/\/$/, "") + "?img=" + encodeURIComponent(fileId);
+
+          const response = await fetch(url);
+          const json = await response.json();
+
+          if (!json.ok) return;
+
+          const fullDataUrl = "data:" + json.mime + ";base64," + json.data;
+          const thumbnailDataUrl = await generateThumbnail(fullDataUrl);
+
+          memoryCache.set(fileId, { full: fullDataUrl, thumbnail: thumbnailDataUrl });
+          await imageCacheDB.set(fileId, fullDataUrl, thumbnailDataUrl);
+
+          applyDiaporamaImage(wrapper, thumbnailDataUrl, fullDataUrl);
+        } catch (err) {
+          console.error("Diaporama image load error:", err);
+        }
+      }
+
+      // Load direct URL image for diaporama
+      function loadDiaporamaImageDirect(url, wrapper) {
+        applyDiaporamaImage(wrapper, null, url);
+      }
+
+      // Apply image to diaporama wrapper with click-to-zoom
+      function applyDiaporamaImage(wrapper, thumbnailUrl, fullUrl) {
+        wrapper.innerHTML = '';
+
+        if (thumbnailUrl) {
+          const placeholder = document.createElement('img');
+          placeholder.className = 'diaporama-img placeholder';
+          placeholder.src = thumbnailUrl;
+          wrapper.appendChild(placeholder);
+        }
+
+        const fullImg = document.createElement('img');
+        fullImg.className = 'diaporama-img full';
+        fullImg.onload = () => {
+          fullImg.classList.add('loaded');
+          setTimeout(() => {
+            const placeholders = wrapper.querySelectorAll('.placeholder');
+            placeholders.forEach(p => p.remove());
+          }, 400);
+        };
+        fullImg.src = fullUrl;
+        fullImg.style.cursor = 'zoom-in';
+        fullImg.onclick = (e) => {
+          e.stopPropagation();
+          openImageFullscreen(fullUrl);
+        };
+        wrapper.appendChild(fullImg);
+      }
+
+      // Set up click handlers for diaporama items (for layer navigation)
+      function setupDiaporamaClickHandlers(container, items, layerIndex) {
+        const diaporamaItems = container.querySelectorAll('.diaporama-item');
+        diaporamaItems.forEach((itemEl, index) => {
+          // Click on item (but not on image or links) navigates to next layer
+          itemEl.addEventListener('click', (e) => {
+            // Don't navigate if clicking on image, link, or button
+            if (e.target.closest('.diaporama-img') ||
+                e.target.closest('a') ||
+                e.target.closest('button')) {
+              return;
+            }
+            const standardItem = items[index];
+            const item = standardItem._rawLayerItem || standardItem;
+            onLayerItemClick(layerIndex, item, itemEl, index);
+          });
+        });
+      }
+
+      // Diaporama state for horizontal navigation
+      let currentDiaporamaItems = [];
+      let currentDiaporamaIndex = 0;
+      let currentDiaporamaLayerIndex = 0;
+
+      // Show specific item in horizontal diaporama
+      function showDiaporamaItem(index) {
+        if (index < 0 || index >= currentDiaporamaItems.length) return;
+        currentDiaporamaIndex = index;
+
+        const container = document.getElementById('diaporamaItemContainer');
+        if (!container) return;
+
+        container.innerHTML = buildDiaporamaItemHtml(currentDiaporamaItems[index], index, currentDiaporamaLayerIndex);
+
+        // Set up image and click handlers
+        setTimeout(() => {
+          setupDiaporamaImages(container);
+          setupDiaporamaClickHandlers(container, currentDiaporamaItems, currentDiaporamaLayerIndex);
+        }, 0);
+
+        // Update navigation button visibility
+        updateDiaporamaNavButtons();
+      }
+
+      // Navigate horizontal diaporama
+      function navigateDiaporama(direction) {
+        const newIndex = currentDiaporamaIndex + direction;
+        if (newIndex >= 0 && newIndex < currentDiaporamaItems.length) {
+          showDiaporamaItem(newIndex);
+        }
+      }
+
+      // Update diaporama nav button visibility
+      function updateDiaporamaNavButtons() {
+        const prevBtn = document.getElementById('diaporamaPrevBtn');
+        const nextBtn = document.getElementById('diaporamaNextBtn');
+
+        if (prevBtn) {
+          prevBtn.style.display = currentDiaporamaIndex > 0 ? 'flex' : 'none';
+        }
+        if (nextBtn) {
+          nextBtn.style.display = currentDiaporamaIndex < currentDiaporamaItems.length - 1 ? 'flex' : 'none';
+        }
+      }
+
+      // Initialize swipe detection for horizontal diaporama (mobile/tablet)
+      function initializeDiaporamaSwipe(container) {
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        container.addEventListener('touchstart', (e) => {
+          touchStartX = e.changedTouches[0].screenX;
+          touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        container.addEventListener('touchend', (e) => {
+          const touchEndX = e.changedTouches[0].screenX;
+          const touchEndY = e.changedTouches[0].screenY;
+
+          // Don't navigate if image zoom is open
+          if (imageZoomState && imageZoomState.isOpen) return;
+
+          const swipeThreshold = 50;
+          const swipeDistanceX = touchEndX - touchStartX;
+          const swipeDistanceY = touchEndY - touchStartY;
+
+          // Only horizontal swipes more dominant than vertical
+          if (Math.abs(swipeDistanceX) > Math.abs(swipeDistanceY)) {
+            if (Math.abs(swipeDistanceX) > swipeThreshold) {
+              if (swipeDistanceX < 0) {
+                navigateDiaporama(1); // Swipe left = next
+              } else {
+                navigateDiaporama(-1); // Swipe right = previous
+              }
+            }
+          }
+        }, { passive: true });
       }
 
       // Handle layer item click - navigate to next layer or show filtered main items
