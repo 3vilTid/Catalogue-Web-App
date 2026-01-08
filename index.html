@@ -7488,7 +7488,7 @@ DETECTION SYSTEM (working correctly):
       // Build HTML for a single diaporama item in Main view
       function buildMainDiaporamaItemHtml(item, index) {
         const imageUrl = imageColumn && item[imageColumn.columnName] ? item[imageColumn.columnName] : '';
-        const name = primaryColumn && item[primaryColumn.columnName] ? item[primaryColumn.columnName] : '';
+        const name = nameColumn && item[nameColumn.columnName] ? item[nameColumn.columnName] : '';
 
         // Get SubId1, SubId2 from column config
         let subId1 = '';
