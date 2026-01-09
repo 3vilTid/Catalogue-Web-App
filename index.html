@@ -4757,6 +4757,18 @@ DETECTION SYSTEM (working correctly):
         min-height: calc(100vh - 120px);
       }
 
+      /* Prevent page scrolling when horizontal diaporama is active */
+      body:has(.diaporama-horizontal) {
+        overflow: hidden;
+        height: 100vh;
+      }
+
+      /* Keep section scrolling enabled */
+      .diaporama-horizontal .diaporama-above-picture,
+      .diaporama-horizontal .diaporama-below-picture {
+        overflow-y: auto;
+      }
+
       .diaporama-item-container {
         display: flex;
         flex-direction: row;
