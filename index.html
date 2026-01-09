@@ -4910,10 +4910,19 @@ DETECTION SYSTEM (working correctly):
         margin-top: 10px;
         word-wrap: break-word;
         overflow-wrap: break-word;
+      }
+
+      .diaporama-bottom-text {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .diaporama-bottom-links {
         display: flex;
         flex-wrap: wrap;
         justify-content: flex-end;
         gap: 8px;
+        margin-bottom: 4px;
       }
 
       /* Navigation buttons for horizontal mode */
@@ -7667,21 +7676,34 @@ DETECTION SYSTEM (working correctly):
           }
         }
 
-        // Bottom - handles external links and stacks them right to left
+        // Bottom - text items on own lines, links grouped inline (right to left)
         let bottomHtml = '';
+        let linkGroup = '';
+
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
           if (config.itemPlace !== "bottom") continue;
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
-            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+            const isLink = config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink";
+
+            if (isLink) {
               const linkLabel = config.displayName || config.columnName;
-              bottomHtml += '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
+              linkGroup += '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
             } else {
+              // Text item - first close any open link group
+              if (linkGroup) {
+                bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
+                linkGroup = '';
+              }
               const displayVal = config.type === "date" ? formatDate(val) : val;
-              bottomHtml += '<span>' + displayVal + '</span>';
+              bottomHtml += '<div class="diaporama-bottom-text">' + displayVal + '</div>';
             }
           }
+        }
+        // Close any remaining link group
+        if (linkGroup) {
+          bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
         }
         if (bottomHtml) {
           html += '<div class="diaporama-bottom">' + bottomHtml + '</div>';
@@ -9127,21 +9149,34 @@ DETECTION SYSTEM (working correctly):
           }
         }
 
-        // Bottom - handles external links and stacks them right to left
+        // Bottom - text items on own lines, links grouped inline (right to left)
         let bottomHtml = '';
+        let linkGroup = '';
+
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
           if (config.itemPlace !== "bottom") continue;
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
-            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+            const isLink = config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink";
+
+            if (isLink) {
               const linkLabel = config.displayName || config.columnName;
-              bottomHtml += '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
+              linkGroup += '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
             } else {
+              // Text item - first close any open link group
+              if (linkGroup) {
+                bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
+                linkGroup = '';
+              }
               const displayVal = config.type === "date" ? formatDate(val) : val;
-              bottomHtml += '<span>' + displayVal + '</span>';
+              bottomHtml += '<div class="diaporama-bottom-text">' + displayVal + '</div>';
             }
           }
+        }
+        // Close any remaining link group
+        if (linkGroup) {
+          bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
         }
         if (bottomHtml) {
           html += '<div class="diaporama-bottom">' + bottomHtml + '</div>';
