@@ -4741,9 +4741,9 @@ DETECTION SYSTEM (working correctly):
         gap: 0;
         overflow-y: auto;
         scroll-snap-type: y mandatory;
-        /* Height = viewport - top-header - some padding */
-        height: calc(100vh - 120px);
-        min-height: calc(100vh - 120px);
+        /* Height = viewport - top-header - some padding. Use dvh for mobile browser support */
+        height: calc(100dvh - 120px);
+        max-height: calc(100dvh - 120px);
       }
 
       /* Horizontal style: single item view */
@@ -4752,15 +4752,9 @@ DETECTION SYSTEM (working correctly):
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        /* Height = viewport - top-header */
-        height: calc(100vh - 120px);
-        min-height: calc(100vh - 120px);
-      }
-
-      /* Prevent page scrolling when horizontal diaporama is active */
-      body:has(.diaporama-horizontal) {
-        overflow: hidden;
-        height: 100vh;
+        /* Height = viewport - top-header. Use dvh for mobile browser support */
+        height: calc(100dvh - 120px);
+        max-height: calc(100dvh - 120px);
       }
 
       /* Keep section scrolling enabled */
@@ -4799,9 +4793,9 @@ DETECTION SYSTEM (working correctly):
       /* Vertical: each item snaps to screen, takes full available height */
       .diaporama-vertical .diaporama-item {
         scroll-snap-align: start;
-        min-height: calc(100vh - 140px);
-        height: calc(100vh - 140px);
-        max-height: calc(100vh - 140px);
+        min-height: calc(100dvh - 140px);
+        height: calc(100dvh - 140px);
+        max-height: calc(100dvh - 140px);
         margin-bottom: 20px;
       }
 
@@ -5047,6 +5041,38 @@ DETECTION SYSTEM (working correctly):
       body.mobile-device .diaporama-nav,
       body.tablet-device .diaporama-nav {
         display: none !important;
+      }
+
+      /* Mobile/Tablet: Adjust diaporama height for larger headers */
+      body.mobile-device .diaporama-vertical,
+      body.mobile-device .diaporama-horizontal,
+      body.tablet-device .diaporama-vertical,
+      body.tablet-device .diaporama-horizontal {
+        height: calc(100dvh - 180px) !important;
+        max-height: calc(100dvh - 180px) !important;
+      }
+
+      body.mobile-device .diaporama-vertical .diaporama-item,
+      body.tablet-device .diaporama-vertical .diaporama-item {
+        min-height: calc(100dvh - 200px) !important;
+        height: calc(100dvh - 200px) !important;
+        max-height: calc(100dvh - 200px) !important;
+      }
+
+      /* Portrait mode: even larger header offset */
+      body.mobile-device.portrait .diaporama-vertical,
+      body.mobile-device.portrait .diaporama-horizontal,
+      body.tablet-device.portrait .diaporama-vertical,
+      body.tablet-device.portrait .diaporama-horizontal {
+        height: calc(100dvh - 220px) !important;
+        max-height: calc(100dvh - 220px) !important;
+      }
+
+      body.mobile-device.portrait .diaporama-vertical .diaporama-item,
+      body.tablet-device.portrait .diaporama-vertical .diaporama-item {
+        min-height: calc(100dvh - 240px) !important;
+        height: calc(100dvh - 240px) !important;
+        max-height: calc(100dvh - 240px) !important;
       }
 
       /* ==================== DIAPORAMA - TABLET LANDSCAPE ==================== */
