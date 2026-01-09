@@ -4915,6 +4915,8 @@ DETECTION SYSTEM (working correctly):
       .diaporama-bottom-text {
         display: block;
         margin-bottom: 4px;
+        word-break: break-word;
+        max-width: 100%;
       }
 
       .diaporama-bottom-links {
@@ -4923,6 +4925,13 @@ DETECTION SYSTEM (working correctly):
         justify-content: flex-end;
         gap: 8px;
         margin-bottom: 4px;
+        max-width: 100%;
+      }
+
+      .diaporama-bottom-links .link-pill {
+        max-width: 100%;
+        word-break: break-word;
+        flex-shrink: 1;
       }
 
       /* Navigation buttons for horizontal mode */
