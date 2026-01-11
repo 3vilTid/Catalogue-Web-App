@@ -5210,17 +5210,17 @@ DETECTION SYSTEM (working correctly):
         padding: 5px !important;
       }
 
-      /* GitHub Pages Mobile Portrait: Diaporama height must account for 120px shell bottom padding */
+      /* GitHub Pages Mobile Portrait: Diaporama height - compact header + bottom bar */
       html.github-pages body.mobile-device.portrait .diaporama-vertical,
       html.github-pages body.mobile-device.portrait .diaporama-horizontal {
-        height: calc(100dvh - 340px) !important;
-        max-height: calc(100dvh - 340px) !important;
+        height: calc(100dvh - 150px) !important;
+        max-height: calc(100dvh - 150px) !important;
       }
 
       html.github-pages body.mobile-device.portrait .diaporama-vertical .diaporama-item {
-        min-height: calc(100dvh - 360px) !important;
-        height: calc(100dvh - 360px) !important;
-        max-height: calc(100dvh - 360px) !important;
+        min-height: calc(100dvh - 170px) !important;
+        height: calc(100dvh - 170px) !important;
+        max-height: calc(100dvh - 170px) !important;
       }
 
       /* Mobile/Tablet LANDSCAPE: Smaller offset since headers are compact */
