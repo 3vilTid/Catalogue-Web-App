@@ -1903,8 +1903,9 @@ DETECTION SYSTEM (working correctly):
         display: none !important;
       }
 
-      /* Hide background diaporama nav buttons when fullscreen overlay is open */
-      body:has(#imgOverlay[style*="flex"]) .diaporama-nav {
+      /* Hide background nav buttons when fullscreen overlay is open (diaporama and detail view) */
+      body:has(#imgOverlay[style*="flex"]) .diaporama-nav,
+      body:has(#imgOverlay[style*="flex"]) .nav-arrow-btn {
         display: none !important;
       }
 
