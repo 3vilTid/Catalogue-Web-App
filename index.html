@@ -1903,6 +1903,11 @@ DETECTION SYSTEM (working correctly):
         display: none !important;
       }
 
+      /* Hide background diaporama nav buttons when fullscreen overlay is open */
+      body:has(#imgOverlay[style*="flex"]) .diaporama-nav {
+        display: none !important;
+      }
+
       /* Custom Toast Notifications ------------------------------------------ */
       
       .toast-container {
@@ -11152,6 +11157,13 @@ DETECTION SYSTEM (working correctly):
         }
 
         if (imageUrl) {
+          // Check if it's a Drive URL and get cached version
+          const fileId = extractDriveFileId(imageUrl);
+          if (fileId && memoryCache.has(fileId)) {
+            const cached = memoryCache.get(fileId);
+            imageUrl = cached.full; // Use cached data URL
+          }
+
           const img = document.getElementById("imgOverlayImg");
           if (img) {
             // Reset zoom before changing image
@@ -11181,6 +11193,13 @@ DETECTION SYSTEM (working correctly):
         }
 
         if (!imageUrl) return;
+
+        // Check if it's a Drive URL and get cached version
+        const fileId = extractDriveFileId(imageUrl);
+        if (fileId && memoryCache.has(fileId)) {
+          const cached = memoryCache.get(fileId);
+          imageUrl = cached.full; // Use cached data URL
+        }
 
         // Update the detail view in background
         currentDetailIndex = newIndex;
