@@ -4277,11 +4277,18 @@ DETECTION SYSTEM (working correctly):
 
       html.github-pages body.mobile-device.landscape {
         padding-top: 4px !important;
+        padding-bottom: 0 !important; /* Remove default 32px body bottom padding */
+      }
+
+      /* Also for non-GitHub Pages landscape - remove body bottom padding */
+      body.mobile-device.landscape,
+      body.tablet-device.landscape {
+        padding-bottom: 0 !important;
       }
 
       html.github-pages body.mobile-device.portrait .shell {
         padding: 0 6px 4px 6px !important; /* Tight padding */
-        padding-bottom: 55px !important; /* Account for bottom bar height (35px + padding) */
+        padding-bottom: 40px !important; /* Account for bottom bar height */
       }
 
       html.github-pages body.mobile-device.landscape .shell {
