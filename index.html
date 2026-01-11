@@ -1897,22 +1897,10 @@ DETECTION SYSTEM (working correctly):
         right: 20px;
       }
 
-      /* Mobile: larger nav buttons */
+      /* Mobile/Tablet: hide nav buttons - use swipe gestures instead */
       body.mobile-device .img-overlay-nav,
       body.tablet-device .img-overlay-nav {
-        width: 60px;
-        height: 60px;
-        font-size: 28px;
-      }
-
-      body.mobile-device .img-overlay-prev,
-      body.tablet-device .img-overlay-prev {
-        left: 10px;
-      }
-
-      body.mobile-device .img-overlay-next,
-      body.tablet-device .img-overlay-next {
-        right: 10px;
+        display: none !important;
       }
 
       /* Custom Toast Notifications ------------------------------------------ */
@@ -11032,6 +11020,8 @@ DETECTION SYSTEM (working correctly):
 
       // Track if fullscreen viewer is in diaporama mode for navigation
       let fullscreenDiaporamaMode = false;
+      // Track if fullscreen viewer is in detail mode for navigation
+      let fullscreenDetailMode = false;
 
       function openImageFullscreen(src) {
         const overlay = document.getElementById("imgOverlay");
@@ -11053,7 +11043,10 @@ DETECTION SYSTEM (working correctly):
         const isDiaporama = grid && (grid.classList.contains('diaporama-horizontal') || grid.classList.contains('diaporama-vertical'));
         fullscreenDiaporamaMode = isDiaporama && currentDiaporamaItems && currentDiaporamaItems.length > 1;
 
-        // Show/hide navigation buttons based on diaporama mode
+        // Check if we're in detail view mode with multiple items
+        fullscreenDetailMode = (currentView === "detail") && currentDisplayedItems && currentDisplayedItems.length > 1 && currentDetailIndex >= 0;
+
+        // Show/hide navigation buttons based on mode
         updateFullscreenNavButtons();
 
         // On mobile devices, push history state when opened from detail view
@@ -11077,6 +11070,7 @@ DETECTION SYSTEM (working correctly):
         imageZoomState.isOpen = false;
         imageZoomState.openedFromDetailView = false;
         fullscreenDiaporamaMode = false;
+        fullscreenDetailMode = false;
 
         // Hide nav buttons
         const prevBtn = document.getElementById("imgOverlayPrev");
@@ -11101,18 +11095,31 @@ DETECTION SYSTEM (working correctly):
         const prevBtn = document.getElementById("imgOverlayPrev");
         const nextBtn = document.getElementById("imgOverlayNext");
 
-        if (!fullscreenDiaporamaMode) {
-          if (prevBtn) prevBtn.style.display = "none";
-          if (nextBtn) nextBtn.style.display = "none";
+        // Handle diaporama mode
+        if (fullscreenDiaporamaMode) {
+          if (prevBtn) {
+            prevBtn.style.display = currentDiaporamaIndex > 0 ? "flex" : "none";
+          }
+          if (nextBtn) {
+            nextBtn.style.display = currentDiaporamaIndex < currentDiaporamaItems.length - 1 ? "flex" : "none";
+          }
           return;
         }
 
-        if (prevBtn) {
-          prevBtn.style.display = currentDiaporamaIndex > 0 ? "flex" : "none";
+        // Handle detail view mode
+        if (fullscreenDetailMode) {
+          if (prevBtn) {
+            prevBtn.style.display = currentDetailIndex > 0 ? "flex" : "none";
+          }
+          if (nextBtn) {
+            nextBtn.style.display = currentDetailIndex < currentDisplayedItems.length - 1 ? "flex" : "none";
+          }
+          return;
         }
-        if (nextBtn) {
-          nextBtn.style.display = currentDiaporamaIndex < currentDiaporamaItems.length - 1 ? "flex" : "none";
-        }
+
+        // Neither mode - hide buttons
+        if (prevBtn) prevBtn.style.display = "none";
+        if (nextBtn) nextBtn.style.display = "none";
       }
 
       // Navigate to prev/next image in fullscreen diaporama mode
@@ -11129,22 +11136,73 @@ DETECTION SYSTEM (working correctly):
           navigateDiaporama(direction);
         }
 
-        // Get the new image URL from the current item
-        setTimeout(() => {
-          const container = document.getElementById('diaporamaItemContainer');
-          if (container) {
-            const imgWrapper = container.querySelector('.diaporama-image-wrapper');
-            if (imgWrapper && imgWrapper.dataset.imageUrl) {
-              const img = document.getElementById("imgOverlayImg");
-              if (img) {
-                // Reset zoom before changing image
-                resetImageZoom();
-                img.src = imgWrapper.dataset.imageUrl;
-              }
-            }
+        // Get the new image URL directly from items array
+        const item = currentDiaporamaItems[newIndex];
+        let imageUrl = '';
+
+        if (currentDiaporamaLayerIndex === -1) {
+          // Main diaporama - use imageColumn
+          if (imageColumn && item[imageColumn.columnName]) {
+            imageUrl = item[imageColumn.columnName];
           }
-          updateFullscreenNavButtons();
-        }, 100);
+        } else {
+          // Layer diaporama - check for _rawLayerItem or direct access
+          const rawItem = item._rawLayerItem || item;
+          imageUrl = rawItem["Picture Link"] || '';
+        }
+
+        if (imageUrl) {
+          const img = document.getElementById("imgOverlayImg");
+          if (img) {
+            // Reset zoom before changing image
+            resetImageZoom();
+            img.src = imageUrl;
+          }
+        }
+
+        updateFullscreenNavButtons();
+      }
+
+      // Navigate to prev/next image in fullscreen detail view mode
+      function navigateFullscreenDetail(direction) {
+        if (!fullscreenDetailMode) return;
+
+        const newIndex = currentDetailIndex + direction;
+        if (newIndex < 0 || newIndex >= currentDisplayedItems.length) return;
+
+        // Get the new item
+        const newItem = currentDisplayedItems[newIndex];
+        if (!newItem) return;
+
+        // Get image URL from item
+        let imageUrl = '';
+        if (imageColumn && newItem[imageColumn.columnName]) {
+          imageUrl = newItem[imageColumn.columnName];
+        }
+
+        if (!imageUrl) return;
+
+        // Update the detail view in background
+        currentDetailIndex = newIndex;
+        showDetails(newItem, newIndex);
+
+        // Update fullscreen image
+        const img = document.getElementById("imgOverlayImg");
+        if (img) {
+          resetImageZoom();
+          img.src = imageUrl;
+        }
+
+        updateFullscreenNavButtons();
+      }
+
+      // Navigate fullscreen image (works for both diaporama and detail modes)
+      function navigateFullscreenImage(direction) {
+        if (fullscreenDiaporamaMode) {
+          navigateFullscreenDiaporama(direction);
+        } else if (fullscreenDetailMode) {
+          navigateFullscreenDetail(direction);
+        }
       }
 
       // Setup fullscreen navigation handlers
@@ -11156,31 +11214,31 @@ DETECTION SYSTEM (working correctly):
         if (prevBtn) {
           prevBtn.onclick = (e) => {
             e.stopPropagation();
-            navigateFullscreenDiaporama(-1);
+            navigateFullscreenImage(-1);
           };
         }
 
         if (nextBtn) {
           nextBtn.onclick = (e) => {
             e.stopPropagation();
-            navigateFullscreenDiaporama(1);
+            navigateFullscreenImage(1);
           };
         }
 
-        // Swipe support for fullscreen in diaporama mode
+        // Swipe support for fullscreen in diaporama or detail mode
         if (overlay) {
           let touchStartX = 0;
           let touchStartY = 0;
 
           overlay.addEventListener('touchstart', (e) => {
-            if (!fullscreenDiaporamaMode) return;
+            if (!fullscreenDiaporamaMode && !fullscreenDetailMode) return;
             if (imageZoomState.scale > 1) return; // Don't swipe when zoomed
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
           }, { passive: true });
 
           overlay.addEventListener('touchend', (e) => {
-            if (!fullscreenDiaporamaMode) return;
+            if (!fullscreenDiaporamaMode && !fullscreenDetailMode) return;
             if (imageZoomState.scale > 1) return; // Don't swipe when zoomed
             const touchEndX = e.changedTouches[0].clientX;
             const touchEndY = e.changedTouches[0].clientY;
@@ -11191,26 +11249,26 @@ DETECTION SYSTEM (working correctly):
             // Only horizontal swipes more dominant than vertical
             if (Math.abs(swipeDistanceX) > Math.abs(swipeDistanceY) && Math.abs(swipeDistanceX) > swipeThreshold) {
               if (swipeDistanceX < 0) {
-                navigateFullscreenDiaporama(1); // Swipe left = next
+                navigateFullscreenImage(1); // Swipe left = next
               } else {
-                navigateFullscreenDiaporama(-1); // Swipe right = prev
+                navigateFullscreenImage(-1); // Swipe right = prev
               }
             }
           }, { passive: true });
         }
       }
 
-      // Keyboard navigation for diaporama (arrow keys)
+      // Keyboard navigation for diaporama and detail view (arrow keys)
       function setupKeyboardNavigation() {
         document.addEventListener('keydown', (e) => {
-          // Check if fullscreen viewer is open
-          if (imageZoomState.isOpen && fullscreenDiaporamaMode) {
+          // Check if fullscreen viewer is open with navigation enabled
+          if (imageZoomState.isOpen && (fullscreenDiaporamaMode || fullscreenDetailMode)) {
             if (e.key === 'ArrowLeft') {
               e.preventDefault();
-              navigateFullscreenDiaporama(-1);
+              navigateFullscreenImage(-1);
             } else if (e.key === 'ArrowRight') {
               e.preventDefault();
-              navigateFullscreenDiaporama(1);
+              navigateFullscreenImage(1);
             } else if (e.key === 'Escape') {
               e.preventDefault();
               closeImageFullscreen();
