@@ -4280,12 +4280,27 @@ DETECTION SYSTEM (working correctly):
       }
 
       html.github-pages body.mobile-device.portrait .shell {
-        padding: 0 6px 8px 6px !important; /* Tight padding */
+        padding: 0 6px 4px 6px !important; /* Tight padding */
+        padding-bottom: 55px !important; /* Account for bottom bar height (35px + padding) */
       }
 
       html.github-pages body.mobile-device.landscape .shell {
         padding-left: 6px !important;
         padding-right: 6px !important;
+        padding-bottom: 0 !important; /* No bottom bar in landscape */
+      }
+
+      /* Ensure bottom bar is completely removed in landscape (not just hidden) */
+      html.github-pages body.mobile-device.landscape .bottom-bar,
+      html.github-pages body.tablet-device.landscape .bottom-bar,
+      body.mobile-device.landscape .bottom-bar,
+      body.tablet-device.landscape .bottom-bar {
+        display: none !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        visibility: hidden !important;
       }
 
       html.github-pages body.mobile-device.portrait .top-header {
