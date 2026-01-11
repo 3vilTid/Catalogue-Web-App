@@ -5210,6 +5210,35 @@ DETECTION SYSTEM (working correctly):
         padding: 5px !important;
       }
 
+      /* GitHub Pages Mobile Portrait: Diaporama height must account for 120px shell bottom padding */
+      html.github-pages body.mobile-device.portrait .diaporama-vertical,
+      html.github-pages body.mobile-device.portrait .diaporama-horizontal {
+        height: calc(100dvh - 340px) !important;
+        max-height: calc(100dvh - 340px) !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .diaporama-vertical .diaporama-item {
+        min-height: calc(100dvh - 360px) !important;
+        height: calc(100dvh - 360px) !important;
+        max-height: calc(100dvh - 360px) !important;
+      }
+
+      /* Mobile/Tablet LANDSCAPE: Smaller offset since headers are compact */
+      body.mobile-device.landscape .diaporama-vertical,
+      body.mobile-device.landscape .diaporama-horizontal,
+      body.tablet-device.landscape .diaporama-vertical,
+      body.tablet-device.landscape .diaporama-horizontal {
+        height: calc(100dvh - 100px) !important;
+        max-height: calc(100dvh - 100px) !important;
+      }
+
+      body.mobile-device.landscape .diaporama-vertical .diaporama-item,
+      body.tablet-device.landscape .diaporama-vertical .diaporama-item {
+        min-height: calc(100dvh - 120px) !important;
+        height: calc(100dvh - 120px) !important;
+        max-height: calc(100dvh - 120px) !important;
+      }
+
     </style>
 
     <!-- PWA Configuration Note -->
