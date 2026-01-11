@@ -4234,7 +4234,7 @@ DETECTION SYSTEM (working correctly):
       }
 
       html.github-pages body.mobile-device.portrait .shell {
-        padding: 0 6px 120px 6px !important; /* Increased from 46px to 120px to account for bottom bar (100px + buffer) */
+        padding: 0 6px 60px 6px !important; /* Reduced from 120px to 60px - bottom bar is ~50px */
       }
 
       html.github-pages body.mobile-device.landscape .shell {
@@ -5210,17 +5210,17 @@ DETECTION SYSTEM (working correctly):
         padding: 5px !important;
       }
 
-      /* GitHub Pages Mobile Portrait: Diaporama height - compact header + bottom bar */
+      /* GitHub Pages Mobile Portrait: Diaporama height - compact header + reduced bottom bar */
       html.github-pages body.mobile-device.portrait .diaporama-vertical,
       html.github-pages body.mobile-device.portrait .diaporama-horizontal {
-        height: calc(100dvh - 150px) !important;
-        max-height: calc(100dvh - 150px) !important;
+        height: calc(100dvh - 90px) !important;
+        max-height: calc(100dvh - 90px) !important;
       }
 
       html.github-pages body.mobile-device.portrait .diaporama-vertical .diaporama-item {
-        min-height: calc(100dvh - 170px) !important;
-        height: calc(100dvh - 170px) !important;
-        max-height: calc(100dvh - 170px) !important;
+        min-height: calc(100dvh - 110px) !important;
+        height: calc(100dvh - 110px) !important;
+        max-height: calc(100dvh - 110px) !important;
       }
 
       /* Mobile/Tablet LANDSCAPE: Smaller offset since headers are compact */
