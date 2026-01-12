@@ -4818,11 +4818,10 @@ DETECTION SYSTEM (working correctly):
       .diaporama-horizontal {
         position: relative;
         overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        /* Center the item both horizontally and vertically */
-        justify-content: center;
-        align-items: center;
+        /* Use CSS Grid for perfect centering */
+        display: grid;
+        /* place-content centers the grid tracks (which contain the item) within the container */
+        place-content: center;
         /* Height = viewport - top-header. Use dvh for mobile browser support */
         height: calc(100dvh - 120px);
         max-height: calc(100dvh - 120px);
@@ -4836,16 +4835,14 @@ DETECTION SYSTEM (working correctly):
 
       .diaporama-item-container {
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         transition: transform 0.3s ease;
         height: fit-content;
         max-height: 100%;
         width: fit-content;
         max-width: 100%;
-        justify-content: center;
-        align-items: center;
-        /* Ensure centering within parent */
-        margin: auto;
       }
 
       .diaporama-horizontal .diaporama-item-container {
@@ -4853,7 +4850,6 @@ DETECTION SYSTEM (working correctly):
         max-width: 100%;
         height: fit-content;
         max-height: 100%;
-        margin: auto;
       }
 
       .diaporama-item {
