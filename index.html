@@ -4873,6 +4873,8 @@ DETECTION SYSTEM (working correctly):
         scroll-snap-align: center;
         /* Center the item both horizontally and vertically in the grid cell */
         place-self: center;
+        /* Fallback for centering - margin auto works reliably across browsers */
+        margin: auto;
         /* Item shrinks to fit content */
         width: fit-content;
         height: fit-content;
@@ -4966,9 +4968,11 @@ DETECTION SYSTEM (working correctly):
         flex-shrink: 0;
         overflow-y: auto;
         max-height: 30%;
-        width: fit-content;
+        /* Use full width of card, content left-aligned */
+        width: 100%;
         max-width: 100%;
-        align-self: center;
+        align-self: stretch;
+        text-align: left;
       }
 
       .diaporama-subid2 {
@@ -5018,9 +5022,11 @@ DETECTION SYSTEM (working correctly):
         margin-top: 10px;
         word-wrap: break-word;
         overflow-wrap: break-word;
-        width: fit-content;
+        /* Full width, content left-aligned */
+        width: 100%;
         max-width: 100%;
-        align-self: center;
+        align-self: stretch;
+        text-align: left;
       }
 
       .diaporama-bottom-text {
@@ -5153,6 +5159,7 @@ DETECTION SYSTEM (working correctly):
       body.mobile-device .diaporama-vertical .diaporama-item,
       body.tablet-device .diaporama-vertical .diaporama-item {
         place-self: center !important;
+        margin: auto !important;
         width: fit-content !important;
         height: fit-content !important;
         min-height: 0 !important;
@@ -5179,6 +5186,7 @@ DETECTION SYSTEM (working correctly):
       body.mobile-device.portrait .diaporama-vertical .diaporama-item,
       body.tablet-device.portrait .diaporama-vertical .diaporama-item {
         place-self: center !important;
+        margin: auto !important;
         width: fit-content !important;
         height: fit-content !important;
         min-height: 0 !important;
@@ -5356,6 +5364,7 @@ DETECTION SYSTEM (working correctly):
       /* GitHub Pages vertical mode: items adapt to content, centered */
       html.github-pages body.mobile-device.portrait .diaporama-vertical .diaporama-item {
         place-self: center !important;
+        margin: auto !important;
         width: fit-content !important;
         height: fit-content !important;
         min-height: 0 !important;
@@ -5397,6 +5406,7 @@ DETECTION SYSTEM (working correctly):
       body.mobile-device.landscape .diaporama-vertical .diaporama-item,
       body.tablet-device.landscape .diaporama-vertical .diaporama-item {
         place-self: center !important;
+        margin: auto !important;
         width: fit-content !important;
         height: fit-content !important;
         min-height: 0 !important;
