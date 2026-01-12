@@ -4844,6 +4844,8 @@ DETECTION SYSTEM (working correctly):
         max-width: 100%;
         justify-content: center;
         align-items: center;
+        /* Ensure centering within parent */
+        margin: auto;
       }
 
       .diaporama-horizontal .diaporama-item-container {
@@ -4851,6 +4853,7 @@ DETECTION SYSTEM (working correctly):
         max-width: 100%;
         height: fit-content;
         max-height: 100%;
+        margin: auto;
       }
 
       .diaporama-item {
@@ -5162,6 +5165,26 @@ DETECTION SYSTEM (working correctly):
         max-height: calc(100dvh - 240px) !important;
       }
 
+      /* Horizontal mode: items adapt to content, don't fill screen */
+      body.mobile-device.portrait .diaporama-horizontal .diaporama-item,
+      body.tablet-device.portrait .diaporama-horizontal .diaporama-item,
+      body.mobile-device.landscape .diaporama-horizontal .diaporama-item,
+      body.tablet-device.landscape .diaporama-horizontal .diaporama-item {
+        min-height: 0 !important;
+        height: fit-content !important;
+        max-height: 100% !important;
+        width: fit-content !important;
+        max-width: 100% !important;
+      }
+
+      /* Horizontal mode: container adapts and centers */
+      body.mobile-device .diaporama-horizontal .diaporama-item-container,
+      body.tablet-device .diaporama-horizontal .diaporama-item-container {
+        width: fit-content !important;
+        height: fit-content !important;
+        margin: auto !important;
+      }
+
       /* ==================== DIAPORAMA - TABLET LANDSCAPE ==================== */
       body.tablet-device.landscape .diaporama-name {
         font-size: 23px !important;
@@ -5308,6 +5331,21 @@ DETECTION SYSTEM (working correctly):
         min-height: calc(100dvh - 58px) !important;
         height: calc(100dvh - 58px) !important;
         max-height: calc(100dvh - 58px) !important;
+      }
+
+      /* GitHub Pages Horizontal mode: items adapt to content */
+      html.github-pages body.mobile-device.portrait .diaporama-horizontal .diaporama-item {
+        min-height: 0 !important;
+        height: fit-content !important;
+        max-height: 100% !important;
+        width: fit-content !important;
+        max-width: 100% !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .diaporama-horizontal .diaporama-item-container {
+        width: fit-content !important;
+        height: fit-content !important;
+        margin: auto !important;
       }
 
       /* Mobile/Tablet LANDSCAPE: Smaller offset since headers are compact */
