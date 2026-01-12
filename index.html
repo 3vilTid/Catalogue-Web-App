@@ -4820,6 +4820,9 @@ DETECTION SYSTEM (working correctly):
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        /* Center the item both horizontally and vertically */
+        justify-content: center;
+        align-items: center;
         /* Height = viewport - top-header. Use dvh for mobile browser support */
         height: calc(100dvh - 120px);
         max-height: calc(100dvh - 120px);
@@ -4835,19 +4838,25 @@ DETECTION SYSTEM (working correctly):
         display: flex;
         flex-direction: row;
         transition: transform 0.3s ease;
-        height: 100%;
-        flex: 1;
-        min-height: 0;
+        height: auto;
+        max-height: 100%;
+        width: auto;
+        max-width: 100%;
+        justify-content: center;
+        align-items: center;
       }
 
       .diaporama-horizontal .diaporama-item-container {
-        width: 100%;
-        height: 100%;
+        width: auto;
+        max-width: 100%;
+        height: auto;
+        max-height: 100%;
       }
 
       .diaporama-item {
         flex-shrink: 0;
-        width: 100%;
+        width: auto;
+        max-width: 100%;
         padding: 15px;
         box-sizing: border-box;
         background: rgba(255, 255, 255, 0.95);
@@ -4867,12 +4876,14 @@ DETECTION SYSTEM (working correctly):
         margin-bottom: 20px;
       }
 
-      /* Horizontal: item takes full container height */
+      /* Horizontal: item adapts to content, constrained by viewport */
       .diaporama-horizontal .diaporama-item {
-        flex: 1;
-        height: 100%;
+        flex: 0 1 auto;
+        width: auto;
+        height: auto;
         min-height: 0;
         max-height: 100%;
+        max-width: 100%;
       }
 
       /* Above picture section */
@@ -4920,24 +4931,22 @@ DETECTION SYSTEM (working correctly):
         overflow-wrap: break-word;
       }
 
-      /* Image wrapper - flexible to fill available space */
+      /* Image wrapper - adapts to image size, constrained by viewport */
       .diaporama-image-wrapper {
-        width: 100%;
-        margin: 10px 0;
+        width: auto;
+        margin: 4px 0;
         display: flex;
         justify-content: center;
         align-items: center;
-        flex: 1 1 0;
-        height: 0;
-        min-height: 200px;
+        flex: 0 1 auto;
         overflow: hidden;
       }
 
       .diaporama-img {
-        width: 100%;
-        height: 100%;
+        width: auto;
+        height: auto;
         max-width: 100%;
-        max-height: 100%;
+        max-height: calc(100dvh - 200px);
         object-fit: contain;
         border-radius: 8px;
         cursor: pointer;
@@ -4945,7 +4954,7 @@ DETECTION SYSTEM (working correctly):
 
       /* Below picture section */
       .diaporama-below-picture {
-        margin-top: 10px;
+        margin-top: 4px;
         flex-shrink: 0;
         overflow-y: auto;
         max-height: 30%;
@@ -4987,7 +4996,7 @@ DETECTION SYSTEM (working correctly):
 
       .diaporama-longtext-down {
         font-size: 13px;
-        margin-top: 10px;
+        margin-top: 2px;
         word-wrap: break-word;
         overflow-wrap: break-word;
         text-align: center;
