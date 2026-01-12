@@ -4802,14 +4802,15 @@ DETECTION SYSTEM (working correctly):
         /* Ensure diaporama-view itself has height when combined with vertical/horizontal */
       }
 
-      /* Vertical style: scroll-snap for full-screen items */
+      /* Vertical style: scroll-snap with centered fit-content items */
       .diaporama-vertical {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        /* Each row is viewport-sized, creating snap areas */
+        grid-auto-rows: calc(100dvh - 120px);
         gap: 0;
         overflow-y: auto;
         scroll-snap-type: y mandatory;
-        /* Height = viewport - top-header - some padding. Use dvh for mobile browser support */
+        /* Height = viewport - top-header. Use dvh for mobile browser support */
         height: calc(100dvh - 120px);
         max-height: calc(100dvh - 120px);
       }
@@ -4867,13 +4868,17 @@ DETECTION SYSTEM (working correctly):
         overflow: hidden;
       }
 
-      /* Vertical: each item snaps to screen, takes full available height */
+      /* Vertical: each item is fit-content and centered in its viewport-sized grid cell */
       .diaporama-vertical .diaporama-item {
-        scroll-snap-align: start;
-        min-height: calc(100dvh - 140px);
-        height: calc(100dvh - 140px);
-        max-height: calc(100dvh - 140px);
-        margin-bottom: 20px;
+        scroll-snap-align: center;
+        /* Center the item both horizontally and vertically in the grid cell */
+        place-self: center;
+        /* Item shrinks to fit content */
+        width: fit-content;
+        height: fit-content;
+        min-height: 0;
+        max-width: 100%;
+        max-height: 100%;
       }
 
       /* Horizontal: item adapts to content, constrained by viewport */
@@ -5138,11 +5143,21 @@ DETECTION SYSTEM (working correctly):
         max-height: calc(100dvh - 180px) !important;
       }
 
+      /* Vertical mode: grid rows match container height */
+      body.mobile-device .diaporama-vertical,
+      body.tablet-device .diaporama-vertical {
+        grid-auto-rows: calc(100dvh - 180px) !important;
+      }
+
+      /* Vertical mode: items adapt to content, centered in grid cell */
       body.mobile-device .diaporama-vertical .diaporama-item,
       body.tablet-device .diaporama-vertical .diaporama-item {
-        min-height: calc(100dvh - 200px) !important;
-        height: calc(100dvh - 200px) !important;
-        max-height: calc(100dvh - 200px) !important;
+        place-self: center !important;
+        width: fit-content !important;
+        height: fit-content !important;
+        min-height: 0 !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
       }
 
       /* Portrait mode: even larger header offset */
@@ -5154,11 +5169,21 @@ DETECTION SYSTEM (working correctly):
         max-height: calc(100dvh - 220px) !important;
       }
 
+      /* Portrait vertical mode: grid rows match container height */
+      body.mobile-device.portrait .diaporama-vertical,
+      body.tablet-device.portrait .diaporama-vertical {
+        grid-auto-rows: calc(100dvh - 220px) !important;
+      }
+
+      /* Portrait vertical mode: items adapt to content, centered */
       body.mobile-device.portrait .diaporama-vertical .diaporama-item,
       body.tablet-device.portrait .diaporama-vertical .diaporama-item {
-        min-height: calc(100dvh - 240px) !important;
-        height: calc(100dvh - 240px) !important;
-        max-height: calc(100dvh - 240px) !important;
+        place-self: center !important;
+        width: fit-content !important;
+        height: fit-content !important;
+        min-height: 0 !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
       }
 
       /* Horizontal mode: items adapt to content, don't fill screen */
@@ -5323,10 +5348,19 @@ DETECTION SYSTEM (working correctly):
         max-height: calc(100dvh - 38px) !important;
       }
 
+      /* GitHub Pages vertical mode: grid rows match container height */
+      html.github-pages body.mobile-device.portrait .diaporama-vertical {
+        grid-auto-rows: calc(100dvh - 38px) !important;
+      }
+
+      /* GitHub Pages vertical mode: items adapt to content, centered */
       html.github-pages body.mobile-device.portrait .diaporama-vertical .diaporama-item {
-        min-height: calc(100dvh - 58px) !important;
-        height: calc(100dvh - 58px) !important;
-        max-height: calc(100dvh - 58px) !important;
+        place-self: center !important;
+        width: fit-content !important;
+        height: fit-content !important;
+        min-height: 0 !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
       }
 
       /* GitHub Pages Horizontal mode: items adapt to content */
@@ -5353,11 +5387,21 @@ DETECTION SYSTEM (working correctly):
         max-height: calc(100dvh - 100px) !important;
       }
 
+      /* Landscape vertical mode: grid rows match container height */
+      body.mobile-device.landscape .diaporama-vertical,
+      body.tablet-device.landscape .diaporama-vertical {
+        grid-auto-rows: calc(100dvh - 100px) !important;
+      }
+
+      /* Landscape vertical mode: items adapt to content, centered */
       body.mobile-device.landscape .diaporama-vertical .diaporama-item,
       body.tablet-device.landscape .diaporama-vertical .diaporama-item {
-        min-height: calc(100dvh - 120px) !important;
-        height: calc(100dvh - 120px) !important;
-        max-height: calc(100dvh - 120px) !important;
+        place-self: center !important;
+        width: fit-content !important;
+        height: fit-content !important;
+        min-height: 0 !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
       }
 
     </style>
