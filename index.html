@@ -10195,6 +10195,14 @@ DETECTION SYSTEM (working correctly):
           .withSuccessHandler(function(tabData) {
             console.log('✅ Tab data loaded for:', tab.tabName);
 
+            // Check for null/undefined response (can happen with network issues)
+            if (!tabData) {
+              console.error('❌ Tab data is null for:', tab.tabName);
+              showToast('Error loading tab data: No data received', 'error');
+              gridView.innerHTML = '<div style="text-align: center; padding: 60px; color: #ef4444;">Error loading data</div>';
+              return;
+            }
+
             // Update app data with tab-specific configuration
             layerConfig = tabData.layerConfig || [];
             layersData = tabData.layersData || {};
@@ -10301,6 +10309,11 @@ DETECTION SYSTEM (working correctly):
           // Fetch tab data in background
           google.script.run
             .withSuccessHandler(function(tabData) {
+              // Check for null/undefined response (can happen with network issues)
+              if (!tabData) {
+                console.warn('⚠️ Tab preload returned null for tab', tabIndex, '(' + tab.tabName + ')');
+                return;
+              }
               // Store in cache
               tabDataCache[tabIndex] = {
                 layerConfig: tabData.layerConfig || [],
@@ -11976,6 +11989,12 @@ DETECTION SYSTEM (working correctly):
       function loadPublicApp() {
         google.script.run
           .withSuccessHandler(function (payload) {
+            // Check for null/undefined response
+            if (!payload) {
+              console.error('❌ Initial data is null');
+              showToast('Error loading application: No data received', 'error');
+              return;
+            }
             user = payload.user;
             settings = payload.settings;
             headers = payload.headers || [];
@@ -12058,6 +12077,12 @@ DETECTION SYSTEM (working correctly):
         // Load app in public mode but keep login UI visible
         google.script.run
           .withSuccessHandler(function (payload) {
+            // Check for null/undefined response
+            if (!payload) {
+              console.error('❌ Initial data is null');
+              showToast('Error loading application: No data received', 'error');
+              return;
+            }
             user = payload.user;  // Will be null since no token
             settings = payload.settings;
             headers = payload.headers || [];
@@ -12132,6 +12157,14 @@ DETECTION SYSTEM (working correctly):
       function loadPrivateApp(token) {
         google.script.run
           .withSuccessHandler(function (payload) {
+            // Check for null/undefined response
+            if (!payload) {
+              console.error('❌ Initial data is null');
+              showToast('Error loading application: No data received', 'error');
+              clearSession();
+              showLoginScreen();
+              return;
+            }
             user = payload.user;
             settings = payload.settings;
             headers = payload.headers || [];
