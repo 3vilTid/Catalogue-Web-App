@@ -11423,6 +11423,21 @@ DETECTION SYSTEM (working correctly):
                 navigateDiaporama(1);
               }
             }
+            return;
+          }
+
+          // Check if we're in detail view (not fullscreen, not diaporama)
+          const detailView = document.getElementById("detailView");
+          const isDetailViewOpen = detailView && detailView.style.display === "block";
+
+          if (isDetailViewOpen && currentDisplayedItems && currentDisplayedItems.length > 1) {
+            if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              navigateToPrevious();
+            } else if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              navigateToNext();
+            }
           }
         });
       }
