@@ -4872,9 +4872,13 @@ DETECTION SYSTEM (working correctly):
         overflow: hidden;
       }
 
-      /* Vertical: each item is fit-content and centered in its viewport-sized grid cell */
-      .diaporama-vertical .diaporama-item {
-        scroll-snap-align: center;
+      /* ========== SHARED DIAPORAMA ITEM DISPLAY STYLES ==========
+         Both Vertical and Horizontal modes display items identically.
+         Only navigation differs: Vertical=scroll, Horizontal=buttons/swipe.
+         Edit here to change item appearance for BOTH modes.
+         ========================================================== */
+      .diaporama-vertical .diaporama-item,
+      .diaporama-horizontal .diaporama-item {
         /* Center the item both horizontally and vertically in the grid cell */
         place-self: center;
         /* Fallback for centering - margin auto works reliably across browsers */
@@ -4887,17 +4891,9 @@ DETECTION SYSTEM (working correctly):
         max-height: 100%;
       }
 
-      /* Horizontal: match vertical style - item centered in grid cell */
-      .diaporama-horizontal .diaporama-item {
-        /* Same centering as vertical style */
-        place-self: center;
-        margin: auto;
-        /* Item shrinks to fit content */
-        width: fit-content;
-        height: fit-content;
-        min-height: 0;
-        max-width: 100%;
-        max-height: 100%;
+      /* Vertical-only: scroll snap for smooth scrolling navigation */
+      .diaporama-vertical .diaporama-item {
+        scroll-snap-align: center;
       }
 
       /* Above picture section */
@@ -5162,9 +5158,14 @@ DETECTION SYSTEM (working correctly):
         grid-auto-rows: calc(100dvh - 180px) !important;
       }
 
-      /* Vertical mode: items adapt to content, centered in grid cell */
+      /* ========== MOBILE/TABLET: SHARED DIAPORAMA ITEM DISPLAY ==========
+         Both Vertical and Horizontal modes display items identically.
+         Edit here to change item appearance for BOTH modes on mobile/tablet.
+         ================================================================== */
       body.mobile-device .diaporama-vertical .diaporama-item,
-      body.tablet-device .diaporama-vertical .diaporama-item {
+      body.mobile-device .diaporama-horizontal .diaporama-item,
+      body.tablet-device .diaporama-vertical .diaporama-item,
+      body.tablet-device .diaporama-horizontal .diaporama-item {
         place-self: center !important;
         margin: auto !important;
         width: fit-content !important;
@@ -5187,32 +5188,6 @@ DETECTION SYSTEM (working correctly):
       body.mobile-device.portrait .diaporama-vertical,
       body.tablet-device.portrait .diaporama-vertical {
         grid-auto-rows: calc(100dvh - 220px) !important;
-      }
-
-      /* Portrait vertical mode: items adapt to content, centered */
-      body.mobile-device.portrait .diaporama-vertical .diaporama-item,
-      body.tablet-device.portrait .diaporama-vertical .diaporama-item {
-        place-self: center !important;
-        margin: auto !important;
-        width: fit-content !important;
-        height: fit-content !important;
-        min-height: 0 !important;
-        max-width: 100% !important;
-        max-height: 100% !important;
-      }
-
-      /* Horizontal mode: items match vertical style - centered in grid cell */
-      body.mobile-device.portrait .diaporama-horizontal .diaporama-item,
-      body.tablet-device.portrait .diaporama-horizontal .diaporama-item,
-      body.mobile-device.landscape .diaporama-horizontal .diaporama-item,
-      body.tablet-device.landscape .diaporama-horizontal .diaporama-item {
-        place-self: center !important;
-        margin: auto !important;
-        width: fit-content !important;
-        height: fit-content !important;
-        min-height: 0 !important;
-        max-width: 100% !important;
-        max-height: 100% !important;
       }
 
       /* Horizontal mode: container matches vertical style - full-sized grid with centering */
@@ -5374,18 +5349,11 @@ DETECTION SYSTEM (working correctly):
         grid-auto-rows: calc(100dvh - 38px) !important;
       }
 
-      /* GitHub Pages vertical mode: items adapt to content, centered */
-      html.github-pages body.mobile-device.portrait .diaporama-vertical .diaporama-item {
-        place-self: center !important;
-        margin: auto !important;
-        width: fit-content !important;
-        height: fit-content !important;
-        min-height: 0 !important;
-        max-width: 100% !important;
-        max-height: 100% !important;
-      }
-
-      /* GitHub Pages Horizontal mode: items match vertical style - centered in grid cell */
+      /* ========== GITHUB PAGES: SHARED DIAPORAMA ITEM DISPLAY ==========
+         Both Vertical and Horizontal modes display items identically.
+         Edit here to change item appearance for BOTH modes on GitHub Pages.
+         ================================================================= */
+      html.github-pages body.mobile-device.portrait .diaporama-vertical .diaporama-item,
       html.github-pages body.mobile-device.portrait .diaporama-horizontal .diaporama-item {
         place-self: center !important;
         margin: auto !important;
@@ -5421,18 +5389,7 @@ DETECTION SYSTEM (working correctly):
       body.tablet-device.landscape .diaporama-vertical {
         grid-auto-rows: calc(100dvh - 100px) !important;
       }
-
-      /* Landscape vertical mode: items adapt to content, centered */
-      body.mobile-device.landscape .diaporama-vertical .diaporama-item,
-      body.tablet-device.landscape .diaporama-vertical .diaporama-item {
-        place-self: center !important;
-        margin: auto !important;
-        width: fit-content !important;
-        height: fit-content !important;
-        min-height: 0 !important;
-        max-width: 100% !important;
-        max-height: 100% !important;
-      }
+      /* NOTE: Landscape item centering is handled by the shared mobile/tablet rules above */
 
     </style>
 
