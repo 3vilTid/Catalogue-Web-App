@@ -4847,10 +4847,14 @@ DETECTION SYSTEM (working correctly):
       }
 
       .diaporama-horizontal .diaporama-item-container {
-        width: fit-content;
+        /* Match vertical style: full viewport-sized grid cell with centered content */
+        display: grid;
+        place-content: center;
+        place-items: center;
+        width: 100%;
         max-width: 100%;
-        height: fit-content;
-        max-height: 100%;
+        height: calc(100dvh - 120px);
+        max-height: calc(100dvh - 120px);
       }
 
       .diaporama-item {
@@ -4883,14 +4887,17 @@ DETECTION SYSTEM (working correctly):
         max-height: 100%;
       }
 
-      /* Horizontal: item adapts to content, constrained by viewport */
+      /* Horizontal: match vertical style - item centered in grid cell */
       .diaporama-horizontal .diaporama-item {
-        flex: 0 1 auto;
+        /* Same centering as vertical style */
+        place-self: center;
+        margin: auto;
+        /* Item shrinks to fit content */
         width: fit-content;
         height: fit-content;
         min-height: 0;
-        max-height: 100%;
         max-width: 100%;
+        max-height: 100%;
       }
 
       /* Above picture section */
@@ -5194,24 +5201,30 @@ DETECTION SYSTEM (working correctly):
         max-height: 100% !important;
       }
 
-      /* Horizontal mode: items adapt to content, don't fill screen */
+      /* Horizontal mode: items match vertical style - centered in grid cell */
       body.mobile-device.portrait .diaporama-horizontal .diaporama-item,
       body.tablet-device.portrait .diaporama-horizontal .diaporama-item,
       body.mobile-device.landscape .diaporama-horizontal .diaporama-item,
       body.tablet-device.landscape .diaporama-horizontal .diaporama-item {
-        min-height: 0 !important;
-        height: fit-content !important;
-        max-height: 100% !important;
+        place-self: center !important;
+        margin: auto !important;
         width: fit-content !important;
+        height: fit-content !important;
+        min-height: 0 !important;
         max-width: 100% !important;
+        max-height: 100% !important;
       }
 
-      /* Horizontal mode: container adapts and centers */
+      /* Horizontal mode: container matches vertical style - full-sized grid with centering */
       body.mobile-device .diaporama-horizontal .diaporama-item-container,
       body.tablet-device .diaporama-horizontal .diaporama-item-container {
-        width: fit-content !important;
-        height: fit-content !important;
-        margin: auto !important;
+        display: grid !important;
+        place-content: center !important;
+        place-items: center !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
       }
 
       /* ==================== DIAPORAMA - TABLET LANDSCAPE ==================== */
@@ -5372,19 +5385,26 @@ DETECTION SYSTEM (working correctly):
         max-height: 100% !important;
       }
 
-      /* GitHub Pages Horizontal mode: items adapt to content */
+      /* GitHub Pages Horizontal mode: items match vertical style - centered in grid cell */
       html.github-pages body.mobile-device.portrait .diaporama-horizontal .diaporama-item {
-        min-height: 0 !important;
-        height: fit-content !important;
-        max-height: 100% !important;
+        place-self: center !important;
+        margin: auto !important;
         width: fit-content !important;
+        height: fit-content !important;
+        min-height: 0 !important;
         max-width: 100% !important;
+        max-height: 100% !important;
       }
 
+      /* GitHub Pages Horizontal mode: container matches vertical style */
       html.github-pages body.mobile-device.portrait .diaporama-horizontal .diaporama-item-container {
-        width: fit-content !important;
-        height: fit-content !important;
-        margin: auto !important;
+        display: grid !important;
+        place-content: center !important;
+        place-items: center !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
       }
 
       /* Mobile/Tablet LANDSCAPE: Smaller offset since headers are compact */
