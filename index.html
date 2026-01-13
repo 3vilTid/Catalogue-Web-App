@@ -60,9 +60,23 @@ DETECTION SYSTEM (working correctly):
     <!-- PWA Manifest - Static file for GitHub Pages -->
     <link rel="manifest" href="./manifest.json">
 
-    <!-- API Configuration and Client (GitHub Pages Migration) -->
-    <script src="./api-config.js"></script>
-    <script src="./api-client.js"></script>
+    <!-- API Configuration and Client (GitHub Pages only - loaded dynamically) -->
+    <!-- These scripts are loaded conditionally to avoid 404 errors on Apps Script -->
+    <script>
+      (function() {
+        // Only load API client scripts on GitHub Pages
+        // On Apps Script, the native google.script.run is used instead
+        if (window.location.hostname.includes('github.io')) {
+          var configScript = document.createElement('script');
+          configScript.src = './api-config.js';
+          document.head.appendChild(configScript);
+
+          var clientScript = document.createElement('script');
+          clientScript.src = './api-client.js';
+          document.head.appendChild(clientScript);
+        }
+      })();
+    </script>
 
     <!-- Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
@@ -5393,25 +5407,13 @@ DETECTION SYSTEM (working correctly):
 
     </style>
 
-    <!-- PWA Configuration Note -->
+    <!-- PWA Configuration Note (Apps Script only) -->
     <script>
-      // ============================================
-      // IMPORTANT: Service Worker Limitation
-      // ============================================
-      // Google Apps Script cannot serve service workers with the correct MIME type
-      // (it serves everything as text/html instead of application/javascript).
-      // This means:
-      //   - No true PWA "Install" prompt in Chrome/Edge
-      //   - No offline functionality
-      //   - Users can still use "Add to Home screen" for bookmark-style shortcuts
-      //   - The manifest is still served for basic home screen icon support
-      //
-      // To get full PWA support, the app would need to be hosted on a platform
-      // that can serve static files (GitHub Pages, Netlify, Vercel, etc.)
-      // ============================================
-
-      console.log('ℹ️ PWA Note: Service worker not available on Google Apps Script');
-      console.log('ℹ️ Use "Add to Home screen" from browser menu for a shortcut');
+      // Only show PWA limitation note when running on Apps Script
+      if (!window.location.hostname.includes('github.io')) {
+        console.log('ℹ️ PWA Note: Service worker not available on Google Apps Script');
+        console.log('ℹ️ Use "Add to Home screen" from browser menu for a shortcut');
+      }
     </script>
   </head>
 
@@ -11996,7 +11998,7 @@ DETECTION SYSTEM (working correctly):
             console.log('📑 Tabs Config:', tabsConfig);
             console.log('📑 Has Tabs:', tabsConfig.length > 0);
 
-            console.log('Public viewer loaded:', user.email, user.profile);
+            console.log('Public viewer loaded:', user ? user.email : 'null', user ? user.profile : 'null');
 
             if (settings) {
               // Use deployment URL from Settings C5
@@ -12589,10 +12591,11 @@ DETECTION SYSTEM (working correctly):
       };
     </script>
 
-    <!-- Service Worker Registration (GitHub Pages PWA Support) -->
+    <!-- Service Worker Registration (GitHub Pages PWA Support only) -->
     <script>
-      // Register service worker for PWA functionality
-      if ('serviceWorker' in navigator) {
+      // Register service worker for PWA functionality - only on GitHub Pages
+      // Service workers are not available on Google Apps Script
+      if ('serviceWorker' in navigator && window.location.hostname.includes('github.io')) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('./service-worker.js')
             .then((registration) => {
@@ -12615,6 +12618,8 @@ DETECTION SYSTEM (working correctly):
               console.warn('⚠️ Service Worker registration failed:', error);
             });
         });
+      } else if (!window.location.hostname.includes('github.io')) {
+        console.log('ℹ️ Service Workers not loaded on Apps Script - use browser "Add to Home screen" for shortcuts');
       } else {
         console.warn('⚠️ Service Workers are not supported in this browser');
       }
