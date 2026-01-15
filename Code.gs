@@ -517,6 +517,11 @@ function getSettings(layersSheetName) {
   var layer3Style = layersSheet ? (layersSheet.getRange("E4").getDisplayValue() || "Squared") : "Squared";
   var mainStyle = layersSheet ? (layersSheet.getRange("E5").getDisplayValue() || "Squared") : "Squared";
 
+  // Read Main Column Name (column C) for each layer to detect if layer is configured
+  var layer1MainColumn = layersSheet ? (layersSheet.getRange("C2").getDisplayValue() || "") : "";
+  var layer2MainColumn = layersSheet ? (layersSheet.getRange("C3").getDisplayValue() || "") : "";
+  var layer3MainColumn = layersSheet ? (layersSheet.getRange("C4").getDisplayValue() || "") : "";
+
   return {
     appName: appName,
     catalogName: catalogName,
@@ -534,7 +539,10 @@ function getSettings(layersSheetName) {
     layer2Style: layer2Style,
     layer3Style: layer3Style,
     mainStyle: mainStyle,
-    layersSheetName: layersSheetName
+    layersSheetName: layersSheetName,
+    layer1MainColumn: layer1MainColumn,
+    layer2MainColumn: layer2MainColumn,
+    layer3MainColumn: layer3MainColumn
   };
 }
 
