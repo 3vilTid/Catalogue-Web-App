@@ -7762,10 +7762,13 @@ DETECTION SYSTEM (working correctly):
           grid.innerHTML += itemHtml;
         }
 
-        // After rendering, load images (click handlers for zoom already in setupDiaporamaImages)
+        // After rendering, load first visible image immediately
         setTimeout(() => {
           setupDiaporamaImages(grid);
         }, 0);
+
+        // Start background preloading with priority on adjacent items (-1 = main view)
+        startDiaporamaPreloading(items, 0, -1);
       }
 
       // Render horizontal diaporama for Main view (one item at a time with navigation)
@@ -7806,6 +7809,9 @@ DETECTION SYSTEM (working correctly):
         if (isMobileOrTablet) {
           initializeMainDiaporamaSwipe(grid);
         }
+
+        // Start background preloading of all items (-1 = main view)
+        startDiaporamaPreloading(items, 0, -1);
       }
 
       // Build HTML for a single diaporama item in Main view
@@ -9251,10 +9257,13 @@ DETECTION SYSTEM (working correctly):
           grid.innerHTML += itemHtml;
         }
 
-        // After rendering, load images (click handlers for zoom already in setupDiaporamaImages)
+        // After rendering, load first visible image immediately
         setTimeout(() => {
           setupDiaporamaImages(grid);
         }, 0);
+
+        // Start background preloading with priority on adjacent items
+        startDiaporamaPreloading(items, 0, layerIndex);
       }
 
       // Render horizontal diaporama (one item at a time with navigation)
@@ -9295,6 +9304,9 @@ DETECTION SYSTEM (working correctly):
         if (isMobileOrTablet) {
           initializeDiaporamaSwipe(grid);
         }
+
+        // Start background preloading of all items (current item loads via showDiaporamaItem)
+        startDiaporamaPreloading(items, 0, layerIndex);
       }
 
       // Build HTML for a single diaporama item
@@ -9563,6 +9575,173 @@ DETECTION SYSTEM (working correctly):
       let currentDiaporamaItems = [];
       let currentDiaporamaIndex = 0;
       let currentDiaporamaLayerIndex = 0;
+
+      // Diaporama preloading state
+      let diaporamaPreloadSessionId = 0;  // Incremented on each new diaporama view to invalidate old preloads
+      let diaporamaPreloadQueue = [];     // Queue of items to preload
+      let diaporamaPreloadInProgress = false;
+
+      // Preload a diaporama image (cache only, no DOM update)
+      // Returns true if image was loaded/cached, false if skipped or failed
+      async function preloadDiaporamaImage(imageUrl, sessionId) {
+        // Check if session is still valid (user hasn't navigated away)
+        if (sessionId !== diaporamaPreloadSessionId) {
+          return false;
+        }
+
+        if (!imageUrl) return false;
+
+        const fileId = extractDriveFileId(imageUrl);
+
+        if (fileId) {
+          // Google Drive image - check caches first
+          if (memoryCache.has(fileId)) {
+            return true; // Already cached
+          }
+
+          const dbCached = await imageCacheDB.get(fileId);
+          if (dbCached && dbCached.full) {
+            memoryCache.set(fileId, { full: dbCached.full, thumbnail: dbCached.thumbnail });
+            return true; // Loaded from IndexedDB
+          }
+
+          // Check session still valid before network fetch
+          if (sessionId !== diaporamaPreloadSessionId) {
+            return false;
+          }
+
+          // Fetch from server
+          try {
+            const base = (window.API_CONFIG && window.API_CONFIG.APPS_SCRIPT_URL &&
+                         window.API_CONFIG.APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_DEPLOYMENT_URL_HERE')
+                         ? window.API_CONFIG.APPS_SCRIPT_URL.replace(/\/exec$/, '/exec')
+                         : (imageProxyBaseUrl || "");
+            const url = base.replace(/\/$/, "") + "?img=" + encodeURIComponent(fileId);
+
+            const response = await fetch(url);
+            const json = await response.json();
+
+            if (!json.ok) return false;
+
+            // Check session still valid after fetch
+            if (sessionId !== diaporamaPreloadSessionId) {
+              return false;
+            }
+
+            const fullDataUrl = "data:" + json.mime + ";base64," + json.data;
+            const thumbnailDataUrl = await generateThumbnail(fullDataUrl);
+
+            memoryCache.set(fileId, { full: fullDataUrl, thumbnail: thumbnailDataUrl });
+            await imageCacheDB.set(fileId, fullDataUrl, thumbnailDataUrl);
+
+            console.log('Preloaded diaporama image:', fileId.substring(0, 10) + '...');
+            return true;
+          } catch (err) {
+            console.error("Diaporama preload error:", err);
+            return false;
+          }
+        } else if (imageUrl) {
+          // Direct URL - just preload the image into browser cache
+          return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
+            img.src = imageUrl;
+          });
+        }
+
+        return false;
+      }
+
+      // Start background preloading for diaporama items
+      // Priority: current item first, then adjacent items, then remaining items with delays
+      function startDiaporamaPreloading(items, currentIndex, layerIndex) {
+        // Increment session ID to invalidate any previous preload operations
+        diaporamaPreloadSessionId++;
+        const sessionId = diaporamaPreloadSessionId;
+
+        // Clear previous queue
+        diaporamaPreloadQueue = [];
+
+        if (!items || items.length === 0) return;
+
+        // Get image URL from item based on whether it's main view or layer
+        const getImageUrl = (item) => {
+          if (layerIndex === -1) {
+            // Main view
+            return imageColumn && item[imageColumn.columnName] ? item[imageColumn.columnName] : '';
+          } else {
+            // Layer view
+            const rawItem = item._rawLayerItem || item;
+            return rawItem["Picture Link"] || '';
+          }
+        };
+
+        // Build priority queue:
+        // 1. Adjacent items (N+1, N+2, N+3, N-1) - high priority
+        // 2. Remaining items - low priority with staggered delays
+        const adjacentIndices = [];
+        const remainingIndices = [];
+
+        // Add adjacent items (next 3, then previous 1)
+        for (let i = 1; i <= 3; i++) {
+          if (currentIndex + i < items.length) adjacentIndices.push(currentIndex + i);
+        }
+        if (currentIndex - 1 >= 0) adjacentIndices.push(currentIndex - 1);
+
+        // Add remaining items
+        for (let i = 0; i < items.length; i++) {
+          if (i !== currentIndex && !adjacentIndices.includes(i)) {
+            remainingIndices.push(i);
+          }
+        }
+
+        // Start preloading
+        (async function() {
+          // Phase 1: Preload adjacent items in parallel (no delay)
+          console.log('Diaporama preload: Starting adjacent items (' + adjacentIndices.length + ')');
+          const adjacentPromises = adjacentIndices.map(idx => {
+            const imageUrl = getImageUrl(items[idx]);
+            return preloadDiaporamaImage(imageUrl, sessionId);
+          });
+          await Promise.all(adjacentPromises);
+
+          // Check if session is still valid
+          if (sessionId !== diaporamaPreloadSessionId) {
+            console.log('Diaporama preload: Session invalidated, stopping');
+            return;
+          }
+
+          // Phase 2: Preload remaining items with staggered delays
+          console.log('Diaporama preload: Starting remaining items (' + remainingIndices.length + ')');
+          for (let i = 0; i < remainingIndices.length; i++) {
+            // Check session validity before each item
+            if (sessionId !== diaporamaPreloadSessionId) {
+              console.log('Diaporama preload: Session invalidated, stopping');
+              return;
+            }
+
+            const idx = remainingIndices[i];
+            const imageUrl = getImageUrl(items[idx]);
+            await preloadDiaporamaImage(imageUrl, sessionId);
+
+            // Add small delay between items to avoid overwhelming the network
+            // Skip delay for last item
+            if (i < remainingIndices.length - 1) {
+              await new Promise(resolve => setTimeout(resolve, 100));
+            }
+          }
+
+          console.log('Diaporama preload: Complete for session', sessionId);
+        })();
+      }
+
+      // Abort any ongoing diaporama preloading (called when switching layers/views)
+      function abortDiaporamaPreloading() {
+        diaporamaPreloadSessionId++;
+        diaporamaPreloadQueue = [];
+        console.log('Diaporama preload: Aborted');
+      }
 
       // Show specific item in horizontal diaporama
       function showDiaporamaItem(index) {
