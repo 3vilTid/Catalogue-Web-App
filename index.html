@@ -67,13 +67,34 @@ DETECTION SYSTEM (working correctly):
         // Only load API client scripts on GitHub Pages
         // On Apps Script, the native google.script.run is used instead
         if (window.location.hostname.includes('github.io')) {
+          // Flag to track when API client is ready
+          window.apiClientReady = false;
+
+          // Load api-config.js first, then api-client.js sequentially
+          // This prevents race condition where client loads before config
           var configScript = document.createElement('script');
           configScript.src = './api-config.js';
+          configScript.onload = function() {
+            // Config loaded, now load the client
+            var clientScript = document.createElement('script');
+            clientScript.src = './api-client.js';
+            clientScript.onload = function() {
+              // Both scripts loaded, mark API as ready
+              window.apiClientReady = true;
+              console.log('✅ API scripts loaded successfully');
+            };
+            clientScript.onerror = function() {
+              console.error('❌ Failed to load api-client.js');
+            };
+            document.head.appendChild(clientScript);
+          };
+          configScript.onerror = function() {
+            console.error('❌ Failed to load api-config.js');
+          };
           document.head.appendChild(configScript);
-
-          var clientScript = document.createElement('script');
-          clientScript.src = './api-client.js';
-          document.head.appendChild(clientScript);
+        } else {
+          // On Apps Script, API is always ready (uses native google.script.run)
+          window.apiClientReady = true;
         }
       })();
     </script>
@@ -11922,6 +11943,24 @@ DETECTION SYSTEM (working correctly):
 
       async function init() {
         console.log('=== App Initialization Starting ===');
+
+        // Wait for API client to be ready (GitHub Pages only)
+        // This prevents race condition where init() runs before scripts load
+        if (!window.apiClientReady) {
+          console.log('⏳ Waiting for API client to load...');
+          let attempts = 0;
+          const maxAttempts = 50; // 5 seconds max wait
+          while (!window.apiClientReady && attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+          }
+          if (!window.apiClientReady) {
+            console.error('❌ API client failed to load after 5 seconds');
+            showToast('Failed to load API client. Please refresh the page.', 'error');
+            return;
+          }
+          console.log('✅ API client ready');
+        }
 
         // Initialize IndexedDB
         try {
