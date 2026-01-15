@@ -488,7 +488,8 @@ function getSettings(layersSheetName) {
       layer1Style: "Squared",
       layer2Style: "Squared",
       layer3Style: "Squared",
-      mainStyle: "Squared"
+      mainStyle: "Squared",
+      layersSheetName: layersSheetName
     };
   }
 
@@ -532,7 +533,8 @@ function getSettings(layersSheetName) {
     layer1Style: layer1Style,
     layer2Style: layer2Style,
     layer3Style: layer3Style,
-    mainStyle: mainStyle
+    mainStyle: mainStyle,
+    layersSheetName: layersSheetName
   };
 }
 
