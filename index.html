@@ -6227,11 +6227,11 @@ DETECTION SYSTEM (working correctly):
           layer3Style = normalizeStyle(layer3ViewType, settings.layer3Style);
           mainStyle = normalizeStyle(mainViewType, settings.mainStyle);
 
-          console.log('✓ View types loaded from Google Sheet:');
-          console.log('  Layer 1 (D2):', settings.layer1View, '→', layer1ViewType, '| Style (F2):', settings.layer1Style, '→', layer1Style);
-          console.log('  Layer 2 (D3):', settings.layer2View, '→', layer2ViewType, '| Style (F3):', settings.layer2Style, '→', layer2Style);
-          console.log('  Layer 3 (D4):', settings.layer3View, '→', layer3ViewType, '| Style (F4):', settings.layer3Style, '→', layer3Style);
-          console.log('  Main (D5):', settings.mainView, '→', mainViewType, '| Style (F5):', settings.mainStyle, '→', mainStyle);
+          console.log('✓ View types loaded from "' + (settings.layersSheetName || 'Layers') + '" sheet:');
+          console.log('  Layer 1 (D2):', settings.layer1View, '→', layer1ViewType, '| Style (E2):', settings.layer1Style, '→', layer1Style);
+          console.log('  Layer 2 (D3):', settings.layer2View, '→', layer2ViewType, '| Style (E3):', settings.layer2Style, '→', layer2Style);
+          console.log('  Layer 3 (D4):', settings.layer3View, '→', layer3ViewType, '| Style (E4):', settings.layer3Style, '→', layer3Style);
+          console.log('  Main (D5):', settings.mainView, '→', mainViewType, '| Style (E5):', settings.mainStyle, '→', mainStyle);
         } else {
           console.log('⚠️ No settings found - using defaults (cards/Squared)');
         }
