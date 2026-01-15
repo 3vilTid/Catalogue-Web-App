@@ -4827,7 +4827,45 @@ DETECTION SYSTEM (working correctly):
         min-width: 60px !important;
       }
 
-      /* ==================== DIAPORAMA VIEW STYLES ==================== */
+      /* ====================================================================================
+         DIAPORAMA VIEW STYLES
+         ====================================================================================
+
+         There are 6 UI displays for different device/orientation combinations:
+
+         1. DESKTOP (Default code)
+            - Section: "DIAPORAMA VIEW STYLES" (this section - base styles)
+            - Same for GitHub Pages and Apps Script
+
+         2. TABLET PORTRAIT ORIENTATION
+            - Section: "DIAPORAMA - TABLET PORTRAIT"
+            - Same for GitHub Pages and Apps Script
+
+         3. TABLET LANDSCAPE ORIENTATION
+            - Section: "DIAPORAMA - TABLET LANDSCAPE"
+            - Same for GitHub Pages and Apps Script
+
+         4. MOBILE PORTRAIT ORIENTATION - Apps Script
+            - Section: "DIAPORAMA - MOBILE PORTRAIT"
+
+         5. MOBILE PORTRAIT ORIENTATION - GitHub Pages
+            - Section: "DIAPORAMA - GITHUB PAGES MOBILE PORTRAIT (50% scaled)"
+            - This is the MAIN UI difference between GitHub Pages and Apps Script
+
+         6. MOBILE LANDSCAPE ORIENTATION
+            - Section: "DIAPORAMA - MOBILE LANDSCAPE"
+            - Same for GitHub Pages and Apps Script
+
+         NOTE: Unlike the main UI, Diaporama has SEPARATE sections for Mobile and Tablet landscape.
+
+         DETECTION SYSTEM:
+         - Device detection: mobile-device / tablet-device / desktop-device
+         - GitHub Pages detection: html.github-pages class
+         - Orientation detection: portrait / landscape classes
+
+         ==================================================================================== */
+
+      /* ==================== 1. DIAPORAMA - DESKTOP (Default) ==================== */
 
       /* Base diaporama container */
       .diaporama-view {
@@ -5147,7 +5185,7 @@ DETECTION SYSTEM (working correctly):
         margin-top: 10px;
       }
 
-      /* ==================== DIAPORAMA - MOBILE LANDSCAPE ==================== */
+      /* ==================== 6. DIAPORAMA - MOBILE LANDSCAPE ==================== */
       body.mobile-device.landscape .diaporama-name {
         font-size: 20px !important;
       }
@@ -5237,7 +5275,7 @@ DETECTION SYSTEM (working correctly):
         max-height: 100% !important;
       }
 
-      /* ==================== DIAPORAMA - TABLET LANDSCAPE ==================== */
+      /* ==================== 3. DIAPORAMA - TABLET LANDSCAPE ==================== */
       body.tablet-device.landscape .diaporama-name {
         font-size: 23px !important;
       }
@@ -5262,7 +5300,7 @@ DETECTION SYSTEM (working correctly):
         font-size: 15px !important;
       }
 
-      /* ==================== DIAPORAMA - MOBILE PORTRAIT ==================== */
+      /* ==================== 4. DIAPORAMA - MOBILE PORTRAIT (Apps Script) ==================== */
       body.mobile-device.portrait .diaporama-name {
         font-size: 37.5px !important;
       }
@@ -5296,7 +5334,7 @@ DETECTION SYSTEM (working correctly):
         font-size: 25px !important;
       }
 
-      /* ==================== DIAPORAMA - TABLET PORTRAIT ==================== */
+      /* ==================== 2. DIAPORAMA - TABLET PORTRAIT ==================== */
       body.tablet-device.portrait .diaporama-name {
         font-size: 30px !important;
       }
@@ -5330,7 +5368,7 @@ DETECTION SYSTEM (working correctly):
         font-size: 20px !important;
       }
 
-      /* ==================== DIAPORAMA - GITHUB PAGES MOBILE PORTRAIT (50% scaled) ==================== */
+      /* ==================== 5. DIAPORAMA - GITHUB PAGES MOBILE PORTRAIT (50% scaled) ==================== */
       html.github-pages body.mobile-device.portrait .diaporama-name {
         font-size: 18.75px !important;
       }
