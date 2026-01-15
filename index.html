@@ -5506,7 +5506,8 @@ DETECTION SYSTEM (working correctly):
 
       html.github-pages body.mobile-device.portrait .diaporama-subid2-links {
         margin-bottom: 1px !important;
-        gap: 4px !important;
+        column-gap: 4px !important;  /* horizontal gap between pills */
+        row-gap: 2px !important;     /* vertical gap when wrapping to new line */
       }
 
       html.github-pages body.mobile-device.portrait .diaporama-counter {
