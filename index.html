@@ -8148,31 +8148,15 @@ DETECTION SYSTEM (working correctly):
         }
 
         // === MINI SCROLL DOWN 2: SubId2 ===
+        // Iterates through ALL columns with itemPlace === "place" or "subid2"
         // Supports text and external links - consecutive links grouped on same row
         let subId2Html = '';
         let subId2LinkGroup = '';
 
-        // First add the placeColumn value (original SubId2) if present
-        if (subId2) {
-          // Check if placeColumn is a link type
-          const isPlaceLink = placeColumn && (placeColumn.type === "url" || placeColumn.specialRole === "externallink" || placeColumn.specialRole === "formulaexternallink");
-          if (isPlaceLink) {
-            const linkLabel = placeColumn.displayName || placeColumn.columnName;
-            subId2LinkGroup += '<a href="' + subId2 + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
-          } else {
-            // Text item - first close any open link group
-            if (subId2LinkGroup) {
-              subId2Html += '<div class="diaporama-subid2-links">' + subId2LinkGroup + '</div>';
-              subId2LinkGroup = '';
-            }
-            subId2Html += '<div class="diaporama-subid2-text">' + subId2 + '</div>';
-          }
-        }
-
-        // Then iterate through columnConfig for itemPlace === "subid2"
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
-          if (config.itemPlace !== "subid2") continue;
+          // Include columns with itemPlace "place" or "subid2"
+          if (config.itemPlace !== "place" && config.itemPlace !== "subid2") continue;
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
             const isLink = config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink";
@@ -9688,31 +9672,15 @@ DETECTION SYSTEM (working correctly):
         }
 
         // === MINI SCROLL DOWN 2: SubId2 ===
+        // Iterates through ALL columns with itemPlace === "place" or "subid2"
         // Supports text and external links - consecutive links grouped on same row
         let subId2Html = '';
         let subId2LinkGroup = '';
 
-        // First add the placeColumn value (original SubId2) if present
-        if (subId2) {
-          // Check if placeColumn is a link type
-          const isPlaceLink = placeColumn && (placeColumn.type === "url" || placeColumn.specialRole === "externallink" || placeColumn.specialRole === "formulaexternallink");
-          if (isPlaceLink) {
-            const linkLabel = placeColumn.displayName || placeColumn.columnName;
-            subId2LinkGroup += '<a href="' + subId2 + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
-          } else {
-            // Text item - first close any open link group
-            if (subId2LinkGroup) {
-              subId2Html += '<div class="diaporama-subid2-links">' + subId2LinkGroup + '</div>';
-              subId2LinkGroup = '';
-            }
-            subId2Html += '<div class="diaporama-subid2-text">' + subId2 + '</div>';
-          }
-        }
-
-        // Then iterate through columnConfig for itemPlace === "subid2"
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
-          if (config.itemPlace !== "subid2") continue;
+          // Include columns with itemPlace "place" or "subid2"
+          if (config.itemPlace !== "place" && config.itemPlace !== "subid2") continue;
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
             const isLink = config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink";
