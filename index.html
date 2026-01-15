@@ -5095,6 +5095,16 @@ DETECTION SYSTEM (working correctly):
         cursor: pointer;
       }
 
+      /* ========== IMAGE-ONLY: Equal margins when only main image is present ========== */
+      /* When all other sections are empty, reduce padding to make horizontal equal to vertical */
+      .diaporama-item:has(.diaporama-scroll-up-1:empty):has(.diaporama-scroll-up-2:empty):has(.diaporama-longtext-down-wrapper:empty):has(.diaporama-scroll-down-1:empty):has(.diaporama-scroll-down-2:empty) {
+        padding: 4px;
+      }
+
+      .diaporama-item:has(.diaporama-scroll-up-1:empty):has(.diaporama-scroll-up-2:empty):has(.diaporama-longtext-down-wrapper:empty):has(.diaporama-scroll-down-1:empty):has(.diaporama-scroll-down-2:empty) .diaporama-image-wrapper {
+        margin: 0;
+      }
+
       /* ========== LONG TEXT DOWN: Fixed, NOT Scrollable ========== */
       .diaporama-longtext-down-wrapper {
         flex-shrink: 0;
