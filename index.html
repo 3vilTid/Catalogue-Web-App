@@ -4930,18 +4930,55 @@ DETECTION SYSTEM (working correctly):
         max-height: calc(100dvh - 120px);
       }
 
+      /* ==========================================================================
+         DIAPORAMA ITEM LAYOUT - 4 Mini-Scroll Zones + Flexible Image
+
+         Structure (vertical, top to bottom):
+         ┌─────────────────────────────────────┐
+         │ [Mini Scroll Up 1] MAX-HEIGHT       │
+         │  ┌──────────────────────┬─────────┐ │
+         │  │  SubId1 (centered)   │TopCorner│ │  ← Same row
+         │  └──────────────────────┴─────────┘ │
+         ├─────────────────────────────────────┤
+         │ [Mini Scroll Up 2] MAX-HEIGHT       │
+         │  Long text Up (centered)            │
+         ├─────────────────────────────────────┤
+         │ [Main Image] MIN-HEIGHT, FLEX-GROW  │  ← Takes ALL remaining space
+         │  (NOT scrollable)                   │
+         ├─────────────────────────────────────┤
+         │ Long text Down (NOT scrollable)     │
+         ├─────────────────────────────────────┤
+         │ [Mini Scroll Down 1] MAX-HEIGHT     │
+         │  ┌─────────────┬─────────────┐      │
+         │  │ Detail Left │ Detail Right│      │  ← Two columns
+         │  └─────────────┴─────────────┘      │
+         │  Bottom                             │
+         ├─────────────────────────────────────┤
+         │ [Mini Scroll Down 2] MAX-HEIGHT     │
+         │  SubId2                             │
+         └─────────────────────────────────────┘
+
+         Key: 4 mini-scrolls have MAX-HEIGHT with overflow-y: auto
+              Image has MIN-HEIGHT and flex-grow: 1 (takes remaining space)
+              Long text Down is NOT scrollable
+              Empty sections take no space
+         ========================================================================== */
+
       .diaporama-item {
-        flex-shrink: 1;
-        width: fit-content;
+        /* Fill available space in container */
+        width: 100%;
         max-width: 100%;
+        height: 100%;
+        max-height: 100%;
         padding: 15px;
         box-sizing: border-box;
         background: rgba(255, 255, 255, 0.95);
         border-radius: 12px;
         box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12);
+        /* Flex column to stack sections vertically */
         display: flex;
         flex-direction: column;
-        align-items: center;
+        align-items: stretch;
         overflow: hidden;
       }
 
@@ -4952,14 +4989,11 @@ DETECTION SYSTEM (working correctly):
          ========================================================== */
       .diaporama-vertical .diaporama-item,
       .diaporama-horizontal .diaporama-item {
-        /* Center the item both horizontally and vertically in the grid cell */
-        place-self: center;
-        /* Fallback for centering - margin auto works reliably across browsers */
-        margin: auto;
-        /* Item shrinks to fit content */
-        width: fit-content;
-        height: fit-content;
-        min-height: 0;
+        /* Fill the grid cell */
+        place-self: stretch;
+        margin: 0;
+        width: 100%;
+        height: 100%;
         max-width: 100%;
         max-height: 100%;
       }
@@ -4969,20 +5003,38 @@ DETECTION SYSTEM (working correctly):
         scroll-snap-align: center;
       }
 
-      /* Above picture section */
-      .diaporama-above-picture {
-        position: relative;
-        margin-bottom: 10px;
-        text-align: center;
+      /* ========== MINI SCROLL UP 1: SubId1 + TopCorner Row ========== */
+      .diaporama-scroll-up-1 {
         flex-shrink: 0;
-        max-height: 25%;
+        max-height: 15%;
         overflow-y: auto;
-        width: fit-content;
-        max-width: 100%;
-        align-self: center;
+        width: 100%;
+        margin-bottom: 4px;
+      }
+
+      /* Empty scroll zones take no space */
+      .diaporama-scroll-up-1:empty {
+        display: none;
+      }
+
+      /* SubId1 row: SubId1 centered, TopCorner on the right */
+      .diaporama-subid1-row {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        width: 100%;
+        gap: 10px;
+      }
+
+      /* Spacer to balance TopCorner for centering SubId1 */
+      .diaporama-subid1-spacer {
+        flex: 0 0 auto;
+        min-width: 0;
+        visibility: hidden;
       }
 
       .diaporama-name {
+        flex: 1 1 auto;
         font-size: 20px;
         font-weight: 700;
         word-wrap: break-word;
@@ -4991,80 +5043,94 @@ DETECTION SYSTEM (working correctly):
       }
 
       .diaporama-topcorner {
-        position: absolute;
-        top: 0;
-        right: 0;
+        flex: 0 0 auto;
         font-size: 14px;
         color: #6b7280;
         word-wrap: break-word;
         overflow-wrap: break-word;
         text-align: right;
+        white-space: nowrap;
       }
 
-      .diaporama-subid1 {
-        font-size: 14px;
-        color: #6b7280;
-        margin-top: 4px;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
+      /* ========== MINI SCROLL UP 2: Long Text Up ========== */
+      .diaporama-scroll-up-2 {
+        flex-shrink: 0;
+        max-height: 15%;
+        overflow-y: auto;
+        width: 100%;
         text-align: center;
+        margin-bottom: 4px;
+      }
+
+      .diaporama-scroll-up-2:empty {
+        display: none;
       }
 
       .diaporama-longtext-up {
         font-size: 13px;
-        margin-top: 8px;
         word-wrap: break-word;
         overflow-wrap: break-word;
       }
 
-      /* Image wrapper - adapts to image size, constrained by viewport */
+      /* ========== MAIN IMAGE: Flexible, Takes Remaining Space ========== */
       .diaporama-image-wrapper {
-        width: auto;
-        margin: 4px 0;
+        /* Takes ALL remaining space after mini-scrolls */
+        flex: 1 1 auto;
+        min-height: 100px;
+        width: 100%;
         display: flex;
         justify-content: center;
         align-items: center;
-        flex: 0 1 auto;
         overflow: hidden;
+        margin: 4px 0;
       }
 
       .diaporama-img {
         width: auto;
         height: auto;
         max-width: 100%;
-        max-height: calc(100dvh - 200px);
+        max-height: 100%;
         object-fit: contain;
         border-radius: 8px;
         cursor: pointer;
       }
 
-      /* Below picture section */
-      .diaporama-below-picture {
-        margin-top: 4px;
+      /* ========== LONG TEXT DOWN: Fixed, NOT Scrollable ========== */
+      .diaporama-longtext-down-wrapper {
         flex-shrink: 0;
-        overflow-y: auto;
-        max-height: 30%;
-        /* Use full width of card, content left-aligned */
         width: 100%;
-        max-width: 100%;
-        align-self: stretch;
-        text-align: left;
+        text-align: center;
+        margin-top: 4px;
       }
 
-      .diaporama-subid2 {
-        font-size: 14px;
-        color: #6b7280;
-        margin-bottom: 8px;
+      .diaporama-longtext-down-wrapper:empty {
+        display: none;
+      }
+
+      .diaporama-longtext-down {
+        font-size: 13px;
         word-wrap: break-word;
         overflow-wrap: break-word;
         text-align: center;
+      }
+
+      /* ========== MINI SCROLL DOWN 1: Two Columns + Bottom ========== */
+      .diaporama-scroll-down-1 {
+        flex-shrink: 0;
+        max-height: 20%;
+        overflow-y: auto;
+        width: 100%;
+        margin-top: 4px;
+      }
+
+      .diaporama-scroll-down-1:empty {
+        display: none;
       }
 
       .diaporama-two-column {
         display: flex;
         flex-direction: row;
         gap: 16px;
-        margin-top: 10px;
       }
 
       .diaporama-col-left,
@@ -5085,24 +5151,35 @@ DETECTION SYSTEM (working correctly):
         font-weight: 600;
       }
 
-      .diaporama-longtext-down {
-        font-size: 13px;
-        margin-top: 2px;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        text-align: center;
-      }
-
       .diaporama-bottom {
         font-size: 13px;
         margin-top: 10px;
         word-wrap: break-word;
         overflow-wrap: break-word;
-        /* Full width, content left-aligned */
         width: 100%;
-        max-width: 100%;
-        align-self: stretch;
         text-align: left;
+      }
+
+      /* ========== MINI SCROLL DOWN 2: SubId2 ========== */
+      .diaporama-scroll-down-2 {
+        flex-shrink: 0;
+        max-height: 10%;
+        overflow-y: auto;
+        width: 100%;
+        text-align: center;
+        margin-top: 4px;
+      }
+
+      .diaporama-scroll-down-2:empty {
+        display: none;
+      }
+
+      .diaporama-subid2 {
+        font-size: 14px;
+        color: #6b7280;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        text-align: center;
       }
 
       .diaporama-bottom-text {
@@ -5233,17 +5310,16 @@ DETECTION SYSTEM (working correctly):
 
       /* ========== MOBILE/TABLET: SHARED DIAPORAMA ITEM DISPLAY ==========
          Both Vertical and Horizontal modes display items identically.
-         Edit here to change item appearance for BOTH modes on mobile/tablet.
+         Item fills the grid cell, image expands to take remaining space.
          ================================================================== */
       body.mobile-device .diaporama-vertical .diaporama-item,
       body.mobile-device .diaporama-horizontal .diaporama-item,
       body.tablet-device .diaporama-vertical .diaporama-item,
       body.tablet-device .diaporama-horizontal .diaporama-item {
-        place-self: center !important;
-        margin: auto !important;
-        width: fit-content !important;
-        height: fit-content !important;
-        min-height: 0 !important;
+        place-self: stretch !important;
+        margin: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
         max-width: 100% !important;
         max-height: 100% !important;
       }
@@ -5424,15 +5500,14 @@ DETECTION SYSTEM (working correctly):
 
       /* ========== GITHUB PAGES: SHARED DIAPORAMA ITEM DISPLAY ==========
          Both Vertical and Horizontal modes display items identically.
-         Edit here to change item appearance for BOTH modes on GitHub Pages.
+         Item fills the grid cell, image expands to take remaining space.
          ================================================================= */
       html.github-pages body.mobile-device.portrait .diaporama-vertical .diaporama-item,
       html.github-pages body.mobile-device.portrait .diaporama-horizontal .diaporama-item {
-        place-self: center !important;
-        margin: auto !important;
-        width: fit-content !important;
-        height: fit-content !important;
-        min-height: 0 !important;
+        place-self: stretch !important;
+        margin: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
         max-width: 100% !important;
         max-height: 100% !important;
       }
@@ -7853,9 +7928,9 @@ DETECTION SYSTEM (working correctly):
       }
 
       // Build HTML for a single diaporama item in Main view
+      // Layout: 4 mini-scroll zones + flexible image that takes remaining space
       function buildMainDiaporamaItemHtml(item, index) {
         const imageUrl = imageColumn && item[imageColumn.columnName] ? item[imageColumn.columnName] : '';
-        const name = nameColumn && item[nameColumn.columnName] ? item[nameColumn.columnName] : '';
 
         // Get SubId1, SubId2 from column config
         let subId1 = '';
@@ -7867,13 +7942,7 @@ DETECTION SYSTEM (working correctly):
           subId2 = item[placeColumn.columnName];
         }
 
-        // Build HTML structure
-        let html = '<div class="diaporama-item" data-index="' + index + '">';
-
-        // === ABOVE PICTURE SECTION ===
-        html += '<div class="diaporama-above-picture">';
-
-        // Top Corner (positioned absolute)
+        // Collect TopCorner values
         const topCornerBits = [];
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
@@ -7884,23 +7953,32 @@ DETECTION SYSTEM (working correctly):
             topCornerBits.push(displayVal);
           }
         }
-        if (topCornerBits.length > 0) {
-          html += '<div class="detail-topcorner diaporama-topcorner">' + topCornerBits.join(" • ") + '</div>';
+        const topCornerText = topCornerBits.join(" • ");
+
+        // Build HTML structure
+        let html = '<div class="diaporama-item" data-index="' + index + '">';
+
+        // === MINI SCROLL UP 1: SubId1 + TopCorner Row ===
+        // Only render if SubId1 or TopCorner has content
+        if (subId1 || topCornerText) {
+          html += '<div class="diaporama-scroll-up-1">';
+          html += '<div class="diaporama-subid1-row">';
+          // Spacer to balance TopCorner (invisible, same width as TopCorner)
+          if (topCornerText) {
+            html += '<div class="diaporama-subid1-spacer">' + topCornerText + '</div>';
+          }
+          // SubId1 centered
+          html += '<div class="diaporama-name">' + (subId1 || '') + '</div>';
+          // TopCorner on the right
+          if (topCornerText) {
+            html += '<div class="diaporama-topcorner">' + topCornerText + '</div>';
+          }
+          html += '</div>'; // End subid1-row
+          html += '</div>'; // End scroll-up-1
         }
 
-        // Primary Identifier - HIDDEN in diaporama layout
-
-        // SubId1 (centered, same size as Primary ID in detail view)
-        if (subId1) {
-          html += '<div class="detail-name diaporama-name">' + subId1 + '</div>';
-        }
-
-        // SubId2 (centered, above picture)
-        if (subId2) {
-          html += '<div class="detail-subtitle diaporama-subid1">' + subId2 + '</div>';
-        }
-
-        // Long text Up
+        // === MINI SCROLL UP 2: Long Text Up ===
+        let longTextUpHtml = '';
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
           if (config.itemPlace !== "longtextup") continue;
@@ -7908,29 +7986,49 @@ DETECTION SYSTEM (working correctly):
           if (val != null && String(val).trim() !== "") {
             if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
               const linkLabel = config.displayName || config.columnName;
-              html += '<div class="detail-field diaporama-longtextup">' +
+              longTextUpHtml += '<div class="diaporama-longtext-up">' +
                 '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
             } else {
               const displayVal = config.type === "date" ? formatDate(val) : val;
-              html += '<div class="detail-field diaporama-longtextup">' + displayVal + '</div>';
+              longTextUpHtml += '<div class="diaporama-longtext-up">' + displayVal + '</div>';
             }
           }
         }
+        if (longTextUpHtml) {
+          html += '<div class="diaporama-scroll-up-2">' + longTextUpHtml + '</div>';
+        }
 
-        html += '</div>'; // End above-picture
-
-        // === IMAGE SECTION ===
+        // === IMAGE SECTION (Flexible, takes remaining space) ===
         html += '<div class="diaporama-image-wrapper" data-image-url="' + imageUrl + '">';
         if (!imageUrl) {
-          html += '<div style="width:100%;height:200px;background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px);border-radius:8px;"></div>';
+          html += '<div style="width:100%;height:100%;min-height:100px;background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px);border-radius:8px;"></div>';
         }
         // Images will be loaded by setupDiaporamaImages() using data-image-url
         html += '</div>';
 
-        // === BELOW PICTURE SECTION ===
-        html += '<div class="diaporama-below-picture">';
+        // === LONG TEXT DOWN (NOT scrollable, fixed) ===
+        let longTextDownHtml = '';
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "longtextdown") continue;
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              longTextDownHtml += '<div class="diaporama-longtext-down">' +
+                '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              longTextDownHtml += '<div class="diaporama-longtext-down">' + displayVal + '</div>';
+            }
+          }
+        }
+        if (longTextDownHtml) {
+          html += '<div class="diaporama-longtext-down-wrapper">' + longTextDownHtml + '</div>';
+        }
 
-        // Two column section: Detail Left and Detail Right
+        // === MINI SCROLL DOWN 1: Two Columns + Bottom ===
+        // Collect Detail Left and Detail Right fields
         const leftFields = [];
         const rightFields = [];
         for (let i = 0; i < columnConfig.length; i++) {
@@ -7942,81 +8040,19 @@ DETECTION SYSTEM (working correctly):
           }
         }
 
-        if (leftFields.length > 0 || rightFields.length > 0) {
-          html += '<div class="diaporama-two-column">';
-
-          // Left column
-          html += '<div class="diaporama-col-left">';
-          for (let i = 0; i < leftFields.length; i++) {
-            const config = leftFields[i];
-            const val = item[config.columnName];
-            if (val != null && String(val).trim() !== "") {
-              if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
-                const linkLabel = config.displayName || config.columnName;
-                html += '<div class="diaporama-field">' +
-                  '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
-              } else {
-                const displayVal = config.type === "date" ? formatDate(val) : val;
-                html += '<div class="diaporama-field">' + displayVal + '</div>';
-              }
-            }
-          }
-          html += '</div>';
-
-          // Right column
-          html += '<div class="diaporama-col-right">';
-          for (let i = 0; i < rightFields.length; i++) {
-            const config = rightFields[i];
-            const val = item[config.columnName];
-            if (val != null && String(val).trim() !== "") {
-              if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
-                const linkLabel = config.displayName || config.columnName;
-                html += '<div class="diaporama-field">' +
-                  '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
-              } else {
-                const displayVal = config.type === "date" ? formatDate(val) : val;
-                html += '<div class="diaporama-field">' + displayVal + '</div>';
-              }
-            }
-          }
-          html += '</div>';
-
-          html += '</div>'; // End two-column
-        }
-
-        // Long text Down
-        for (let i = 0; i < columnConfig.length; i++) {
-          const config = columnConfig[i];
-          if (config.itemPlace !== "longtextdown") continue;
-          const val = item[config.columnName];
-          if (val != null && String(val).trim() !== "") {
-            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
-              const linkLabel = config.displayName || config.columnName;
-              html += '<div class="detail-field diaporama-longtext-down">' +
-                '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
-            } else {
-              const displayVal = config.type === "date" ? formatDate(val) : val;
-              html += '<div class="detail-field diaporama-longtext-down">' + displayVal + '</div>';
-            }
-          }
-        }
-
-        // Bottom - text items on own lines, links grouped inline (right to left)
+        // Collect Bottom content
         let bottomHtml = '';
         let linkGroup = '';
-
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
           if (config.itemPlace !== "bottom") continue;
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
             const isLink = config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink";
-
             if (isLink) {
               const linkLabel = config.displayName || config.columnName;
               linkGroup += '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
             } else {
-              // Text item - first close any open link group
               if (linkGroup) {
                 bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
                 linkGroup = '';
@@ -8026,15 +8062,72 @@ DETECTION SYSTEM (working correctly):
             }
           }
         }
-        // Close any remaining link group
         if (linkGroup) {
           bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
         }
-        if (bottomHtml) {
-          html += '<div class="diaporama-bottom">' + bottomHtml + '</div>';
+
+        // Only render scroll-down-1 if there's content
+        if (leftFields.length > 0 || rightFields.length > 0 || bottomHtml) {
+          html += '<div class="diaporama-scroll-down-1">';
+
+          // Two column section
+          if (leftFields.length > 0 || rightFields.length > 0) {
+            html += '<div class="diaporama-two-column">';
+
+            // Left column
+            html += '<div class="diaporama-col-left">';
+            for (let i = 0; i < leftFields.length; i++) {
+              const config = leftFields[i];
+              const val = item[config.columnName];
+              if (val != null && String(val).trim() !== "") {
+                if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+                  const linkLabel = config.displayName || config.columnName;
+                  html += '<div class="diaporama-field">' +
+                    '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
+                } else {
+                  const displayVal = config.type === "date" ? formatDate(val) : val;
+                  html += '<div class="diaporama-field">' + displayVal + '</div>';
+                }
+              }
+            }
+            html += '</div>';
+
+            // Right column
+            html += '<div class="diaporama-col-right">';
+            for (let i = 0; i < rightFields.length; i++) {
+              const config = rightFields[i];
+              const val = item[config.columnName];
+              if (val != null && String(val).trim() !== "") {
+                if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+                  const linkLabel = config.displayName || config.columnName;
+                  html += '<div class="diaporama-field">' +
+                    '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
+                } else {
+                  const displayVal = config.type === "date" ? formatDate(val) : val;
+                  html += '<div class="diaporama-field">' + displayVal + '</div>';
+                }
+              }
+            }
+            html += '</div>';
+
+            html += '</div>'; // End two-column
+          }
+
+          // Bottom section
+          if (bottomHtml) {
+            html += '<div class="diaporama-bottom">' + bottomHtml + '</div>';
+          }
+
+          html += '</div>'; // End scroll-down-1
         }
 
-        html += '</div>'; // End below-picture
+        // === MINI SCROLL DOWN 2: SubId2 ===
+        if (subId2) {
+          html += '<div class="diaporama-scroll-down-2">';
+          html += '<div class="diaporama-subid2">' + subId2 + '</div>';
+          html += '</div>';
+        }
+
         html += '</div>'; // End diaporama-item
 
         return html;
@@ -9347,12 +9440,11 @@ DETECTION SYSTEM (working correctly):
         startDiaporamaPreloading(items, 0, layerIndex);
       }
 
-      // Build HTML for a single diaporama item
+      // Build HTML for a single diaporama item (Layer view)
+      // Layout: 4 mini-scroll zones + flexible image that takes remaining space
       function buildDiaporamaItemHtml(standardItem, index, layerIndex) {
         const item = standardItem._rawLayerItem || standardItem;
         const imageUrl = item["Picture Link"] || '';
-        const name = item["Names"] || '';
-        const description = item["Description"] || '';
 
         // Get SubId1, SubId2 from column config
         let subId1 = '';
@@ -9364,13 +9456,7 @@ DETECTION SYSTEM (working correctly):
           subId2 = item[placeColumn.columnName];
         }
 
-        // Build HTML structure
-        let html = '<div class="diaporama-item" data-index="' + index + '">';
-
-        // === ABOVE PICTURE SECTION ===
-        html += '<div class="diaporama-above-picture">';
-
-        // Top Corner (positioned absolute)
+        // Collect TopCorner values
         const topCornerBits = [];
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
@@ -9381,23 +9467,32 @@ DETECTION SYSTEM (working correctly):
             topCornerBits.push(displayVal);
           }
         }
-        if (topCornerBits.length > 0) {
-          html += '<div class="detail-topcorner diaporama-topcorner">' + topCornerBits.join(" • ") + '</div>';
+        const topCornerText = topCornerBits.join(" • ");
+
+        // Build HTML structure
+        let html = '<div class="diaporama-item" data-index="' + index + '">';
+
+        // === MINI SCROLL UP 1: SubId1 + TopCorner Row ===
+        // Only render if SubId1 or TopCorner has content
+        if (subId1 || topCornerText) {
+          html += '<div class="diaporama-scroll-up-1">';
+          html += '<div class="diaporama-subid1-row">';
+          // Spacer to balance TopCorner (invisible, same width as TopCorner)
+          if (topCornerText) {
+            html += '<div class="diaporama-subid1-spacer">' + topCornerText + '</div>';
+          }
+          // SubId1 centered
+          html += '<div class="diaporama-name">' + (subId1 || '') + '</div>';
+          // TopCorner on the right
+          if (topCornerText) {
+            html += '<div class="diaporama-topcorner">' + topCornerText + '</div>';
+          }
+          html += '</div>'; // End subid1-row
+          html += '</div>'; // End scroll-up-1
         }
 
-        // Primary Identifier - HIDDEN in diaporama layout
-
-        // SubId1 (centered, same size as Primary ID in detail view)
-        if (subId1) {
-          html += '<div class="detail-name diaporama-name">' + subId1 + '</div>';
-        }
-
-        // SubId2 (centered, above picture)
-        if (subId2) {
-          html += '<div class="detail-subtitle diaporama-subid1">' + subId2 + '</div>';
-        }
-
-        // Long text Up
+        // === MINI SCROLL UP 2: Long Text Up ===
+        let longTextUpHtml = '';
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
           if (config.itemPlace !== "longtextup") continue;
@@ -9405,48 +9500,65 @@ DETECTION SYSTEM (working correctly):
           if (val != null && String(val).trim() !== "") {
             if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
               const linkLabel = config.displayName || config.columnName;
-              html += '<div class="detail-field diaporama-longtextup">' +
-                '<a href="' + val + '" target="_blank" class="link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
+              longTextUpHtml += '<div class="diaporama-longtext-up">' +
+                '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
             } else {
               const displayVal = config.type === "date" ? formatDate(val) : val;
-              html += '<div class="detail-field diaporama-longtextup">' + displayVal + '</div>';
+              longTextUpHtml += '<div class="diaporama-longtext-up">' + displayVal + '</div>';
             }
           }
         }
+        if (longTextUpHtml) {
+          html += '<div class="diaporama-scroll-up-2">' + longTextUpHtml + '</div>';
+        }
 
-        html += '</div>'; // End above-picture
-
-        // === MAIN IMAGE ===
+        // === IMAGE SECTION (Flexible, takes remaining space) ===
         html += '<div class="diaporama-image-wrapper" data-image-url="' + imageUrl + '">';
-        if (imageUrl) {
+        if (!imageUrl) {
+          html += '<div style="width:100%;height:100%;min-height:100px;background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px);border-radius:8px;"></div>';
+        } else {
           html += '<div class="diaporama-img-placeholder"></div>';
         }
         html += '</div>';
 
-        // === BELOW PICTURE SECTION ===
-        html += '<div class="diaporama-below-picture">';
+        // === LONG TEXT DOWN (NOT scrollable, fixed) ===
+        let longTextDownHtml = '';
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "longtextdown") continue;
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
+              const linkLabel = config.displayName || config.columnName;
+              longTextDownHtml += '<div class="diaporama-longtext-down">' +
+                '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
+            } else {
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              longTextDownHtml += '<div class="diaporama-longtext-down">' + displayVal + '</div>';
+            }
+          }
+        }
+        if (longTextDownHtml) {
+          html += '<div class="diaporama-longtext-down-wrapper">' + longTextDownHtml + '</div>';
+        }
 
-        // SubId2 is now shown above picture, not below
-
-        // Two-column grid for Detail Left / Detail Right
-        let hasDetailColumns = false;
+        // === MINI SCROLL DOWN 1: Two Columns + Bottom ===
+        // Collect Detail Left and Detail Right fields
         let leftColHtml = '';
         let rightColHtml = '';
-
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
           if (config.itemPlace !== "detailleft" && config.itemPlace !== "detailright") continue;
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
-            hasDetailColumns = true;
             let fieldHtml = '';
             if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
               const linkLabel = config.displayName || config.columnName;
-              fieldHtml = '<div class="detail-field">' +
-                '<a href="' + val + '" target="_blank" class="link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
+              fieldHtml = '<div class="diaporama-field">' +
+                '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
             } else {
               const displayVal = config.type === "date" ? formatDate(val) : val;
-              fieldHtml = '<div class="detail-field">' + displayVal + '</div>';
+              fieldHtml = '<div class="diaporama-field">' + displayVal + '</div>';
             }
             if (config.itemPlace === "detailleft") {
               leftColHtml += fieldHtml;
@@ -9456,46 +9568,19 @@ DETECTION SYSTEM (working correctly):
           }
         }
 
-        if (hasDetailColumns) {
-          html += '<div class="diaporama-two-column">';
-          html += '<div class="diaporama-col-left">' + leftColHtml + '</div>';
-          html += '<div class="diaporama-col-right">' + rightColHtml + '</div>';
-          html += '</div>';
-        }
-
-        // Long text Down
-        for (let i = 0; i < columnConfig.length; i++) {
-          const config = columnConfig[i];
-          if (config.itemPlace !== "longtextdown") continue;
-          const val = item[config.columnName];
-          if (val != null && String(val).trim() !== "") {
-            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
-              const linkLabel = config.displayName || config.columnName;
-              html += '<div class="detail-field diaporama-longtextdown">' +
-                '<a href="' + val + '" target="_blank" class="link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
-            } else {
-              const displayVal = config.type === "date" ? formatDate(val) : val;
-              html += '<div class="detail-field diaporama-longtextdown">' + displayVal + '</div>';
-            }
-          }
-        }
-
-        // Bottom - text items on own lines, links grouped inline (right to left)
+        // Collect Bottom content
         let bottomHtml = '';
         let linkGroup = '';
-
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
           if (config.itemPlace !== "bottom") continue;
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
             const isLink = config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink";
-
             if (isLink) {
               const linkLabel = config.displayName || config.columnName;
               linkGroup += '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
             } else {
-              // Text item - first close any open link group
               if (linkGroup) {
                 bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
                 linkGroup = '';
@@ -9505,15 +9590,37 @@ DETECTION SYSTEM (working correctly):
             }
           }
         }
-        // Close any remaining link group
         if (linkGroup) {
           bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
         }
-        if (bottomHtml) {
-          html += '<div class="diaporama-bottom">' + bottomHtml + '</div>';
+
+        // Only render scroll-down-1 if there's content
+        if (leftColHtml || rightColHtml || bottomHtml) {
+          html += '<div class="diaporama-scroll-down-1">';
+
+          // Two column section
+          if (leftColHtml || rightColHtml) {
+            html += '<div class="diaporama-two-column">';
+            html += '<div class="diaporama-col-left">' + leftColHtml + '</div>';
+            html += '<div class="diaporama-col-right">' + rightColHtml + '</div>';
+            html += '</div>';
+          }
+
+          // Bottom section
+          if (bottomHtml) {
+            html += '<div class="diaporama-bottom">' + bottomHtml + '</div>';
+          }
+
+          html += '</div>'; // End scroll-down-1
         }
 
-        html += '</div>'; // End below-picture
+        // === MINI SCROLL DOWN 2: SubId2 ===
+        if (subId2) {
+          html += '<div class="diaporama-scroll-down-2">';
+          html += '<div class="diaporama-subid2">' + subId2 + '</div>';
+          html += '</div>';
+        }
+
         html += '</div>'; // End diaporama-item
 
         return html;
