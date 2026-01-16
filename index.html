@@ -4338,9 +4338,15 @@ DETECTION SYSTEM (working correctly):
         padding-bottom: 44px !important; /* Account for bottom bar height */
       }
 
+      /* Apply padding-bottom only on detail view for GitHub Pages mobile portrait */
+      html.github-pages body.mobile-device.portrait .shell:has(#detailView[style*="display: block"]) {
+        padding-bottom: 44px !important; /* Account for bottom bar height */
+      }
+
       html.github-pages body.mobile-device.landscape .shell {
         padding-left: 6px !important;
         padding-right: 6px !important;
+        padding-bottom: 4px !important; /* No bottom bar in landscape */
       }
 
       /* Apply padding-bottom only on detail view for GitHub Pages mobile landscape */
