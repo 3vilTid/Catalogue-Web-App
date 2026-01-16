@@ -5034,7 +5034,7 @@ DETECTION SYSTEM (working correctly):
         max-height: 15%;
         overflow-y: auto;
         width: 100%;
-        margin-bottom: 4px;
+        margin-bottom: 8px;
       }
 
       /* Empty scroll zones take no space */
@@ -5595,17 +5595,22 @@ DETECTION SYSTEM (working correctly):
         max-height: 100% !important;
       }
 
-      /* GitHub Pages Mobile Portrait: Set gap between Long text Up/Down and image to 0px */
+      /* GitHub Pages Mobile Portrait: Set margin between SubId1 and Long text Up to 2px */
+      html.github-pages body.mobile-device.portrait .diaporama-scroll-up-1 {
+        margin-bottom: 2px !important;
+      }
+
+      /* GitHub Pages Mobile Portrait: Set gap between Long text Up/Down and image to -5px */
       /* Base CSS has: scroll-up-2 margin-bottom: 4px, image-wrapper margin: 4px 0, longtext-down-wrapper margin-top: 4px */
-      /* Override all margins to achieve 0px gap */
+      /* Override all margins to achieve -5px gap */
       html.github-pages body.mobile-device.portrait .diaporama-image-wrapper {
-        margin: 0 !important;
+        margin: -5px 0 !important;
       }
-      html.github-pages body.mobile-device.portrait .scroll-up-2 {
-        margin-bottom: 0px !important;
+      html.github-pages body.mobile-device.portrait .diaporama-scroll-up-2 {
+        margin-bottom: -5px !important;
       }
-      html.github-pages body.mobile-device.portrait .longtext-down-wrapper {
-        margin-top: 0px !important;
+      html.github-pages body.mobile-device.portrait .diaporama-longtext-down-wrapper {
+        margin-top: -5px !important;
       }
 
       /* Mobile/Tablet LANDSCAPE: Smaller offset since headers are compact + body padding (4px top + 4px bottom) */
