@@ -8099,19 +8099,8 @@ DETECTION SYSTEM (working correctly):
           html += '<div class="diaporama-longtext-down-wrapper">' + longTextDownHtml + '</div>';
         }
 
-        // === MINI SCROLL DOWN 1: Two Columns + Bottom ===
-        // Collect Detail Left and Detail Right fields
-        const leftFields = [];
-        const rightFields = [];
-        for (let i = 0; i < columnConfig.length; i++) {
-          const config = columnConfig[i];
-          if (config.itemPlace === "detailleft") {
-            leftFields.push(config);
-          } else if (config.itemPlace === "detailright") {
-            rightFields.push(config);
-          }
-        }
-
+        // === MINI SCROLL DOWN 1: Bottom Only ===
+        // Note: Detail Left and Detail Right fields are not displayed in Diaporama view
         // Collect Bottom content
         let bottomHtml = '';
         let linkGroup = '';
@@ -8139,56 +8128,11 @@ DETECTION SYSTEM (working correctly):
         }
 
         // Only render scroll-down-1 if there's content
-        if (leftFields.length > 0 || rightFields.length > 0 || bottomHtml) {
+        if (bottomHtml) {
           html += '<div class="diaporama-scroll-down-1">';
 
-          // Two column section
-          if (leftFields.length > 0 || rightFields.length > 0) {
-            html += '<div class="diaporama-two-column">';
-
-            // Left column
-            html += '<div class="diaporama-col-left">';
-            for (let i = 0; i < leftFields.length; i++) {
-              const config = leftFields[i];
-              const val = item[config.columnName];
-              if (val != null && String(val).trim() !== "") {
-                if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
-                  const linkLabel = config.displayName || config.columnName;
-                  html += '<div class="diaporama-field">' +
-                    '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
-                } else {
-                  const displayVal = config.type === "date" ? formatDate(val) : val;
-                  html += '<div class="diaporama-field">' + displayVal + '</div>';
-                }
-              }
-            }
-            html += '</div>';
-
-            // Right column
-            html += '<div class="diaporama-col-right">';
-            for (let i = 0; i < rightFields.length; i++) {
-              const config = rightFields[i];
-              const val = item[config.columnName];
-              if (val != null && String(val).trim() !== "") {
-                if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
-                  const linkLabel = config.displayName || config.columnName;
-                  html += '<div class="diaporama-field">' +
-                    '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
-                } else {
-                  const displayVal = config.type === "date" ? formatDate(val) : val;
-                  html += '<div class="diaporama-field">' + displayVal + '</div>';
-                }
-              }
-            }
-            html += '</div>';
-
-            html += '</div>'; // End two-column
-          }
-
           // Bottom section
-          if (bottomHtml) {
-            html += '<div class="diaporama-bottom">' + bottomHtml + '</div>';
-          }
+          html += '<div class="diaporama-bottom">' + bottomHtml + '</div>';
 
           html += '</div>'; // End scroll-down-1
         }
@@ -9645,32 +9589,8 @@ DETECTION SYSTEM (working correctly):
           html += '<div class="diaporama-longtext-down-wrapper">' + longTextDownHtml + '</div>';
         }
 
-        // === MINI SCROLL DOWN 1: Two Columns + Bottom ===
-        // Collect Detail Left and Detail Right fields
-        let leftColHtml = '';
-        let rightColHtml = '';
-        for (let i = 0; i < columnConfig.length; i++) {
-          const config = columnConfig[i];
-          if (config.itemPlace !== "detailleft" && config.itemPlace !== "detailright") continue;
-          const val = item[config.columnName];
-          if (val != null && String(val).trim() !== "") {
-            let fieldHtml = '';
-            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
-              const linkLabel = config.displayName || config.columnName;
-              fieldHtml = '<div class="diaporama-field">' +
-                '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
-            } else {
-              const displayVal = config.type === "date" ? formatDate(val) : val;
-              fieldHtml = '<div class="diaporama-field">' + displayVal + '</div>';
-            }
-            if (config.itemPlace === "detailleft") {
-              leftColHtml += fieldHtml;
-            } else {
-              rightColHtml += fieldHtml;
-            }
-          }
-        }
-
+        // === MINI SCROLL DOWN 1: Bottom Only ===
+        // Note: Detail Left and Detail Right fields are not displayed in Diaporama view
         // Collect Bottom content
         let bottomHtml = '';
         let linkGroup = '';
@@ -9698,21 +9618,11 @@ DETECTION SYSTEM (working correctly):
         }
 
         // Only render scroll-down-1 if there's content
-        if (leftColHtml || rightColHtml || bottomHtml) {
+        if (bottomHtml) {
           html += '<div class="diaporama-scroll-down-1">';
 
-          // Two column section
-          if (leftColHtml || rightColHtml) {
-            html += '<div class="diaporama-two-column">';
-            html += '<div class="diaporama-col-left">' + leftColHtml + '</div>';
-            html += '<div class="diaporama-col-right">' + rightColHtml + '</div>';
-            html += '</div>';
-          }
-
           // Bottom section
-          if (bottomHtml) {
-            html += '<div class="diaporama-bottom">' + bottomHtml + '</div>';
-          }
+          html += '<div class="diaporama-bottom">' + bottomHtml + '</div>';
 
           html += '</div>'; // End scroll-down-1
         }
