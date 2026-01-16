@@ -5437,6 +5437,139 @@ DETECTION SYSTEM (working correctly):
         font-size: 15px !important;
       }
 
+      /* ==================== NEW: DIAPORAMA - LANDSCAPE TWO-COLUMN LAYOUT (All Devices + Desktop) ====================
+         Layout Structure:
+         ┌──────────────────────────────────────────────────────────────┐
+         │          SubId1 (CENTERED)                      Top Corner   │ ← scroll-up-1 (full width)
+         ├──────────────────────────────────┬───────────────────────────┤
+         │                                  │    Long text Up           │ ← scroll-up-2 (right col)
+         │    Main Image                    ├───────────────────────────┤
+         │    (left side, flex-grow)        │    Bottom                 │ ← scroll-down-1 (right col)
+         │                                  │                           │
+         ├──────────────────────────────────┤                           │
+         │    Long text Down (caption)      │                           │
+         ├──────────────────────────────────┴───────────────────────────┤
+         │ SubId2 (left aligned)                                        │ ← scroll-down-2 (full width)
+         └──────────────────────────────────────────────────────────────┘
+
+         Right column: min-width 150px, max-width 50% (when content present)
+         If no image: right content takes full width
+         If no right content: image takes full width
+         ================================================================================================ */
+
+      /* Base landscape grid layout for diaporama-item */
+      body.mobile-device.landscape .diaporama-item,
+      body.tablet-device.landscape .diaporama-item,
+      body.desktop-device .diaporama-item {
+        display: grid !important;
+        grid-template-columns: 1fr minmax(150px, 50%);
+        grid-template-rows: auto 1fr auto auto;
+        gap: 8px;
+        align-items: stretch;
+      }
+
+      /* When no right column content exists, image takes full width */
+      body.mobile-device.landscape .diaporama-item:not(:has(.diaporama-scroll-up-2)):not(:has(.diaporama-scroll-down-1)),
+      body.tablet-device.landscape .diaporama-item:not(:has(.diaporama-scroll-up-2)):not(:has(.diaporama-scroll-down-1)),
+      body.desktop-device .diaporama-item:not(:has(.diaporama-scroll-up-2)):not(:has(.diaporama-scroll-down-1)) {
+        grid-template-columns: 1fr;
+      }
+
+      /* When no image (empty data-image-url), right content takes full width */
+      body.mobile-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]),
+      body.tablet-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]),
+      body.desktop-device .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) {
+        grid-template-columns: 1fr;
+      }
+
+      /* Header (SubId1 + TopCorner) - full width, row 1 */
+      body.mobile-device.landscape .diaporama-scroll-up-1,
+      body.tablet-device.landscape .diaporama-scroll-up-1,
+      body.desktop-device .diaporama-scroll-up-1 {
+        grid-column: 1 / -1;
+        grid-row: 1;
+      }
+
+      /* Image - left column, row 2 (main content area) */
+      body.mobile-device.landscape .diaporama-image-wrapper,
+      body.tablet-device.landscape .diaporama-image-wrapper,
+      body.desktop-device .diaporama-image-wrapper {
+        grid-column: 1;
+        grid-row: 2;
+        align-self: stretch;
+        margin: 0 !important;
+      }
+
+      /* When no image, hide the placeholder wrapper */
+      body.mobile-device.landscape .diaporama-image-wrapper[data-image-url=""],
+      body.tablet-device.landscape .diaporama-image-wrapper[data-image-url=""],
+      body.desktop-device .diaporama-image-wrapper[data-image-url=""] {
+        display: none !important;
+      }
+
+      /* Long text Up - right column, row 2 (scrollable) */
+      body.mobile-device.landscape .diaporama-scroll-up-2,
+      body.tablet-device.landscape .diaporama-scroll-up-2,
+      body.desktop-device .diaporama-scroll-up-2 {
+        grid-column: 2;
+        grid-row: 2;
+        max-height: 100%;
+        overflow-y: auto;
+        text-align: left;
+        margin: 0 !important;
+      }
+
+      /* When no image, Long text Up spans full width */
+      body.mobile-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-scroll-up-2,
+      body.tablet-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-scroll-up-2,
+      body.desktop-device .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-scroll-up-2 {
+        grid-column: 1 / -1;
+      }
+
+      /* Caption (Long text Down) - left column, row 3 */
+      body.mobile-device.landscape .diaporama-longtext-down-wrapper,
+      body.tablet-device.landscape .diaporama-longtext-down-wrapper,
+      body.desktop-device .diaporama-longtext-down-wrapper {
+        grid-column: 1;
+        grid-row: 3;
+        text-align: center;
+        margin: 0 !important;
+      }
+
+      /* When no image, caption spans full width */
+      body.mobile-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-longtext-down-wrapper,
+      body.tablet-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-longtext-down-wrapper,
+      body.desktop-device .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-longtext-down-wrapper {
+        grid-column: 1 / -1;
+      }
+
+      /* Bottom - right column, row 3 (scrollable) */
+      body.mobile-device.landscape .diaporama-scroll-down-1,
+      body.tablet-device.landscape .diaporama-scroll-down-1,
+      body.desktop-device .diaporama-scroll-down-1 {
+        grid-column: 2;
+        grid-row: 3;
+        max-height: 100%;
+        overflow-y: auto;
+        text-align: left;
+      }
+
+      /* When no image, Bottom spans full width */
+      body.mobile-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-scroll-down-1,
+      body.tablet-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-scroll-down-1,
+      body.desktop-device .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-scroll-down-1 {
+        grid-column: 1 / -1;
+      }
+
+      /* Footer (SubId2) - full width, row 4, LEFT aligned (not centered) */
+      body.mobile-device.landscape .diaporama-scroll-down-2,
+      body.tablet-device.landscape .diaporama-scroll-down-2,
+      body.desktop-device .diaporama-scroll-down-2 {
+        grid-column: 1 / -1;
+        grid-row: 4;
+        text-align: left;
+      }
+
       /* ==================== 4. DIAPORAMA - MOBILE PORTRAIT (Apps Script) ==================== */
       body.mobile-device.portrait .diaporama-name {
         font-size: 37.5px !important;
