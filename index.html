@@ -5342,14 +5342,14 @@ DETECTION SYSTEM (working correctly):
       body.mobile-device .diaporama-horizontal,
       body.tablet-device .diaporama-vertical,
       body.tablet-device .diaporama-horizontal {
-        height: calc(100dvh - 156px) !important;
-        max-height: calc(100dvh - 156px) !important;
+        height: calc(100dvh - 160px) !important;
+        max-height: calc(100dvh - 160px) !important;
       }
 
       /* Vertical mode: grid rows match container height */
       body.mobile-device .diaporama-vertical,
       body.tablet-device .diaporama-vertical {
-        grid-auto-rows: calc(100dvh - 156px) !important;
+        grid-auto-rows: calc(100dvh - 160px) !important;
       }
 
       /* ========== MOBILE/TABLET: SHARED DIAPORAMA ITEM DISPLAY ==========
@@ -5373,14 +5373,14 @@ DETECTION SYSTEM (working correctly):
       body.mobile-device.portrait .diaporama-horizontal,
       body.tablet-device.portrait .diaporama-vertical,
       body.tablet-device.portrait .diaporama-horizontal {
-        height: calc(100dvh - 196px) !important;
-        max-height: calc(100dvh - 196px) !important;
+        height: calc(100dvh - 200px) !important;
+        max-height: calc(100dvh - 200px) !important;
       }
 
       /* Portrait vertical mode: grid rows match container height */
       body.mobile-device.portrait .diaporama-vertical,
       body.tablet-device.portrait .diaporama-vertical {
-        grid-auto-rows: calc(100dvh - 196px) !important;
+        grid-auto-rows: calc(100dvh - 200px) !important;
       }
 
       /* Horizontal mode: container matches vertical style - full-sized grid with centering */
@@ -5540,17 +5540,17 @@ DETECTION SYSTEM (working correctly):
         padding: 5px !important;
       }
 
-      /* GitHub Pages Mobile Portrait: Diaporama height = 100dvh - 96px
-         Breakdown: body-padding-top (4px) + header (62px: 48px logo + 10px padding + 4px margin) + shell-padding-bottom (22px for bottom bar) + body-padding-bottom (8px) */
+      /* GitHub Pages Mobile Portrait: Diaporama height = 100dvh - 100px
+         Breakdown: body-padding-top (4px) + header (62px: 48px logo + 10px padding + 4px margin) + shell-padding-bottom (22px for bottom bar) + body-padding-bottom (8px) + buffer (4px) */
       html.github-pages body.mobile-device.portrait .diaporama-vertical,
       html.github-pages body.mobile-device.portrait .diaporama-horizontal {
-        height: calc(100dvh - 96px) !important;
-        max-height: calc(100dvh - 96px) !important;
+        height: calc(100dvh - 100px) !important;
+        max-height: calc(100dvh - 100px) !important;
       }
 
       /* GitHub Pages vertical mode: grid rows match container height */
       html.github-pages body.mobile-device.portrait .diaporama-vertical {
-        grid-auto-rows: calc(100dvh - 96px) !important;
+        grid-auto-rows: calc(100dvh - 100px) !important;
       }
 
       /* ========== GITHUB PAGES: SHARED DIAPORAMA ITEM DISPLAY ==========
@@ -5583,14 +5583,14 @@ DETECTION SYSTEM (working correctly):
       body.mobile-device.landscape .diaporama-horizontal,
       body.tablet-device.landscape .diaporama-vertical,
       body.tablet-device.landscape .diaporama-horizontal {
-        height: calc(100dvh - 58px) !important;
-        max-height: calc(100dvh - 58px) !important;
+        height: calc(100dvh - 62px) !important;
+        max-height: calc(100dvh - 62px) !important;
       }
 
       /* Landscape vertical mode: grid rows match container height */
       body.mobile-device.landscape .diaporama-vertical,
       body.tablet-device.landscape .diaporama-vertical {
-        grid-auto-rows: calc(100dvh - 58px) !important;
+        grid-auto-rows: calc(100dvh - 62px) !important;
       }
       /* NOTE: Landscape item centering is handled by the shared mobile/tablet rules above */
 
