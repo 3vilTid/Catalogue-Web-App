@@ -5540,16 +5540,17 @@ DETECTION SYSTEM (working correctly):
         padding: 5px !important;
       }
 
-      /* GitHub Pages Mobile Portrait: Diaporama height - compact header + tight padding + body padding (4px top + 8px bottom) */
+      /* GitHub Pages Mobile Portrait: Diaporama height = 100dvh - 96px
+         Breakdown: body-padding-top (4px) + header (62px: 48px logo + 10px padding + 4px margin) + shell-padding-bottom (22px for bottom bar) + body-padding-bottom (8px) */
       html.github-pages body.mobile-device.portrait .diaporama-vertical,
       html.github-pages body.mobile-device.portrait .diaporama-horizontal {
-        height: calc(100dvh - 50px) !important;
-        max-height: calc(100dvh - 50px) !important;
+        height: calc(100dvh - 96px) !important;
+        max-height: calc(100dvh - 96px) !important;
       }
 
       /* GitHub Pages vertical mode: grid rows match container height */
       html.github-pages body.mobile-device.portrait .diaporama-vertical {
-        grid-auto-rows: calc(100dvh - 50px) !important;
+        grid-auto-rows: calc(100dvh - 96px) !important;
       }
 
       /* ========== GITHUB PAGES: SHARED DIAPORAMA ITEM DISPLAY ==========
