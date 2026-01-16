@@ -3692,10 +3692,11 @@ DETECTION SYSTEM (working correctly):
       /* ==================== DESKTOP DEVICE STYLES ==================== */
       /* Desktop: 12px side borders total */
       /* Multiple selectors for maximum compatibility */
+      /* Body padding: 10px top + 10px bottom (used in Diaporama height calc) */
       body.desktop-device,
       html.desktop-device body,
       html[data-device="desktop-device"] body {
-        padding: 18px 0 32px !important;
+        padding: 10px 0 10px !important;
       }
 
       body.desktop-device .shell,
@@ -4311,9 +4312,10 @@ DETECTION SYSTEM (working correctly):
         padding-bottom: 4px !important;
       }
 
+      /* GitHub Pages Mobile Portrait: 4px top + 8px bottom (used in Diaporama height calc) */
       html.github-pages body.mobile-device.portrait {
         padding-top: 4px !important;
-        padding-bottom: 4px !important;
+        padding-bottom: 8px !important;
       }
 
       html.github-pages body.mobile-device.landscape {
@@ -5538,16 +5540,16 @@ DETECTION SYSTEM (working correctly):
         padding: 5px !important;
       }
 
-      /* GitHub Pages Mobile Portrait: Diaporama height - compact header + tight padding + body padding (4px top + 4px bottom) */
+      /* GitHub Pages Mobile Portrait: Diaporama height - compact header + tight padding + body padding (4px top + 8px bottom) */
       html.github-pages body.mobile-device.portrait .diaporama-vertical,
       html.github-pages body.mobile-device.portrait .diaporama-horizontal {
-        height: calc(100dvh - 46px) !important;
-        max-height: calc(100dvh - 46px) !important;
+        height: calc(100dvh - 50px) !important;
+        max-height: calc(100dvh - 50px) !important;
       }
 
       /* GitHub Pages vertical mode: grid rows match container height */
       html.github-pages body.mobile-device.portrait .diaporama-vertical {
-        grid-auto-rows: calc(100dvh - 46px) !important;
+        grid-auto-rows: calc(100dvh - 50px) !important;
       }
 
       /* ========== GITHUB PAGES: SHARED DIAPORAMA ITEM DISPLAY ==========
