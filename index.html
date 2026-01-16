@@ -4331,7 +4331,11 @@ DETECTION SYSTEM (working correctly):
 
       html.github-pages body.mobile-device.portrait .shell {
         padding: 0 6px 4px 6px !important; /* Tight padding */
-        padding-bottom: 22px !important; /* Account for bottom bar height */
+      }
+
+      /* Apply padding-bottom only on detail view for GitHub Pages mobile portrait */
+      html.github-pages body.mobile-device.portrait .shell:has(#detailView[style*="display: block"]) {
+        padding-bottom: 44px !important; /* Account for bottom bar height */
       }
 
       /* Apply padding-bottom only on detail view for GitHub Pages mobile portrait */
