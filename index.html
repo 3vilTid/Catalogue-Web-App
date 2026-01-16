@@ -4331,12 +4331,20 @@ DETECTION SYSTEM (working correctly):
 
       html.github-pages body.mobile-device.portrait .shell {
         padding: 0 6px 4px 6px !important; /* Tight padding */
+      }
+
+      /* Apply padding-bottom only on detail view for GitHub Pages mobile portrait */
+      html.github-pages body.mobile-device.portrait .shell:has(#detailView[style*="display: block"]) {
         padding-bottom: 44px !important; /* Account for bottom bar height */
       }
 
       html.github-pages body.mobile-device.landscape .shell {
         padding-left: 6px !important;
         padding-right: 6px !important;
+      }
+
+      /* Apply padding-bottom only on detail view for GitHub Pages mobile landscape */
+      html.github-pages body.mobile-device.landscape .shell:has(#detailView[style*="display: block"]) {
         padding-bottom: 4px !important; /* No bottom bar in landscape */
       }
 
