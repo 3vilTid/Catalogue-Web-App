@@ -5595,6 +5595,13 @@ DETECTION SYSTEM (working correctly):
         max-height: 100% !important;
       }
 
+      /* GitHub Pages Mobile Portrait: Reduce gap between Long text Up/Down and image to 4px */
+      /* Base CSS has: scroll-up-2 margin-bottom: 4px, image-wrapper margin: 4px 0, longtext-down-wrapper margin-top: 4px */
+      /* Remove image-wrapper margins so total gap = 4px (from scroll-up-2 and longtext-down-wrapper) */
+      html.github-pages body.mobile-device.portrait .diaporama-image-wrapper {
+        margin: 0 !important;
+      }
+
       /* Mobile/Tablet LANDSCAPE: Smaller offset since headers are compact + body padding (4px top + 4px bottom) */
       body.mobile-device.landscape .diaporama-vertical,
       body.mobile-device.landscape .diaporama-horizontal,
