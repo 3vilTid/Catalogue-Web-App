@@ -378,7 +378,7 @@ DETECTION SYSTEM (working correctly):
       }
 
       body {
-        padding: 18px 0 32px;
+        padding: 10px 0 10px;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter",
           "Segoe UI", sans-serif;
         background: radial-gradient(
@@ -4305,20 +4305,26 @@ DETECTION SYSTEM (working correctly):
         min-height: 25px !important;
       }
 
-      /* Fix body top padding for mobile devices */
+      /* Mobile device body padding: 4px top and bottom */
+      body.mobile-device {
+        padding-top: 4px !important;
+        padding-bottom: 4px !important;
+      }
+
       html.github-pages body.mobile-device.portrait {
         padding-top: 4px !important;
+        padding-bottom: 4px !important;
       }
 
       html.github-pages body.mobile-device.landscape {
         padding-top: 4px !important;
-        padding-bottom: 8px !important; /* Reduced from default 32px */
+        padding-bottom: 4px !important;
       }
 
-      /* Also for non-GitHub Pages landscape - reduce body bottom padding */
+      /* Non-GitHub Pages mobile/tablet landscape - reduce body bottom padding */
       body.mobile-device.landscape,
       body.tablet-device.landscape {
-        padding-bottom: 8px !important;
+        padding-bottom: 4px !important;
       }
 
       html.github-pages body.mobile-device.portrait .shell {
@@ -4879,13 +4885,13 @@ DETECTION SYSTEM (working correctly):
       .diaporama-vertical {
         display: grid;
         /* Each row is viewport-sized, creating snap areas */
-        grid-auto-rows: calc(100dvh - 138px);
+        grid-auto-rows: calc(100dvh - 108px);
         gap: 0;
         overflow-y: auto;
         scroll-snap-type: y mandatory;
-        /* Height = viewport - top-header - body padding (18px top + 32px bottom). Use dvh for mobile browser support */
-        height: calc(100dvh - 138px);
-        max-height: calc(100dvh - 138px);
+        /* Height = viewport - top-header - body padding (10px top + 10px bottom). Use dvh for mobile browser support */
+        height: calc(100dvh - 108px);
+        max-height: calc(100dvh - 108px);
       }
 
       /* Horizontal style: single item view */
@@ -4896,9 +4902,9 @@ DETECTION SYSTEM (working correctly):
         display: grid;
         /* place-content centers the grid tracks (which contain the item) within the container */
         place-content: center;
-        /* Height = viewport - top-header - body padding (18px top + 32px bottom). Use dvh for mobile browser support */
-        height: calc(100dvh - 138px);
-        max-height: calc(100dvh - 138px);
+        /* Height = viewport - top-header - body padding (10px top + 10px bottom). Use dvh for mobile browser support */
+        height: calc(100dvh - 108px);
+        max-height: calc(100dvh - 108px);
       }
 
       /* Keep section scrolling enabled */
@@ -4926,8 +4932,8 @@ DETECTION SYSTEM (working correctly):
         place-items: center;
         width: 100%;
         max-width: 100%;
-        height: calc(100dvh - 120px);
-        max-height: calc(100dvh - 120px);
+        height: calc(100dvh - 90px);
+        max-height: calc(100dvh - 90px);
       }
 
       /* ==========================================================================
@@ -5329,19 +5335,19 @@ DETECTION SYSTEM (working correctly):
         display: none !important;
       }
 
-      /* Mobile/Tablet: Adjust diaporama height for larger headers + body padding (18px top) */
+      /* Mobile/Tablet: Adjust diaporama height for larger headers + body padding (4px top + 4px bottom) */
       body.mobile-device .diaporama-vertical,
       body.mobile-device .diaporama-horizontal,
       body.tablet-device .diaporama-vertical,
       body.tablet-device .diaporama-horizontal {
-        height: calc(100dvh - 198px) !important;
-        max-height: calc(100dvh - 198px) !important;
+        height: calc(100dvh - 156px) !important;
+        max-height: calc(100dvh - 156px) !important;
       }
 
       /* Vertical mode: grid rows match container height */
       body.mobile-device .diaporama-vertical,
       body.tablet-device .diaporama-vertical {
-        grid-auto-rows: calc(100dvh - 198px) !important;
+        grid-auto-rows: calc(100dvh - 156px) !important;
       }
 
       /* ========== MOBILE/TABLET: SHARED DIAPORAMA ITEM DISPLAY ==========
@@ -5360,19 +5366,19 @@ DETECTION SYSTEM (working correctly):
         max-height: 100% !important;
       }
 
-      /* Portrait mode: even larger header offset + body padding (18px top) */
+      /* Portrait mode: even larger header offset + body padding (4px top + 4px bottom) */
       body.mobile-device.portrait .diaporama-vertical,
       body.mobile-device.portrait .diaporama-horizontal,
       body.tablet-device.portrait .diaporama-vertical,
       body.tablet-device.portrait .diaporama-horizontal {
-        height: calc(100dvh - 238px) !important;
-        max-height: calc(100dvh - 238px) !important;
+        height: calc(100dvh - 196px) !important;
+        max-height: calc(100dvh - 196px) !important;
       }
 
       /* Portrait vertical mode: grid rows match container height */
       body.mobile-device.portrait .diaporama-vertical,
       body.tablet-device.portrait .diaporama-vertical {
-        grid-auto-rows: calc(100dvh - 238px) !important;
+        grid-auto-rows: calc(100dvh - 196px) !important;
       }
 
       /* Horizontal mode: container matches vertical style - full-sized grid with centering */
@@ -5532,16 +5538,16 @@ DETECTION SYSTEM (working correctly):
         padding: 5px !important;
       }
 
-      /* GitHub Pages Mobile Portrait: Diaporama height - compact header + tight padding + body padding (4px top) */
+      /* GitHub Pages Mobile Portrait: Diaporama height - compact header + tight padding + body padding (4px top + 4px bottom) */
       html.github-pages body.mobile-device.portrait .diaporama-vertical,
       html.github-pages body.mobile-device.portrait .diaporama-horizontal {
-        height: calc(100dvh - 42px) !important;
-        max-height: calc(100dvh - 42px) !important;
+        height: calc(100dvh - 46px) !important;
+        max-height: calc(100dvh - 46px) !important;
       }
 
       /* GitHub Pages vertical mode: grid rows match container height */
       html.github-pages body.mobile-device.portrait .diaporama-vertical {
-        grid-auto-rows: calc(100dvh - 42px) !important;
+        grid-auto-rows: calc(100dvh - 46px) !important;
       }
 
       /* ========== GITHUB PAGES: SHARED DIAPORAMA ITEM DISPLAY ==========
@@ -5569,19 +5575,19 @@ DETECTION SYSTEM (working correctly):
         max-height: 100% !important;
       }
 
-      /* Mobile/Tablet LANDSCAPE: Smaller offset since headers are compact */
+      /* Mobile/Tablet LANDSCAPE: Smaller offset since headers are compact + body padding (4px top + 4px bottom) */
       body.mobile-device.landscape .diaporama-vertical,
       body.mobile-device.landscape .diaporama-horizontal,
       body.tablet-device.landscape .diaporama-vertical,
       body.tablet-device.landscape .diaporama-horizontal {
-        height: calc(100dvh - 100px) !important;
-        max-height: calc(100dvh - 100px) !important;
+        height: calc(100dvh - 58px) !important;
+        max-height: calc(100dvh - 58px) !important;
       }
 
       /* Landscape vertical mode: grid rows match container height */
       body.mobile-device.landscape .diaporama-vertical,
       body.tablet-device.landscape .diaporama-vertical {
-        grid-auto-rows: calc(100dvh - 100px) !important;
+        grid-auto-rows: calc(100dvh - 58px) !important;
       }
       /* NOTE: Landscape item centering is handled by the shared mobile/tablet rules above */
 
