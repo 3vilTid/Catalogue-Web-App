@@ -5451,7 +5451,7 @@ DETECTION SYSTEM (working correctly):
          │ SubId2 (left aligned)                                        │ ← Row 5: scroll-down-2 (full width)
          └──────────────────────────────────────────────────────────────┘
 
-         Grid: 2 columns (1fr, minmax(150px, 50%)), 5 rows (auto, 1fr, 1fr, auto, auto)
+         Grid: 2 columns (1fr, minmax(150px, 50%)), 5 rows (minmax(24px, auto), 1fr, 1fr, auto, minmax(24px, auto))
          Image spans rows 2-3, giving right column content room to stack vertically
          Right column: min-width 150px, max-width 50% (when content present)
          If no image: right content takes full width
@@ -5465,7 +5465,7 @@ DETECTION SYSTEM (working correctly):
       body.desktop-device .diaporama-item {
         display: grid !important;
         grid-template-columns: 1fr minmax(150px, 50%);
-        grid-template-rows: auto 1fr 1fr auto auto;
+        grid-template-rows: minmax(24px, auto) 1fr 1fr auto minmax(24px, auto);
         gap: 8px;
         align-items: stretch;
       }
@@ -5546,6 +5546,7 @@ DETECTION SYSTEM (working correctly):
       }
 
       /* Bottom - right column, row 3 (scrollable) */
+      /* margin-top: -8px removes the gap between Long text Up and Bottom */
       body.mobile-device.landscape .diaporama-scroll-down-1,
       body.tablet-device.landscape .diaporama-scroll-down-1,
       body.desktop-device .diaporama-scroll-down-1 {
@@ -5554,6 +5555,7 @@ DETECTION SYSTEM (working correctly):
         max-height: 100%;
         overflow-y: auto;
         text-align: left;
+        margin-top: -8px;
       }
 
       /* When no image, Bottom spans full width */
