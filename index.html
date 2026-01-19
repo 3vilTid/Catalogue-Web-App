@@ -5462,14 +5462,17 @@ DETECTION SYSTEM (working correctly):
 
       /* Base landscape grid layout for diaporama-item */
       /* 3-row grid: Header | Left+Right Columns | Footer */
+      /* Constrained to viewport so right column can scroll when content exceeds left column height */
       body.mobile-device.landscape .diaporama-item,
       body.tablet-device.landscape .diaporama-item,
       body.desktop-device .diaporama-item {
         display: grid !important;
         grid-template-columns: 1fr minmax(150px, 50%);
-        grid-template-rows: auto 1fr auto;
+        grid-template-rows: auto minmax(0, 1fr) auto; /* minmax(0, 1fr) allows row to shrink */
         gap: 8px;
         align-items: stretch;
+        max-height: calc(100vh - 40px); /* Constrain to viewport with padding */
+        overflow: hidden; /* Contain overflow so right column scrolls */
       }
 
       /* When no right column content exists, left column takes full width */
