@@ -4999,6 +4999,11 @@ DETECTION SYSTEM (working correctly):
         overflow: visible;
       }
 
+      /* Left column wrapper - transparent by default (portrait mode), styled in landscape */
+      .diaporama-left-column {
+        display: contents; /* Acts as if children were direct children of parent */
+      }
+
       /* ========== SHARED DIAPORAMA ITEM DISPLAY STYLES ==========
          Both Vertical and Horizontal modes display items identically.
          Only navigation differs: Vertical=scroll, Horizontal=buttons/swipe.
@@ -5433,42 +5438,41 @@ DETECTION SYSTEM (working correctly):
       }
 
       /* ==================== NEW: DIAPORAMA - LANDSCAPE TWO-COLUMN LAYOUT (All Devices + Desktop) ====================
-         Layout Structure (5-row grid with 10px separator):
+         Layout Structure (3-row grid with left-column wrapper):
          ┌──────────────────────────────────────────────────────────────┐
          │          SubId1 (CENTERED)                      Top Corner   │ ← Row 1: scroll-up-1 (full width)
          ├──────────────────────────────────┬───────────────────────────┤
-         │                                  ║    Long text Up           │ ← Row 2-4: diaporama-right-column
-         │    Main Image                    ║    (scrollable)           │    (spans rows 2-4, scrolls if content
-         │    (spans rows 2-3)              ║───────────────────────────│     exceeds image+caption height)
-         ├──────────────────────────────────║    Bottom                 │    ║ = 10px separator border
-         │    Long text Down (caption)      ║    (scrollable)           │
+         │    LEFT COLUMN                   ║    RIGHT COLUMN           │ ← Row 2: left-column | right-column
+         │    ┌────────────────────────┐    ║    ┌───────────────────┐  │    ║ = 10px separator border
+         │    │  Main Image            │    ║    │  Long text Up     │  │
+         │    │                        │    ║    │  (flex-grow)      │  │
+         │    └────────────────────────┘    ║    ├───────────────────┤  │
+         │    Long text Down (caption)      ║    │  Bottom           │  │
+         │                                  ║    └───────────────────┘  │
          ├──────────────────────────────────┴───────────────────────────┤
-         │ SubId2 (left aligned)                                        │ ← Row 5: scroll-down-2 (full width)
+         │ SubId2 (left aligned)                                        │ ← Row 3: scroll-down-2 (full width)
          └──────────────────────────────────────────────────────────────┘
 
-         Grid: 2 columns (1fr, minmax(150px, 50%)), 5 rows (minmax(24px, auto), 1fr, 1fr, auto, minmax(24px, auto))
-         Image spans rows 2-3, caption in row 4
-         Right column wrapper (.diaporama-right-column) spans rows 2-4 with:
-           - 10px left border separator
-           - overflow-y: auto for scrolling when content exceeds left column height
-           - Contains: scroll-up-2 (Long text Up) + scroll-down-1 (Bottom)
+         Grid: 2 columns (1fr, minmax(150px, 50%)), 3 rows (auto, 1fr, auto)
+         Left column wrapper (.diaporama-left-column) contains image + caption as a flex column
+         Right column wrapper (.diaporama-right-column) scrolls when content exceeds left column height
          If no image: right content takes full width, no separator
-         If no right content: image takes full width
+         If no right content: left column takes full width
          ================================================================================================ */
 
       /* Base landscape grid layout for diaporama-item */
-      /* 5-row grid: SubId1 | Image+LongTextUp | Image+Bottom | Caption | SubId2 */
+      /* 3-row grid: Header | Left+Right Columns | Footer */
       body.mobile-device.landscape .diaporama-item,
       body.tablet-device.landscape .diaporama-item,
       body.desktop-device .diaporama-item {
         display: grid !important;
         grid-template-columns: 1fr minmax(150px, 50%);
-        grid-template-rows: minmax(24px, auto) 1fr 1fr auto minmax(24px, auto);
+        grid-template-rows: auto 1fr auto;
         gap: 8px;
         align-items: stretch;
       }
 
-      /* When no right column content exists, image takes full width */
+      /* When no right column content exists, left column takes full width */
       body.mobile-device.landscape .diaporama-item:not(:has(.diaporama-scroll-up-2)):not(:has(.diaporama-scroll-down-1)),
       body.tablet-device.landscape .diaporama-item:not(:has(.diaporama-scroll-up-2)):not(:has(.diaporama-scroll-down-1)),
       body.desktop-device .diaporama-item:not(:has(.diaporama-scroll-up-2)):not(:has(.diaporama-scroll-down-1)) {
@@ -5490,13 +5494,31 @@ DETECTION SYSTEM (working correctly):
         grid-row: 1;
       }
 
-      /* Image - left column, rows 2-3 (spans main content area) */
+      /* Left column wrapper - contains image and caption as a flex column */
+      body.mobile-device.landscape .diaporama-left-column,
+      body.tablet-device.landscape .diaporama-left-column,
+      body.desktop-device .diaporama-left-column {
+        grid-column: 1;
+        grid-row: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-height: 0; /* Allow flex children to shrink */
+      }
+
+      /* When no right column, left column spans full width */
+      body.mobile-device.landscape .diaporama-item:not(:has(.diaporama-scroll-up-2)):not(:has(.diaporama-scroll-down-1)) .diaporama-left-column,
+      body.tablet-device.landscape .diaporama-item:not(:has(.diaporama-scroll-up-2)):not(:has(.diaporama-scroll-down-1)) .diaporama-left-column,
+      body.desktop-device .diaporama-item:not(:has(.diaporama-scroll-up-2)):not(:has(.diaporama-scroll-down-1)) .diaporama-left-column {
+        grid-column: 1 / -1;
+      }
+
+      /* Image - inside left column, flexible */
       body.mobile-device.landscape .diaporama-image-wrapper,
       body.tablet-device.landscape .diaporama-image-wrapper,
       body.desktop-device .diaporama-image-wrapper {
-        grid-column: 1;
-        grid-row: 2 / 4;
-        align-self: stretch;
+        flex: 1 1 auto;
+        min-height: 0;
         margin: 0 !important;
       }
 
@@ -5507,13 +5529,22 @@ DETECTION SYSTEM (working correctly):
         display: none !important;
       }
 
-      /* Right column wrapper - contains scroll-up-2 and scroll-down-1, spans rows 2-4 to match image+caption height */
-      /* Has 10px separator border and scrolls when content exceeds the left column height */
+      /* Caption (Long text Down) - inside left column, fixed at bottom */
+      body.mobile-device.landscape .diaporama-longtext-down-wrapper,
+      body.tablet-device.landscape .diaporama-longtext-down-wrapper,
+      body.desktop-device .diaporama-longtext-down-wrapper {
+        flex: 0 0 auto;
+        text-align: center;
+        margin: 0 !important;
+      }
+
+      /* Right column wrapper - contains scroll-up-2 and scroll-down-1, scrolls when content exceeds left column height */
+      /* Has 10px separator border */
       body.mobile-device.landscape .diaporama-right-column,
       body.tablet-device.landscape .diaporama-right-column,
       body.desktop-device .diaporama-right-column {
         grid-column: 2;
-        grid-row: 2 / 5; /* Spans rows 2, 3, 4 (image area + caption) */
+        grid-row: 2;
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -5522,6 +5553,7 @@ DETECTION SYSTEM (working correctly):
         overflow-y: auto;
         text-align: left;
         margin: 0 !important;
+        min-height: 0; /* Required for overflow to work in grid */
       }
 
       /* When no image, right column spans full width and removes separator */
@@ -5533,49 +5565,34 @@ DETECTION SYSTEM (working correctly):
         padding-left: 0;
       }
 
-      /* Long text Up - inside right column wrapper (no grid positioning needed) */
+      /* Long text Up - inside right column wrapper, grows to fill space */
       body.mobile-device.landscape .diaporama-scroll-up-2,
       body.tablet-device.landscape .diaporama-scroll-up-2,
       body.desktop-device .diaporama-scroll-up-2 {
+        flex: 1 1 auto;
         max-height: none;
         overflow: visible;
         text-align: left;
         margin: 0 !important;
       }
 
-      /* Caption (Long text Down) - left column, row 4 */
-      body.mobile-device.landscape .diaporama-longtext-down-wrapper,
-      body.tablet-device.landscape .diaporama-longtext-down-wrapper,
-      body.desktop-device .diaporama-longtext-down-wrapper {
-        grid-column: 1;
-        grid-row: 4;
-        text-align: center;
-        margin: 0 !important;
-      }
-
-      /* When no image, caption spans full width */
-      body.mobile-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-longtext-down-wrapper,
-      body.tablet-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-longtext-down-wrapper,
-      body.desktop-device .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-longtext-down-wrapper {
-        grid-column: 1 / -1;
-      }
-
-      /* Bottom - inside right column wrapper (no grid positioning needed) */
+      /* Bottom - inside right column wrapper, fixed at bottom */
       body.mobile-device.landscape .diaporama-scroll-down-1,
       body.tablet-device.landscape .diaporama-scroll-down-1,
       body.desktop-device .diaporama-scroll-down-1 {
+        flex: 0 0 auto;
         max-height: none;
         overflow: visible;
         text-align: left;
         margin: 0 !important;
       }
 
-      /* Footer (SubId2) - full width, row 5, LEFT aligned (not centered) */
+      /* Footer (SubId2) - full width, row 3, LEFT aligned (not centered) */
       body.mobile-device.landscape .diaporama-scroll-down-2,
       body.tablet-device.landscape .diaporama-scroll-down-2,
       body.desktop-device .diaporama-scroll-down-2 {
         grid-column: 1 / -1;
-        grid-row: 5;
+        grid-row: 3;
         text-align: left;
       }
 
@@ -8224,6 +8241,9 @@ DETECTION SYSTEM (working correctly):
             }
           }
         }
+        // === LEFT COLUMN WRAPPER (for landscape layout - contains image and caption) ===
+        html += '<div class="diaporama-left-column">';
+
         // === IMAGE SECTION (Flexible, takes remaining space) ===
         html += '<div class="diaporama-image-wrapper" data-image-url="' + imageUrl + '">';
         if (!imageUrl) {
@@ -8232,7 +8252,7 @@ DETECTION SYSTEM (working correctly):
         // Images will be loaded by setupDiaporamaImages() using data-image-url
         html += '</div>';
 
-        // === LONG TEXT DOWN (NOT scrollable, fixed) ===
+        // === LONG TEXT DOWN (NOT scrollable, fixed - caption under image) ===
         let longTextDownHtml = '';
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
@@ -8252,6 +8272,8 @@ DETECTION SYSTEM (working correctly):
         if (longTextDownHtml) {
           html += '<div class="diaporama-longtext-down-wrapper">' + longTextDownHtml + '</div>';
         }
+
+        html += '</div>'; // End diaporama-left-column
 
         // === MINI SCROLL DOWN 1: Bottom Only ===
         // Note: Detail Left and Detail Right fields are not displayed in Diaporama view
@@ -9714,6 +9736,9 @@ DETECTION SYSTEM (working correctly):
             }
           }
         }
+        // === LEFT COLUMN WRAPPER (for landscape layout - contains image and caption) ===
+        html += '<div class="diaporama-left-column">';
+
         // === IMAGE SECTION (Flexible, takes remaining space) ===
         html += '<div class="diaporama-image-wrapper" data-image-url="' + imageUrl + '">';
         if (!imageUrl) {
@@ -9723,7 +9748,7 @@ DETECTION SYSTEM (working correctly):
         }
         html += '</div>';
 
-        // === LONG TEXT DOWN (NOT scrollable, fixed) ===
+        // === LONG TEXT DOWN (NOT scrollable, fixed - caption under image) ===
         let longTextDownHtml = '';
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
@@ -9743,6 +9768,8 @@ DETECTION SYSTEM (working correctly):
         if (longTextDownHtml) {
           html += '<div class="diaporama-longtext-down-wrapper">' + longTextDownHtml + '</div>';
         }
+
+        html += '</div>'; // End diaporama-left-column
 
         // === MINI SCROLL DOWN 1: Bottom Only ===
         // Note: Detail Left and Detail Right fields are not displayed in Diaporama view
