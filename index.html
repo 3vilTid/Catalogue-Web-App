@@ -4898,103 +4898,94 @@ DETECTION SYSTEM (working correctly):
         /* Ensure diaporama-view itself has height when combined with vertical/horizontal */
       }
 
-      /* Vertical style: scroll-snap with centered fit-content items */
+      /* Vertical style: natural document flow with page scrolling */
       .diaporama-vertical {
-        display: grid;
-        /* Each row is viewport-sized, creating snap areas */
-        grid-auto-rows: calc(100dvh - 108px);
-        gap: 0;
-        overflow-y: auto;
-        scroll-snap-type: y mandatory;
-        /* Height = viewport - top-header - body padding (10px top + 10px bottom). Use dvh for mobile browser support */
-        height: calc(100dvh - 108px);
-        max-height: calc(100dvh - 108px);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        /* Allow content to determine height - page scrolls if needed */
+        height: auto;
+        max-height: none;
+        overflow: visible;
         border-radius: 16px;
       }
 
-      /* Horizontal style: single item view */
+      /* Horizontal style: single item view with natural flow */
       .diaporama-horizontal {
         position: relative;
-        overflow: hidden;
-        /* Use CSS Grid for perfect centering */
-        display: grid;
-        /* place-content centers the grid tracks (which contain the item) within the container */
-        place-content: center;
-        /* Height = viewport - top-header - body padding (10px top + 10px bottom). Use dvh for mobile browser support */
-        height: calc(100dvh - 108px);
-        max-height: calc(100dvh - 108px);
+        /* Allow content to determine height - page scrolls if needed */
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        max-height: none;
+        overflow: visible;
         border-radius: 16px;
       }
 
-      /* Keep section scrolling enabled */
+      /* Sections show full content - no internal scrolling */
       .diaporama-horizontal .diaporama-above-picture,
       .diaporama-horizontal .diaporama-below-picture {
-        overflow-y: auto;
+        overflow: visible;
       }
 
       .diaporama-item-container {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
+        align-items: stretch;
+        /* No centering - content flows from top */
         transition: transform 0.3s ease;
-        height: fit-content;
-        max-height: 100%;
-        width: fit-content;
+        height: auto;
+        max-height: none;
+        width: 100%;
         max-width: 100%;
       }
 
       .diaporama-horizontal .diaporama-item-container {
-        /* Match vertical style: full viewport-sized grid cell with centered content */
-        display: grid;
-        place-content: center;
-        place-items: center;
+        /* Natural flow - no centering, content expands fully */
+        display: flex;
+        flex-direction: column;
         width: 100%;
         max-width: 100%;
-        height: calc(100dvh - 90px);
-        max-height: calc(100dvh - 90px);
+        height: auto;
+        max-height: none;
       }
 
       /* ==========================================================================
-         DIAPORAMA ITEM LAYOUT - 4 Mini-Scroll Zones + Flexible Image
+         DIAPORAMA ITEM LAYOUT - Natural Document Flow (Page Scrolls)
 
          Structure (vertical, top to bottom):
          ┌─────────────────────────────────────┐
-         │ [Mini Scroll Up 1] MAX-HEIGHT       │
+         │ SubId1 Row                          │
          │  ┌──────────────────────┬─────────┐ │
          │  │  SubId1 (centered)   │TopCorner│ │  ← Same row
          │  └──────────────────────┴─────────┘ │
          ├─────────────────────────────────────┤
-         │ [Mini Scroll Up 2] MAX-HEIGHT       │
-         │  Long text Up (centered)            │
+         │ Long text Up (centered)             │  ← Shows full content
          ├─────────────────────────────────────┤
-         │ [Main Image] MIN-HEIGHT, FLEX-GROW  │  ← Takes ALL remaining space
-         │  (NOT scrollable)                   │
+         │ Main Image                          │  ← Natural size
          ├─────────────────────────────────────┤
-         │ Long text Down (NOT scrollable)     │
+         │ Long text Down                      │  ← Shows full content
          ├─────────────────────────────────────┤
-         │ [Mini Scroll Down 1] MAX-HEIGHT     │
          │  ┌─────────────┬─────────────┐      │
          │  │ Detail Left │ Detail Right│      │  ← Two columns
          │  └─────────────┴─────────────┘      │
-         │  Bottom                             │
+         │  Bottom                             │  ← Shows full content
          ├─────────────────────────────────────┤
-         │ [Mini Scroll Down 2] MAX-HEIGHT     │
-         │  SubId2                             │
+         │  SubId2                             │  ← Shows full content
          └─────────────────────────────────────┘
 
-         Key: 4 mini-scrolls have MAX-HEIGHT with overflow-y: auto
-              Image has MIN-HEIGHT and flex-grow: 1 (takes remaining space)
-              Long text Down is NOT scrollable
+         Key: No max-height constraints - all sections expand to show full content
+              Page scrolls if total content exceeds viewport
+              No vertical centering - content flows from top
               Empty sections take no space
          ========================================================================== */
 
       .diaporama-item {
-        /* Fill available space in container */
+        /* Natural height - expands to show all content */
         width: 100%;
         max-width: 100%;
-        height: 100%;
-        max-height: 100%;
+        height: auto;
+        max-height: none;
         padding: 15px;
         box-sizing: border-box;
         background: rgba(255, 255, 255, 0.95);
@@ -5004,7 +4995,8 @@ DETECTION SYSTEM (working correctly):
         display: flex;
         flex-direction: column;
         align-items: stretch;
-        overflow: hidden;
+        /* Allow content to show fully - no internal scrolling */
+        overflow: visible;
       }
 
       /* ========== SHARED DIAPORAMA ITEM DISPLAY STYLES ==========
@@ -5014,27 +5006,27 @@ DETECTION SYSTEM (working correctly):
          ========================================================== */
       .diaporama-vertical .diaporama-item,
       .diaporama-horizontal .diaporama-item {
-        /* Fill the grid cell */
-        place-self: stretch;
+        /* Natural flow - no fixed height constraints */
         margin: 0;
         width: 100%;
-        height: 100%;
+        height: auto;
         max-width: 100%;
-        max-height: 100%;
+        max-height: none;
       }
 
-      /* Vertical-only: scroll snap for smooth scrolling navigation */
+      /* Vertical mode: items flow naturally with gap between them */
       .diaporama-vertical .diaporama-item {
-        scroll-snap-align: center;
+        /* No scroll snap - natural document flow */
       }
 
-      /* ========== MINI SCROLL UP 1: SubId1 + TopCorner Row ========== */
+      /* ========== SUBID1 ROW: SubId1 + TopCorner Row ========== */
       .diaporama-scroll-up-1 {
         flex-shrink: 0;
-        max-height: 15%;
-        overflow-y: auto;
+        /* No max-height - shows full content */
         width: 100%;
         margin-bottom: 8px;
+        /* No internal scrolling - content expands fully */
+        overflow: visible;
       }
 
       /* Empty scroll zones take no space */
@@ -5077,14 +5069,15 @@ DETECTION SYSTEM (working correctly):
         white-space: nowrap;
       }
 
-      /* ========== MINI SCROLL UP 2: Long Text Up ========== */
+      /* ========== LONG TEXT UP ========== */
       .diaporama-scroll-up-2 {
         flex-shrink: 0;
-        max-height: 15%;
-        overflow-y: auto;
+        /* No max-height - shows full content */
         width: 100%;
         text-align: center;
         margin-bottom: 4px;
+        /* No internal scrolling - content expands fully */
+        overflow: visible;
       }
 
       .diaporama-scroll-up-2:empty {
@@ -5097,16 +5090,15 @@ DETECTION SYSTEM (working correctly):
         overflow-wrap: break-word;
       }
 
-      /* ========== MAIN IMAGE: Flexible, Takes Remaining Space ========== */
+      /* ========== MAIN IMAGE: Natural Size ========== */
       .diaporama-image-wrapper {
-        /* Takes ALL remaining space after mini-scrolls */
-        flex: 1 1 auto;
-        min-height: 100px;
+        /* Natural size - no flex-grow, content determines height */
+        flex: 0 0 auto;
         width: 100%;
         display: flex;
         justify-content: center;
         align-items: center;
-        overflow: hidden;
+        overflow: visible;
         margin: 4px 0;
       }
 
@@ -5149,13 +5141,14 @@ DETECTION SYSTEM (working correctly):
         text-align: center;
       }
 
-      /* ========== MINI SCROLL DOWN 1: Two Columns + Bottom ========== */
+      /* ========== BOTTOM SECTION: Two Columns + Bottom ========== */
       .diaporama-scroll-down-1 {
         flex-shrink: 0;
-        max-height: 20%;
-        overflow-y: auto;
+        /* No max-height - shows full content */
         width: 100%;
         margin-top: 4px;
+        /* No internal scrolling - content expands fully */
+        overflow: visible;
       }
 
       .diaporama-scroll-down-1:empty {
@@ -5195,14 +5188,15 @@ DETECTION SYSTEM (working correctly):
         text-align: left;
       }
 
-      /* ========== MINI SCROLL DOWN 2: SubId2 ========== */
+      /* ========== SUBID2 SECTION ========== */
       .diaporama-scroll-down-2 {
         flex-shrink: 0;
-        max-height: 10%;
-        overflow-y: auto;
+        /* No max-height - shows full content */
         width: 100%;
         text-align: center;
         margin-top: 4px;
+        /* No internal scrolling - content expands fully */
+        overflow: visible;
       }
 
       .diaporama-scroll-down-2:empty {
@@ -5354,62 +5348,63 @@ DETECTION SYSTEM (working correctly):
         display: none !important;
       }
 
-      /* Mobile/Tablet: Adjust diaporama height for larger headers + body padding (4px top + 4px bottom) */
+      /* Mobile/Tablet: Natural document flow - page scrolls if content exceeds viewport */
       body.mobile-device .diaporama-vertical,
       body.mobile-device .diaporama-horizontal,
       body.tablet-device .diaporama-vertical,
       body.tablet-device .diaporama-horizontal {
-        height: calc(100dvh - 160px) !important;
-        max-height: calc(100dvh - 160px) !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
       }
 
-      /* Vertical mode: grid rows match container height */
+      /* Vertical mode: natural gap between items */
       body.mobile-device .diaporama-vertical,
       body.tablet-device .diaporama-vertical {
-        grid-auto-rows: calc(100dvh - 160px) !important;
+        gap: 20px !important;
       }
 
       /* ========== MOBILE/TABLET: SHARED DIAPORAMA ITEM DISPLAY ==========
-         Both Vertical and Horizontal modes display items identically.
-         Item fills the grid cell, image expands to take remaining space.
+         Natural document flow - items expand to show full content.
+         Page scrolls if total content exceeds viewport.
          ================================================================== */
       body.mobile-device .diaporama-vertical .diaporama-item,
       body.mobile-device .diaporama-horizontal .diaporama-item,
       body.tablet-device .diaporama-vertical .diaporama-item,
       body.tablet-device .diaporama-horizontal .diaporama-item {
-        place-self: stretch !important;
         margin: 0 !important;
         width: 100% !important;
-        height: 100% !important;
+        height: auto !important;
         max-width: 100% !important;
-        max-height: 100% !important;
+        max-height: none !important;
+        overflow: visible !important;
       }
 
-      /* Portrait mode: even larger header offset + body padding (4px top + 4px bottom) */
+      /* Portrait mode: same natural flow behavior */
       body.mobile-device.portrait .diaporama-vertical,
       body.mobile-device.portrait .diaporama-horizontal,
       body.tablet-device.portrait .diaporama-vertical,
       body.tablet-device.portrait .diaporama-horizontal {
-        height: calc(100dvh - 200px) !important;
-        max-height: calc(100dvh - 200px) !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
       }
 
-      /* Portrait vertical mode: grid rows match container height */
+      /* Portrait vertical mode: natural gap */
       body.mobile-device.portrait .diaporama-vertical,
       body.tablet-device.portrait .diaporama-vertical {
-        grid-auto-rows: calc(100dvh - 200px) !important;
+        gap: 20px !important;
       }
 
-      /* Horizontal mode: container matches vertical style - full-sized grid with centering */
+      /* Horizontal mode: container with natural flow - no centering */
       body.mobile-device .diaporama-horizontal .diaporama-item-container,
       body.tablet-device .diaporama-horizontal .diaporama-item-container {
-        display: grid !important;
-        place-content: center !important;
-        place-items: center !important;
+        display: flex !important;
+        flex-direction: column !important;
         width: 100% !important;
-        height: 100% !important;
+        height: auto !important;
         max-width: 100% !important;
-        max-height: 100% !important;
+        max-height: none !important;
       }
 
       /* ==================== 3. DIAPORAMA - TABLET LANDSCAPE ==================== */
@@ -5509,14 +5504,14 @@ DETECTION SYSTEM (working correctly):
         display: none !important;
       }
 
-      /* Long text Up - right column, row 2 (scrollable) */
+      /* Long text Up - right column, row 2 (natural flow, no internal scrolling) */
       body.mobile-device.landscape .diaporama-scroll-up-2,
       body.tablet-device.landscape .diaporama-scroll-up-2,
       body.desktop-device .diaporama-scroll-up-2 {
         grid-column: 2;
         grid-row: 2;
-        max-height: 100%;
-        overflow-y: auto;
+        max-height: none;
+        overflow: visible;
         text-align: left;
         margin: 0 !important;
       }
@@ -5545,15 +5540,15 @@ DETECTION SYSTEM (working correctly):
         grid-column: 1 / -1;
       }
 
-      /* Bottom - right column, row 3 (scrollable) */
+      /* Bottom - right column, row 3 (natural flow, no internal scrolling) */
       /* margin-top: -8px removes the gap between Long text Up and Bottom */
       body.mobile-device.landscape .diaporama-scroll-down-1,
       body.tablet-device.landscape .diaporama-scroll-down-1,
       body.desktop-device .diaporama-scroll-down-1 {
         grid-column: 2;
         grid-row: 3;
-        max-height: 100%;
-        overflow-y: auto;
+        max-height: none;
+        overflow: visible;
         text-align: left;
         margin-top: -8px;
       }
@@ -5694,42 +5689,41 @@ DETECTION SYSTEM (working correctly):
         padding: 5px !important;
       }
 
-      /* GitHub Pages Mobile Portrait: Diaporama height = 100dvh - 100px
-         Breakdown: body-padding-top (4px) + header (62px: 48px logo + 10px padding + 4px margin) + shell-padding-bottom (22px for bottom bar) + body-padding-bottom (8px) + buffer (4px) */
+      /* GitHub Pages Mobile Portrait: Natural document flow - page scrolls if content exceeds viewport */
       html.github-pages body.mobile-device.portrait .diaporama-vertical,
       html.github-pages body.mobile-device.portrait .diaporama-horizontal {
-        height: calc(100dvh - 100px) !important;
-        max-height: calc(100dvh - 100px) !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
       }
 
-      /* GitHub Pages vertical mode: grid rows match container height */
+      /* GitHub Pages vertical mode: natural gap between items */
       html.github-pages body.mobile-device.portrait .diaporama-vertical {
-        grid-auto-rows: calc(100dvh - 100px) !important;
+        gap: 20px !important;
       }
 
       /* ========== GITHUB PAGES: SHARED DIAPORAMA ITEM DISPLAY ==========
-         Both Vertical and Horizontal modes display items identically.
-         Item fills the grid cell, image expands to take remaining space.
+         Natural document flow - items expand to show full content.
+         Page scrolls if total content exceeds viewport.
          ================================================================= */
       html.github-pages body.mobile-device.portrait .diaporama-vertical .diaporama-item,
       html.github-pages body.mobile-device.portrait .diaporama-horizontal .diaporama-item {
-        place-self: stretch !important;
         margin: 0 !important;
         width: 100% !important;
-        height: 100% !important;
+        height: auto !important;
         max-width: 100% !important;
-        max-height: 100% !important;
+        max-height: none !important;
+        overflow: visible !important;
       }
 
-      /* GitHub Pages Horizontal mode: container matches vertical style */
+      /* GitHub Pages Horizontal mode: container with natural flow - no centering */
       html.github-pages body.mobile-device.portrait .diaporama-horizontal .diaporama-item-container {
-        display: grid !important;
-        place-content: center !important;
-        place-items: center !important;
+        display: flex !important;
+        flex-direction: column !important;
         width: 100% !important;
-        height: 100% !important;
+        height: auto !important;
         max-width: 100% !important;
-        max-height: 100% !important;
+        max-height: none !important;
       }
 
       /* GitHub Pages Mobile Portrait: Set margin between SubId1 and Long text Up to 4px */
@@ -5737,34 +5731,33 @@ DETECTION SYSTEM (working correctly):
         margin-bottom: 4px !important;
       }
 
-      /* GitHub Pages Mobile Portrait: Set gap between Long text Up/Down and image to -5px */
-      /* Base CSS has: scroll-up-2 margin-bottom: 4px, image-wrapper margin: 4px 0, longtext-down-wrapper margin-top: 4px */
-      /* Override all margins to achieve -5px gap */
+      /* GitHub Pages Mobile Portrait: Natural margins for image and text */
       html.github-pages body.mobile-device.portrait .diaporama-image-wrapper {
-        margin: -5px 0 !important;
+        margin: 4px 0 !important;
       }
       html.github-pages body.mobile-device.portrait .diaporama-scroll-up-2 {
-        margin-bottom: -5px !important;
+        margin-bottom: 4px !important;
       }
       html.github-pages body.mobile-device.portrait .diaporama-longtext-down-wrapper {
-        margin-top: -5px !important;
+        margin-top: 4px !important;
       }
 
-      /* Mobile/Tablet LANDSCAPE: Smaller offset since headers are compact + body padding (4px top + 4px bottom) */
+      /* Mobile/Tablet LANDSCAPE: Natural document flow - page scrolls if content exceeds viewport */
       body.mobile-device.landscape .diaporama-vertical,
       body.mobile-device.landscape .diaporama-horizontal,
       body.tablet-device.landscape .diaporama-vertical,
       body.tablet-device.landscape .diaporama-horizontal {
-        height: calc(100dvh - 62px) !important;
-        max-height: calc(100dvh - 62px) !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
       }
 
-      /* Landscape vertical mode: grid rows match container height */
+      /* Landscape vertical mode: natural gap between items */
       body.mobile-device.landscape .diaporama-vertical,
       body.tablet-device.landscape .diaporama-vertical {
-        grid-auto-rows: calc(100dvh - 62px) !important;
+        gap: 20px !important;
       }
-      /* NOTE: Landscape item centering is handled by the shared mobile/tablet rules above */
+      /* NOTE: Landscape natural flow is handled by the shared mobile/tablet rules above */
 
     </style>
 
