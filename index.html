@@ -5560,6 +5560,59 @@ DETECTION SYSTEM (working correctly):
         grid-column: 1 / -1;
       }
 
+      /* ==================== DIAPORAMA - LANDSCAPE NO IMAGE: Long Text Up + Bottom Wrapper ====================
+         When there's no image in landscape mode:
+         - Long Text Up + Bottom take over rows 2, 3, and 4 (image + caption space)
+         - Single line separator between Long Text Up and Bottom
+         - Mini scroll if content exceeds the available space
+         ================================================================================================ */
+
+      /* Text content wrapper - spans rows 2-4 when no image, becomes scrollable container */
+      body.mobile-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-text-content,
+      body.tablet-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-text-content,
+      body.desktop-device .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-text-content {
+        grid-column: 1 / -1;
+        grid-row: 2 / 5;
+        display: flex;
+        flex-direction: column;
+        gap: 1em; /* Single line of separation */
+        overflow-y: auto;
+        max-height: 100%;
+        padding: 4px;
+      }
+
+      /* When no image, scroll-up-2 and scroll-down-1 inside wrapper use default flow */
+      body.mobile-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-text-content .diaporama-scroll-up-2,
+      body.tablet-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-text-content .diaporama-scroll-up-2,
+      body.desktop-device .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-text-content .diaporama-scroll-up-2 {
+        grid-column: unset;
+        grid-row: unset;
+        flex-shrink: 0;
+      }
+
+      body.mobile-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-text-content .diaporama-scroll-down-1,
+      body.tablet-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-text-content .diaporama-scroll-down-1,
+      body.desktop-device .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-text-content .diaporama-scroll-down-1 {
+        grid-column: unset;
+        grid-row: unset;
+        margin-top: 0;
+        flex-shrink: 0;
+      }
+
+      /* Hide the separate longtext-down-wrapper when using the combined text-content wrapper (no image case) */
+      body.mobile-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]):has(.diaporama-text-content) .diaporama-longtext-down-wrapper,
+      body.tablet-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]):has(.diaporama-text-content) .diaporama-longtext-down-wrapper,
+      body.desktop-device .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]):has(.diaporama-text-content) .diaporama-longtext-down-wrapper {
+        display: none !important;
+      }
+
+      /* When image exists, the text-content wrapper is not used (hidden via display:contents) */
+      body.mobile-device.landscape .diaporama-text-content,
+      body.tablet-device.landscape .diaporama-text-content,
+      body.desktop-device .diaporama-text-content {
+        display: contents;
+      }
+
       /* Footer (SubId2) - full width, row 5, LEFT aligned (not centered) */
       body.mobile-device.landscape .diaporama-scroll-down-2,
       body.tablet-device.landscape .diaporama-scroll-down-2,
@@ -8214,8 +8267,46 @@ DETECTION SYSTEM (working correctly):
             }
           }
         }
-        if (longTextUpHtml) {
-          html += '<div class="diaporama-scroll-up-2">' + longTextUpHtml + '</div>';
+
+        // === COLLECT BOTTOM CONTENT (needed for wrapper) ===
+        let bottomHtml = '';
+        let linkGroup = '';
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "bottom") continue;
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            const isLink = config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink";
+            if (isLink) {
+              const linkLabel = config.displayName || config.columnName;
+              linkGroup += '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
+            } else {
+              if (linkGroup) {
+                bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
+                linkGroup = '';
+              }
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              bottomHtml += '<div class="diaporama-bottom-text">' + displayVal + '</div>';
+            }
+          }
+        }
+        if (linkGroup) {
+          bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
+        }
+
+        // === TEXT CONTENT WRAPPER: Contains Long Text Up + Bottom ===
+        // In landscape mode with no image, this wrapper spans rows 2-4 and scrolls if content exceeds space
+        if (longTextUpHtml || bottomHtml) {
+          html += '<div class="diaporama-text-content">';
+          if (longTextUpHtml) {
+            html += '<div class="diaporama-scroll-up-2">' + longTextUpHtml + '</div>';
+          }
+          if (bottomHtml) {
+            html += '<div class="diaporama-scroll-down-1">';
+            html += '<div class="diaporama-bottom">' + bottomHtml + '</div>';
+            html += '</div>';
+          }
+          html += '</div>';
         }
 
         // === IMAGE SECTION (Flexible, takes remaining space) ===
@@ -8245,44 +8336,6 @@ DETECTION SYSTEM (working correctly):
         }
         if (longTextDownHtml) {
           html += '<div class="diaporama-longtext-down-wrapper">' + longTextDownHtml + '</div>';
-        }
-
-        // === MINI SCROLL DOWN 1: Bottom Only ===
-        // Note: Detail Left and Detail Right fields are not displayed in Diaporama view
-        // Collect Bottom content
-        let bottomHtml = '';
-        let linkGroup = '';
-        for (let i = 0; i < columnConfig.length; i++) {
-          const config = columnConfig[i];
-          if (config.itemPlace !== "bottom") continue;
-          const val = item[config.columnName];
-          if (val != null && String(val).trim() !== "") {
-            const isLink = config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink";
-            if (isLink) {
-              const linkLabel = config.displayName || config.columnName;
-              linkGroup += '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
-            } else {
-              if (linkGroup) {
-                bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
-                linkGroup = '';
-              }
-              const displayVal = config.type === "date" ? formatDate(val) : val;
-              bottomHtml += '<div class="diaporama-bottom-text">' + displayVal + '</div>';
-            }
-          }
-        }
-        if (linkGroup) {
-          bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
-        }
-
-        // Only render scroll-down-1 if there's content
-        if (bottomHtml) {
-          html += '<div class="diaporama-scroll-down-1">';
-
-          // Bottom section
-          html += '<div class="diaporama-bottom">' + bottomHtml + '</div>';
-
-          html += '</div>'; // End scroll-down-1
         }
 
         // === MINI SCROLL DOWN 2: SubId2 ===
@@ -9703,8 +9756,46 @@ DETECTION SYSTEM (working correctly):
             }
           }
         }
-        if (longTextUpHtml) {
-          html += '<div class="diaporama-scroll-up-2">' + longTextUpHtml + '</div>';
+
+        // === COLLECT BOTTOM CONTENT (needed for wrapper) ===
+        let bottomHtml = '';
+        let linkGroup = '';
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          if (config.itemPlace !== "bottom") continue;
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            const isLink = config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink";
+            if (isLink) {
+              const linkLabel = config.displayName || config.columnName;
+              linkGroup += '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
+            } else {
+              if (linkGroup) {
+                bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
+                linkGroup = '';
+              }
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              bottomHtml += '<div class="diaporama-bottom-text">' + displayVal + '</div>';
+            }
+          }
+        }
+        if (linkGroup) {
+          bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
+        }
+
+        // === TEXT CONTENT WRAPPER: Contains Long Text Up + Bottom ===
+        // In landscape mode with no image, this wrapper spans rows 2-4 and scrolls if content exceeds space
+        if (longTextUpHtml || bottomHtml) {
+          html += '<div class="diaporama-text-content">';
+          if (longTextUpHtml) {
+            html += '<div class="diaporama-scroll-up-2">' + longTextUpHtml + '</div>';
+          }
+          if (bottomHtml) {
+            html += '<div class="diaporama-scroll-down-1">';
+            html += '<div class="diaporama-bottom">' + bottomHtml + '</div>';
+            html += '</div>';
+          }
+          html += '</div>';
         }
 
         // === IMAGE SECTION (Flexible, takes remaining space) ===
@@ -9735,44 +9826,6 @@ DETECTION SYSTEM (working correctly):
         }
         if (longTextDownHtml) {
           html += '<div class="diaporama-longtext-down-wrapper">' + longTextDownHtml + '</div>';
-        }
-
-        // === MINI SCROLL DOWN 1: Bottom Only ===
-        // Note: Detail Left and Detail Right fields are not displayed in Diaporama view
-        // Collect Bottom content
-        let bottomHtml = '';
-        let linkGroup = '';
-        for (let i = 0; i < columnConfig.length; i++) {
-          const config = columnConfig[i];
-          if (config.itemPlace !== "bottom") continue;
-          const val = item[config.columnName];
-          if (val != null && String(val).trim() !== "") {
-            const isLink = config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink";
-            if (isLink) {
-              const linkLabel = config.displayName || config.columnName;
-              linkGroup += '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
-            } else {
-              if (linkGroup) {
-                bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
-                linkGroup = '';
-              }
-              const displayVal = config.type === "date" ? formatDate(val) : val;
-              bottomHtml += '<div class="diaporama-bottom-text">' + displayVal + '</div>';
-            }
-          }
-        }
-        if (linkGroup) {
-          bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
-        }
-
-        // Only render scroll-down-1 if there's content
-        if (bottomHtml) {
-          html += '<div class="diaporama-scroll-down-1">';
-
-          // Bottom section
-          html += '<div class="diaporama-bottom">' + bottomHtml + '</div>';
-
-          html += '</div>'; // End scroll-down-1
         }
 
         // === MINI SCROLL DOWN 2: SubId2 ===
