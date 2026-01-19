@@ -5513,11 +5513,11 @@ DETECTION SYSTEM (working correctly):
         grid-column: 1 / -1;
       }
 
-      /* Image - inside left column, flexible */
+      /* Image - inside left column, natural size (no grow, allows caption directly below) */
       body.mobile-device.landscape .diaporama-image-wrapper,
       body.tablet-device.landscape .diaporama-image-wrapper,
       body.desktop-device .diaporama-image-wrapper {
-        flex: 1 1 auto;
+        flex: 0 1 auto; /* Don't grow - keeps caption directly under image */
         min-height: 0;
         margin: 0 !important;
       }
