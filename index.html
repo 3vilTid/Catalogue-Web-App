@@ -5373,10 +5373,11 @@ DETECTION SYSTEM (working correctly):
          Natural document flow - items expand to show full content.
          Page scrolls if total content exceeds viewport.
          ================================================================== */
-      body.mobile-device .diaporama-vertical .diaporama-item,
-      body.mobile-device .diaporama-horizontal .diaporama-item,
-      body.tablet-device .diaporama-vertical .diaporama-item,
-      body.tablet-device .diaporama-horizontal .diaporama-item {
+      /* Portrait mode only: Natural flow with page scrolling */
+      body.mobile-device.portrait .diaporama-vertical .diaporama-item,
+      body.mobile-device.portrait .diaporama-horizontal .diaporama-item,
+      body.tablet-device.portrait .diaporama-vertical .diaporama-item,
+      body.tablet-device.portrait .diaporama-horizontal .diaporama-item {
         margin: 0 !important;
         width: 100% !important;
         height: auto !important;
@@ -5557,6 +5558,7 @@ DETECTION SYSTEM (working correctly):
         text-align: left;
         margin: 0 !important;
         min-height: 0; /* Required for overflow to work in grid */
+        max-height: 100%; /* Constrain to grid cell height so it doesn't exceed left column */
       }
 
       /* When no image, right column spans full width and removes separator */
