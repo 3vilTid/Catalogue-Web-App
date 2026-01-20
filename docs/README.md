@@ -32,7 +32,7 @@ A dynamic, multi-layered catalogue management system built with Google Apps Scri
 - **Cards View**: Visual card-based grid layout (default)
   - Large images with item information
   - Responsive grid that adapts to screen size
-  - Style options: Squared, Rounded, etc.
+  - Style options: Squared, Rounded, Circle, Rectangle
 - **List View**: Compact list layout
   - Simple: Single column list
   - Double: Two-column layout
@@ -43,6 +43,11 @@ A dynamic, multi-layered catalogue management system built with Google Apps Scri
   - Filterable data
   - Configurable columns via "Show on Table" setting
   - Ideal for data-heavy catalogues
+- **Diaporama View**: Web page-like full-screen layout
+  - Horizontal: Navigate within items horizontally
+  - Vertical: Navigate within items vertically
+  - Ideal for "description" pages, "about" pages, or simple efficient diaporamas
+  - Perfect for presentation-style content
 - **Per-Layer Configuration**: Each layer and main items can use different view types
   - Set in Layers sheet: Layer 1 (D2), Layer 2 (D3), Layer 3 (D4), Main (D5)
   - Set styles in Layers sheet: Layer 1 (E2), Layer 2 (E3), Layer 3 (E4), Main (E5)
@@ -133,7 +138,7 @@ Three user roles with different permissions:
 - **Cards**: Visual card-based grid with lazy-loaded images
   - Responsive grid layout adapts to screen size
   - SubId1 and SubId2 displayed under item name
-  - Multiple style options (Squared, Rounded, etc.)
+  - Multiple style options (Squared, Rounded, Circle, Rectangle)
 - **List**: Compact list layouts (Simple/Double/Triple column)
   - Efficient browsing for many items
   - Minimal vertical space usage
@@ -141,6 +146,10 @@ Three user roles with different permissions:
   - Column headers with sort controls
   - Configurable visible columns
   - Filter and search capabilities
+- **Diaporama**: Full-screen web page-like layout
+  - Horizontal/Vertical navigation modes
+  - Ideal for presentation or description pages
+  - Optimized for all devices with 6 responsive variants
 
 **Detail View**:
 - Two-column layout with configurable field placement
@@ -227,20 +236,21 @@ Three user roles with different permissions:
 - Settings management (app mode, date adjustment, logo, background)
 - Special role handling (addedby, externallink, formula, formulaexternallink)
 
-**HTML/CSS/JS (Frontend)** - `index.html` (8000+ lines)
+**HTML/CSS/JS (Frontend)** - `index.html` (13,000+ lines)
 - Single-page application with multi-view support
 - **Device Detection**: Automatic mobile/tablet/desktop detection at page load
-- **Responsive Layouts**: Portrait/landscape orientation support
+- **Responsive Layouts**: Portrait/landscape orientation support (6 UI display variants)
 - **Layer Navigation**: Hierarchical browsing with breadcrumbs
-- **Multiple View Types**: Cards, List (Simple/Double/Triple), Table
+- **Multiple View Types**: Cards (4 styles), List (Simple/Double/Triple), Table, Diaporama (Horizontal/Vertical)
 - **Touch Gesture Support**: Swipe, pinch, pull-to-refresh
-- Email login interface
+- Email login interface with OTP verification
 - Dynamic form generation based on Item Place and Special Role
 - Two-column detail view layout with navigation arrows
 - IndexedDB image cache with lazy loading and blur placeholders
 - Filter and sort logic (global and per-column in Table view)
 - View-specific button visibility management
 - Customizable styling (logo, background image, card styles)
+- Full PWA support with service worker and offline caching
 
 ### Data Flow
 

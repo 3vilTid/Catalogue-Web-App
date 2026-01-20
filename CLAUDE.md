@@ -35,24 +35,24 @@ This section provides a comprehensive map of the codebase to help you quickly lo
 
 **Purpose**: Server-side logic, authentication, data management, API endpoints
 
-**Key Sections** (by line number):
+**Key Sections** (search for these comment markers):
 
-| Lines | Section | Purpose |
-|-------|---------|---------|
-| 1-100 | Constants & Helpers | Item place maps, special role maps, normalizers |
-| 101-187 | Column Configuration | `getColumnConfig()` - reads ColumnConfig sheet |
-| 188-346 | Entry Points | `doGet()`, `doPost()`, API routing, CORS handling |
-| 347-389 | Image Serving | `serveImage_()` - serves Google Drive images as base64 |
-| 390-457 | PWA Manifest | `serveManifest_()` - dynamic manifest generation |
-| 458-465 | UI Serving | `serveUi_()` - serves index.html |
-| 466-603 | Settings | `getSettings()`, `getTabsConfig()` - app configuration |
-| 604-687 | Layer Configuration | `getLayerConfig()`, `getMainLayerShowSearch()` |
-| 688-767 | Layer Data | `getLayerData()`, `hasLayers()` - hierarchical navigation |
-| 768-1009 | Authentication | OTP system, session management, user validation |
-| 1010-1145 | Data Access | `getInitialData()`, `getTabData()`, `getMainData()` |
-| 1146-1225 | Headers | `getHeaders()` - get column headers |
-| 1226-1423 | CRUD Operations | Add/edit/delete items with permission checks |
-| 1424-1445 | Test Function | `testEmailPermissions()` - authorize email sending |
+| Section Header | Search Pattern | Purpose |
+|----------------|----------------|---------|
+| Constants & Helpers | `/** Constants & Helpers **/` | Item place maps, special role maps, normalizers |
+| Column Configuration | `/** Column Configuration **/` | `getColumnConfig()` - reads ColumnConfig sheet |
+| Entry Points | `/** Entry Points **/` | `doGet()`, `doPost()`, API routing, CORS handling |
+| Image Serving | Search: `function serveImage_()` | Serves Google Drive images as base64 |
+| PWA Manifest | Search: `function serveManifest_()` | Dynamic manifest generation |
+| UI Serving | Search: `function serveUi_()` | Serves index.html |
+| Settings | Search: `function getSettings()` | App configuration, `getTabsConfig()` |
+| Layer Configuration | Search: `function getLayerConfig()` | Layer definitions from B2:C4 |
+| Layer Data | Search: `function getLayerData()` | Hierarchical navigation data |
+| Authentication | Search: `function requestOTP(` | OTP system, session management |
+| Data Access | Search: `function getInitialData(` | Load settings, layers, items, columns |
+| Headers | Search: `function getHeaders()` | Get column headers |
+| CRUD Operations | Search: `function addMainRow(` | Add/edit/delete with permissions |
+| Test Function | Search: `function testEmailPermissions()` | Authorize email sending |
 
 **Key Functions to Know**:
 - `getInitialData(token)` - Initial app load (settings, layers, items, columns)
@@ -68,47 +68,51 @@ This section provides a comprehensive map of the codebase to help you quickly lo
 
 **Purpose**: Complete UI, all views, device detection, responsive design
 
-**File Structure** (by line number):
+**File Structure** (search for these comment markers):
 
-| Lines | Section | Purpose |
-|-------|---------|---------|
-| 1-45 | Header Comments | **CRITICAL**: 6 UI displays documentation |
-| 46-62 | HTML Meta Tags | PWA configuration, viewport, theme color |
-| 63-121 | API & GitHub Detection | Load API client for GitHub Pages, detect platform |
-| 122-322 | Device Detection (HEAD) | **CRITICAL**: Device/orientation detection - runs FIRST |
-| 323-2200 | CSS: Base Styles | Colors, scrollbars, body, shell, header, filters |
-| 2201-3000 | CSS: Cards View | Grid layout, card styles (squared, rounded, circle, rectangle) |
-| 3001-3500 | CSS: List View | Simple, double, triple column layouts |
-| 3501-4500 | CSS: Table View | Data table, headers, column menus, expanded rows |
-| 4501-5000 | CSS: Detail View | Two-column layout, item places, navigation arrows |
-| 5001-5500 | CSS: Diaporama View | Horizontal/vertical full-screen navigation |
-| 5501-6000 | CSS: Modals & Forms | Edit modal, confirmation, toasts, column manager |
-| 6001-6500 | CSS: Breadcrumb & Bottom Bar | Navigation, tab switcher positioning |
-| 6501-7500 | CSS: Mobile Portrait (Apps Script) | 2x scaling for mobile portrait |
-| 7501-8000 | CSS: Mobile Portrait (GitHub Pages) | 50% scaled down version |
-| 8001-8500 | CSS: Tablet Portrait | 75% of mobile portrait scaling |
-| 8501-9500 | CSS: Landscape Mode | **COMBINED** mobile + tablet landscape |
-| 9501-10000 | CSS: Desktop Device | Default desktop styles |
-| 10001-10500 | HTML: UI Structure | Header, filters, grid, detail, modals |
-| 10501-12517 | JavaScript: Setup | Global variables, session management, utility functions |
-| 12517-12700 | JavaScript: Init | `init()` - app initialization, load data |
-| 12701-13000 | JavaScript: Rendering | `renderList()`, `renderCardsView()`, `renderListView()`, `renderTableView()` |
-| 13001-13100 | JavaScript: Detail View | `showDetails()`, navigation arrows, swipe |
-| 13101-13200 | JavaScript: Filters & Sort | `applyFiltersAndSorting()`, dropdown management |
-| 13201-13271 | JavaScript: Layer Navigation | `navigateToLayer()`, breadcrumb, stack management |
+| Section | Search Pattern | Purpose |
+|---------|----------------|---------|
+| Header Comments | `<!-- 6 UI DISPLAYS -->` (top of file) | **CRITICAL**: 6 UI displays documentation |
+| PWA Meta Tags | `<!-- PWA Meta Tags -->` | PWA configuration, viewport, theme color |
+| API & GitHub Detection | `<!-- API Configuration and Client -->` | Load API client for GitHub Pages |
+| Device Detection (HEAD) | `<!-- CRITICAL: Device Detection -->` | **CRITICAL**: Runs FIRST, sets device/orientation classes |
+| CSS: Base Styles | After `<style>` tag | Colors, scrollbars, body, shell, header, filters |
+| CSS: Cards View | `/* Cards -------` | Grid layout, card styles (squared, rounded, circle, rectangle) |
+| CSS: List View | `/* List View -------` | Simple, double, triple column layouts |
+| CSS: Table View | `/* Table View -------` | Data table, headers, column menus, expanded rows |
+| CSS: Detail View | `/* Detail view -------` | Two-column layout, item places, navigation arrows |
+| CSS: Diaporama View | `/* ========== 1. DIAPORAMA - DESKTOP` | Horizontal/vertical full-screen navigation (6 variants) |
+| CSS: Modals & Forms | `/* Add/Edit & Columns modals -------` | Edit modal, confirmation, toasts |
+| CSS: Loading Screen | `/* ========== LOADING SCREEN ==========` | Loading overlay styles |
+| CSS: Responsive Design | `/* ========== RESPONSIVE DESIGN ==========` | Media queries for tablets |
+| CSS: Mobile/Tablet Styles | `/* ========== DEVICE-BASED MOBILE & TABLET` | Device detection-based styles |
+| CSS: Tablet Portrait | `/* ========== TABLET PORTRAIT` | 75% of mobile portrait scaling |
+| CSS: Landscape Mode | `/* ========== LANDSCAPE MODE` | **COMBINED** mobile + tablet landscape |
+| CSS: Portrait Mode | `/* ========== PORTRAIT MODE` | Larger text, bigger buttons |
+| CSS: Bottom Bar | `/* ========== BOTTOM BAR FOR PORTRAIT` | Tab switcher positioning |
+| CSS: Desktop Device | `/* ========== DESKTOP DEVICE STYLES` | Default desktop styles |
+| CSS: PWA Install Banner | `/* ========== PWA INSTALL BANNER` | GitHub Pages install prompt |
+| CSS: GitHub Pages Mobile | `/* ========== GITHUB PAGES MOBILE PORTRAIT` | 50% scaled down version |
+| HTML: UI Structure | `<!-- Top header -->` | Header, filters, grid, detail, modals |
+| JavaScript: Setup | After `<script>` tag | Global variables, session management |
+| JavaScript: Init | `async function init()` | App initialization, load data |
+| JavaScript: Rendering | `function renderList(` | Main rendering dispatcher |
+| JavaScript: Detail View | `function showDetails(` | Detail view with item places |
+| JavaScript: Filters & Sort | `function applyFiltersAndSorting()` | Filter and sort logic |
+| JavaScript: Layer Navigation | `function navigateToLayer(` | Breadcrumb, layer stack |
 
-**Key JavaScript Functions**:
-- **`init()` (line ~12517)**: Initialize app, load all data, detect public/private mode
-- **`renderList(items)` (~line 12750)**: Main rendering dispatcher - calls correct view renderer
-- **`renderCardsView(items, viewType)` (~line 12800)**: Render cards with styles
-- **`renderListView(items, viewType)` (~line 12900)**: Render list (simple/double/triple)
-- **`renderTableView(items, viewType)` (~line 13000)**: Render table with column controls
-- **`showDetails(item)` (~line 13050)**: Show detail view with item places layout
-- **`navigateToLayer(index, parentItemName)` (~line 13200)**: Navigate layer hierarchy
-- **`applyFiltersAndSorting()` (~line 13100)**: Apply filters and sorting to current view
+**Key JavaScript Functions** (search for these):
+- **`async function init()`**: Initialize app, load all data, detect public/private mode
+- **`function renderList(items)`**: Main rendering dispatcher - calls correct view renderer
+- **`function renderCardsView(items, viewType)`**: Render cards with styles
+- **`function renderListView(items, viewType)`**: Render list (simple/double/triple)
+- **`function renderTableView(items, viewType)`**: Render table with column controls
+- **`function showDetails(item)`**: Show detail view with item places layout
+- **`function navigateToLayer(index, parentItemName)`**: Navigate layer hierarchy
+- **`function applyFiltersAndSorting()`**: Apply filters and sorting to current view
 
-**Device Detection** (lines 122-322 in `<head>`):
-- **CRITICAL**: This runs FIRST, before page render
+**Device Detection** (search: `<!-- CRITICAL: Device Detection -->`):
+- **CRITICAL**: This runs FIRST in `<head>`, before page render
 - Sets `mobile-device`, `tablet-device`, or `desktop-device` class on `<body>`
 - Sets `portrait` or `landscape` class on `<body>`
 - Sets `github-pages` class on `<html>` if on GitHub Pages
@@ -121,28 +125,29 @@ The app supports **4 view types** (Cards, List, Table, Diaporama), each configur
 
 #### 1. Cards View
 - **Styles**: Squared (default), Rounded, Circle, Rectangle
-- **CSS**: Lines 2201-3000 in index.html
-- **JS Renderer**: `renderCardsView(items, viewType)` (~line 12800)
+- **CSS**: Search `/* Cards -------` in index.html
+- **JS Renderer**: Search `function renderCardsView(items, viewType)`
 - **Configuration**: Layers sheet D2-D5 = "Cards", E2-E5 = style
 
 #### 2. List View
 - **Styles**: Simple (1 column), Double (2 columns), Triple (3 columns)
-- **CSS**: Lines 3001-3500 in index.html
-- **JS Renderer**: `renderListView(items, viewType)` (~line 12900)
+- **CSS**: Search `/* List View -------` in index.html
+- **JS Renderer**: Search `function renderListView(items, viewType)`
 - **Configuration**: Layers sheet D2-D5 = "List", E2-E5 = style
 
 #### 3. Table View
 - **Features**: Sortable columns, per-column filters, expandable rows
-- **CSS**: Lines 3501-4500 in index.html
-- **JS Renderer**: `renderTableView(items, viewType)` (~line 13000)
+- **CSS**: Search `/* Table View -------` in index.html
+- **JS Renderer**: Search `function renderTableView(items, viewType)`
 - **Configuration**: Layers sheet D2-D5 = "Table"
 - **Visible Columns**: ColumnConfig column F (Show on Table)
 
 #### 4. Diaporama View
 - **Styles**: Horizontal, Vertical
-- **CSS**: Lines 5001-5500 in index.html
-- **JS Renderer**: `renderDiaporamaView()` (~line 13150)
+- **CSS**: Search `/* ========== 1. DIAPORAMA - DESKTOP` in index.html (6 device-specific sections)
+- **JS Renderer**: Search `function renderDiaporamaView()`
 - **Configuration**: Layers sheet D2-D5 = "Diaporama", E2-E5 = orientation
+- **Device Variants**: Desktop, Tablet Portrait, Tablet Landscape, Mobile Portrait (Apps Script), Mobile Portrait (GitHub Pages), Mobile Landscape
 
 ---
 
@@ -150,7 +155,7 @@ The app supports **4 view types** (Cards, List, Table, Diaporama), each configur
 
 **Purpose**: Control where fields appear in the detail view
 
-**Backend Maps** (Code.gs lines 6-47):
+**Backend Maps** (Code.gs - Search `var ITEM_PLACE_MAP`):
 ```javascript
 ITEM_PLACE_MAP = {
   "Primary Identifier": "name",        // Main title
@@ -166,7 +171,7 @@ ITEM_PLACE_MAP = {
 }
 ```
 
-**Frontend Rendering** (index.html ~line 13050 in `showDetails()`):
+**Frontend Rendering** (index.html - Search `function showDetails(`):
 - Uses `getColumnsByPlace()` to organize fields
 - Renders two-column grid layout
 - Handles special roles (external links, read-only)
@@ -179,13 +184,13 @@ ITEM_PLACE_MAP = {
 
 **Required Sheets**:
 
-| Sheet Name | Purpose | Key Cells | Lines in Code.gs |
+| Sheet Name | Purpose | Key Cells | Code.gs Function |
 |------------|---------|-----------|------------------|
-| **Main** | Catalogue data (items) | All rows | 1151-1208 |
-| **ColumnConfig** | Column definitions (8 columns) | All rows | 128-187 |
-| **Settings** | App configuration | C2-C6, F2, I2, I5 | 471-547 |
-| **Layers** | Layer config + data tables | B2:C4, D2:E5, F2:F5, H1+, L1+, Q1+ | 610-767 |
-| **Users** | User access control | Email, Profile, Status, Name | 792-996 |
+| **Main** | Catalogue data (items) | All rows | Search `function getMainData(` |
+| **ColumnConfig** | Column definitions (8 columns) | All rows | Search `function getColumnConfig(` |
+| **Settings** | App configuration | C2-C6, F2, I2, I5 | Search `function getSettings()` |
+| **Layers** | Layer config + data tables | B2:C4, D2:E5, F2:F5, H1+, L1+, Q1+ | Search `function getLayerConfig(` |
+| **Users** | User access control | Email, Profile, Status, Name | Search `function requestOTP(` |
 
 **ColumnConfig Structure** (8 columns):
 1. Column Name (internal identifier)
@@ -209,21 +214,21 @@ ITEM_PLACE_MAP = {
 
 ### Responsive Design: 6 UI Displays
 
-**Device Detection** (lines 122-322 in index.html `<head>`):
+**Device Detection** (Search `<!-- CRITICAL: Device Detection -->` in index.html `<head>`):
 - Sets device class: `mobile-device`, `tablet-device`, or `desktop-device`
 - Sets orientation class: `portrait` or `landscape`
 - iPad desktop mode detection: `/macintosh/i` + touch points ≥ 1
 
-**CSS Sections** (in index.html):
+**CSS Sections** (search for these in index.html):
 
-| UI Display | CSS Section | Lines | Selectors |
-|------------|-------------|-------|-----------|
-| **Desktop** | `DESKTOP DEVICE STYLES` | ~9501-10000 | `body.desktop-device` |
-| **Tablet Portrait** | `TABLET PORTRAIT` | ~8001-8500 | `body.tablet-device.portrait` |
-| **Tablet Landscape** | `LANDSCAPE MODE` (shared) | ~8501-9500 | `body.tablet-device.landscape` |
-| **Mobile Portrait (Apps Script)** | `DEVICE-BASED MOBILE & TABLET STYLES` + `PORTRAIT MODE` | ~6501-7500 | `body.mobile-device.portrait` |
-| **Mobile Portrait (GitHub Pages)** | `GITHUB PAGES MOBILE PORTRAIT` | ~7501-8000 | `html.github-pages body.mobile-device.portrait` |
-| **Mobile Landscape** | `LANDSCAPE MODE` (shared) | ~8501-9500 | `body.mobile-device.landscape` |
+| UI Display | Search Pattern | Selectors |
+|------------|----------------|-----------|
+| **Desktop** | `/* ========== DESKTOP DEVICE STYLES` | `body.desktop-device` |
+| **Tablet Portrait** | `/* ========== TABLET PORTRAIT` | `body.tablet-device.portrait` |
+| **Tablet Landscape** | `/* ========== LANDSCAPE MODE` (shared) | `body.tablet-device.landscape` |
+| **Mobile Portrait (Apps Script)** | `/* ========== DEVICE-BASED MOBILE` + `/* ========== PORTRAIT MODE` | `body.mobile-device.portrait` |
+| **Mobile Portrait (GitHub Pages)** | `/* ========== GITHUB PAGES MOBILE PORTRAIT` | `html.github-pages body.mobile-device.portrait` |
+| **Mobile Landscape** | `/* ========== LANDSCAPE MODE` (shared) | `body.mobile-device.landscape` |
 
 **Key Differences**:
 - **Mobile Portrait**: Main difference between GitHub Pages (50% scaled) and Apps Script (2x scaled)
@@ -235,19 +240,19 @@ ITEM_PLACE_MAP = {
 ### Authentication System
 
 **Flow**:
-1. User enters email → `requestOTP(email)` (Code.gs line 792)
+1. User enters email → `requestOTP(email)` (Code.gs - Search `function requestOTP(`)
 2. Backend checks Users sheet for Active status
 3. 6-digit code generated, stored in CacheService (10 min expiry)
 4. Code emailed via MailApp
-5. User enters code → `verifyOTP(email, code)` (Code.gs line 874)
+5. User enters code → `verifyOTP(email, code)` (Code.gs - Search `function verifyOTP(`)
 6. Session token (UUID) created, stored in CacheService (90 days)
 7. Token stored in browser localStorage
-8. Token validated on each API call via `verifySession(token)` (Code.gs line 931)
+8. Token validated on each API call via `verifySession(token)` (Code.gs - Search `function verifySession(`)
 
 **Public Mode**:
 - Settings sheet I2 = "Public all in Viewer"
 - Bypasses authentication, everyone is Viewer
-- Implemented in `getInitialData()` (Code.gs line 1045)
+- Implemented in `getInitialData()` (Code.gs - Search `function getInitialData(`)
 
 **User Roles**:
 - **Viewer**: Read-only access
@@ -259,15 +264,15 @@ ITEM_PLACE_MAP = {
 ### API Client (GitHub Pages Only)
 
 **Files**:
-- `api-config.js` (lines 17-40): Configuration - Apps Script URL, timeout, debug
-- `api-client.js` (lines 1-276): Mimics `google.script.run` interface via fetch()
+- `api-config.js`: Configuration - Apps Script URL, timeout, debug (Search `APPS_SCRIPT_URL:`)
+- `api-client.js`: Mimics `google.script.run` interface via fetch() (Search `window.api =`)
 
 **Usage**:
 - Replaces `google.script.run` with `api.script.run` (same interface)
 - Uses GET requests with URL parameters to avoid CORS preflight
 - Automatically initialized on GitHub Pages (detected via hostname)
 
-**Detection** (index.html lines 63-121):
+**Detection** (index.html - Search `<!-- API Configuration and Client -->`):
 - Loads API scripts only if `window.location.hostname.includes('github.io')`
 - Sets `window.apiClientReady` flag when loaded
 
@@ -276,29 +281,29 @@ ITEM_PLACE_MAP = {
 ### Key Workflows
 
 #### Adding a New View Type
-1. **Backend**: Add view type to `getSettings()` (Code.gs line 471)
-2. **Frontend**: Add CSS section in index.html
+1. **Backend**: Add view type to `getSettings()` (Code.gs - Search `function getSettings()`)
+2. **Frontend**: Add CSS section in index.html (after existing view type sections)
 3. **Frontend**: Create renderer function (e.g., `renderNewView()`)
-4. **Frontend**: Add to `renderList()` dispatcher (~line 12750)
+4. **Frontend**: Add to `renderList()` dispatcher (index.html - Search `function renderList(`)
 5. **Sheets**: Update Layers sheet D2:E5 dropdown validation
 
 #### Adding a New Item Place
-1. **Backend**: Add to `ITEM_PLACE_MAP` (Code.gs line 6)
-2. **Backend**: Add to `ITEM_PLACE_DISPLAY` (Code.gs line 20)
-3. **Frontend**: Update `showDetails()` layout logic (~line 13050)
+1. **Backend**: Add to `ITEM_PLACE_MAP` (Code.gs - Search `var ITEM_PLACE_MAP`)
+2. **Backend**: Add to `ITEM_PLACE_DISPLAY` (Code.gs - Search `var ITEM_PLACE_DISPLAY`)
+3. **Frontend**: Update `showDetails()` layout logic (index.html - Search `function showDetails(`)
 4. **Sheets**: Update ColumnConfig sheet G column dropdown validation
 
 #### Adding a New Special Role
-1. **Backend**: Add to `SPECIAL_ROLE_MAP` (Code.gs line 34)
-2. **Backend**: Add to `SPECIAL_ROLE_DISPLAY` (Code.gs line 42)
-3. **Backend**: Handle in `addMainRow()` (Code.gs line 1246)
-4. **Frontend**: Handle in form generation (`openAdd()`, ~line 12323)
+1. **Backend**: Add to `SPECIAL_ROLE_MAP` (Code.gs - Search `var SPECIAL_ROLE_MAP`)
+2. **Backend**: Add to `SPECIAL_ROLE_DISPLAY` (Code.gs - Search `var SPECIAL_ROLE_DISPLAY`)
+3. **Backend**: Handle in `addMainRow()` (Code.gs - Search `function addMainRow(`)
+4. **Frontend**: Handle in form generation (index.html - Search `function openAdd(`)
 5. **Sheets**: Update ColumnConfig sheet H column dropdown validation
 
 #### Editing Responsive CSS
 1. Identify target device/orientation (see 6 UI Displays table above)
-2. Find correct CSS section by line number
-3. Edit using device-specific selectors
+2. Find correct CSS section using search patterns (e.g., `/* ========== DESKTOP DEVICE STYLES`)
+3. Edit using device-specific selectors (e.g., `body.mobile-device.portrait`)
 4. Test on actual devices or browser DevTools device emulation
 
 ---
