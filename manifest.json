@@ -1,6 +1,6 @@
 {
-  "name": "Marine creatures of Sumba",
-  "short_name": "Creatures",
+  "name": "DEBUG APP",
+  "short_name": "DEBUG APP",
   "description": "Catalogue web application for managing and browsing items",
   "start_url": "./",
   "scope": "./",
