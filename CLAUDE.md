@@ -6,6 +6,163 @@
 
 ---
 
+## Branch Strategy Guidelines
+
+### Branch Types
+
+#### 1. Specialized Branches (Major Features)
+**Use for:** Significant feature work with multiple related changes
+
+**Naming:** `claude/[feature-area]-modifications-[session-id]`
+
+**Examples:**
+- `claude/diaporama-ui-modifications-brZU3` - All Diaporama View UI work
+- `claude/cards-ui-modifications-brZU3` - All Cards View work
+- `claude/list-ui-modifications-brZU3` - All List View work
+- `claude/table-ui-modifications-brZU3` - All Table View work
+- `claude/auth-improvements-brZU3` - Authentication system overhaul
+- `claude/mobile-responsive-fixes-brZU3` - Mobile responsive improvements
+
+**Benefits:**
+- Clean separation of features
+- Independent PRs and merges
+- Parallel work on multiple features in different discussions
+- Focused code review
+- Easy to track feature progress
+
+**When to use:**
+- Working on a complete view type (Cards, List, Table, Diaporama)
+- Overhauling a system (Authentication, API, Layer Navigation)
+- Multiple related changes across different sections
+- Ongoing work that may span multiple sessions
+
+---
+
+#### 2. Quick-Fix Branches (Small Changes)
+**Use for:** Isolated, small changes that don't need specialized tracking
+
+**Naming:** `claude/fix-[description]-[session-id]` or `claude/quick-[description]-[session-id]`
+
+**Examples:**
+- `claude/fix-mobile-logo-bg-brZU3` - Fix mobile logo background color
+- `claude/quick-button-color-brZU3` - Adjust button color
+- `claude/tweak-header-spacing-brZU3` - Small spacing adjustment
+- `claude/fix-typo-diaporama-brZU3` - Fix typo in Diaporama code
+
+**Benefits:**
+- Fast iteration
+- No overhead of specialized branch management
+- Quick merge and close
+- Perfect for one-off changes
+
+**When to use:**
+- Single small change (one color, one padding value, one element)
+- Bug fixes (typos, incorrect values, small logic errors)
+- One-time adjustments that don't fit a feature area
+- Cross-cutting changes that are still small in scope
+
+---
+
+#### 3. Documentation Branches
+**Use for:** Documentation-only changes (no code modifications)
+
+**Naming:** `claude/[doc-type]-[session-id]`
+
+**Examples:**
+- `claude/codebase-review-brZU3` - Codebase understanding and documentation improvements
+- `claude/update-readme-brZU3` - Update README documentation
+
+**When to use:**
+- Updating CLAUDE.md, README.md, INSTALL-GUIDE.md
+- Adding code comments for clarity
+- Creating new documentation files
+
+---
+
+### Decision Guide: Which Branch Type?
+
+```
+┌─────────────────────────────────────────────────┐
+│ How many changes are you making?                │
+└─────────────────────────────────────────────────┘
+                    │
+        ┌───────────┴───────────┐
+        │                       │
+    One small              Multiple related
+    change                 changes
+        │                       │
+        ▼                       ▼
+  Quick-Fix Branch      Specialized Branch
+```
+
+**Ask yourself:**
+- **Is this a complete feature area?** → Specialized Branch
+- **Will I make multiple related changes?** → Specialized Branch
+- **Do I want to work on this in parallel with other features?** → Specialized Branch
+- **Is this a single small tweak?** → Quick-Fix Branch
+- **Is this a one-off bug fix?** → Quick-Fix Branch
+- **Am I only updating documentation?** → Documentation Branch
+
+---
+
+### Branch Specialization Enforcement
+
+When working in a **specialized branch** discussion, the branch focus should be respected:
+
+**✅ Correct Usage:**
+- On `claude/diaporama-ui-modifications-brZU3` → Modifying Diaporama View CSS/JS
+- On `claude/cards-ui-modifications-brZU3` → Modifying Cards View styles
+- On `claude/fix-mobile-logo-bg-brZU3` → Fixing mobile logo background
+
+**❌ Incorrect Usage:**
+- On `claude/diaporama-ui-modifications-brZU3` → Trying to modify Cards View
+- On `claude/cards-ui-modifications-brZU3` → Trying to change authentication
+
+**What happens if there's a mismatch?**
+1. Claude should recognize the mismatch
+2. Stop before making changes
+3. Inform you of the branch/work mismatch
+4. Suggest the correct branch to use or creating a new one
+5. Ask if you want to switch branches or start a new discussion
+
+---
+
+### Scope Boundaries for Specialized Branches
+
+| Branch Type | Allowed Changes | Search Patterns |
+|-------------|----------------|-----------------|
+| **diaporama-ui-modifications** | Only Diaporama CSS/JS | `/* ========== 1. DIAPORAMA - DESKTOP`, `function renderDiaporamaView()` |
+| **cards-ui-modifications** | Only Cards CSS/JS | `/* Cards -------`, `function renderCardsView(` |
+| **list-ui-modifications** | Only List CSS/JS | `/* List View -------`, `function renderListView(` |
+| **table-ui-modifications** | Only Table CSS/JS | `/* Table View -------`, `function renderTableView(` |
+| **auth-improvements** | Only authentication code | `function requestOTP(`, `function verifyOTP(`, `function verifySession(` |
+| **mobile-responsive-fixes** | Only mobile/tablet responsive CSS | `/* ========== DEVICE-BASED MOBILE`, `/* ========== TABLET PORTRAIT` |
+
+---
+
+### Currently Available Branches
+
+**Active Specialized Branches:**
+- `claude/codebase-review-brZU3` - Documentation only (current main discussion)
+- `claude/diaporama-ui-modifications-brZU3` - Diaporama View UI modifications
+
+**To Create More:**
+Simply create a new branch when starting work on a new feature area. Use the naming conventions above.
+
+---
+
+### No Wrong Choice!
+
+The branch system is **flexible** - use what makes sense for your work:
+- **Overthinking it?** → Just use a quick-fix branch
+- **Not sure if it's "big enough" for specialized?** → Start with quick-fix, can always create specialized later
+- **Want maximum organization?** → Create specialized branches for each feature area
+- **Want simplicity?** → Use quick-fix branches for everything
+
+The goal is to **help you organize work**, not to create barriers. Choose the approach that fits your workflow!
+
+---
+
 ## Codebase Structure Overview
 
 This section provides a comprehensive map of the codebase to help you quickly locate and edit specific functionality.
