@@ -5185,7 +5185,7 @@ DETECTION SYSTEM (working correctly):
       }
 
       .diaporama-bottom {
-        font-size: 13px;
+        font-size: 11px; /* Smaller than Long text Up (13px) */
         margin-top: 10px;
         word-wrap: break-word;
         overflow-wrap: break-word;
@@ -5337,7 +5337,7 @@ DETECTION SYSTEM (working correctly):
       }
 
       body.mobile-device.landscape .diaporama-bottom {
-        font-size: 16px !important;
+        font-size: 25px !important; /* Match portrait mode */
       }
 
       body.mobile-device.landscape .diaporama-field,
@@ -5428,7 +5428,7 @@ DETECTION SYSTEM (working correctly):
       }
 
       body.tablet-device.landscape .diaporama-bottom {
-        font-size: 17px !important;
+        font-size: 25px !important; /* Match portrait mode */
       }
 
       body.tablet-device.landscape .diaporama-field,
@@ -5648,6 +5648,7 @@ DETECTION SYSTEM (working correctly):
 
       body.mobile-device.portrait .diaporama-image-wrapper {
         order: 3; /* Image */
+        margin-top: 20px !important; /* Gap between Long text Up and Image */
       }
 
       body.mobile-device.portrait .diaporama-longtext-down-wrapper {
@@ -5725,6 +5726,7 @@ DETECTION SYSTEM (working correctly):
 
       body.tablet-device.portrait .diaporama-image-wrapper {
         order: 3; /* Image */
+        margin-top: 20px !important; /* Gap between Long text Up and Image */
       }
 
       body.tablet-device.portrait .diaporama-longtext-down-wrapper {
@@ -5802,6 +5804,7 @@ DETECTION SYSTEM (working correctly):
 
       html.github-pages body.mobile-device.portrait .diaporama-image-wrapper {
         order: 3; /* Image */
+        margin-top: 10px !important; /* Gap between Long text Up and Image (50% scaled) */
       }
 
       html.github-pages body.mobile-device.portrait .diaporama-longtext-down-wrapper {
