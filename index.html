@@ -3235,6 +3235,13 @@ DETECTION SYSTEM (working correctly):
       }
 
       /* ==================== PORTRAIT MODE - Larger text, bigger buttons ==================== */
+
+      /* Fix logo visibility on mobile portrait - white background before loading screen */
+      body.mobile-device.portrait,
+      body.tablet-device.portrait {
+        background: #ffffff !important;
+      }
+
       /* Portrait mode shell padding */
       body.mobile-device.portrait .shell,
       body.tablet-device.portrait .shell {
