@@ -1,6 +1,6 @@
 {
-  "name": "DEBUG APP",
-  "short_name": "DEBUG APP",
+  "name": "TEST APP",
+  "short_name": "DEBUG",
   "description": "Catalogue web application for managing and browsing items",
   "start_url": "./",
   "scope": "./",
