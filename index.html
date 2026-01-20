@@ -3234,14 +3234,13 @@ DETECTION SYSTEM (working correctly):
         font-size: 15px !important;
       }
 
-      /* ==================== PORTRAIT MODE - Larger text, bigger buttons ==================== */
-
-      /* Fix logo visibility on mobile portrait - white background before loading screen */
-      body.mobile-device.portrait,
-      body.tablet-device.portrait {
+      /* Fix logo visibility on mobile/tablet - white background before loading screen */
+      body.mobile-device,
+      body.tablet-device {
         background: #ffffff !important;
       }
 
+      /* ==================== PORTRAIT MODE - Larger text, bigger buttons ==================== */
       /* Portrait mode shell padding */
       body.mobile-device.portrait .shell,
       body.tablet-device.portrait .shell {
