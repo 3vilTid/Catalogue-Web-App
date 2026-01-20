@@ -5342,9 +5342,12 @@ DETECTION SYSTEM (working correctly):
 
       body.mobile-device.landscape .diaporama-field,
       body.mobile-device.landscape .diaporama-field-label,
-      body.mobile-device.landscape .diaporama-longtext-up,
-      body.mobile-device.landscape .diaporama-longtext-down {
+      body.mobile-device.landscape .diaporama-longtext-up {
         font-size: 15px !important;
+      }
+
+      body.mobile-device.landscape .diaporama-longtext-down {
+        font-size: 12px !important; /* Match Bottom font size */
       }
 
       /* Hide nav buttons on mobile/tablet - use swipe instead */
@@ -5384,6 +5387,7 @@ DETECTION SYSTEM (working correctly):
         max-width: 100% !important;
         max-height: none !important;
         overflow: visible !important;
+        gap: 8px !important; /* Consistent gap X between all child sections */
       }
 
       /* Portrait mode: same natural flow behavior */
@@ -5433,9 +5437,12 @@ DETECTION SYSTEM (working correctly):
 
       body.tablet-device.landscape .diaporama-field,
       body.tablet-device.landscape .diaporama-field-label,
-      body.tablet-device.landscape .diaporama-longtext-up,
-      body.tablet-device.landscape .diaporama-longtext-down {
+      body.tablet-device.landscape .diaporama-longtext-up {
         font-size: 15px !important;
+      }
+
+      body.tablet-device.landscape .diaporama-longtext-down {
+        font-size: 12px !important; /* Match Bottom font size */
       }
 
       /* ==================== NEW: DIAPORAMA - LANDSCAPE TWO-COLUMN LAYOUT (All Devices + Desktop) ====================
@@ -5542,6 +5549,10 @@ DETECTION SYSTEM (working correctly):
         margin: 0 !important;
       }
 
+      body.desktop-device .diaporama-longtext-down {
+        font-size: 11px; /* Match Bottom font size */
+      }
+
       /* Right column wrapper - contains scroll-up-2 and scroll-down-1, scrolls when content exceeds left column height */
       /* Has 10px separator border */
       body.mobile-device.landscape .diaporama-right-column,
@@ -5615,10 +5626,6 @@ DETECTION SYSTEM (working correctly):
         font-size: 31.25px !important;
       }
 
-      body.mobile-device.portrait .diaporama-longtext-down-wrapper {
-        margin-bottom: 8px !important; /* Gap between Long text Down and Bottom - match X */
-      }
-
       body.mobile-device.portrait .diaporama-bottom {
         font-size: 25px !important;
         text-align: left !important;
@@ -5644,7 +5651,6 @@ DETECTION SYSTEM (working correctly):
 
       body.mobile-device.portrait .diaporama-scroll-up-2 {
         order: 2; /* Long text Up - above image */
-        margin-bottom: 8px !important; /* Gap between Long text Up and Image - match X */
       }
 
       body.mobile-device.portrait .diaporama-image-wrapper {
@@ -5661,7 +5667,6 @@ DETECTION SYSTEM (working correctly):
 
       body.mobile-device.portrait .diaporama-scroll-down-2 {
         order: 6; /* SubId2 */
-        margin-top: 8px !important; /* Gap between Bottom and SubId2 - match X */
       }
 
       body.mobile-device.portrait .diaporama-field,
@@ -5694,10 +5699,6 @@ DETECTION SYSTEM (working correctly):
         font-size: 25px !important;
       }
 
-      body.tablet-device.portrait .diaporama-longtext-down-wrapper {
-        margin-bottom: 8px !important; /* Gap between Long text Down and Bottom - match X */
-      }
-
       body.tablet-device.portrait .diaporama-bottom {
         font-size: 25px !important;
         text-align: left !important;
@@ -5723,7 +5724,6 @@ DETECTION SYSTEM (working correctly):
 
       body.tablet-device.portrait .diaporama-scroll-up-2 {
         order: 2; /* Long text Up - above image */
-        margin-bottom: 8px !important; /* Gap between Long text Up and Image - match X */
       }
 
       body.tablet-device.portrait .diaporama-image-wrapper {
@@ -5740,7 +5740,6 @@ DETECTION SYSTEM (working correctly):
 
       body.tablet-device.portrait .diaporama-scroll-down-2 {
         order: 6; /* SubId2 */
-        margin-top: 8px !important; /* Gap between Bottom and SubId2 - match X */
       }
 
       body.tablet-device.portrait .diaporama-field,
@@ -5773,10 +5772,6 @@ DETECTION SYSTEM (working correctly):
         font-size: 15.625px !important;
       }
 
-      html.github-pages body.mobile-device.portrait .diaporama-longtext-down-wrapper {
-        margin-bottom: 4px !important; /* Gap between Long text Down and Bottom - match X (50% scaled) */
-      }
-
       html.github-pages body.mobile-device.portrait .diaporama-bottom {
         font-size: 12.5px !important;
         text-align: left !important;
@@ -5802,7 +5797,6 @@ DETECTION SYSTEM (working correctly):
 
       html.github-pages body.mobile-device.portrait .diaporama-scroll-up-2 {
         order: 2; /* Long text Up - above image */
-        margin-bottom: 4px !important; /* Gap between Long text Up and Image - match X (50% scaled) */
       }
 
       html.github-pages body.mobile-device.portrait .diaporama-image-wrapper {
@@ -5880,6 +5874,7 @@ DETECTION SYSTEM (working correctly):
         max-width: 100% !important;
         max-height: none !important;
         overflow: visible !important;
+        gap: 4px !important; /* Consistent gap X between all child sections (50% scaled) */
       }
 
       /* GitHub Pages Horizontal mode: container with natural flow - no centering */
