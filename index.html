@@ -5036,7 +5036,14 @@ DETECTION SYSTEM (working correctly):
 
       /* Make image wrapper shrink to actual image size in compact layout */
       .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-image-wrapper {
-        width: fit-content !important;
+        width: auto !important;
+        max-width: none !important;
+      }
+
+      /* Set image to use viewport-based max size in compact layout (breaks circular dependency) */
+      .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-img {
+        max-width: 90vw !important;
+        max-height: 70vh !important;
       }
 
       /* Constrain caption width to match image width in compact layout */
@@ -5394,7 +5401,14 @@ DETECTION SYSTEM (working correctly):
 
       /* Make image wrapper shrink to actual image size in compact layout */
       body.mobile-device.landscape .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-image-wrapper {
-        width: fit-content !important;
+        width: auto !important;
+        max-width: none !important;
+      }
+
+      /* Set image to use viewport-based max size in compact layout (breaks circular dependency) */
+      body.mobile-device.landscape .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-img {
+        max-width: 90vw !important;
+        max-height: 70vh !important;
       }
 
       /* Constrain caption width in compact layout */
@@ -5507,7 +5521,14 @@ DETECTION SYSTEM (working correctly):
 
       /* Make image wrapper shrink to actual image size in compact layout */
       body.tablet-device.landscape .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-image-wrapper {
-        width: fit-content !important;
+        width: auto !important;
+        max-width: none !important;
+      }
+
+      /* Set image to use viewport-based max size in compact layout (breaks circular dependency) */
+      body.tablet-device.landscape .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-img {
+        max-width: 90vw !important;
+        max-height: 70vh !important;
       }
 
       /* Constrain caption width in compact layout for tablet landscape */
@@ -5633,7 +5654,14 @@ DETECTION SYSTEM (working correctly):
 
       /* Make image wrapper shrink to actual image size in compact layout */
       body.desktop-device .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-image-wrapper {
-        width: fit-content !important;
+        width: auto !important;
+        max-width: none !important;
+      }
+
+      /* Set image to use viewport-based max size in compact layout (breaks circular dependency) */
+      body.desktop-device .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-img {
+        max-width: 90vw !important;
+        max-height: 70vh !important;
       }
 
       /* Constrain caption width in compact layout for desktop */
