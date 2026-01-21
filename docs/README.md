@@ -43,10 +43,10 @@ A dynamic, multi-layered catalogue management system built with Google Apps Scri
   - Filterable data
   - Configurable columns via "Show on Table" setting
   - Ideal for data-heavy catalogues
-- **Diaporama View**: Web page-like full-screen layout
+- **Slide View**: Web page-like full-screen layout
   - Horizontal: Navigate within items horizontally
   - Vertical: Navigate within items vertically
-  - Ideal for "description" pages, "about" pages, or simple efficient diaporamas
+  - Ideal for "description" pages, "about" pages, or simple efficient Slides
   - Perfect for presentation-style content
 - **Per-Layer Configuration**: Each layer and main items can use different view types
   - Set in Layers sheet: Layer 1 (D2), Layer 2 (D3), Layer 3 (D4), Main (D5)
@@ -146,7 +146,7 @@ Three user roles with different permissions:
   - Column headers with sort controls
   - Configurable visible columns
   - Filter and search capabilities
-- **Diaporama**: Full-screen web page-like layout
+- **Slide**: Full-screen web page-like layout
   - Horizontal/Vertical navigation modes
   - Ideal for presentation or description pages
   - Optimized for all devices with 6 responsive variants
@@ -241,7 +241,7 @@ Three user roles with different permissions:
 - **Device Detection**: Automatic mobile/tablet/desktop detection at page load
 - **Responsive Layouts**: Portrait/landscape orientation support (6 UI display variants)
 - **Layer Navigation**: Hierarchical browsing with breadcrumbs
-- **Multiple View Types**: Cards (4 styles), List (Simple/Double/Triple), Table, Diaporama (Horizontal/Vertical)
+- **Multiple View Types**: Cards (4 styles), List (Simple/Double/Triple), Table, Slide (Horizontal/Vertical)
 - **Touch Gesture Support**: Swipe, pinch, pull-to-refresh
 - Email login interface with OTP verification
 - Dynamic form generation based on Item Place and Special Role
