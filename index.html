@@ -5379,6 +5379,18 @@ DETECTION SYSTEM (working correctly):
         margin-right: 4px !important;
       }
 
+      /* Override grid layout for compact items - make left column fit-content */
+      body.mobile-device.landscape .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-left-column {
+        grid-column: auto !important;
+        width: fit-content !important;
+      }
+
+      /* Constrain caption width in compact layout */
+      body.mobile-device.landscape .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-longtext-down-wrapper {
+        width: auto !important;
+        max-width: 100% !important;
+      }
+
       /* Hide nav buttons on mobile/tablet - use swipe instead */
       body.mobile-device .diaporama-nav,
       body.tablet-device .diaporama-nav {
@@ -5472,6 +5484,18 @@ DETECTION SYSTEM (working correctly):
 
       body.tablet-device.landscape .diaporama-longtext-down {
         font-size: 12px !important; /* Match Bottom font size */
+      }
+
+      /* Override grid layout for compact items in tablet landscape */
+      body.tablet-device.landscape .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-left-column {
+        grid-column: auto !important;
+        width: fit-content !important;
+      }
+
+      /* Constrain caption width in compact layout for tablet landscape */
+      body.tablet-device.landscape .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-longtext-down-wrapper {
+        width: auto !important;
+        max-width: 100% !important;
       }
 
       /* ==================== NEW: DIAPORAMA - LANDSCAPE TWO-COLUMN LAYOUT (All Devices + Desktop) ====================
@@ -5580,6 +5604,18 @@ DETECTION SYSTEM (working correctly):
 
       body.desktop-device .diaporama-longtext-down {
         font-size: 11px; /* Match Bottom font size */
+      }
+
+      /* Override grid layout for compact items in desktop */
+      body.desktop-device .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-left-column {
+        grid-column: auto !important;
+        width: fit-content !important;
+      }
+
+      /* Constrain caption width in compact layout for desktop */
+      body.desktop-device .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-longtext-down-wrapper {
+        width: auto !important;
+        max-width: 100% !important;
       }
 
       /* Right column wrapper - contains scroll-up-2 and scroll-down-1, scrolls when content exceeds left column height */
