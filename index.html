@@ -4911,6 +4911,11 @@ DETECTION SYSTEM (working correctly):
         border-radius: 16px;
       }
 
+      /* Center compact items in vertical diaporama */
+      .diaporama-vertical:has(.diaporama-item.diaporama-compact) {
+        align-items: center;
+      }
+
       /* Horizontal style: single item view with natural flow */
       .diaporama-horizontal {
         position: relative;
@@ -5034,12 +5039,12 @@ DETECTION SYSTEM (working correctly):
       }
 
       /* Compact layout in landscape: when right column is empty (no Long text Up and no Bottom) */
-      /* Desktop and tablet landscape use 10px margins */
+      /* Desktop and tablet landscape use auto margins for centering */
       .diaporama-horizontal .diaporama-item.diaporama-compact,
       .diaporama-vertical .diaporama-item.diaporama-compact {
         width: fit-content;
-        margin-left: 10px;
-        margin-right: 10px;
+        margin-left: auto;
+        margin-right: auto;
       }
 
       /* Make left column shrink to fit image in compact layout */
@@ -5397,12 +5402,12 @@ DETECTION SYSTEM (working correctly):
         font-size: 12px !important; /* Match Bottom font size */
       }
 
-      /* Compact layout: 4px margins for mobile landscape */
+      /* Compact layout: auto margins for centering in mobile landscape */
       body.mobile-device.landscape .diaporama-horizontal .diaporama-item.diaporama-compact,
       body.mobile-device.landscape .diaporama-vertical .diaporama-item.diaporama-compact {
         width: fit-content !important;
-        margin-left: 4px !important;
-        margin-right: 4px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
       }
 
       /* Hide nav buttons on mobile/tablet - use swipe instead */
@@ -5472,6 +5477,12 @@ DETECTION SYSTEM (working correctly):
         height: auto !important;
         max-width: 100% !important;
         max-height: none !important;
+      }
+
+      /* LANDSCAPE: Center compact items in vertical diaporama container */
+      body.mobile-device.landscape .diaporama-vertical:has(.diaporama-item.diaporama-compact),
+      body.tablet-device.landscape .diaporama-vertical:has(.diaporama-item.diaporama-compact) {
+        align-items: center !important;
       }
 
       /* LANDSCAPE: Center compact items horizontally (mobile and tablet) */
