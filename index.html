@@ -4895,7 +4895,7 @@ DETECTION SYSTEM (working correctly):
         width: 100%;
         padding: 10px;
         box-sizing: border-box;
-        margin-top: 6px; /* Desktop: 8px top-header margin + 6px = 14px total gap */
+        margin-top: -5px; /* Desktop: 14px filters margin + (-5px) = 9px total gap */
         /* Ensure diaporama-view itself has height when combined with vertical/horizontal */
       }
 
@@ -5325,7 +5325,7 @@ DETECTION SYSTEM (working correctly):
 
       /* ==================== 6. DIAPORAMA - MOBILE LANDSCAPE ==================== */
       body.mobile-device.landscape .diaporama-view {
-        margin-top: -2px !important; /* Mobile landscape: 6px top-header margin + (-2px) = 4px total gap */
+        margin-top: 0px !important; /* Mobile landscape: 0px filters margin + 0px = 0px total gap */
       }
 
       body.mobile-device.landscape .diaporama-name {
@@ -5424,7 +5424,7 @@ DETECTION SYSTEM (working correctly):
 
       /* ==================== 3. DIAPORAMA - TABLET LANDSCAPE ==================== */
       body.tablet-device.landscape .diaporama-view {
-        margin-top: 1px !important; /* Tablet landscape: 8px top-header margin + 1px = 9px total gap */
+        margin-top: 2px !important; /* Tablet landscape: 3px filters margin + 2px = 5px total gap */
       }
 
       body.tablet-device.landscape .diaporama-name {
@@ -5623,7 +5623,7 @@ DETECTION SYSTEM (working correctly):
 
       /* ==================== 4. DIAPORAMA - MOBILE PORTRAIT (Apps Script) ==================== */
       body.mobile-device.portrait .diaporama-view {
-        margin-top: 10px !important; /* Mobile portrait: 8px top-header margin + 10px = 18px total gap */
+        margin-top: 4px !important; /* Mobile portrait: 14px filters margin + 4px = 18px total gap */
       }
 
       body.mobile-device.portrait .diaporama-name {
@@ -5700,7 +5700,7 @@ DETECTION SYSTEM (working correctly):
 
       /* ==================== 2. DIAPORAMA - TABLET PORTRAIT ==================== */
       body.tablet-device.portrait .diaporama-view {
-        margin-top: 4px !important; /* Tablet portrait: 10px top-header margin + 4px = 14px total gap */
+        margin-top: 0px !important; /* Tablet portrait: 8px filters margin + 0px = 8px total gap */
       }
 
       body.tablet-device.portrait .diaporama-name {
@@ -5777,7 +5777,7 @@ DETECTION SYSTEM (working correctly):
 
       /* ==================== 5. DIAPORAMA - GITHUB PAGES MOBILE PORTRAIT (50% scaled) ==================== */
       html.github-pages body.mobile-device.portrait .diaporama-view {
-        margin-top: 14px !important; /* GitHub Pages mobile portrait: 4px top-header margin + 14px = 18px total gap */
+        margin-top: -4px !important; /* GitHub Pages mobile portrait: 14px filters margin + (-4px) = 10px total gap */
       }
 
       html.github-pages body.mobile-device.portrait .diaporama-name {
