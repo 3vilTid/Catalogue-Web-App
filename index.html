@@ -4921,6 +4921,8 @@ DETECTION SYSTEM (working correctly):
         max-height: none;
         overflow: visible;
         border-radius: 16px;
+        /* Fill viewport height to enable swiping anywhere (mobile/tablet) */
+        min-height: calc(100vh - 100px);
       }
 
       /* Sections show full content - no internal scrolling */
@@ -4955,6 +4957,11 @@ DETECTION SYSTEM (working correctly):
       .diaporama-horizontal:has(.diaporama-item.diaporama-compact) .diaporama-item-container,
       .diaporama-vertical:has(.diaporama-item.diaporama-compact) .diaporama-item-container {
         align-items: center;
+      }
+
+      /* Desktop: Ensure compact vertical diaporama items are centered */
+      body.desktop-device .diaporama-vertical:has(.diaporama-item.diaporama-compact) .diaporama-item-container {
+        align-items: center !important;
       }
 
       /* ==========================================================================
@@ -5129,7 +5136,7 @@ DETECTION SYSTEM (working correctly):
       }
 
       .diaporama-longtext-up {
-        font-size: 13px;
+        font-size: 19.5px; /* 1.5x larger (was 13px) */
         word-wrap: break-word;
         overflow-wrap: break-word;
       }
@@ -5179,7 +5186,7 @@ DETECTION SYSTEM (working correctly):
       }
 
       .diaporama-longtext-down {
-        font-size: 13px;
+        font-size: 19.5px; /* 1.5x larger (was 13px) */
         word-wrap: break-word;
         overflow-wrap: break-word;
         text-align: center;
@@ -5224,7 +5231,7 @@ DETECTION SYSTEM (working correctly):
       }
 
       .diaporama-bottom {
-        font-size: 11px; /* Smaller than Long text Up (13px) */
+        font-size: 16.5px; /* 1.5x larger (was 11px) */
         margin-top: 10px;
         word-wrap: break-word;
         overflow-wrap: break-word;
@@ -5303,10 +5310,10 @@ DETECTION SYSTEM (working correctly):
         flex-shrink: 1;
       }
 
-      /* Navigation buttons for horizontal mode */
+      /* Navigation buttons for horizontal mode - floating in middle of viewport */
       .diaporama-nav {
-        position: absolute;
-        top: 50%;
+        position: fixed; /* Fixed to viewport - stays in place when scrolling */
+        top: 50vh; /* Center vertically in viewport */
         transform: translateY(-50%);
         background: rgba(0, 0, 0, 0.5);
         color: white;
@@ -5316,10 +5323,11 @@ DETECTION SYSTEM (working correctly):
         border-radius: 50%;
         font-size: 20px;
         cursor: pointer;
-        z-index: 10;
+        z-index: 1000; /* High z-index to float above content */
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: background 0.2s ease;
       }
 
       .diaporama-nav:hover {
@@ -5489,17 +5497,17 @@ DETECTION SYSTEM (working correctly):
       }
 
       body.tablet-device.landscape .diaporama-bottom {
-        font-size: 12px !important;
+        font-size: 18px !important; /* 1.5x larger (was 12px) */
       }
 
       body.tablet-device.landscape .diaporama-field,
       body.tablet-device.landscape .diaporama-field-label,
       body.tablet-device.landscape .diaporama-longtext-up {
-        font-size: 15px !important;
+        font-size: 22.5px !important; /* 1.5x larger (was 15px) */
       }
 
       body.tablet-device.landscape .diaporama-longtext-down {
-        font-size: 12px !important; /* Match Bottom font size */
+        font-size: 18px !important; /* 1.5x larger (was 12px) */
       }
 
       /* Ensure compact layout resizes on tablet landscape */
@@ -5639,7 +5647,7 @@ DETECTION SYSTEM (working correctly):
       }
 
       body.desktop-device .diaporama-longtext-down {
-        font-size: 11px; /* Match Bottom font size */
+        font-size: 16.5px; /* 1.5x larger (was 11px) */
       }
 
       /* Ensure compact layout resizes on desktop */
@@ -5826,7 +5834,7 @@ DETECTION SYSTEM (working correctly):
       }
 
       body.tablet-device.portrait .diaporama-bottom {
-        font-size: 25px !important;
+        font-size: 37.5px !important; /* 1.5x larger (was 25px) */
         text-align: left !important;
       }
 
@@ -5872,7 +5880,7 @@ DETECTION SYSTEM (working correctly):
       body.tablet-device.portrait .diaporama-field-label,
       body.tablet-device.portrait .diaporama-longtext-up,
       body.tablet-device.portrait .diaporama-longtext-down {
-        font-size: 22px !important;
+        font-size: 33px !important; /* 1.5x larger (was 22px) */
       }
 
       body.tablet-device.portrait .diaporama-link-pill {
