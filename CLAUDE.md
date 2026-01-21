@@ -16,7 +16,7 @@
 **Naming:** `claude/[feature-area]-modifications-[session-id]`
 
 **Examples:**
-- `claude/diaporama-ui-modifications-brZU3` - All Diaporama View UI work
+- `claude/slide-ui-modifications-brZU3` - All Slide View UI work
 - `claude/cards-ui-modifications-brZU3` - All Cards View work
 - `claude/list-ui-modifications-brZU3` - All List View work
 - `claude/table-ui-modifications-brZU3` - All Table View work
@@ -31,7 +31,7 @@
 - Easy to track feature progress
 
 **When to use:**
-- Working on a complete view type (Cards, List, Table, Diaporama)
+- Working on a complete view type (Cards, List, Table, Slide)
 - Overhauling a system (Authentication, API, Layer Navigation)
 - Multiple related changes across different sections
 - Ongoing work that may span multiple sessions
@@ -47,7 +47,7 @@
 - `claude/fix-mobile-logo-bg-brZU3` - Fix mobile logo background color
 - `claude/quick-button-color-brZU3` - Adjust button color
 - `claude/tweak-header-spacing-brZU3` - Small spacing adjustment
-- `claude/fix-typo-diaporama-brZU3` - Fix typo in Diaporama code
+- `claude/fix-typo-slide-brZU3` - Fix typo in Slide code
 
 **Benefits:**
 - Fast iteration
@@ -110,12 +110,12 @@
 When working in a **specialized branch** discussion, the branch focus should be respected:
 
 **✅ Correct Usage:**
-- On `claude/diaporama-ui-modifications-brZU3` → Modifying Diaporama View CSS/JS
+- On `claude/slide-ui-modifications-brZU3` → Modifying Slide View CSS/JS
 - On `claude/cards-ui-modifications-brZU3` → Modifying Cards View styles
 - On `claude/fix-mobile-logo-bg-brZU3` → Fixing mobile logo background
 
 **❌ Incorrect Usage:**
-- On `claude/diaporama-ui-modifications-brZU3` → Trying to modify Cards View
+- On `claude/slide-ui-modifications-brZU3` → Trying to modify Cards View
 - On `claude/cards-ui-modifications-brZU3` → Trying to change authentication
 
 **What happens if there's a mismatch?**
@@ -131,7 +131,7 @@ When working in a **specialized branch** discussion, the branch focus should be 
 
 | Branch Type | Allowed Changes | Search Patterns |
 |-------------|----------------|-----------------|
-| **diaporama-ui-modifications** | Only Diaporama CSS/JS | `/* ========== 1. DIAPORAMA - DESKTOP`, `function renderDiaporamaView()` |
+| **slide-ui-modifications** | Only Slide CSS/JS | `/* ========== 1. SLIDE - DESKTOP`, `function renderSlideView()` |
 | **cards-ui-modifications** | Only Cards CSS/JS | `/* Cards -------`, `function renderCardsView(` |
 | **list-ui-modifications** | Only List CSS/JS | `/* List View -------`, `function renderListView(` |
 | **table-ui-modifications** | Only Table CSS/JS | `/* Table View -------`, `function renderTableView(` |
@@ -144,7 +144,7 @@ When working in a **specialized branch** discussion, the branch focus should be 
 
 **Active Specialized Branches:**
 - `claude/codebase-review-brZU3` - Documentation only (current main discussion)
-- `claude/diaporama-ui-modifications-brZU3` - Diaporama View UI modifications
+- `claude/slide-ui-modifications-brZU3` - Slide View UI modifications
 
 **To Create More:**
 Simply create a new branch when starting work on a new feature area. Use the naming conventions above.
@@ -238,7 +238,7 @@ This section provides a comprehensive map of the codebase to help you quickly lo
 | CSS: List View | `/* List View -------` | Simple, double, triple column layouts |
 | CSS: Table View | `/* Table View -------` | Data table, headers, column menus, expanded rows |
 | CSS: Detail View | `/* Detail view -------` | Two-column layout, item places, navigation arrows |
-| CSS: Diaporama View | `/* ========== 1. DIAPORAMA - DESKTOP` | Horizontal/vertical full-screen navigation (6 variants) |
+| CSS: Slide View | `/* ========== 1. SLIDE - DESKTOP` | Horizontal/vertical full-screen navigation (6 variants) |
 | CSS: Modals & Forms | `/* Add/Edit & Columns modals -------` | Edit modal, confirmation, toasts |
 | CSS: Loading Screen | `/* ========== LOADING SCREEN ==========` | Loading overlay styles |
 | CSS: Responsive Design | `/* ========== RESPONSIVE DESIGN ==========` | Media queries for tablets |
@@ -278,7 +278,7 @@ This section provides a comprehensive map of the codebase to help you quickly lo
 
 ### View Types System
 
-The app supports **4 view types** (Cards, List, Table, Diaporama), each configurable per layer:
+The app supports **4 view types** (Cards, List, Table, Slide), each configurable per layer:
 
 #### 1. Cards View
 - **Styles**: Squared (default), Rounded, Circle, Rectangle
@@ -299,11 +299,11 @@ The app supports **4 view types** (Cards, List, Table, Diaporama), each configur
 - **Configuration**: Layers sheet D2-D5 = "Table"
 - **Visible Columns**: ColumnConfig column F (Show on Table)
 
-#### 4. Diaporama View
+#### 4. Slide View
 - **Styles**: Horizontal, Vertical
-- **CSS**: Search `/* ========== 1. DIAPORAMA - DESKTOP` in index.html (6 device-specific sections)
-- **JS Renderer**: Search `function renderDiaporamaView()`
-- **Configuration**: Layers sheet D2-D5 = "Diaporama", E2-E5 = orientation
+- **CSS**: Search `/* ========== 1. SLIDE - DESKTOP` in index.html (6 device-specific sections)
+- **JS Renderer**: Search `function renderSlideView()`
+- **Configuration**: Layers sheet D2-D5 = "Slide", E2-E5 = orientation
 - **Device Variants**: Desktop, Tablet Portrait, Tablet Landscape, Mobile Portrait (Apps Script), Mobile Portrait (GitHub Pages), Mobile Landscape
 
 ---
