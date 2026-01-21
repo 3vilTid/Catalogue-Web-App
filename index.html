@@ -4951,6 +4951,11 @@ DETECTION SYSTEM (working correctly):
         max-height: none;
       }
 
+      /* Center compact items horizontally */
+      .diaporama-horizontal:has(.diaporama-item.diaporama-compact) .diaporama-item-container {
+        align-items: center;
+      }
+
       /* ==========================================================================
          DIAPORAMA ITEM LAYOUT - Natural Document Flow (Page Scrolls)
 
@@ -5381,6 +5386,7 @@ DETECTION SYSTEM (working correctly):
 
       /* Compact layout: 4px margins for mobile landscape */
       body.mobile-device.landscape .diaporama-horizontal .diaporama-item.diaporama-compact {
+        width: fit-content !important;
         margin-left: 4px !important;
         margin-right: 4px !important;
       }
@@ -5516,6 +5522,11 @@ DETECTION SYSTEM (working correctly):
         max-width: 100% !important;
       }
 
+      /* Ensure compact layout resizes on tablet landscape */
+      body.tablet-device.landscape .diaporama-horizontal .diaporama-item.diaporama-compact {
+        width: fit-content !important;
+      }
+
       /* ==================== NEW: DIAPORAMA - LANDSCAPE TWO-COLUMN LAYOUT (All Devices + Desktop) ====================
          Layout Structure (3-row grid with left-column wrapper):
          ┌──────────────────────────────────────────────────────────────┐
@@ -5640,6 +5651,11 @@ DETECTION SYSTEM (working correctly):
       body.desktop-device .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-longtext-down-wrapper {
         width: auto !important;
         max-width: 100% !important;
+      }
+
+      /* Ensure compact layout resizes on desktop */
+      body.desktop-device .diaporama-horizontal .diaporama-item.diaporama-compact {
+        width: fit-content !important;
       }
 
       /* Right column wrapper - contains scroll-up-2 and scroll-down-1, scrolls when content exceeds left column height */
