@@ -5031,6 +5031,12 @@ DETECTION SYSTEM (working correctly):
       /* Make left column shrink to fit image in compact layout */
       .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-left-column {
         width: fit-content !important;
+        align-items: center; /* Center image and caption */
+      }
+
+      /* Make image wrapper shrink to actual image size in compact layout */
+      .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-image-wrapper {
+        width: fit-content !important;
       }
 
       /* Constrain caption width to match image width in compact layout */
@@ -5383,6 +5389,12 @@ DETECTION SYSTEM (working correctly):
       body.mobile-device.landscape .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-left-column {
         grid-column: auto !important;
         width: fit-content !important;
+        align-items: center !important; /* Center image and caption */
+      }
+
+      /* Make image wrapper shrink to actual image size in compact layout */
+      body.mobile-device.landscape .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-image-wrapper {
+        width: fit-content !important;
       }
 
       /* Constrain caption width in compact layout */
@@ -5489,6 +5501,12 @@ DETECTION SYSTEM (working correctly):
       /* Override grid layout for compact items in tablet landscape */
       body.tablet-device.landscape .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-left-column {
         grid-column: auto !important;
+        width: fit-content !important;
+        align-items: center !important; /* Center image and caption */
+      }
+
+      /* Make image wrapper shrink to actual image size in compact layout */
+      body.tablet-device.landscape .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-image-wrapper {
         width: fit-content !important;
       }
 
@@ -5609,6 +5627,12 @@ DETECTION SYSTEM (working correctly):
       /* Override grid layout for compact items in desktop */
       body.desktop-device .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-left-column {
         grid-column: auto !important;
+        width: fit-content !important;
+        align-items: center !important; /* Center image and caption */
+      }
+
+      /* Make image wrapper shrink to actual image size in compact layout */
+      body.desktop-device .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-image-wrapper {
         width: fit-content !important;
       }
 
