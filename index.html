@@ -4952,7 +4952,8 @@ DETECTION SYSTEM (working correctly):
       }
 
       /* Center compact items horizontally */
-      .diaporama-horizontal:has(.diaporama-item.diaporama-compact) .diaporama-item-container {
+      .diaporama-horizontal:has(.diaporama-item.diaporama-compact) .diaporama-item-container,
+      .diaporama-vertical:has(.diaporama-item.diaporama-compact) .diaporama-item-container {
         align-items: center;
       }
 
@@ -5473,15 +5474,25 @@ DETECTION SYSTEM (working correctly):
         gap: 20px !important;
       }
 
-      /* Horizontal mode: container with natural flow - no centering */
-      body.mobile-device .diaporama-horizontal .diaporama-item-container,
-      body.tablet-device .diaporama-horizontal .diaporama-item-container {
+      /* Horizontal mode: container with natural flow - PORTRAIT ONLY (landscape uses centering for compact) */
+      body.mobile-device.portrait .diaporama-horizontal .diaporama-item-container,
+      body.mobile-device.portrait .diaporama-vertical .diaporama-item-container,
+      body.tablet-device.portrait .diaporama-horizontal .diaporama-item-container,
+      body.tablet-device.portrait .diaporama-vertical .diaporama-item-container {
         display: flex !important;
         flex-direction: column !important;
         width: 100% !important;
         height: auto !important;
         max-width: 100% !important;
         max-height: none !important;
+      }
+
+      /* LANDSCAPE: Center compact items horizontally (mobile and tablet) */
+      body.mobile-device.landscape .diaporama-horizontal:has(.diaporama-item.diaporama-compact) .diaporama-item-container,
+      body.mobile-device.landscape .diaporama-vertical:has(.diaporama-item.diaporama-compact) .diaporama-item-container,
+      body.tablet-device.landscape .diaporama-horizontal:has(.diaporama-item.diaporama-compact) .diaporama-item-container,
+      body.tablet-device.landscape .diaporama-vertical:has(.diaporama-item.diaporama-compact) .diaporama-item-container {
+        align-items: center !important;
       }
 
       /* ==================== 3. DIAPORAMA - TABLET LANDSCAPE ==================== */
@@ -5584,8 +5595,10 @@ DETECTION SYSTEM (working correctly):
         grid-template-columns: 1fr;
       }
 
-      /* When no image (empty data-image-url), right content takes full width */
+      /* When no image (empty data-image-url), right content takes full width (all devices and orientations) */
+      body.mobile-device.portrait .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]),
       body.mobile-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]),
+      body.tablet-device.portrait .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]),
       body.tablet-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]),
       body.desktop-device .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) {
         grid-template-columns: 1fr;
@@ -5627,8 +5640,10 @@ DETECTION SYSTEM (working correctly):
         margin: 0 !important;
       }
 
-      /* When no image, hide the placeholder wrapper */
+      /* When no image, hide the placeholder wrapper (all devices and orientations) */
+      body.mobile-device.portrait .diaporama-image-wrapper[data-image-url=""],
       body.mobile-device.landscape .diaporama-image-wrapper[data-image-url=""],
+      body.tablet-device.portrait .diaporama-image-wrapper[data-image-url=""],
       body.tablet-device.landscape .diaporama-image-wrapper[data-image-url=""],
       body.desktop-device .diaporama-image-wrapper[data-image-url=""] {
         display: none !important;
@@ -5693,8 +5708,10 @@ DETECTION SYSTEM (working correctly):
         max-height: 100%; /* Constrain to grid cell height so it doesn't exceed left column */
       }
 
-      /* When no image, right column spans full width and removes separator */
+      /* When no image, right column spans full width and removes separator (all devices and orientations) */
+      body.mobile-device.portrait .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-right-column,
       body.mobile-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-right-column,
+      body.tablet-device.portrait .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-right-column,
       body.tablet-device.landscape .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-right-column,
       body.desktop-device .diaporama-item:has(.diaporama-image-wrapper[data-image-url=""]) .diaporama-right-column {
         grid-column: 1 / -1;
