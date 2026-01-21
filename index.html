@@ -5028,9 +5028,18 @@ DETECTION SYSTEM (working correctly):
         margin-right: 10px;
       }
 
+      /* Make left column shrink to fit image in compact layout */
+      .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-left-column {
+        width: fit-content !important;
+      }
+
       /* Constrain caption width to match image width in compact layout */
       .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-longtext-down-wrapper {
+        width: auto !important;
         max-width: 100%;
+        white-space: normal;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
       }
 
       /* Vertical mode: items flow naturally with gap between them */
