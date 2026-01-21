@@ -5020,6 +5020,19 @@ DETECTION SYSTEM (working correctly):
         max-height: none;
       }
 
+      /* Compact layout in landscape: when right column is empty (no Long text Up and no Bottom) */
+      /* Desktop and tablet landscape use 10px margins */
+      .diaporama-horizontal .diaporama-item.diaporama-compact {
+        width: fit-content;
+        margin-left: 10px;
+        margin-right: 10px;
+      }
+
+      /* Constrain caption width to match image width in compact layout */
+      .diaporama-horizontal .diaporama-item.diaporama-compact .diaporama-longtext-down-wrapper {
+        max-width: 100%;
+      }
+
       /* Vertical mode: items flow naturally with gap between them */
       .diaporama-vertical .diaporama-item {
         /* No scroll snap - natural document flow */
@@ -5349,6 +5362,12 @@ DETECTION SYSTEM (working correctly):
 
       body.mobile-device.landscape .diaporama-longtext-down {
         font-size: 12px !important; /* Match Bottom font size */
+      }
+
+      /* Compact layout: 4px margins for mobile landscape */
+      body.mobile-device.landscape .diaporama-horizontal .diaporama-item.diaporama-compact {
+        margin-left: 4px !important;
+        margin-right: 4px !important;
       }
 
       /* Hide nav buttons on mobile/tablet - use swipe instead */
@@ -8436,6 +8455,13 @@ DETECTION SYSTEM (working correctly):
         }
 
         // === RIGHT COLUMN WRAPPER (for landscape layout - contains scroll-up-2 and scroll-down-1) ===
+        // Check if right column is empty (both Long text Up and Bottom are empty) for compact layout
+        const isCompactLayout = !longTextUpHtml && !bottomHtml;
+        if (isCompactLayout) {
+          // Add compact class for narrower layout in landscape orientation
+          html = html.replace('<div class="diaporama-item"', '<div class="diaporama-item diaporama-compact"');
+        }
+
         // Only create wrapper if there's right column content
         if (longTextUpHtml || bottomHtml) {
           html += '<div class="diaporama-right-column">';
@@ -9932,6 +9958,13 @@ DETECTION SYSTEM (working correctly):
         }
 
         // === RIGHT COLUMN WRAPPER (for landscape layout - contains scroll-up-2 and scroll-down-1) ===
+        // Check if right column is empty (both Long text Up and Bottom are empty) for compact layout
+        const isCompactLayout = !longTextUpHtml && !bottomHtml;
+        if (isCompactLayout) {
+          // Add compact class for narrower layout in landscape orientation
+          html = html.replace('<div class="diaporama-item"', '<div class="diaporama-item diaporama-compact"');
+        }
+
         // Only create wrapper if there's right column content
         if (longTextUpHtml || bottomHtml) {
           html += '<div class="diaporama-right-column">';
