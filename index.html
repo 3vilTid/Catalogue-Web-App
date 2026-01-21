@@ -10171,6 +10171,19 @@ DETECTION SYSTEM (working correctly):
             const placeholders = wrapper.querySelectorAll('.placeholder');
             placeholders.forEach(p => p.remove());
           }, 400);
+
+          // For compact layout in landscape, set caption width to match actual image width
+          const item = wrapper.closest('.diaporama-item');
+          if (item && item.classList.contains('diaporama-compact')) {
+            const caption = item.querySelector('.diaporama-longtext-down-wrapper');
+            if (caption) {
+              // Get the actual rendered width of the image
+              const imageWidth = fullImg.offsetWidth;
+              if (imageWidth > 0) {
+                caption.style.maxWidth = imageWidth + 'px';
+              }
+            }
+          }
         };
         fullImg.src = fullUrl;
         fullImg.style.cursor = 'zoom-in';
