@@ -4895,7 +4895,6 @@ DETECTION SYSTEM (working correctly):
         width: 100%;
         padding: 10px;
         box-sizing: border-box;
-        margin-top: -5px; /* Desktop: 14px filters margin + (-5px) = 9px total gap */
         /* Ensure diaporama-view itself has height when combined with vertical/horizontal */
       }
 
@@ -5324,10 +5323,6 @@ DETECTION SYSTEM (working correctly):
       }
 
       /* ==================== 6. DIAPORAMA - MOBILE LANDSCAPE ==================== */
-      body.mobile-device.landscape .diaporama-view {
-        margin-top: 0px !important; /* Mobile landscape: 0px filters margin + 0px = 0px total gap */
-      }
-
       body.mobile-device.landscape .diaporama-name {
         font-size: 20px !important;
       }
@@ -5423,10 +5418,6 @@ DETECTION SYSTEM (working correctly):
       }
 
       /* ==================== 3. DIAPORAMA - TABLET LANDSCAPE ==================== */
-      body.tablet-device.landscape .diaporama-view {
-        margin-top: 2px !important; /* Tablet landscape: 3px filters margin + 2px = 5px total gap */
-      }
-
       body.tablet-device.landscape .diaporama-name {
         font-size: 23px !important;
       }
@@ -5622,10 +5613,6 @@ DETECTION SYSTEM (working correctly):
       }
 
       /* ==================== 4. DIAPORAMA - MOBILE PORTRAIT (Apps Script) ==================== */
-      body.mobile-device.portrait .diaporama-view {
-        margin-top: 4px !important; /* Mobile portrait: 14px filters margin + 4px = 18px total gap */
-      }
-
       body.mobile-device.portrait .diaporama-name {
         font-size: 37.5px !important;
       }
@@ -5699,10 +5686,6 @@ DETECTION SYSTEM (working correctly):
       }
 
       /* ==================== 2. DIAPORAMA - TABLET PORTRAIT ==================== */
-      body.tablet-device.portrait .diaporama-view {
-        margin-top: 0px !important; /* Tablet portrait: 8px filters margin + 0px = 8px total gap */
-      }
-
       body.tablet-device.portrait .diaporama-name {
         font-size: 30px !important;
       }
@@ -5776,10 +5759,6 @@ DETECTION SYSTEM (working correctly):
       }
 
       /* ==================== 5. DIAPORAMA - GITHUB PAGES MOBILE PORTRAIT (50% scaled) ==================== */
-      html.github-pages body.mobile-device.portrait .diaporama-view {
-        margin-top: -4px !important; /* GitHub Pages mobile portrait: 14px filters margin + (-4px) = 10px total gap */
-      }
-
       html.github-pages body.mobile-device.portrait .diaporama-name {
         font-size: 18.75px !important;
       }
