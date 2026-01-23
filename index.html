@@ -11303,6 +11303,9 @@ DETECTION SYSTEM (working correctly):
         det.style.display = "block";
         grid.innerHTML = "";
 
+        // Remove all view-specific classes from grid when entering detail view
+        grid.classList.remove('grid', 'list-view', 'table-view', 'slide-view', 'slide-vertical', 'slide-horizontal', 'grid-rectangle');
+
         // Reset table-specific header widths when entering detail view
         if (typeof resetTableWidths === 'function') {
           resetTableWidths();
