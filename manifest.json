@@ -1,7 +1,7 @@
 {
   "name": "DEBUG",
-  "short_name": "The Bug",
-  "description": "Catalogue web application for managing and browsing items",
+  "short_name": "DEBUG",
+  "description": "web application to DEBUG",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
