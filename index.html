@@ -1151,6 +1151,9 @@ DETECTION SYSTEM (working correctly):
         background: #f8fafc;
         border-radius: 12px;
         flex-wrap: wrap;
+        /* When inside a grid, span all columns */
+        grid-column: 1 / -1;
+        width: 100%;
       }
 
       .pagination-btn {
@@ -11326,30 +11329,22 @@ DETECTION SYSTEM (working correctly):
           return;
         }
 
-        // Pop last navigation and get the restored page
+        // Pop last navigation entry - this represents the layer we're returning TO
+        // (we stored its state when we navigated away from it)
         const poppedNav = navigationStack.pop();
 
-        if (navigationStack.length === 0) {
-          // Back to home - restore Layer 1's page if it was stored
-          if (poppedNav && poppedNav.page) {
-            setCurrentPageForView(0, poppedNav.page);
-          }
-          navigateToHome();
-        } else {
-          // Go back to previous layer
-          const lastNav = navigationStack[navigationStack.length - 1];
-          if (lastNav.type === "layer") {
-            // Restore the page for this layer
-            if (lastNav.page) {
-              setCurrentPageForView(lastNav.layerIndex, lastNav.page);
-            }
-            // Reconstruct parent filter from navigation stack (use filterName for filtering)
-            const prevNav = navigationStack.length >= 2 ? navigationStack[navigationStack.length - 2] : null;
-            const parentFilter = prevNav ? (prevNav.filterName || prevNav.itemName) : null;
-            renderLayerView(lastNav.layerIndex, parentFilter);
-            updateLayerNavigationUI();
-          }
+        // Restore the page for the layer we're returning to
+        if (poppedNav && poppedNav.page !== undefined) {
+          setCurrentPageForView(poppedNav.layerIndex, poppedNav.page);
         }
+
+        // Get the parent filter from the remaining stack (if any)
+        const parentNav = navigationStack.length > 0 ? navigationStack[navigationStack.length - 1] : null;
+        const parentFilter = parentNav ? (parentNav.filterName || parentNav.itemName) : null;
+
+        // Render the layer we're returning to
+        renderLayerView(poppedNav.layerIndex, parentFilter);
+        updateLayerNavigationUI();
       }
 
       // Navigate to home (Layer 1 or main list)
