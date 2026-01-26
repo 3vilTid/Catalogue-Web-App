@@ -210,9 +210,8 @@ DETECTION SYSTEM (working correctly):
                 if (currentView === "layer" && currentLayerIndex >= 0) {
                   // In layer view - re-render the layer
                   const layerName = layerConfig[currentLayerIndex].layerName;
-                  const parentFilter = navigationStack.length > 0
-                    ? navigationStack[navigationStack.length - 1].itemName
-                    : null;
+                  const lastNav = navigationStack.length > 0 ? navigationStack[navigationStack.length - 1] : null;
+                  const parentFilter = lastNav ? (lastNav.filterName || lastNav.itemName) : null;
                   renderLayerView(currentLayerIndex, parentFilter);
                 } else if (typeof renderList === 'function' && currentDisplayedItems && currentDisplayedItems.length > 0) {
                   // In main list view - re-render the list
@@ -7833,7 +7832,8 @@ DETECTION SYSTEM (working correctly):
             // No search - just re-render current layer
             if (currentLayerIndex >= 0 && currentLayerIndex < layerConfig.length) {
               const layerName = layerConfig[currentLayerIndex].layerName;
-              const parentFilterName = navigationStack.length > 0 ? navigationStack[navigationStack.length - 1].itemName : null;
+              const lastNav = navigationStack.length > 0 ? navigationStack[navigationStack.length - 1] : null;
+              const parentFilterName = lastNav ? (lastNav.filterName || lastNav.itemName) : null;
               renderLayerView(currentLayerIndex, parentFilterName);
               return;
             }
@@ -7844,12 +7844,13 @@ DETECTION SYSTEM (working correctly):
             // Search always searches ALL items, ignoring layer navigation filter
             items = allItems.slice();
           } else {
-            // No search - use layer-filtered items
+            // No search - use layer-filtered items (use filterName for filtering)
             const lastNav = navigationStack[navigationStack.length - 1];
+            const filterValue = lastNav.filterName || lastNav.itemName;
             const mainColumnName = layerConfig[lastNav.layerIndex].mainColumnName;
             items = allItems.filter(item => {
               const colValue = item[mainColumnName];
-              return colValue && String(colValue).trim() === lastNav.itemName;
+              return colValue && String(colValue).trim() === filterValue;
             }).slice();
           }
         } else {
@@ -9393,18 +9394,19 @@ DETECTION SYSTEM (working correctly):
         grid.innerHTML = "";
 
         if (currentView === "layer") {
-          // Re-render layer view
+          // Re-render layer view (use filterName for filtering)
           const layerName = layerConfig[currentLayerIndex].layerName;
-          const parentFilter = navigationStack.length > 0
-            ? navigationStack[navigationStack.length - 1].itemName
-            : null;
+          const lastNav = navigationStack.length > 0 ? navigationStack[navigationStack.length - 1] : null;
+          const parentFilter = lastNav ? (lastNav.filterName || lastNav.itemName) : null;
           const layerItems = getFilteredLayerItems(layerName, parentFilter);
+          // Use "Display" column for display name, fallback to "Names" if empty
           const standardizedItems = layerItems.map(item => ({
             _isLayerItem: true,
             _layerIndex: currentLayerIndex,
             _rawLayerItem: item,
             "Picture Link": item["Picture Link"],
-            "Names": item["Names"],
+            "Names": (item["Display"] && String(item["Display"]).trim()) || item["Names"],
+            "_filterName": item["Names"],
             "Description": item["Description"]
           }));
           renderLayerTableView(standardizedItems, grid, currentLayerIndex);
@@ -9535,12 +9537,15 @@ DETECTION SYSTEM (working correctly):
         }
 
         // Convert layer items to standard format for rendering
+        // Use "Display" column for display name, fallback to "Names" if empty
+        // Keep "_filterName" as original "Names" for filtering purposes
         const standardizedItems = layerItems.map(item => ({
           _isLayerItem: true,
           _layerIndex: layerIndex,
           _rawLayerItem: item,
           "Picture Link": item["Picture Link"],
-          "Names": item["Names"],
+          "Names": (item["Display"] && String(item["Display"]).trim()) || item["Names"],
+          "_filterName": item["Names"],
           "Description": item["Description"]
         }));
 
@@ -10542,7 +10547,10 @@ DETECTION SYSTEM (working correctly):
 
       // Handle layer item click - navigate to next layer or show filtered main items
       function onLayerItemClick(layerIndex, item, rowElement, itemIndex) {
-        const itemName = item["Names"];
+        // filterName: used for filtering data (from "Names" column)
+        // displayName: shown in breadcrumb (from "Display" column, fallback to "Names")
+        const filterName = item["Names"];
+        const displayName = (item["Display"] && String(item["Display"]).trim()) || item["Names"];
         const style = getStyleForLayer(layerIndex);
         const viewType = getViewTypeForLayer(layerIndex);
 
@@ -10554,46 +10562,48 @@ DETECTION SYSTEM (working correctly):
         }
 
         // Normal navigation behavior
-        // Add to navigation stack
+        // Add to navigation stack - store both filter name and display name
         navigationStack.push({
           type: "layer",
           layerIndex: layerIndex,
-          itemName: itemName
+          itemName: displayName,
+          filterName: filterName
         });
 
         // Check if there's a next layer
         if (layerIndex + 1 < layerConfig.length) {
-          // Navigate to next layer, filtered by this item
+          // Navigate to next layer, filtered by this item (use filterName)
           const nextLayerName = layerConfig[layerIndex + 1].layerName;
-          const filteredItems = getFilteredLayerItems(nextLayerName, itemName);
+          const filteredItems = getFilteredLayerItems(nextLayerName, filterName);
 
           // Hide empty layers - if no items, skip to main items
           if (filteredItems.length === 0) {
-            console.log('Layer', nextLayerName, 'is empty, showing main items filtered by', itemName);
-            showMainItemsFilteredByLayer(layerIndex, itemName);
+            console.log('Layer', nextLayerName, 'is empty, showing main items filtered by', filterName);
+            showMainItemsFilteredByLayer(layerIndex, filterName);
           } else {
-            // Show next layer
-            renderLayerView(layerIndex + 1, itemName);
+            // Show next layer (use filterName for filtering)
+            renderLayerView(layerIndex + 1, filterName);
 
             // Update UI for back button
             updateLayerNavigationUI();
 
-            // Push history state
+            // Push history state (use filterName for filtering)
             history.pushState({
               view: "layer",
               layerIndex: layerIndex + 1,
-              parentFilter: itemName
+              parentFilter: filterName
             }, "", "");
           }
         } else {
-          // This is the last layer - show filtered main items
-          showMainItemsFilteredByLayer(layerIndex, itemName);
+          // This is the last layer - show filtered main items (use filterName)
+          showMainItemsFilteredByLayer(layerIndex, filterName);
         }
       }
 
       // Toggle expansion of a layer table row to show next layer inline
       function toggleLayerRowExpansion(layerIndex, item, rowElement, itemIndex) {
-        const itemName = item["Names"];
+        // Use filter name (from "Names" column) for filtering child items
+        const filterName = item["Names"];
         const rowId = `layer-${layerIndex}-row-${itemIndex}`;
 
         // Check if this row is already expanded
@@ -10619,7 +10629,7 @@ DETECTION SYSTEM (working correctly):
         if (layerIndex + 1 < layerConfig.length) {
           // Show next layer items filtered by this item
           const nextLayerName = layerConfig[layerIndex + 1].layerName;
-          const filteredItems = getFilteredLayerItems(nextLayerName, itemName);
+          const filteredItems = getFilteredLayerItems(nextLayerName, filterName);
 
           if (filteredItems.length === 0) {
             contentHtml = '<div style="padding: 20px; text-align: center; color: #6b7280;">No items found in next layer</div>';
@@ -10627,14 +10637,14 @@ DETECTION SYSTEM (working correctly):
             // Render the filtered items as cards/list based on next layer's view type
             const nextViewType = getViewTypeForLayer(layerIndex + 1);
             const nextStyle = getStyleForLayer(layerIndex + 1);
-            contentHtml = renderExpandedLayerContent(filteredItems, layerIndex + 1, nextViewType, nextStyle, itemName);
+            contentHtml = renderExpandedLayerContent(filteredItems, layerIndex + 1, nextViewType, nextStyle, filterName);
           }
         } else {
           // This is the last layer - show filtered main items
           const mainColumnName = layerConfig[layerIndex].mainColumnName;
           const filteredItems = allItems.filter(mainItem => {
             const colValue = mainItem[mainColumnName];
-            return colValue && String(colValue).trim() === itemName;
+            return colValue && String(colValue).trim() === filterName;
           });
 
           if (filteredItems.length === 0) {
@@ -10658,9 +10668,11 @@ DETECTION SYSTEM (working correctly):
       // Render expanded layer content as a grid of cards/list
       function renderExpandedLayerContent(items, layerIndex, viewType, style, parentFilterName) {
         // Convert layer items to standardized format
+        // Use "Display" column for display name, fallback to "Names" if empty
         const standardizedItems = items.map(layerItem => {
+          const displayName = (layerItem["Display"] && String(layerItem["Display"]).trim()) || layerItem["Names"] || "";
           return {
-            [nameColumn]: layerItem["Names"] || "",
+            [nameColumn]: displayName,
             [descriptionColumn]: layerItem["Description"] || "",
             [imageColumn]: layerItem["Picture Link"] || "",
             _rawLayerItem: layerItem
@@ -10862,14 +10874,15 @@ DETECTION SYSTEM (working correctly):
 
         const nav = navigationStack[stackIndex];
         if (nav.type === "layer") {
+          // Use filterName for filtering (fallback to itemName for backward compatibility)
+          const filterValue = nav.filterName || nav.itemName;
           // Navigate to the next layer after this item
           if (nav.layerIndex + 1 < layerConfig.length) {
-            const parentFilter = nav.itemName;
-            renderLayerView(nav.layerIndex + 1, parentFilter);
+            renderLayerView(nav.layerIndex + 1, filterValue);
             updateLayerNavigationUI();
           } else {
             // This was the last layer - show filtered main items
-            showMainItemsFilteredByLayer(nav.layerIndex, nav.itemName);
+            showMainItemsFilteredByLayer(nav.layerIndex, filterValue);
           }
         }
       }
@@ -10892,10 +10905,9 @@ DETECTION SYSTEM (working correctly):
           // Go back to previous layer
           const lastNav = navigationStack[navigationStack.length - 1];
           if (lastNav.type === "layer") {
-            // Reconstruct parent filter from navigation stack
-            const parentFilter = navigationStack.length >= 2
-              ? navigationStack[navigationStack.length - 2].itemName
-              : null;
+            // Reconstruct parent filter from navigation stack (use filterName for filtering)
+            const prevNav = navigationStack.length >= 2 ? navigationStack[navigationStack.length - 2] : null;
+            const parentFilter = prevNav ? (prevNav.filterName || prevNav.itemName) : null;
             renderLayerView(lastNav.layerIndex, parentFilter);
             updateLayerNavigationUI();
           }
@@ -11284,17 +11296,17 @@ DETECTION SYSTEM (working correctly):
           showDetails(currentDisplayedItems[currentDetailIndex], currentDetailIndex);
         } else if (currentView === "layer" && currentLayerIndex >= 0) {
           // Restore layer view using saved currentLayerIndex
-          // navigationStack stores layers we came FROM, so parent filter is the last item's itemName
-          const parentFilter = navigationStack.length > 0
-            ? navigationStack[navigationStack.length - 1].itemName
-            : null;
+          // navigationStack stores layers we came FROM, so parent filter is the last item's filterName
+          const lastNav = navigationStack.length > 0 ? navigationStack[navigationStack.length - 1] : null;
+          const parentFilter = lastNav ? (lastNav.filterName || lastNav.itemName) : null;
           console.log('🎨 Rendering LAYER view:', { currentLayerIndex, parentFilter });
           renderLayerView(currentLayerIndex, parentFilter);
         } else if (currentView === "list" && navigationStack.length > 0) {
-          // Restore filtered list view (came from layer navigation)
+          // Restore filtered list view (came from layer navigation, use filterName)
           const lastNav = navigationStack[navigationStack.length - 1];
+          const filterValue = lastNav.filterName || lastNav.itemName;
           console.log('🎨 Rendering filtered LIST view from layer:', lastNav);
-          showMainItemsFilteredByLayer(lastNav.layerIndex, lastNav.itemName);
+          showMainItemsFilteredByLayer(lastNav.layerIndex, filterValue);
         } else {
           // Navigate to home (Layer 1 or main list)
           console.log('🎨 Rendering HOME (else branch) - currentView:', currentView, 'currentLayerIndex:', currentLayerIndex);
@@ -11833,9 +11845,10 @@ DETECTION SYSTEM (working correctly):
         if (currentView === "detail" && preSearchDetailItem) {
           // Restore detail view - first restore the list, then show detail
           if (navigationStack.length > 0) {
-            // Was viewing detail from filtered list
+            // Was viewing detail from filtered list (use filterName for filtering)
             const lastNav = navigationStack[navigationStack.length - 1];
-            showMainItemsFilteredByLayer(lastNav.layerIndex, lastNav.itemName);
+            const filterValue = lastNav.filterName || lastNav.itemName;
+            showMainItemsFilteredByLayer(lastNav.layerIndex, filterValue);
           } else {
             // Was viewing detail from home layer
             navigateToHome();
@@ -11845,16 +11858,16 @@ DETECTION SYSTEM (working correctly):
             showDetails(preSearchDetailItem, preSearchDetailIndex);
           }, 50);
         } else if (currentView === "layer") {
-          // Restore layer view
-          const parentFilter = navigationStack.length > 0
-            ? navigationStack[navigationStack.length - 1].itemName
-            : null;
+          // Restore layer view (use filterName for filtering)
+          const lastNav = navigationStack.length > 0 ? navigationStack[navigationStack.length - 1] : null;
+          const parentFilter = lastNav ? (lastNav.filterName || lastNav.itemName) : null;
           renderLayerView(currentLayerIndex, parentFilter);
           updateLayerNavigationUI();
         } else if (currentView === "list" && navigationStack.length > 0) {
-          // Restore filtered list from layer
+          // Restore filtered list from layer (use filterName for filtering)
           const lastNav = navigationStack[navigationStack.length - 1];
-          showMainItemsFilteredByLayer(lastNav.layerIndex, lastNav.itemName);
+          const filterValue = lastNav.filterName || lastNav.itemName;
+          showMainItemsFilteredByLayer(lastNav.layerIndex, filterValue);
         } else {
           // No saved state - go to home
           navigateToHome();
@@ -12632,7 +12645,8 @@ DETECTION SYSTEM (working correctly):
             // If in layer view, recompute unique values from current layer items
             if (currentView === "layer" && currentLayerIndex >= 0 && currentLayerIndex < layerConfig.length) {
               const layerName = layerConfig[currentLayerIndex].layerName;
-              const parentFilterName = navigationStack.length > 0 ? navigationStack[navigationStack.length - 1].itemName : null;
+              const lastNav = navigationStack.length > 0 ? navigationStack[navigationStack.length - 1] : null;
+              const parentFilterName = lastNav ? (lastNav.filterName || lastNav.itemName) : null;
               const layerItems = getFilteredLayerItems(layerName, parentFilterName);
               computeUniqueValues(layerItems);
             } else if (navigationStack.length > 0 && currentDisplayedItems && currentDisplayedItems.length > 0) {
