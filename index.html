@@ -7254,7 +7254,7 @@ DETECTION SYSTEM (working correctly):
           html += '<button class="pagination-btn pagination-prev disabled" disabled>&laquo;</button>';
         }
 
-        // Page numbers
+        // Page numbers - always show exactly 5 buttons (or less if fewer pages)
         if (totalPages <= 5) {
           // Show all pages: « 1 2 3 4 5 »
           for (let i = 1; i <= totalPages; i++) {
@@ -7262,20 +7262,25 @@ DETECTION SYSTEM (working correctly):
             html += '<button class="pagination-btn pagination-num' + activeClass + '" onclick="goToPage(' + i + ', ' + layerIndex + ')">' + i + '</button>';
           }
         } else {
-          // Show: « 1 [current-1] [current] [current+1] [last] »
-          // Build array of page numbers to show (avoiding duplicates)
-          const pagesToShow = new Set();
-          pagesToShow.add(1);                           // First page
-          if (currentPage > 1) pagesToShow.add(currentPage - 1);  // current-1
-          pagesToShow.add(currentPage);                 // Current page
-          if (currentPage < totalPages) pagesToShow.add(currentPage + 1);  // current+1
-          pagesToShow.add(totalPages);                  // Last page
+          // Always show 5 buttons: [1] [a] [b] [c] [last]
+          // Determine the middle 3 pages (a, b, c) based on current position
+          let middlePages;
 
-          // Convert to sorted array
-          const sortedPages = Array.from(pagesToShow).sort((a, b) => a - b);
+          if (currentPage <= 3) {
+            // Near start: show 1, 2, 3, 4, last
+            middlePages = [2, 3, 4];
+          } else if (currentPage >= totalPages - 2) {
+            // Near end: show 1, last-3, last-2, last-1, last
+            middlePages = [totalPages - 3, totalPages - 2, totalPages - 1];
+          } else {
+            // Middle: show 1, current-1, current, current+1, last
+            middlePages = [currentPage - 1, currentPage, currentPage + 1];
+          }
 
-          // Render page buttons
-          for (const pageNum of sortedPages) {
+          // Build the 5 page buttons
+          const pagesToShow = [1, ...middlePages, totalPages];
+
+          for (const pageNum of pagesToShow) {
             const activeClass = pageNum === currentPage ? ' active' : '';
             html += '<button class="pagination-btn pagination-num' + activeClass + '" onclick="goToPage(' + pageNum + ', ' + layerIndex + ')">' + pageNum + '</button>';
           }
@@ -11326,13 +11331,12 @@ DETECTION SYSTEM (working correctly):
           const filterValue = nav.filterName || nav.itemName;
           // Navigate to the next layer after this item
           if (nav.layerIndex + 1 < layerConfig.length) {
-            // Reset page for the target layer when navigating via breadcrumb
-            setCurrentPageForView(nav.layerIndex + 1, 1);
+            // Preserve page state - don't reset, let renderLayerView use stored page
             renderLayerView(nav.layerIndex + 1, filterValue);
             updateLayerNavigationUI();
           } else {
             // This was the last layer - show filtered main items
-            setCurrentPageForView(-1, 1);
+            // Preserve page state - don't reset, let renderList use stored page
             showMainItemsFilteredByLayer(nav.layerIndex, filterValue);
           }
         }
