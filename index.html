@@ -4415,6 +4415,20 @@ DETECTION SYSTEM (working correctly):
         min-height: 25px !important;
       }
 
+      /* Pagination buttons - 50% smaller for GitHub Pages mobile portrait */
+      html.github-pages body.mobile-device.portrait .pagination-container {
+        gap: 3px !important;
+        padding: 10px 8px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .pagination-btn {
+        min-width: 16px !important;
+        height: 16px !important;
+        padding: 0 5px !important;
+        font-size: 9px !important;
+        border-radius: 3px !important;
+      }
+
       /* Mobile device body padding: 4px top and bottom */
       body.mobile-device {
         padding-top: 4px !important;
@@ -7219,7 +7233,7 @@ DETECTION SYSTEM (working correctly):
 
         let html = '<div class="pagination-container">';
 
-        // Previous button
+        // Previous button («)
         if (currentPage > 1) {
           html += '<button class="pagination-btn pagination-prev" onclick="goToPage(' + (currentPage - 1) + ', ' + layerIndex + ')">&laquo;</button>';
         } else {
@@ -7228,51 +7242,32 @@ DETECTION SYSTEM (working correctly):
 
         // Page numbers
         if (totalPages <= 5) {
-          // Show all pages: 1 2 3 4 5
+          // Show all pages: « 1 2 3 4 5 »
           for (let i = 1; i <= totalPages; i++) {
             const activeClass = i === currentPage ? ' active' : '';
             html += '<button class="pagination-btn pagination-num' + activeClass + '" onclick="goToPage(' + i + ', ' + layerIndex + ')">' + i + '</button>';
           }
         } else {
-          // Show: « 1 ... [current-2] [current-1] [current] [current+1] [current+2] ... [last] »
-          // Always show first page
-          const firstActive = currentPage === 1 ? ' active' : '';
-          html += '<button class="pagination-btn pagination-num' + firstActive + '" onclick="goToPage(1, ' + layerIndex + ')">1</button>';
+          // Show: « 1 [current-1] [current] [current+1] [last] »
+          // Build array of page numbers to show (avoiding duplicates)
+          const pagesToShow = new Set();
+          pagesToShow.add(1);                           // First page
+          if (currentPage > 1) pagesToShow.add(currentPage - 1);  // current-1
+          pagesToShow.add(currentPage);                 // Current page
+          if (currentPage < totalPages) pagesToShow.add(currentPage + 1);  // current+1
+          pagesToShow.add(totalPages);                  // Last page
 
-          // Calculate window around current page
-          let windowStart = Math.max(2, currentPage - 2);
-          let windowEnd = Math.min(totalPages - 1, currentPage + 2);
+          // Convert to sorted array
+          const sortedPages = Array.from(pagesToShow).sort((a, b) => a - b);
 
-          // Adjust window if at edges
-          if (currentPage <= 3) {
-            windowEnd = Math.min(totalPages - 1, 5);
+          // Render page buttons
+          for (const pageNum of sortedPages) {
+            const activeClass = pageNum === currentPage ? ' active' : '';
+            html += '<button class="pagination-btn pagination-num' + activeClass + '" onclick="goToPage(' + pageNum + ', ' + layerIndex + ')">' + pageNum + '</button>';
           }
-          if (currentPage >= totalPages - 2) {
-            windowStart = Math.max(2, totalPages - 4);
-          }
-
-          // Ellipsis before window
-          if (windowStart > 2) {
-            html += '<span class="pagination-ellipsis">...</span>';
-          }
-
-          // Window pages
-          for (let i = windowStart; i <= windowEnd; i++) {
-            const activeClass = i === currentPage ? ' active' : '';
-            html += '<button class="pagination-btn pagination-num' + activeClass + '" onclick="goToPage(' + i + ', ' + layerIndex + ')">' + i + '</button>';
-          }
-
-          // Ellipsis after window
-          if (windowEnd < totalPages - 1) {
-            html += '<span class="pagination-ellipsis">...</span>';
-          }
-
-          // Always show last page
-          const lastActive = currentPage === totalPages ? ' active' : '';
-          html += '<button class="pagination-btn pagination-num' + lastActive + '" onclick="goToPage(' + totalPages + ', ' + layerIndex + ')">' + totalPages + '</button>';
         }
 
-        // Next button
+        // Next button (»)
         if (currentPage < totalPages) {
           html += '<button class="pagination-btn pagination-next" onclick="goToPage(' + (currentPage + 1) + ', ' + layerIndex + ')">&raquo;</button>';
         } else {
@@ -7285,7 +7280,9 @@ DETECTION SYSTEM (working correctly):
 
       // Navigate to a specific page
       function goToPage(page, layerIndex) {
+        console.log('[Pagination] goToPage called: page=' + page + ', layerIndex=' + layerIndex);
         setCurrentPageForView(layerIndex, page);
+        console.log('[Pagination] paginationState after set:', JSON.stringify(paginationState));
 
         if (layerIndex === -1) {
           // Re-render main items
@@ -9939,13 +9936,16 @@ DETECTION SYSTEM (working correctly):
         const totalItems = standardizedItems.length;
         const totalPages = getTotalPages(totalItems, maxPerPage);
         let page = getCurrentPageForView(layerIndex);
+        console.log('[Pagination] renderLayerView: layerIndex=' + layerIndex + ', page=' + page + ', totalPages=' + totalPages + ', totalItems=' + totalItems);
 
         // Ensure page is within bounds
         if (page > totalPages) {
+          console.log('[Pagination] Page ' + page + ' exceeds totalPages ' + totalPages + ', adjusting');
           page = totalPages;
           setCurrentPageForView(layerIndex, page);
         }
         if (page < 1) {
+          console.log('[Pagination] Page ' + page + ' is less than 1, adjusting');
           page = 1;
           setCurrentPageForView(layerIndex, page);
         }
@@ -11323,8 +11323,12 @@ DETECTION SYSTEM (working correctly):
 
       // Navigate back from layer or filtered view
       function backFromLayer() {
+        console.log('[Pagination] backFromLayer called. Stack length:', navigationStack.length);
+        console.log('[Pagination] paginationState before:', JSON.stringify(paginationState));
+
         if (navigationStack.length === 0) {
           // No history - go to home (Layer 1 or main list)
+          console.log('[Pagination] Stack empty, calling navigateToHome');
           navigateToHome();
           return;
         }
@@ -11332,15 +11336,18 @@ DETECTION SYSTEM (working correctly):
         // Pop last navigation entry - this represents the layer we're returning TO
         // (we stored its state when we navigated away from it)
         const poppedNav = navigationStack.pop();
+        console.log('[Pagination] Popped nav entry:', JSON.stringify(poppedNav));
 
         // Restore the page for the layer we're returning to
         if (poppedNav && poppedNav.page !== undefined) {
+          console.log('[Pagination] Restoring page', poppedNav.page, 'for layer', poppedNav.layerIndex);
           setCurrentPageForView(poppedNav.layerIndex, poppedNav.page);
         }
 
         // Get the parent filter from the remaining stack (if any)
         const parentNav = navigationStack.length > 0 ? navigationStack[navigationStack.length - 1] : null;
         const parentFilter = parentNav ? (parentNav.filterName || parentNav.itemName) : null;
+        console.log('[Pagination] Rendering layer', poppedNav.layerIndex, 'with filter:', parentFilter);
 
         // Render the layer we're returning to
         renderLayerView(poppedNav.layerIndex, parentFilter);
@@ -11349,12 +11356,15 @@ DETECTION SYSTEM (working correctly):
 
       // Navigate to home (Layer 1 or main list)
       function navigateToHome() {
+        console.log('[Pagination] navigateToHome called');
+        console.log('[Pagination] paginationState:', JSON.stringify(paginationState));
         navigationStack = [];
         currentLayerIndex = -1;
 
         // Preserve page state - paginationState already has the saved page
         // (don't reset to page 1, so user returns to where they were)
         if (layerConfig.length > 0) {
+          console.log('[Pagination] Rendering Layer 1, stored page:', getCurrentPageForView(0));
           // Show Layer 1 (renderLayerView calls updateAllUIVisibility at the end)
           // renderLayerView will use getCurrentPageForView() to get the preserved page
           renderLayerView(0, null);
