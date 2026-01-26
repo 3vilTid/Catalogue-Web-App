@@ -1147,9 +1147,9 @@ DETECTION SYSTEM (working correctly):
         align-items: center;
         gap: 6px;
         padding: 20px 16px;
-        margin-top: 16px;
-        background: #f8fafc;
-        border-radius: 12px;
+        margin-top: 0;
+        background: transparent;
+        border-radius: 0;
         flex-wrap: wrap;
         /* When inside a grid, span all columns */
         grid-column: 1 / -1;
@@ -11352,13 +11352,13 @@ DETECTION SYSTEM (working correctly):
         navigationStack = [];
         currentLayerIndex = -1;
 
-        // Reset pagination to page 1 for home view
+        // Preserve page state - paginationState already has the saved page
+        // (don't reset to page 1, so user returns to where they were)
         if (layerConfig.length > 0) {
-          setCurrentPageForView(0, 1);
           // Show Layer 1 (renderLayerView calls updateAllUIVisibility at the end)
+          // renderLayerView will use getCurrentPageForView() to get the preserved page
           renderLayerView(0, null);
         } else {
-          setCurrentPageForView(-1, 1);
           // No layers - show main list
           currentView = "list";
           applyFiltersAndSorting();
