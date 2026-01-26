@@ -1140,6 +1140,113 @@ DETECTION SYSTEM (working correctly):
         white-space: nowrap;
       }
 
+      /* Pagination ---------------------------------------------------------- */
+      .pagination-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        padding: 20px 16px;
+        margin-top: 16px;
+        background: #f8fafc;
+        border-radius: 12px;
+        flex-wrap: wrap;
+      }
+
+      .pagination-btn {
+        min-width: 40px;
+        height: 40px;
+        padding: 0 12px;
+        border: 1px solid #e5e7eb;
+        background: white;
+        color: #374151;
+        font-size: 14px;
+        font-weight: 500;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .pagination-btn:hover:not(.disabled):not(.active) {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+      }
+
+      .pagination-btn.active {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: white;
+        border-color: #4f46e5;
+        font-weight: 600;
+      }
+
+      .pagination-btn.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      .pagination-prev,
+      .pagination-next {
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      .pagination-ellipsis {
+        color: #9ca3af;
+        font-size: 14px;
+        padding: 0 4px;
+      }
+
+      /* Slide Quick Nav (for jumping to specific items in slide view) */
+      .slide-quick-nav {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        padding: 16px;
+        margin-top: 12px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 12px;
+        flex-wrap: wrap;
+      }
+
+      .slide-nav-btn {
+        min-width: 36px;
+        height: 36px;
+        padding: 0 10px;
+        border: 1px solid #e5e7eb;
+        background: white;
+        color: #374151;
+        font-size: 13px;
+        font-weight: 500;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .slide-nav-btn:hover:not(.active) {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+      }
+
+      .slide-nav-btn.active {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: white;
+        border-color: #4f46e5;
+        font-weight: 600;
+      }
+
+      .slide-nav-ellipsis {
+        color: #9ca3af;
+        font-size: 13px;
+        padding: 0 4px;
+      }
+
       /* Table View ---------------------------------------------------------- */
       .data-table th {
         padding: 14px 16px;
@@ -7022,11 +7129,15 @@ DETECTION SYSTEM (working correctly):
       let expandedRows = new Set(); // Track which rows are expanded (stores item index or identifier)
 
       // Layer navigation state
-      let layerConfig = []; // Layer configuration from backend (includes showSearch per layer)
+      let layerConfig = []; // Layer configuration from backend (includes maxPerPage per layer)
       let layersData = {}; // All layer data by layer name
-      let mainLayerShowSearch = false; // Whether to show search on Main Layer (from F5)
+      let mainLayerMaxPerPage = 0; // Max items per page for Main Layer (from F5), 0 = no limit
       let navigationStack = []; // Stack of navigation history: [{type: "layer", layerName: "Layer 1", item: {...}}, ...]
       let currentLayerIndex = -1; // Index in layerConfig (-1 = home, 0 = Layer 1, 1 = Layer 2, etc.)
+
+      // Pagination state
+      let paginationState = {}; // Store current page per layer/view: {layerIndex: page, "main": page}
+      let currentPage = 1; // Current page being displayed
 
       // Tab management state
       let tabsConfig = []; // Tab configuration from backend: [{tabName, layersSheetName, mainSheetName, columnConfigSheetName}, ...]
@@ -7052,6 +7163,150 @@ DETECTION SYSTEM (working correctly):
       let currentDetailIndex = -1;
 
       // -------------------- Helpers --------------------
+
+      // -------------------- Pagination Helpers --------------------
+
+      // Get max items per page for a given layer index (-1 = main items)
+      function getMaxPerPage(layerIndex) {
+        if (layerIndex === -1 || layerIndex === "main") {
+          // Main items
+          return mainLayerMaxPerPage || 0;
+        }
+        if (layerIndex >= 0 && layerIndex < layerConfig.length) {
+          return layerConfig[layerIndex].maxPerPage || 0;
+        }
+        return 0; // No limit
+      }
+
+      // Get pagination state key for current view
+      function getPaginationKey(layerIndex) {
+        return layerIndex === -1 ? "main" : "layer_" + layerIndex;
+      }
+
+      // Get current page for a view
+      function getCurrentPageForView(layerIndex) {
+        const key = getPaginationKey(layerIndex);
+        return paginationState[key] || 1;
+      }
+
+      // Set current page for a view
+      function setCurrentPageForView(layerIndex, page) {
+        const key = getPaginationKey(layerIndex);
+        paginationState[key] = page;
+        currentPage = page;
+      }
+
+      // Calculate total pages
+      function getTotalPages(totalItems, maxPerPage) {
+        if (!maxPerPage || maxPerPage <= 0) return 1;
+        return Math.ceil(totalItems / maxPerPage);
+      }
+
+      // Get paginated items
+      function getPaginatedItems(items, page, maxPerPage) {
+        if (!maxPerPage || maxPerPage <= 0) return items;
+        const startIndex = (page - 1) * maxPerPage;
+        const endIndex = startIndex + maxPerPage;
+        return items.slice(startIndex, endIndex);
+      }
+
+      // Build pagination UI HTML
+      function buildPaginationHtml(currentPage, totalPages, layerIndex) {
+        if (totalPages <= 1) return '';
+
+        let html = '<div class="pagination-container">';
+
+        // Previous button
+        if (currentPage > 1) {
+          html += '<button class="pagination-btn pagination-prev" onclick="goToPage(' + (currentPage - 1) + ', ' + layerIndex + ')">&laquo;</button>';
+        } else {
+          html += '<button class="pagination-btn pagination-prev disabled" disabled>&laquo;</button>';
+        }
+
+        // Page numbers
+        if (totalPages <= 5) {
+          // Show all pages: 1 2 3 4 5
+          for (let i = 1; i <= totalPages; i++) {
+            const activeClass = i === currentPage ? ' active' : '';
+            html += '<button class="pagination-btn pagination-num' + activeClass + '" onclick="goToPage(' + i + ', ' + layerIndex + ')">' + i + '</button>';
+          }
+        } else {
+          // Show: « 1 ... [current-2] [current-1] [current] [current+1] [current+2] ... [last] »
+          // Always show first page
+          const firstActive = currentPage === 1 ? ' active' : '';
+          html += '<button class="pagination-btn pagination-num' + firstActive + '" onclick="goToPage(1, ' + layerIndex + ')">1</button>';
+
+          // Calculate window around current page
+          let windowStart = Math.max(2, currentPage - 2);
+          let windowEnd = Math.min(totalPages - 1, currentPage + 2);
+
+          // Adjust window if at edges
+          if (currentPage <= 3) {
+            windowEnd = Math.min(totalPages - 1, 5);
+          }
+          if (currentPage >= totalPages - 2) {
+            windowStart = Math.max(2, totalPages - 4);
+          }
+
+          // Ellipsis before window
+          if (windowStart > 2) {
+            html += '<span class="pagination-ellipsis">...</span>';
+          }
+
+          // Window pages
+          for (let i = windowStart; i <= windowEnd; i++) {
+            const activeClass = i === currentPage ? ' active' : '';
+            html += '<button class="pagination-btn pagination-num' + activeClass + '" onclick="goToPage(' + i + ', ' + layerIndex + ')">' + i + '</button>';
+          }
+
+          // Ellipsis after window
+          if (windowEnd < totalPages - 1) {
+            html += '<span class="pagination-ellipsis">...</span>';
+          }
+
+          // Always show last page
+          const lastActive = currentPage === totalPages ? ' active' : '';
+          html += '<button class="pagination-btn pagination-num' + lastActive + '" onclick="goToPage(' + totalPages + ', ' + layerIndex + ')">' + totalPages + '</button>';
+        }
+
+        // Next button
+        if (currentPage < totalPages) {
+          html += '<button class="pagination-btn pagination-next" onclick="goToPage(' + (currentPage + 1) + ', ' + layerIndex + ')">&raquo;</button>';
+        } else {
+          html += '<button class="pagination-btn pagination-next disabled" disabled>&raquo;</button>';
+        }
+
+        html += '</div>';
+        return html;
+      }
+
+      // Navigate to a specific page
+      function goToPage(page, layerIndex) {
+        setCurrentPageForView(layerIndex, page);
+
+        if (layerIndex === -1) {
+          // Re-render main items
+          applyFiltersAndSorting();
+        } else {
+          // Re-render layer view
+          const parentFilter = navigationStack.length > 0
+            ? (navigationStack[navigationStack.length - 1].filterName || navigationStack[navigationStack.length - 1].itemName)
+            : null;
+          renderLayerView(layerIndex, parentFilter);
+        }
+      }
+
+      // Render pagination and append to grid
+      function renderPagination(grid, currentPage, totalPages, layerIndex) {
+        const paginationHtml = buildPaginationHtml(currentPage, totalPages, layerIndex);
+        if (paginationHtml) {
+          const paginationDiv = document.createElement('div');
+          paginationDiv.innerHTML = paginationHtml;
+          grid.appendChild(paginationDiv.firstChild);
+        }
+      }
+
+      // -------------------- End Pagination Helpers --------------------
 
       // Centralized function to update ALL UI visibility (back button, search bar, filter/sort, filters-row)
       // Call this after any view change (tab switch, layer change, entering detail view)
@@ -7927,7 +8182,7 @@ DETECTION SYSTEM (working correctly):
           resetTableWidths();
         }
 
-        // Store items for detail view navigation
+        // Store ALL items for detail view navigation (before pagination)
         currentDisplayedItems = items;
         currentDetailIndex = -1;
 
@@ -7937,17 +8192,42 @@ DETECTION SYSTEM (working correctly):
           return;
         }
 
+        // Pagination: Get max per page for main items (-1 index)
+        const maxPerPage = getMaxPerPage(-1);
+        const totalItems = items.length;
+        const totalPages = getTotalPages(totalItems, maxPerPage);
+        let page = getCurrentPageForView(-1);
+
+        // Ensure page is within bounds
+        if (page > totalPages) {
+          page = totalPages;
+          setCurrentPageForView(-1, page);
+        }
+        if (page < 1) {
+          page = 1;
+          setCurrentPageForView(-1, page);
+        }
+
+        // Get paginated items for display
+        const paginatedItems = getPaginatedItems(items, page, maxPerPage);
+
         // Route to appropriate view renderer based on mainViewType
         const viewType = getMainViewType();
         if (viewType === 'list') {
-          renderListView(items, grid);
+          renderListView(paginatedItems, grid);
         } else if (viewType === 'table') {
-          renderTableView(items, grid);
+          renderTableView(paginatedItems, grid);
         } else if (viewType === 'slide') {
-          renderSlideView(items, grid);
+          // Slide view: pass all items but show pagination for quick navigation if >2 items
+          renderSlideView(items, grid, totalPages > 1 ? { page, totalPages, maxPerPage } : null);
         } else {
           // Default to cards view
-          renderCardsView(items, grid);
+          renderCardsView(paginatedItems, grid);
+        }
+
+        // Render pagination (not for slide view - it handles its own navigation)
+        if (viewType !== 'slide' && totalPages > 1) {
+          renderPagination(grid, page, totalPages, -1);
         }
 
         // Update filter/sort button visibility based on view type
@@ -8423,7 +8703,8 @@ DETECTION SYSTEM (working correctly):
 
       // Render Slide View for Main items (slideshow-style view)
       // Styles: 'Vertical' (all items stacked, scroll) or 'Horizontal' (one at a time, nav buttons/swipe)
-      function renderSlideView(items, grid) {
+      // paginationInfo: optional {page, totalPages, maxPerPage} for showing quick jump buttons
+      function renderSlideView(items, grid, paginationInfo) {
         grid.classList.remove('grid', 'list-view', 'table-view', 'grid-rectangle');
         grid.classList.add('slide-view');
 
@@ -8445,6 +8726,107 @@ DETECTION SYSTEM (working correctly):
           grid.classList.remove('slide-horizontal');
           renderMainSlideVertical(items, grid);
         }
+
+        // Add quick jump navigation if more than 2 items
+        if (items.length > 2) {
+          renderSlideQuickNav(grid, items.length, -1);
+        }
+      }
+
+      // Render quick navigation buttons for slide view (for jumping directly to item N)
+      // Shows numbered buttons at the bottom: « 1 2 3 4 5 » or with ellipsis for many items
+      function renderSlideQuickNav(grid, totalItems, layerIndex) {
+        if (totalItems <= 2) return;
+
+        let html = '<div class="slide-quick-nav">';
+
+        if (totalItems <= 7) {
+          // Show all item numbers
+          for (let i = 0; i < totalItems; i++) {
+            const activeClass = i === currentSlideIndex ? ' active' : '';
+            html += '<button class="slide-nav-btn' + activeClass + '" onclick="jumpToSlide(' + i + ')">' + (i + 1) + '</button>';
+          }
+        } else {
+          // Show: 1 ... [current-1] [current] [current+1] ... [last]
+          // Always show first
+          const firstActive = currentSlideIndex === 0 ? ' active' : '';
+          html += '<button class="slide-nav-btn' + firstActive + '" onclick="jumpToSlide(0)">1</button>';
+
+          // Calculate window around current
+          let windowStart = Math.max(1, currentSlideIndex - 1);
+          let windowEnd = Math.min(totalItems - 2, currentSlideIndex + 1);
+
+          // Adjust window if at edges
+          if (currentSlideIndex <= 2) {
+            windowEnd = Math.min(totalItems - 2, 4);
+          }
+          if (currentSlideIndex >= totalItems - 3) {
+            windowStart = Math.max(1, totalItems - 5);
+          }
+
+          // Ellipsis before window
+          if (windowStart > 1) {
+            html += '<span class="slide-nav-ellipsis">...</span>';
+          }
+
+          // Window items
+          for (let i = windowStart; i <= windowEnd; i++) {
+            const activeClass = i === currentSlideIndex ? ' active' : '';
+            html += '<button class="slide-nav-btn' + activeClass + '" onclick="jumpToSlide(' + i + ')">' + (i + 1) + '</button>';
+          }
+
+          // Ellipsis after window
+          if (windowEnd < totalItems - 2) {
+            html += '<span class="slide-nav-ellipsis">...</span>';
+          }
+
+          // Always show last
+          const lastActive = currentSlideIndex === totalItems - 1 ? ' active' : '';
+          html += '<button class="slide-nav-btn' + lastActive + '" onclick="jumpToSlide(' + (totalItems - 1) + ')">' + totalItems + '</button>';
+        }
+
+        html += '</div>';
+
+        const navDiv = document.createElement('div');
+        navDiv.innerHTML = html;
+        grid.appendChild(navDiv.firstChild);
+      }
+
+      // Jump to a specific slide item
+      function jumpToSlide(index) {
+        if (index < 0 || index >= currentSlideItems.length) return;
+
+        const style = currentSlideLayerIndex === -1 ? getMainStyle() : getStyleForLayer(currentSlideLayerIndex);
+        const isHorizontal = style === 'Horizontal';
+
+        if (isHorizontal) {
+          // For horizontal slides, update index and re-render the item
+          showSlideItem(index);
+          // Update quick nav active state
+          updateSlideQuickNavActive(index);
+        } else {
+          // For vertical slides, scroll to the item
+          const slideItem = document.querySelector('.slide-item[data-index="' + index + '"]');
+          if (slideItem) {
+            slideItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            currentSlideIndex = index;
+            updateSlideQuickNavActive(index);
+          }
+        }
+      }
+
+      // Update active state in quick nav buttons
+      function updateSlideQuickNavActive(activeIndex) {
+        const navBtns = document.querySelectorAll('.slide-nav-btn');
+        navBtns.forEach((btn, i) => {
+          // The button's text content is the 1-indexed number
+          const btnIndex = parseInt(btn.textContent, 10) - 1;
+          if (btnIndex === activeIndex) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
       }
 
       // Render all slide items vertically for Main view (scrollable)
@@ -9549,17 +9931,42 @@ DETECTION SYSTEM (working correctly):
           "Description": item["Description"]
         }));
 
+        // Pagination: Get max per page and calculate pagination
+        const maxPerPage = getMaxPerPage(layerIndex);
+        const totalItems = standardizedItems.length;
+        const totalPages = getTotalPages(totalItems, maxPerPage);
+        let page = getCurrentPageForView(layerIndex);
+
+        // Ensure page is within bounds
+        if (page > totalPages) {
+          page = totalPages;
+          setCurrentPageForView(layerIndex, page);
+        }
+        if (page < 1) {
+          page = 1;
+          setCurrentPageForView(layerIndex, page);
+        }
+
+        // Get paginated items
+        const paginatedItems = getPaginatedItems(standardizedItems, page, maxPerPage);
+
         // Route to appropriate view renderer based on layer-specific view type
         const viewType = getViewTypeForLayer(layerIndex);
         if (viewType === 'list') {
-          renderLayerListView(standardizedItems, grid, layerIndex);
+          renderLayerListView(paginatedItems, grid, layerIndex);
         } else if (viewType === 'table') {
-          renderLayerTableView(standardizedItems, grid, layerIndex);
+          renderLayerTableView(paginatedItems, grid, layerIndex);
         } else if (viewType === 'slide') {
-          renderLayerSlideView(standardizedItems, grid, layerIndex);
+          // Slide view: pass all items but show pagination for quick navigation if >2 items
+          renderLayerSlideView(standardizedItems, grid, layerIndex, totalPages > 1 ? { page, totalPages, maxPerPage } : null);
         } else {
           // Default to cards view
-          renderLayerCardsView(standardizedItems, grid, layerIndex);
+          renderLayerCardsView(paginatedItems, grid, layerIndex);
+        }
+
+        // Render pagination (not for slide view - it handles its own navigation)
+        if (viewType !== 'slide' && totalPages > 1) {
+          renderPagination(grid, page, totalPages, layerIndex);
         }
 
         // Update all UI visibility (back button, search bar, filter/sort, filters-row)
@@ -9935,7 +10342,8 @@ DETECTION SYSTEM (working correctly):
 
       // Render layer items as slide (slideshow-style view)
       // Styles: 'Vertical' (all items stacked, scroll) or 'Horizontal' (one at a time, nav buttons/swipe)
-      function renderLayerSlideView(items, grid, layerIndex) {
+      // paginationInfo: optional {page, totalPages, maxPerPage} for showing quick jump buttons
+      function renderLayerSlideView(items, grid, layerIndex, paginationInfo) {
         grid.classList.remove('grid', 'list-view', 'table-view', 'grid-rectangle');
         grid.classList.add('slide-view');
 
@@ -9956,6 +10364,11 @@ DETECTION SYSTEM (working correctly):
           grid.classList.add('slide-vertical');
           grid.classList.remove('slide-horizontal');
           renderSlideVertical(items, grid, layerIndex);
+        }
+
+        // Add quick jump navigation if more than 2 items
+        if (items.length > 2) {
+          renderSlideQuickNav(grid, items.length, layerIndex);
         }
       }
 
@@ -10569,12 +10982,16 @@ DETECTION SYSTEM (working correctly):
         }
 
         // Normal navigation behavior
-        // Add to navigation stack - store both filter name and display name
+        // Store current page for this layer before navigating away
+        const currentLayerPage = getCurrentPageForView(layerIndex);
+
+        // Add to navigation stack - store filter name, display name, and current page
         navigationStack.push({
           type: "layer",
           layerIndex: layerIndex,
           itemName: displayName,
-          filterName: filterName
+          filterName: filterName,
+          page: currentLayerPage
         });
 
         // Check if there's a next layer
@@ -10586,8 +11003,12 @@ DETECTION SYSTEM (working correctly):
           // Hide empty layers - if no items, skip to main items
           if (filteredItems.length === 0) {
             console.log('Layer', nextLayerName, 'is empty, showing main items filtered by', filterName);
+            // Reset main items page when navigating to main
+            setCurrentPageForView(-1, 1);
             showMainItemsFilteredByLayer(layerIndex, filterName);
           } else {
+            // Reset page for next layer when entering fresh
+            setCurrentPageForView(layerIndex + 1, 1);
             // Show next layer (use filterName for filtering)
             renderLayerView(layerIndex + 1, filterName);
 
@@ -10885,10 +11306,13 @@ DETECTION SYSTEM (working correctly):
           const filterValue = nav.filterName || nav.itemName;
           // Navigate to the next layer after this item
           if (nav.layerIndex + 1 < layerConfig.length) {
+            // Reset page for the target layer when navigating via breadcrumb
+            setCurrentPageForView(nav.layerIndex + 1, 1);
             renderLayerView(nav.layerIndex + 1, filterValue);
             updateLayerNavigationUI();
           } else {
             // This was the last layer - show filtered main items
+            setCurrentPageForView(-1, 1);
             showMainItemsFilteredByLayer(nav.layerIndex, filterValue);
           }
         }
@@ -10902,16 +11326,23 @@ DETECTION SYSTEM (working correctly):
           return;
         }
 
-        // Pop last navigation
-        navigationStack.pop();
+        // Pop last navigation and get the restored page
+        const poppedNav = navigationStack.pop();
 
         if (navigationStack.length === 0) {
-          // Back to home
+          // Back to home - restore Layer 1's page if it was stored
+          if (poppedNav && poppedNav.page) {
+            setCurrentPageForView(0, poppedNav.page);
+          }
           navigateToHome();
         } else {
           // Go back to previous layer
           const lastNav = navigationStack[navigationStack.length - 1];
           if (lastNav.type === "layer") {
+            // Restore the page for this layer
+            if (lastNav.page) {
+              setCurrentPageForView(lastNav.layerIndex, lastNav.page);
+            }
             // Reconstruct parent filter from navigation stack (use filterName for filtering)
             const prevNav = navigationStack.length >= 2 ? navigationStack[navigationStack.length - 2] : null;
             const parentFilter = prevNav ? (prevNav.filterName || prevNav.itemName) : null;
@@ -10926,10 +11357,13 @@ DETECTION SYSTEM (working correctly):
         navigationStack = [];
         currentLayerIndex = -1;
 
+        // Reset pagination to page 1 for home view
         if (layerConfig.length > 0) {
+          setCurrentPageForView(0, 1);
           // Show Layer 1 (renderLayerView calls updateAllUIVisibility at the end)
           renderLayerView(0, null);
         } else {
+          setCurrentPageForView(-1, 1);
           // No layers - show main list
           currentView = "list";
           applyFiltersAndSorting();
@@ -11097,7 +11531,7 @@ DETECTION SYSTEM (working correctly):
           const cachedData = tabDataCache[tabIndex];
           layerConfig = cachedData.layerConfig || [];
           layersData = cachedData.layersData || {};
-          mainLayerShowSearch = cachedData.mainLayerShowSearch || false;
+          mainLayerMaxPerPage = cachedData.mainLayerMaxPerPage || false;
           allItems = cachedData.items || [];
           columnConfig = cachedData.columnConfig || [];
           headers = cachedData.headers || [];
@@ -11161,7 +11595,7 @@ DETECTION SYSTEM (working correctly):
             // Update app data with tab-specific configuration
             layerConfig = tabData.layerConfig || [];
             layersData = tabData.layersData || {};
-            mainLayerShowSearch = tabData.mainLayerShowSearch || false;
+            mainLayerMaxPerPage = tabData.mainLayerMaxPerPage || false;
             allItems = tabData.items || [];
             columnConfig = tabData.columnConfig || [];
             headers = tabData.headers || [];
@@ -11178,7 +11612,7 @@ DETECTION SYSTEM (working correctly):
             tabDataCache[tabIndex] = {
               layerConfig: layerConfig,
               layersData: layersData,
-              mainLayerShowSearch: mainLayerShowSearch,
+              mainLayerMaxPerPage: mainLayerMaxPerPage,
               items: allItems,
               columnConfig: columnConfig,
               headers: headers,
@@ -11231,7 +11665,7 @@ DETECTION SYSTEM (working correctly):
         tabDataCache[0] = {
           layerConfig: layerConfig,
           layersData: layersData,
-          mainLayerShowSearch: mainLayerShowSearch,
+          mainLayerMaxPerPage: mainLayerMaxPerPage,
           items: allItems,
           columnConfig: columnConfig,
           headers: headers,
@@ -11273,7 +11707,7 @@ DETECTION SYSTEM (working correctly):
               tabDataCache[tabIndex] = {
                 layerConfig: tabData.layerConfig || [],
                 layersData: tabData.layersData || {},
-                mainLayerShowSearch: tabData.mainLayerShowSearch || false,
+                mainLayerMaxPerPage: tabData.mainLayerMaxPerPage || false,
                 items: tabData.items || [],
                 columnConfig: tabData.columnConfig || [],
                 headers: tabData.headers || [],
@@ -12982,7 +13416,7 @@ DETECTION SYSTEM (working correctly):
             // Store layer configuration and data
             layerConfig = payload.layerConfig || [];
             layersData = payload.layersData || {};
-            mainLayerShowSearch = payload.mainLayerShowSearch || false;
+            mainLayerMaxPerPage = payload.mainLayerMaxPerPage || false;
 
             // Store tabs configuration (if available)
             tabsConfig = payload.tabsConfig || [];
@@ -12991,7 +13425,7 @@ DETECTION SYSTEM (working correctly):
             console.log('📊 Layer Config:', layerConfig);
             console.log('📊 Layers Data:', layersData);
             console.log('📊 Has Layers:', layerConfig.length > 0);
-            console.log('📊 Main Layer Show Search:', mainLayerShowSearch);
+            console.log('📊 Main Layer Show Search:', mainLayerMaxPerPage);
             console.log('📑 Tabs Config:', tabsConfig);
             console.log('📑 Has Tabs:', tabsConfig.length > 0);
 
@@ -13070,7 +13504,7 @@ DETECTION SYSTEM (working correctly):
             // Store layer configuration and data
             layerConfig = payload.layerConfig || [];
             layersData = payload.layersData || {};
-            mainLayerShowSearch = payload.mainLayerShowSearch || false;
+            mainLayerMaxPerPage = payload.mainLayerMaxPerPage || false;
 
             // Store tabs configuration (if available)
             tabsConfig = payload.tabsConfig || [];
@@ -13079,7 +13513,7 @@ DETECTION SYSTEM (working correctly):
             console.log('📊 Layer Config:', layerConfig);
             console.log('📊 Layers Data:', layersData);
             console.log('📊 Has Layers:', layerConfig.length > 0);
-            console.log('📊 Main Layer Show Search:', mainLayerShowSearch);
+            console.log('📊 Main Layer Show Search:', mainLayerMaxPerPage);
             console.log('📑 Tabs Config:', tabsConfig);
             console.log('📑 Has Tabs:', tabsConfig.length > 0);
 
@@ -13152,7 +13586,7 @@ DETECTION SYSTEM (working correctly):
             // Store layer configuration and data
             layerConfig = payload.layerConfig || [];
             layersData = payload.layersData || {};
-            mainLayerShowSearch = payload.mainLayerShowSearch || false;
+            mainLayerMaxPerPage = payload.mainLayerMaxPerPage || false;
 
             // Store tabs configuration (if available)
             tabsConfig = payload.tabsConfig || [];
@@ -13161,7 +13595,7 @@ DETECTION SYSTEM (working correctly):
             console.log('📊 Layer Config:', layerConfig);
             console.log('📊 Layers Data:', layersData);
             console.log('📊 Has Layers:', layerConfig.length > 0);
-            console.log('📊 Main Layer Show Search:', mainLayerShowSearch);
+            console.log('📊 Main Layer Show Search:', mainLayerMaxPerPage);
             console.log('📑 Tabs Config:', tabsConfig);
             console.log('📑 Has Tabs:', tabsConfig.length > 0);
 
