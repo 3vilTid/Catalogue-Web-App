@@ -620,35 +620,38 @@ function getLayerConfig(sheetName) {
 
     var layers = [];
 
-    // Hardcoded positions: B2:C4 for layer config, F2:F4 for search visibility
-    // B2: Layer 1, C2: Ex Cat, F2: Show search on Layer 1
-    // B3: Layer 2, C3: Category, F3: Show search on Layer 2
-    // B4: Layer 3, C4: (blank), F4: Show search on Layer 3
+    // Hardcoded positions: B2:C4 for layer config, F2:F4 for maxPerPage
+    // B2: Layer 1, C2: Ex Cat, F2: Max items per page for Layer 1
+    // B3: Layer 2, C3: Category, F3: Max items per page for Layer 2
+    // B4: Layer 3, C4: (blank), F4: Max items per page for Layer 3
     var layerRows = [2, 3, 4]; // Rows for Layer 1, 2, 3
     var layerCol = 2;  // Column B (1-indexed)
     var mainCol = 3;   // Column C (1-indexed)
-    var showSearchCol = 6; // Column F (1-indexed)
+    var maxPerPageCol = 6; // Column F (1-indexed)
 
     for (var i = 0; i < layerRows.length; i++) {
       var row = layerRows[i];
       var layerName = layersSheet.getRange(row, layerCol).getValue();
       var mainColumnName = layersSheet.getRange(row, mainCol).getValue();
-      var showSearchValue = layersSheet.getRange(row, showSearchCol).getValue();
+      var maxPerPageValue = layersSheet.getRange(row, maxPerPageCol).getValue();
 
       layerName = String(layerName || "").trim();
       mainColumnName = String(mainColumnName || "").trim();
 
-      // showSearch: "Yes" = true, anything else (including blank) = false
-      var showSearch = String(showSearchValue || "").trim().toLowerCase() === "yes";
+      // maxPerPage: number = limit, blank/0 = no limit (show all)
+      var maxPerPage = parseInt(maxPerPageValue, 10);
+      if (isNaN(maxPerPage) || maxPerPage <= 0) {
+        maxPerPage = 0; // 0 means no limit
+      }
 
       // Only include layers that have both name and main column
       if (layerName !== "" && mainColumnName !== "") {
         layers.push({
           layerName: layerName,
           mainColumnName: mainColumnName,
-          showSearch: showSearch
+          maxPerPage: maxPerPage
         });
-        Logger.log("✓ Found layer: " + layerName + " -> " + mainColumnName + " (showSearch: " + showSearch + ")");
+        Logger.log("✓ Found layer: " + layerName + " -> " + mainColumnName + " (maxPerPage: " + (maxPerPage || "unlimited") + ")");
       }
     }
 
@@ -661,28 +664,31 @@ function getLayerConfig(sheetName) {
 }
 
 /**
- * Get Main Layer (Layer 4) search visibility from F5
+ * Get Main Layer (Layer 4) max items per page from F5
  * @param {string} sheetName - Name of the Layers sheet (default: 'Layers')
- * @return {boolean} Whether search bar should be shown on Main Layer
+ * @return {number} Max items per page (0 = no limit)
  */
-function getMainLayerShowSearch(sheetName) {
+function getMainLayerMaxPerPage(sheetName) {
   sheetName = sheetName || 'Layers';
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var layersSheet = ss.getSheetByName(sheetName);
 
     if (!layersSheet) {
-      return false;
+      return 0;
     }
 
-    // F5 controls search visibility for Main Layer (Layer 4)
-    var showSearchValue = layersSheet.getRange(5, 6).getValue(); // Row 5, Column F
-    var showSearch = String(showSearchValue || "").trim().toLowerCase() === "yes";
-    Logger.log("✓ Main Layer showSearch: " + showSearch);
-    return showSearch;
+    // F5 controls max items per page for Main Layer (Layer 4)
+    var maxPerPageValue = layersSheet.getRange(5, 6).getValue(); // Row 5, Column F
+    var maxPerPage = parseInt(maxPerPageValue, 10);
+    if (isNaN(maxPerPage) || maxPerPage <= 0) {
+      maxPerPage = 0; // 0 means no limit
+    }
+    Logger.log("✓ Main Layer maxPerPage: " + (maxPerPage || "unlimited"));
+    return maxPerPage;
   } catch (e) {
-    Logger.log("✗ Error getting main layer search config: " + e.toString());
-    return false;
+    Logger.log("✗ Error getting main layer maxPerPage config: " + e.toString());
+    return 0;
   }
 }
 
@@ -1031,7 +1037,7 @@ function getInitialData(token) {
 
   // Get layer configuration using the determined sheet name
   var layerConfig = getLayerConfig(layersSheetName);
-  var mainLayerShowSearch = getMainLayerShowSearch(layersSheetName);
+  var mainLayerMaxPerPage = getMainLayerMaxPerPage(layersSheetName);
   var layersData = {};
 
   // Load data for each configured layer
@@ -1058,7 +1064,7 @@ function getInitialData(token) {
       layerConfig: layerConfig,
       layersData: layersData,
       tabsConfig: tabsConfig,
-      mainLayerShowSearch: mainLayerShowSearch
+      mainLayerMaxPerPage: mainLayerMaxPerPage
     };
   }
 
@@ -1080,7 +1086,7 @@ function getInitialData(token) {
     layerConfig: layerConfig,
     layersData: layersData,
     tabsConfig: tabsConfig,
-    mainLayerShowSearch: mainLayerShowSearch
+    mainLayerMaxPerPage: mainLayerMaxPerPage
   };
 }
 
@@ -1114,7 +1120,7 @@ function getTabData(layersSheetName, mainSheetName, columnConfigSheetName, token
 
     // Load tab-specific configuration and data
     var layerConfig = getLayerConfig(layersSheetName);
-    var mainLayerShowSearch = getMainLayerShowSearch(layersSheetName);
+    var mainLayerMaxPerPage = getMainLayerMaxPerPage(layersSheetName);
     var layersData = {};
 
     // Load data for each configured layer
@@ -1137,7 +1143,7 @@ function getTabData(layersSheetName, mainSheetName, columnConfigSheetName, token
       columnConfig: columnConfig,
       headers: headers,
       settings: tabSettings,
-      mainLayerShowSearch: mainLayerShowSearch
+      mainLayerMaxPerPage: mainLayerMaxPerPage
     };
   } catch (err) {
     Logger.log("Error in getTabData: " + err);
