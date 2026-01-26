@@ -4415,18 +4415,22 @@ DETECTION SYSTEM (working correctly):
         min-height: 25px !important;
       }
 
-      /* Pagination buttons - 50% smaller for GitHub Pages mobile portrait */
+      /* Pagination buttons - smaller squared buttons for GitHub Pages mobile portrait */
       html.github-pages body.mobile-device.portrait .pagination-container {
-        gap: 3px !important;
-        padding: 10px 8px !important;
+        gap: 4px !important;
+        padding: 8px !important;
       }
 
       html.github-pages body.mobile-device.portrait .pagination-btn {
-        min-width: 16px !important;
-        height: 16px !important;
-        padding: 0 5px !important;
+        min-width: 24px !important;
+        width: 24px !important;
+        height: 24px !important;
+        padding: 0 !important;
         font-size: 9px !important;
-        border-radius: 3px !important;
+        border-radius: 4px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
       }
 
       /* Mobile device body padding: 4px top and bottom */
@@ -7183,16 +7187,70 @@ DETECTION SYSTEM (working correctly):
 
       // -------------------- Pagination Helpers --------------------
 
-      // Get max items per page for a given layer index (-1 = main items)
-      function getMaxPerPage(layerIndex) {
+      // Get max ROWS per page for a given layer index (-1 = main items)
+      // The value from Sheets (F2-F5) now means "max rows" not "max items"
+      function getMaxRowsPerPage(layerIndex) {
         if (layerIndex === -1 || layerIndex === "main") {
-          // Main items
           return mainLayerMaxPerPage || 0;
         }
         if (layerIndex >= 0 && layerIndex < layerConfig.length) {
           return layerConfig[layerIndex].maxPerPage || 0;
         }
         return 0; // No limit
+      }
+
+      // Calculate number of grid columns based on view type and device/orientation
+      function getGridColumns(layerIndex) {
+        const viewType = layerIndex >= 0 ? getViewTypeForLayer(layerIndex) : mainViewType;
+        const style = layerIndex >= 0 ? getStyleForLayer(layerIndex) : mainViewStyle;
+
+        // Table view: 1 item per row
+        if (viewType === 'table') return 1;
+
+        // Slide view: 1 item at a time
+        if (viewType === 'slide') return 1;
+
+        // List view: depends on style (Simple=1, Double=2, Triple=3)
+        if (viewType === 'list') {
+          if (style === 'Triple') return 3;
+          if (style === 'Double') return 2;
+          return 1;
+        }
+
+        // Cards view: calculate based on device/orientation
+        const body = document.body;
+        const isMobile = body.classList.contains('mobile-device');
+        const isTablet = body.classList.contains('tablet-device');
+        const isPortrait = body.classList.contains('portrait');
+        const isLandscape = body.classList.contains('landscape');
+
+        // Fixed column counts for specific device/orientations
+        if (isMobile && isLandscape) return 6;
+        if (isTablet && isLandscape) return 8;
+        if (isTablet && isPortrait) return 4;
+        if (isTablet) return 3;
+
+        // For mobile portrait and desktop: calculate from container width
+        const grid = document.getElementById('gridView');
+        if (grid && grid.clientWidth > 0) {
+          const containerWidth = grid.clientWidth;
+          const minCardWidth = isMobile ? 160 : 190;
+          const gap = isMobile ? 16 : 18;
+          const columns = Math.floor((containerWidth + gap) / (minCardWidth + gap));
+          return Math.max(1, columns);
+        }
+
+        // Fallback estimates
+        return isMobile ? 2 : 4;
+      }
+
+      // Get max ITEMS per page (maxRows * columns)
+      function getMaxPerPage(layerIndex) {
+        const maxRows = getMaxRowsPerPage(layerIndex);
+        if (maxRows <= 0) return 0; // No limit
+
+        const columns = getGridColumns(layerIndex);
+        return maxRows * columns;
       }
 
       // Get pagination state key for current view
