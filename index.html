@@ -11450,7 +11450,8 @@ DETECTION SYSTEM (working correctly):
           searchQuery: searchQuery,
           activeFilters: {...activeFilters},
           sortField: sortField,
-          sortOrder: sortOrder
+          sortOrder: sortOrder,
+          paginationState: {...paginationState}  // Save pagination state per tab
         };
 
         console.log('📦 Saved state for tab', currentTabIndex, ':', tabStates[currentTabIndex]);
@@ -11471,12 +11472,13 @@ DETECTION SYSTEM (working correctly):
           activeFilters = {...state.activeFilters} || {};
           sortField = state.sortField || "none";
           sortOrder = state.sortOrder || "asc";
+          paginationState = state.paginationState ? {...state.paginationState} : {};  // Restore pagination state
 
           // Update search input
           document.getElementById("searchInput").value = searchQuery;
 
           console.log('📂 Restored state for tab', tabIndex, ':', state);
-          console.log('📂 After restore - currentView:', currentView, 'currentLayerIndex:', currentLayerIndex, 'navStack:', JSON.stringify(navigationStack));
+          console.log('📂 After restore - currentView:', currentView, 'currentLayerIndex:', currentLayerIndex, 'navStack:', JSON.stringify(navigationStack), 'paginationState:', JSON.stringify(paginationState));
         } else {
           // No saved state - initialize fresh
           navigationStack = [];
@@ -11486,6 +11488,7 @@ DETECTION SYSTEM (working correctly):
           currentDisplayedItems = [];
           searchQuery = "";
           activeFilters = {};
+          paginationState = {};  // Reset pagination state for fresh tab
           sortField = "none";
           sortOrder = "asc";
 
