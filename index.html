@@ -7203,7 +7203,9 @@ DETECTION SYSTEM (working correctly):
       // Get current page for a view
       function getCurrentPageForView(layerIndex) {
         const key = getPaginationKey(layerIndex);
-        return paginationState[key] || 1;
+        const page = paginationState[key] || 1;
+        console.log('[Pagination] getCurrentPageForView(' + layerIndex + ') = ' + page + ' (key: ' + key + ', state: ' + JSON.stringify(paginationState) + ')');
+        return page;
       }
 
       // Set current page for a view
@@ -10987,6 +10989,8 @@ DETECTION SYSTEM (working correctly):
         // Normal navigation behavior
         // Store current page for this layer before navigating away
         const currentLayerPage = getCurrentPageForView(layerIndex);
+        console.log('[Pagination] onLayerItemClick: storing page', currentLayerPage, 'for layer', layerIndex);
+        console.log('[Pagination] paginationState:', JSON.stringify(paginationState));
 
         // Add to navigation stack - store filter name, display name, and current page
         navigationStack.push({
@@ -10996,6 +11000,7 @@ DETECTION SYSTEM (working correctly):
           filterName: filterName,
           page: currentLayerPage
         });
+        console.log('[Pagination] Pushed to stack:', JSON.stringify(navigationStack[navigationStack.length - 1]));
 
         // Check if there's a next layer
         if (layerIndex + 1 < layerConfig.length) {
