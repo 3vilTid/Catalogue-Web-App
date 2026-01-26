@@ -9632,9 +9632,11 @@ DETECTION SYSTEM (working correctly):
 
           const nameEl = document.createElement("div");
           nameEl.className = "card-name";
-          nameEl.textContent = item["Names"] || "(no name)";
+          // Use standardItem["Names"] which has Display with fallback to Names
+          nameEl.textContent = standardItem["Names"] || "(no name)";
           body.appendChild(nameEl);
 
+          // Description comes from raw item
           if (item["Description"]) {
             const descEl = document.createElement("div");
             descEl.className = "card-sub";
@@ -9713,9 +9715,11 @@ DETECTION SYSTEM (working correctly):
 
           const nameEl = document.createElement("div");
           nameEl.className = "list-item-name";
-          nameEl.textContent = item["Names"] || "(no name)";
+          // Use standardItem["Names"] which has Display with fallback to Names
+          nameEl.textContent = standardItem["Names"] || "(no name)";
           detailsWrapper.appendChild(nameEl);
 
+          // Description comes from raw item
           if (item["Description"]) {
             const descEl = document.createElement("div");
             descEl.className = "list-item-sub";
@@ -9848,7 +9852,10 @@ DETECTION SYSTEM (working correctly):
           for (let j = 0; j < columnsToShow.length; j++) {
             const col = columnsToShow[j];
             const td = document.createElement("td");
-            const value = item[col.columnName] || "";
+            // Use standardItem for "Names" (has Display fallback), raw item for others
+            const value = (col.columnName === "Names")
+              ? (standardItem["Names"] || "")
+              : (item[col.columnName] || "");
 
             // Handle different column types
             if (col.type === "image" && value) {
