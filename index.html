@@ -7484,10 +7484,16 @@ DETECTION SYSTEM (working correctly):
       // Get group by column for a layer index (-1 = main items)
       function getGroupByColumn(layerIndex) {
         if (layerIndex === -1 || layerIndex === "main") {
+          // Main items: H5 contains the exact column name from Main table
           return mainLayerGroupByColumn || '';
         }
         if (layerIndex >= 0 && layerIndex < layerConfig.length) {
-          return layerConfig[layerIndex].groupByColumn || '';
+          // Layers: H2:H4 contains "Yes"/"No" - when "Yes", use "Group By" column from layer data table
+          var val = (layerConfig[layerIndex].groupByColumn || '').toLowerCase();
+          if (val === 'yes') {
+            return 'Group By';
+          }
+          return '';
         }
         return '';
       }
@@ -8570,7 +8576,6 @@ DETECTION SYSTEM (working correctly):
       // Each group has its own header and pagination
       function renderGroupedList(items, grid, layerIndex, groupByColumn) {
         const viewType = layerIndex === -1 ? getMainViewType() : getViewTypeForLayer(layerIndex);
-        const style = layerIndex === -1 ? getMainStyle() : getStyleForLayer(layerIndex);
 
         // Table and Slide views don't support grouping - fall back to regular render
         if (viewType === 'table' || viewType === 'slide') {
@@ -8613,27 +8618,10 @@ DETECTION SYSTEM (working correctly):
           groupHeader.textContent = groupKey;
           groupContainer.appendChild(groupHeader);
 
-          // Create group grid
+          // Create group grid (classes will be set by the existing renderer)
           const groupGrid = document.createElement('div');
-          groupGrid.className = viewType === 'list' ? 'list-view' : 'grid';
-
-          // Apply style classes
-          if (viewType === 'cards') {
-            if (style === 'Rectangle') {
-              groupGrid.classList.add('grid-rectangle');
-            }
-          } else if (viewType === 'list') {
-            if (style === 'Double') {
-              groupGrid.classList.add('style-double');
-            } else if (style === 'Triple') {
-              groupGrid.classList.add('style-triple');
-            } else {
-              groupGrid.classList.add('style-simple');
-            }
-          }
 
           // Calculate pagination for this group
-          // Detect columns from a rendered group (use cached value for now)
           const columns = cachedGridColumns;
           const maxPerPage = rowsPerPage > 0 ? rowsPerPage * columns : 0;
           const totalPages = getTotalPages(groupItems.length, maxPerPage);
@@ -8652,11 +8640,11 @@ DETECTION SYSTEM (working correctly):
           // Get paginated items for this group
           const paginatedGroupItems = getPaginatedItems(groupItems, page, maxPerPage);
 
-          // Render items into group grid
+          // Render items into group grid using existing renderers (proper images, names, SubIds)
           if (viewType === 'list') {
-            renderListViewItems(paginatedGroupItems, groupGrid, layerIndex);
+            renderListView(paginatedGroupItems, groupGrid);
           } else {
-            renderCardsViewItems(paginatedGroupItems, groupGrid, layerIndex, style);
+            renderCardsView(paginatedGroupItems, groupGrid);
           }
 
           groupContainer.appendChild(groupGrid);
@@ -8678,154 +8666,10 @@ DETECTION SYSTEM (working correctly):
         updateFilterSortVisibility();
       }
 
-      // Helper: Render cards view items into a container (used by grouped rendering)
-      function renderCardsViewItems(items, container, layerIndex, style) {
-        for (let i = 0; i < items.length; i++) {
-          const item = items[i];
-          const card = document.createElement("div");
-          card.className = "card";
-
-          // Apply style class based on card style
-          if (style === 'Rectangle') {
-            card.classList.add('style-rectangle');
-          } else if (style === 'Circle') {
-            card.classList.add('style-circle');
-          }
-
-          // Create image wrapper for lazy loading
-          const imgWrapper = document.createElement("div");
-          imgWrapper.className = "card-img-wrapper";
-
-          // Get image URL
-          const imgUrl = getItemImageUrl(item);
-          if (imgUrl) {
-            const img = document.createElement("img");
-            img.className = "card-img lazy-image";
-            img.dataset.src = imgUrl;
-            img.alt = getItemName(item) || "Item image";
-            img.loading = "lazy";
-            imgWrapper.appendChild(img);
-          } else {
-            imgWrapper.innerHTML = '<div class="card-img-placeholder">No Image</div>';
-          }
-
-          card.appendChild(imgWrapper);
-
-          // Add item name
-          const nameDiv = document.createElement("div");
-          nameDiv.className = "card-name";
-          nameDiv.textContent = getItemName(item) || "Unnamed";
-          card.appendChild(nameDiv);
-
-          // Add click handler
-          card.addEventListener("click", function () {
-            // Find the item index in currentDisplayedItems for navigation
-            const itemIndex = currentDisplayedItems.findIndex(it =>
-              getItemName(it) === getItemName(item) && getItemImageUrl(it) === getItemImageUrl(item)
-            );
-            showDetails(item, itemIndex >= 0 ? itemIndex : i);
-          });
-
-          container.appendChild(card);
-        }
-
-        // Setup lazy loading for new images
-        if (typeof setupLazyLoading === 'function') {
-          setTimeout(() => setupLazyLoading(), 50);
-        }
-      }
-
-      // Helper: Render list view items into a container (used by grouped rendering)
-      function renderListViewItems(items, container, layerIndex) {
-        for (let i = 0; i < items.length; i++) {
-          const item = items[i];
-          const listItem = document.createElement("div");
-          listItem.className = "list-item";
-
-          // Image on the left
-          const imgWrapper = document.createElement("div");
-          imgWrapper.className = "list-item-img-wrapper";
-
-          const imgUrl = getItemImageUrl(item);
-          if (imgUrl) {
-            const img = document.createElement("img");
-            img.className = "list-item-img lazy-image";
-            img.dataset.src = imgUrl;
-            img.alt = getItemName(item) || "Item image";
-            img.loading = "lazy";
-            imgWrapper.appendChild(img);
-          } else {
-            imgWrapper.innerHTML = '<div class="list-item-img-placeholder">No Image</div>';
-          }
-
-          listItem.appendChild(imgWrapper);
-
-          // Details on the right
-          const detailsWrapper = document.createElement("div");
-          detailsWrapper.className = "list-item-details";
-
-          const nameDiv = document.createElement("div");
-          nameDiv.className = "list-item-name";
-          nameDiv.textContent = getItemName(item) || "Unnamed";
-          detailsWrapper.appendChild(nameDiv);
-
-          // Add category/subtitle if available
-          const category = getItemCategory(item);
-          if (category) {
-            const categoryDiv = document.createElement("div");
-            categoryDiv.className = "list-item-category";
-            categoryDiv.textContent = category;
-            detailsWrapper.appendChild(categoryDiv);
-          }
-
-          listItem.appendChild(detailsWrapper);
-
-          // Add click handler
-          listItem.addEventListener("click", function () {
-            const itemIndex = currentDisplayedItems.findIndex(it =>
-              getItemName(it) === getItemName(item) && getItemImageUrl(it) === getItemImageUrl(item)
-            );
-            showDetails(item, itemIndex >= 0 ? itemIndex : i);
-          });
-
-          container.appendChild(listItem);
-        }
-
-        // Setup lazy loading
-        if (typeof setupLazyLoading === 'function') {
-          setTimeout(() => setupLazyLoading(), 50);
-        }
-      }
-
-      // Helper: Get item name (handles both main items and layer items)
-      function getItemName(item) {
-        if (item._isLayerItem) {
-          return item["Names"] || item._rawLayerItem?.["Names"] || "";
-        }
-        return item[nameColumn] || item["Names"] || "";
-      }
-
-      // Helper: Get item image URL (handles both main items and layer items)
-      function getItemImageUrl(item) {
-        if (item._isLayerItem) {
-          return item["Picture Link"] || item._rawLayerItem?.["Picture Link"] || "";
-        }
-        return item[imageColumn] || item["Picture Link"] || "";
-      }
-
-      // Helper: Get item category (handles both main items and layer items)
-      function getItemCategory(item) {
-        if (item._isLayerItem) {
-          return item["Description"] || "";
-        }
-        return item[categoryColumn] || "";
-      }
-
       // Render layer items grouped by a column value
-      // For layer items, we look in _rawLayerItem for the column value
+      // For layer items, we look in _rawLayerItem for the grouping column (e.g., "Group By")
       function renderGroupedLayerList(items, grid, layerIndex, groupByColumn, parentFilterName) {
         const viewType = getViewTypeForLayer(layerIndex);
-        const style = getStyleForLayer(layerIndex);
 
         // Table and Slide views don't support grouping
         if (viewType === 'table' || viewType === 'slide') {
@@ -8894,24 +8738,8 @@ DETECTION SYSTEM (working correctly):
           groupHeader.textContent = groupKey;
           groupContainer.appendChild(groupHeader);
 
-          // Create group grid
+          // Create group grid (classes will be set by the existing renderer)
           const groupGrid = document.createElement('div');
-          groupGrid.className = viewType === 'list' ? 'list-view' : 'grid';
-
-          // Apply style classes
-          if (viewType === 'cards') {
-            if (style === 'Rectangle') {
-              groupGrid.classList.add('grid-rectangle');
-            }
-          } else if (viewType === 'list') {
-            if (style === 'Double') {
-              groupGrid.classList.add('style-double');
-            } else if (style === 'Triple') {
-              groupGrid.classList.add('style-triple');
-            } else {
-              groupGrid.classList.add('style-simple');
-            }
-          }
 
           // Calculate pagination for this group
           const columns = cachedGridColumns;
@@ -8932,11 +8760,11 @@ DETECTION SYSTEM (working correctly):
           // Get paginated items for this group
           const paginatedGroupItems = getPaginatedItems(groupItems, page, maxPerPage);
 
-          // Render items into group grid
+          // Render items into group grid using existing layer renderers (proper images, names, navigation)
           if (viewType === 'list') {
-            renderLayerListViewItems(paginatedGroupItems, groupGrid, layerIndex);
+            renderLayerListView(paginatedGroupItems, groupGrid, layerIndex);
           } else {
-            renderLayerCardsViewItems(paginatedGroupItems, groupGrid, layerIndex, style);
+            renderLayerCardsView(paginatedGroupItems, groupGrid, layerIndex);
           }
 
           groupContainer.appendChild(groupGrid);
@@ -8958,146 +8786,10 @@ DETECTION SYSTEM (working correctly):
         updateAllUIVisibility();
       }
 
-      // Helper: Render layer cards view items into a container
-      function renderLayerCardsViewItems(items, container, layerIndex, style) {
-        for (let i = 0; i < items.length; i++) {
-          const standardItem = items[i];
-          const item = standardItem._rawLayerItem;
-          const card = document.createElement("div");
-          card.className = "card";
-
-          // Apply style
-          if (style === 'Rectangle') {
-            card.classList.add('style-rectangle');
-          } else if (style === 'Circle') {
-            card.classList.add('style-circle');
-          }
-
-          // Create image wrapper
-          const imgWrapper = document.createElement("div");
-          imgWrapper.className = "card-img-wrapper";
-
-          const imgUrl = item["Picture Link"] || "";
-          if (imgUrl) {
-            const img = document.createElement("img");
-            img.className = "card-img lazy-image";
-            img.dataset.src = imgUrl;
-            img.alt = standardItem["Names"] || "Item image";
-            img.loading = "lazy";
-            imgWrapper.appendChild(img);
-          } else {
-            imgWrapper.innerHTML = '<div class="card-img-placeholder">No Image</div>';
-          }
-
-          card.appendChild(imgWrapper);
-
-          // Add item name
-          const nameDiv = document.createElement("div");
-          nameDiv.className = "card-name";
-          nameDiv.textContent = standardItem["Names"] || "Unnamed";
-          card.appendChild(nameDiv);
-
-          // Add click handler for layer navigation
-          const filterName = standardItem._filterName || standardItem["Names"];
-          card.addEventListener("click", function () {
-            handleLayerItemClick(standardItem, layerIndex, filterName);
-          });
-
-          container.appendChild(card);
-        }
-
-        // Setup lazy loading
-        if (typeof setupLazyLoading === 'function') {
-          setTimeout(() => setupLazyLoading(), 50);
-        }
-      }
-
-      // Helper: Render layer list view items into a container
-      function renderLayerListViewItems(items, container, layerIndex) {
-        for (let i = 0; i < items.length; i++) {
-          const standardItem = items[i];
-          const item = standardItem._rawLayerItem;
-          const listItem = document.createElement("div");
-          listItem.className = "list-item";
-
-          // Image
-          const imgWrapper = document.createElement("div");
-          imgWrapper.className = "list-item-img-wrapper";
-
-          const imgUrl = item["Picture Link"] || "";
-          if (imgUrl) {
-            const img = document.createElement("img");
-            img.className = "list-item-img lazy-image";
-            img.dataset.src = imgUrl;
-            img.alt = standardItem["Names"] || "Item image";
-            img.loading = "lazy";
-            imgWrapper.appendChild(img);
-          } else {
-            imgWrapper.innerHTML = '<div class="list-item-img-placeholder">No Image</div>';
-          }
-
-          listItem.appendChild(imgWrapper);
-
-          // Details
-          const detailsWrapper = document.createElement("div");
-          detailsWrapper.className = "list-item-details";
-
-          const nameDiv = document.createElement("div");
-          nameDiv.className = "list-item-name";
-          nameDiv.textContent = standardItem["Names"] || "Unnamed";
-          detailsWrapper.appendChild(nameDiv);
-
-          if (standardItem["Description"]) {
-            const descDiv = document.createElement("div");
-            descDiv.className = "list-item-category";
-            descDiv.textContent = standardItem["Description"];
-            detailsWrapper.appendChild(descDiv);
-          }
-
-          listItem.appendChild(detailsWrapper);
-
-          // Click handler
-          const filterName = standardItem._filterName || standardItem["Names"];
-          listItem.addEventListener("click", function () {
-            handleLayerItemClick(standardItem, layerIndex, filterName);
-          });
-
-          container.appendChild(listItem);
-        }
-
-        // Setup lazy loading
-        if (typeof setupLazyLoading === 'function') {
-          setTimeout(() => setupLazyLoading(), 50);
-        }
-      }
-
-      // Handle layer item click (navigate to next layer or filter main items)
-      function handleLayerItemClick(standardItem, layerIndex, filterName) {
-        // Check if there are more layers
-        if (layerIndex < layerConfig.length - 1) {
-          // Navigate to next layer
-          navigateToLayer(layerIndex + 1, filterName);
-        } else {
-          // Last layer - filter and show main items
-          const mainColumnName = layerConfig[layerIndex].mainColumnName;
-
-          // Push to navigation stack
-          navigationStack.push({
-            type: "layer",
-            layerIndex: layerIndex,
-            filterName: filterName,
-            itemName: standardItem["Names"]
-          });
-
-          // Filter main items by this layer's value
-          filterByLayerValue(mainColumnName, filterName);
-        }
-      }
-
       // Render Cards View (current default grid layout)
       function renderCardsView(items, grid) {
         grid.classList.add('grid');
-        grid.classList.remove('list-view', 'table-view', 'slide-view', 'slide-vertical', 'slide-horizontal');
+        grid.classList.remove('list-view', 'table-view', 'slide-view', 'slide-vertical', 'slide-horizontal', 'grouped-view');
 
         // Get style for main items
         const style = getMainStyle();
@@ -9185,7 +8877,7 @@ DETECTION SYSTEM (working correctly):
 
       // Render List View (vertical list with image left, details right)
       function renderListView(items, grid) {
-        grid.classList.remove('grid', 'table-view', 'slide-view', 'slide-vertical', 'slide-horizontal');
+        grid.classList.remove('grid', 'table-view', 'slide-view', 'slide-vertical', 'slide-horizontal', 'grouped-view');
         grid.classList.add('list-view');
 
         // Get style for main items
@@ -9266,7 +8958,7 @@ DETECTION SYSTEM (working correctly):
 
       // Render Table View (spreadsheet-style)
       function renderTableView(items, grid) {
-        grid.classList.remove('grid', 'list-view', 'slide-view', 'slide-vertical', 'slide-horizontal');
+        grid.classList.remove('grid', 'list-view', 'slide-view', 'slide-vertical', 'slide-horizontal', 'grouped-view');
         grid.classList.add('table-view');
 
         // Get style for main items
@@ -9565,7 +9257,7 @@ DETECTION SYSTEM (working correctly):
       // Styles: 'Vertical' (all items stacked, scroll) or 'Horizontal' (one at a time, nav buttons/swipe)
       // paginationInfo: optional {page, totalPages, maxPerPage} for showing quick jump buttons
       function renderSlideView(items, grid, paginationInfo) {
-        grid.classList.remove('grid', 'list-view', 'table-view', 'grid-rectangle');
+        grid.classList.remove('grid', 'list-view', 'table-view', 'grid-rectangle', 'grouped-view');
         grid.classList.add('slide-view');
 
         const style = getMainStyle();
@@ -10797,8 +10489,7 @@ DETECTION SYSTEM (working correctly):
         // Check if grouping is enabled for this layer
         const groupByColumn = getGroupByColumn(layerIndex);
         if (groupByColumn) {
-          // For layer items, we need to look in the raw layer item for the grouping column
-          // Or if it's a Main table column, we group by that column from linked main items
+          // For layer items, group by the "Group By" column from the layer data table
           renderGroupedLayerList(standardizedItems, grid, layerIndex, groupByColumn, parentFilterName);
           return;
         }
@@ -10868,7 +10559,7 @@ DETECTION SYSTEM (working correctly):
       // Render layer items as cards
       function renderLayerCardsView(items, grid, layerIndex) {
         grid.classList.add('grid');
-        grid.classList.remove('list-view', 'table-view', 'slide-view', 'slide-vertical', 'slide-horizontal');
+        grid.classList.remove('list-view', 'table-view', 'slide-view', 'slide-vertical', 'slide-horizontal', 'grouped-view');
 
         // Get style for this layer
         const style = getStyleForLayer(layerIndex);
@@ -10957,7 +10648,7 @@ DETECTION SYSTEM (working correctly):
 
       // Render layer items as list
       function renderLayerListView(items, grid, layerIndex) {
-        grid.classList.remove('grid', 'table-view', 'slide-view', 'slide-vertical', 'slide-horizontal');
+        grid.classList.remove('grid', 'table-view', 'slide-view', 'slide-vertical', 'slide-horizontal', 'grouped-view');
         grid.classList.add('list-view');
 
         // Get style for this layer
@@ -11040,7 +10731,7 @@ DETECTION SYSTEM (working correctly):
 
       // Render layer items as table
       function renderLayerTableView(items, grid, layerIndex) {
-        grid.classList.remove('grid', 'list-view', 'slide-view', 'slide-vertical', 'slide-horizontal');
+        grid.classList.remove('grid', 'list-view', 'slide-view', 'slide-vertical', 'slide-horizontal', 'grouped-view');
         grid.classList.add('table-view');
 
         // Get style for this layer
@@ -11236,7 +10927,7 @@ DETECTION SYSTEM (working correctly):
       // Styles: 'Vertical' (all items stacked, scroll) or 'Horizontal' (one at a time, nav buttons/swipe)
       // paginationInfo: optional {page, totalPages, maxPerPage} for showing quick jump buttons
       function renderLayerSlideView(items, grid, layerIndex, paginationInfo) {
-        grid.classList.remove('grid', 'list-view', 'table-view', 'grid-rectangle');
+        grid.classList.remove('grid', 'list-view', 'table-view', 'grid-rectangle', 'grouped-view');
         grid.classList.add('slide-view');
 
         const style = getStyleForLayer(layerIndex);
