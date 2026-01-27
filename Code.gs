@@ -620,16 +620,16 @@ function getLayerConfig(sheetName) {
 
     var layers = [];
 
-    // Hardcoded positions: B2:C4 for layer config, F2:F4 for maxPerPage, G2:G4 for mobileMaxPerPage, H2:H4 for groupByColumn
-    // B2: Layer 1, C2: Ex Cat, F2: Max rows per page, G2: Mobile max rows, H2: Group by column name
-    // B3: Layer 2, C3: Category, F3: Max rows per page, G3: Mobile max rows, H3: Group by column name
-    // B4: Layer 3, C4: (blank), F4: Max rows per page, G4: Mobile max rows, H4: Group by column name
+    // Hardcoded positions: B2:C4 for layer config, F2:F4 for maxPerPage, G2:G4 for mobileMaxPerPage, H2:H4 for groupEnabled
+    // B2: Layer 1, C2: Ex Cat, F2: Max rows per page, G2: Mobile max rows, H2: Group enabled (Yes/No)
+    // B3: Layer 2, C3: Category, F3: Max rows per page, G3: Mobile max rows, H3: Group enabled (Yes/No)
+    // B4: Layer 3, C4: (blank), F4: Max rows per page, G4: Mobile max rows, H4: Group enabled (Yes/No)
     var layerRows = [2, 3, 4]; // Rows for Layer 1, 2, 3
     var layerCol = 2;  // Column B (1-indexed)
     var mainCol = 3;   // Column C (1-indexed)
     var maxPerPageCol = 6; // Column F (1-indexed)
     var mobileMaxPerPageCol = 7; // Column G (1-indexed) - Mobile only
-    var groupByCol = 8; // Column H (1-indexed) - Group by column name
+    var groupByCol = 8; // Column H (1-indexed) - Group enabled (Yes/No) - uses "Group By" column from layer data table
 
     for (var i = 0; i < layerRows.length; i++) {
       var row = layerRows[i];
@@ -654,8 +654,9 @@ function getLayerConfig(sheetName) {
         mobileMaxPerPage = 0; // 0 means use default maxPerPage
       }
 
-      // groupByColumn: column name from Main table to group items by (blank = no grouping)
-      var groupByColumn = String(groupByColumnValue || "").trim();
+      // groupByColumn: "Yes" = use "Group By" column from layer data table, anything else = no grouping
+      var groupByColumnRaw = String(groupByColumnValue || "").trim().toLowerCase();
+      var groupByColumn = (groupByColumnRaw === "yes") ? "Yes" : "";
 
       // Only include layers that have both name and main column
       if (layerName !== "" && mainColumnName !== "") {
@@ -736,16 +737,17 @@ function getLayerData(layerName, sheetName) {
       return [];
     }
 
-    // Hardcoded positions for each layer table (shifted +1 after adding column H for groupByColumn)
-    // Layer 1: J1 (column 10), Layer 2: O1 (column 15), Layer 3: U1 (column 21)
-    // Each layer table has: Names (filter), Display (display name), Picture Link, [Part of Layer X], Description
+    // Hardcoded positions for each layer table (shifted after adding "Group By" column to each layer table)
+    // Layer 1: J1 (column 10) - 5 cols: Names, Display, Picture Link, Description, Group By
+    // Layer 2: P1 (column 16) - 6 cols: Names, Display, Picture Link, Part of Layer 1, Description, Group By
+    // Layer 3: W1 (column 23) - 6 cols: Names, Display, Picture Link, Part of Layer 2, Description, Group By
     var startCol;
     if (layerName === "Layer 1") {
       startCol = 10; // Column J (1-indexed)
     } else if (layerName === "Layer 2") {
-      startCol = 15; // Column O (1-indexed)
+      startCol = 16; // Column P (1-indexed)
     } else if (layerName === "Layer 3") {
-      startCol = 21; // Column U (1-indexed)
+      startCol = 23; // Column W (1-indexed)
     } else {
       Logger.log("✗ Unknown layer: " + layerName);
       return [];
