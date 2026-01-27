@@ -7167,6 +7167,7 @@ DETECTION SYSTEM (working correctly):
       // Pagination state
       let paginationState = {}; // Store current page per layer/view: {layerIndex: page, "main": page}
       let currentPage = 1; // Current page being displayed
+      let cachedGridColumns = 4; // Cached column count for rows-based pagination (default estimate)
 
       // Tab management state
       let tabsConfig = []; // Tab configuration from backend: [{tabName, layersSheetName, mainSheetName, columnConfigSheetName}, ...]
@@ -7195,9 +7196,38 @@ DETECTION SYSTEM (working correctly):
 
       // -------------------- Pagination Helpers --------------------
 
-      // Get max items per page for a given layer index (-1 = main items)
-      // Value from Sheets F2-F5 = max items per page (0 or blank = no limit)
-      function getMaxPerPage(layerIndex) {
+      // Detect actual columns from rendered grid using computed styles
+      // Works for any device/orientation/view type automatically
+      function detectGridColumns() {
+        const grid = document.getElementById("gridView");
+        if (!grid) return cachedGridColumns;
+
+        // Get computed grid-template-columns (returns actual pixel values like "190px 190px 190px")
+        const computedStyle = window.getComputedStyle(grid);
+        const gridTemplateColumns = computedStyle.getPropertyValue('grid-template-columns');
+
+        if (gridTemplateColumns && gridTemplateColumns !== 'none') {
+          // Split by space and filter out empty/zero values
+          const columns = gridTemplateColumns.split(/\s+/).filter(col => {
+            if (!col || col.length === 0) return false;
+            // Filter out 0px columns (can happen with empty grids)
+            const numVal = parseFloat(col);
+            return !isNaN(numVal) && numVal > 0;
+          });
+          if (columns.length > 0) {
+            cachedGridColumns = columns.length;
+            console.log('[Pagination] Detected ' + columns.length + ' columns from grid');
+            return columns.length;
+          }
+        }
+
+        console.log('[Pagination] Using cached columns: ' + cachedGridColumns);
+        return cachedGridColumns;
+      }
+
+      // Get rows per page from config (Sheets F2-F5)
+      // Value is now interpreted as ROWS, not items
+      function getRowsPerPage(layerIndex) {
         if (layerIndex === -1 || layerIndex === "main") {
           return mainLayerMaxPerPage || 0;
         }
@@ -7206,6 +7236,61 @@ DETECTION SYSTEM (working correctly):
         }
         return 0; // No limit
       }
+
+      // Get max items per page for a given layer index (-1 = main items)
+      // Calculates: rows × detected columns
+      // Value from Sheets F2-F5 = rows per page (0 or blank = no limit)
+      function getMaxPerPage(layerIndex) {
+        const rowsPerPage = getRowsPerPage(layerIndex);
+        if (!rowsPerPage || rowsPerPage <= 0) return 0; // No limit
+
+        // Get current view type to determine if we should use column detection
+        let viewType;
+        if (layerIndex === -1 || layerIndex === "main") {
+          viewType = getMainViewType();
+        } else {
+          viewType = getViewTypeForLayer(layerIndex);
+        }
+
+        // Table and Slide views don't use grid columns for pagination
+        if (viewType === 'table' || viewType === 'slide') {
+          return rowsPerPage; // For table/slide, rows = items
+        }
+
+        // For Cards and List views, calculate rows × columns
+        const columns = detectGridColumns();
+        const maxPerPage = rowsPerPage * columns;
+        console.log('[Pagination] getMaxPerPage: ' + rowsPerPage + ' rows × ' + columns + ' columns = ' + maxPerPage + ' items');
+        return maxPerPage;
+      }
+
+      // Debounced resize handler for re-calculating columns on window resize
+      let resizeTimeout = null;
+      function handleResizeForPagination() {
+        // Debounce: wait 250ms after last resize event
+        if (resizeTimeout) clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          const oldColumns = cachedGridColumns;
+          const newColumns = detectGridColumns();
+
+          if (newColumns !== oldColumns) {
+            console.log('[Pagination] Window resized: columns changed ' + oldColumns + ' -> ' + newColumns + ', re-rendering');
+
+            // Re-render current view
+            if (currentView === 'list') {
+              applyFiltersAndSorting();
+            } else if (currentView === 'layer' && currentLayerIndex >= 0) {
+              // Get parent filter from navigation stack
+              const parentItem = navigationStack.length > 0 ? navigationStack[navigationStack.length - 1].item : null;
+              const parentFilterName = parentItem ? parentItem._filterName || parentItem["Names"] : null;
+              renderLayerView(currentLayerIndex, parentFilterName);
+            }
+          }
+        }, 250);
+      }
+
+      // Attach resize listener
+      window.addEventListener('resize', handleResizeForPagination);
 
       // Get pagination state key for current view
       function getPaginationKey(layerIndex) {
@@ -8190,6 +8275,9 @@ DETECTION SYSTEM (working correctly):
         renderList(items);
       }
 
+      // Flag to prevent re-render loops during column detection
+      let isReRenderingForColumns = false;
+
       function renderList(items) {
         const grid = document.getElementById("gridView");
         const det = document.getElementById("detailView");
@@ -8210,6 +8298,9 @@ DETECTION SYSTEM (working correctly):
             "<p style='color:#6b7280;font-size:13px;'>No items for this selection.</p>";
           return;
         }
+
+        // Store columns used for this render (before detection updates cache)
+        const columnsUsedForRender = cachedGridColumns;
 
         // Pagination: Get max per page for main items (-1 index)
         const maxPerPage = getMaxPerPage(-1);
@@ -8251,6 +8342,20 @@ DETECTION SYSTEM (working correctly):
 
         // Update filter/sort button visibility based on view type
         updateFilterSortVisibility();
+
+        // Post-render: detect actual columns and re-render if needed
+        // Only for Cards and List views (they use grid columns)
+        if (!isReRenderingForColumns && (viewType === 'cards' || viewType === 'list')) {
+          requestAnimationFrame(() => {
+            const actualColumns = detectGridColumns();
+            if (actualColumns !== columnsUsedForRender) {
+              console.log('[Pagination] Column count changed: ' + columnsUsedForRender + ' -> ' + actualColumns + ', re-rendering');
+              isReRenderingForColumns = true;
+              renderList(items);
+              isReRenderingForColumns = false;
+            }
+          });
+        }
       }
 
       // Render Cards View (current default grid layout)
@@ -9901,6 +10006,9 @@ DETECTION SYSTEM (working correctly):
         });
       }
 
+      // Flag to prevent re-render loops during layer column detection
+      let isReRenderingLayerForColumns = false;
+
       // Render a layer view respecting displayViewType
       function renderLayerView(layerIndex, parentFilterName) {
         const grid = document.getElementById("gridView");
@@ -9950,6 +10058,9 @@ DETECTION SYSTEM (working correctly):
           "Description": item["Description"]
         }));
 
+        // Store columns used for this render (before detection updates cache)
+        const columnsUsedForRender = cachedGridColumns;
+
         // Pagination: Get max per page and calculate pagination
         const maxPerPage = getMaxPerPage(layerIndex);
         const totalItems = standardizedItems.length;
@@ -9993,6 +10104,20 @@ DETECTION SYSTEM (working correctly):
 
         // Update all UI visibility (back button, search bar, filter/sort, filters-row)
         updateAllUIVisibility();
+
+        // Post-render: detect actual columns and re-render if needed
+        // Only for Cards and List views (they use grid columns)
+        if (!isReRenderingLayerForColumns && (viewType === 'cards' || viewType === 'list')) {
+          requestAnimationFrame(() => {
+            const actualColumns = detectGridColumns();
+            if (actualColumns !== columnsUsedForRender) {
+              console.log('[Pagination] Layer column count changed: ' + columnsUsedForRender + ' -> ' + actualColumns + ', re-rendering');
+              isReRenderingLayerForColumns = true;
+              renderLayerView(layerIndex, parentFilterName);
+              isReRenderingLayerForColumns = false;
+            }
+          });
+        }
       }
 
       // Render layer items as cards
