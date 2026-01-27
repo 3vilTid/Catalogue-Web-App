@@ -1202,6 +1202,53 @@ DETECTION SYSTEM (working correctly):
         padding: 0 4px;
       }
 
+      /* Grouped View --------------------------------------------------------- */
+      .grouped-view {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+        margin-top: 8px;
+      }
+
+      .item-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .group-header {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1f2937;
+        padding: 8px 0;
+        border-bottom: 2px solid #e5e7eb;
+        margin-bottom: 4px;
+      }
+
+      .item-group .grid {
+        margin-top: 0;
+      }
+
+      .item-group .list-view {
+        margin-top: 0;
+      }
+
+      /* Group pagination - slightly smaller */
+      .group-pagination {
+        padding: 12px 8px;
+      }
+
+      .group-pagination .pagination-btn {
+        min-width: 32px;
+        height: 32px;
+        font-size: 12px;
+      }
+
+      .group-pagination .pagination-prev,
+      .group-pagination .pagination-next {
+        font-size: 14px;
+      }
+
       /* Slide Quick Nav (for jumping to specific items in slide view) */
       .slide-quick-nav {
         display: flex;
@@ -7158,10 +7205,11 @@ DETECTION SYSTEM (working correctly):
       let expandedRows = new Set(); // Track which rows are expanded (stores item index or identifier)
 
       // Layer navigation state
-      let layerConfig = []; // Layer configuration from backend (includes maxPerPage and mobileMaxPerPage per layer)
+      let layerConfig = []; // Layer configuration from backend (includes maxPerPage, mobileMaxPerPage, groupByColumn per layer)
       let layersData = {}; // All layer data by layer name
       let mainLayerMaxPerPage = 0; // Max rows per page for Main Layer (from F5), 0 = no limit
       let mainLayerMobileMaxPerPage = 0; // Max rows per page for Main Layer on Mobile (from G5), 0 = use default
+      let mainLayerGroupByColumn = ''; // Column name to group Main Layer items by (from H5), blank = no grouping
       let navigationStack = []; // Stack of navigation history: [{type: "layer", layerName: "Layer 1", item: {...}}, ...]
       let currentLayerIndex = -1; // Index in layerConfig (-1 = home, 0 = Layer 1, 1 = Layer 2, etc.)
 
@@ -7427,6 +7475,141 @@ DETECTION SYSTEM (working correctly):
           grid.appendChild(paginationDiv.firstChild);
         }
       }
+
+      // -------------------- Grouping Helpers --------------------
+
+      // Group pagination state: { groupKey: { page: 1 } }
+      let groupPaginationState = {};
+
+      // Get group by column for a layer index (-1 = main items)
+      function getGroupByColumn(layerIndex) {
+        if (layerIndex === -1 || layerIndex === "main") {
+          return mainLayerGroupByColumn || '';
+        }
+        if (layerIndex >= 0 && layerIndex < layerConfig.length) {
+          return layerConfig[layerIndex].groupByColumn || '';
+        }
+        return '';
+      }
+
+      // Group items by a column value
+      // Returns: { groupName: [items], ... } with groups sorted alphabetically, "Other" at end
+      function groupItemsByColumn(items, columnName) {
+        const groups = {};
+        const otherGroup = [];
+
+        for (const item of items) {
+          const value = item[columnName];
+          const groupKey = (value && String(value).trim()) || '';
+
+          if (groupKey === '') {
+            otherGroup.push(item);
+          } else {
+            if (!groups[groupKey]) {
+              groups[groupKey] = [];
+            }
+            groups[groupKey].push(item);
+          }
+        }
+
+        // Sort group keys alphabetically
+        const sortedKeys = Object.keys(groups).sort((a, b) => a.localeCompare(b));
+
+        // Build ordered result
+        const result = {};
+        for (const key of sortedKeys) {
+          result[key] = groups[key];
+        }
+
+        // Add "Other" at the end if there are items without a value
+        if (otherGroup.length > 0) {
+          result['Other'] = otherGroup;
+        }
+
+        return result;
+      }
+
+      // Get pagination key for a group within a layer
+      function getGroupPaginationKey(layerIndex, groupKey) {
+        const layerKey = layerIndex === -1 ? "main" : "layer_" + layerIndex;
+        return layerKey + "_group_" + groupKey;
+      }
+
+      // Get current page for a group
+      function getCurrentPageForGroup(layerIndex, groupKey) {
+        const key = getGroupPaginationKey(layerIndex, groupKey);
+        return groupPaginationState[key] || 1;
+      }
+
+      // Set current page for a group
+      function setCurrentPageForGroup(layerIndex, groupKey, page) {
+        const key = getGroupPaginationKey(layerIndex, groupKey);
+        groupPaginationState[key] = page;
+      }
+
+      // Reset all group pagination when changing views
+      function resetGroupPagination() {
+        groupPaginationState = {};
+      }
+
+      // Navigate to page within a group
+      function goToGroupPage(page, layerIndex, groupKey) {
+        console.log('[GroupPagination] goToGroupPage: page=' + page + ', layerIndex=' + layerIndex + ', groupKey=' + groupKey);
+        setCurrentPageForGroup(layerIndex, groupKey, page);
+
+        if (layerIndex === -1) {
+          // Re-render main items
+          applyFiltersAndSorting();
+        } else {
+          // Re-render layer view
+          const parentFilter = navigationStack.length > 0
+            ? (navigationStack[navigationStack.length - 1].filterName || navigationStack[navigationStack.length - 1].itemName)
+            : null;
+          renderLayerView(layerIndex, parentFilter);
+        }
+      }
+
+      // Build pagination HTML for a group
+      function buildGroupPaginationHtml(currentPage, totalPages, layerIndex, groupKey) {
+        if (totalPages <= 1) return '';
+
+        // Escape groupKey for use in onclick
+        const escapedGroupKey = groupKey.replace(/'/g, "\\'").replace(/"/g, '\\"');
+
+        let html = '<div class="pagination-container group-pagination">';
+
+        // Previous button
+        if (currentPage > 1) {
+          html += '<button class="pagination-btn pagination-prev" onclick="goToGroupPage(' + (currentPage - 1) + ', ' + layerIndex + ', \'' + escapedGroupKey + '\')">&laquo;</button>';
+        } else {
+          html += '<button class="pagination-btn pagination-prev disabled" disabled>&laquo;</button>';
+        }
+
+        // Page numbers (simplified for groups - show max 5)
+        const maxButtons = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+        let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+        if (endPage - startPage + 1 < maxButtons) {
+          startPage = Math.max(1, endPage - maxButtons + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+          const activeClass = i === currentPage ? ' active' : '';
+          html += '<button class="pagination-btn pagination-num' + activeClass + '" onclick="goToGroupPage(' + i + ', ' + layerIndex + ', \'' + escapedGroupKey + '\')">' + i + '</button>';
+        }
+
+        // Next button
+        if (currentPage < totalPages) {
+          html += '<button class="pagination-btn pagination-next" onclick="goToGroupPage(' + (currentPage + 1) + ', ' + layerIndex + ', \'' + escapedGroupKey + '\')">&raquo;</button>';
+        } else {
+          html += '<button class="pagination-btn pagination-next disabled" disabled>&raquo;</button>';
+        }
+
+        html += '</div>';
+        return html;
+      }
+
+      // -------------------- End Grouping Helpers --------------------
 
       // -------------------- End Pagination Helpers --------------------
 
@@ -8317,6 +8500,13 @@ DETECTION SYSTEM (working correctly):
           return;
         }
 
+        // Check if grouping is enabled for main items
+        const groupByColumn = getGroupByColumn(-1);
+        if (groupByColumn) {
+          renderGroupedList(items, grid, -1, groupByColumn);
+          return;
+        }
+
         // Store columns used for this render (before detection updates cache)
         const columnsUsedForRender = cachedGridColumns;
 
@@ -8373,6 +8563,534 @@ DETECTION SYSTEM (working correctly):
               isReRenderingForColumns = false;
             }
           });
+        }
+      }
+
+      // Render items grouped by a column value
+      // Each group has its own header and pagination
+      function renderGroupedList(items, grid, layerIndex, groupByColumn) {
+        const viewType = layerIndex === -1 ? getMainViewType() : getViewTypeForLayer(layerIndex);
+        const style = layerIndex === -1 ? getMainStyle() : getStyleForLayer(layerIndex);
+
+        // Table and Slide views don't support grouping - fall back to regular render
+        if (viewType === 'table' || viewType === 'slide') {
+          console.log('[Grouping] Table/Slide view does not support grouping, rendering normally');
+          if (layerIndex === -1) {
+            // Remove grouping temporarily and render
+            const savedGroupBy = mainLayerGroupByColumn;
+            mainLayerGroupByColumn = '';
+            renderList(items);
+            mainLayerGroupByColumn = savedGroupBy;
+          }
+          return;
+        }
+
+        // Group items by the column value
+        const groups = groupItemsByColumn(items, groupByColumn);
+        const groupKeys = Object.keys(groups);
+
+        console.log('[Grouping] Grouped ' + items.length + ' items into ' + groupKeys.length + ' groups by "' + groupByColumn + '"');
+
+        // Get rows per page (used for each group)
+        const rowsPerPage = getRowsPerPage(layerIndex);
+
+        // Create container for all groups
+        grid.classList.remove('grid', 'list-view', 'table-view', 'slide-view', 'grid-rectangle');
+        grid.classList.add('grouped-view');
+
+        // Render each group
+        for (const groupKey of groupKeys) {
+          const groupItems = groups[groupKey];
+
+          // Create group container
+          const groupContainer = document.createElement('div');
+          groupContainer.className = 'item-group';
+          groupContainer.dataset.groupKey = groupKey;
+
+          // Create group header
+          const groupHeader = document.createElement('div');
+          groupHeader.className = 'group-header';
+          groupHeader.textContent = groupKey;
+          groupContainer.appendChild(groupHeader);
+
+          // Create group grid
+          const groupGrid = document.createElement('div');
+          groupGrid.className = viewType === 'list' ? 'list-view' : 'grid';
+
+          // Apply style classes
+          if (viewType === 'cards') {
+            if (style === 'Rectangle') {
+              groupGrid.classList.add('grid-rectangle');
+            }
+          } else if (viewType === 'list') {
+            if (style === 'Double') {
+              groupGrid.classList.add('style-double');
+            } else if (style === 'Triple') {
+              groupGrid.classList.add('style-triple');
+            } else {
+              groupGrid.classList.add('style-simple');
+            }
+          }
+
+          // Calculate pagination for this group
+          // Detect columns from a rendered group (use cached value for now)
+          const columns = cachedGridColumns;
+          const maxPerPage = rowsPerPage > 0 ? rowsPerPage * columns : 0;
+          const totalPages = getTotalPages(groupItems.length, maxPerPage);
+          let page = getCurrentPageForGroup(layerIndex, groupKey);
+
+          // Ensure page is within bounds
+          if (page > totalPages) {
+            page = totalPages;
+            setCurrentPageForGroup(layerIndex, groupKey, page);
+          }
+          if (page < 1) {
+            page = 1;
+            setCurrentPageForGroup(layerIndex, groupKey, page);
+          }
+
+          // Get paginated items for this group
+          const paginatedGroupItems = getPaginatedItems(groupItems, page, maxPerPage);
+
+          // Render items into group grid
+          if (viewType === 'list') {
+            renderListViewItems(paginatedGroupItems, groupGrid, layerIndex);
+          } else {
+            renderCardsViewItems(paginatedGroupItems, groupGrid, layerIndex, style);
+          }
+
+          groupContainer.appendChild(groupGrid);
+
+          // Render group pagination if needed
+          if (totalPages > 1) {
+            const paginationHtml = buildGroupPaginationHtml(page, totalPages, layerIndex, groupKey);
+            if (paginationHtml) {
+              const paginationDiv = document.createElement('div');
+              paginationDiv.innerHTML = paginationHtml;
+              groupContainer.appendChild(paginationDiv.firstChild);
+            }
+          }
+
+          grid.appendChild(groupContainer);
+        }
+
+        // Update filter/sort button visibility
+        updateFilterSortVisibility();
+      }
+
+      // Helper: Render cards view items into a container (used by grouped rendering)
+      function renderCardsViewItems(items, container, layerIndex, style) {
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          const card = document.createElement("div");
+          card.className = "card";
+
+          // Apply style class based on card style
+          if (style === 'Rectangle') {
+            card.classList.add('style-rectangle');
+          } else if (style === 'Circle') {
+            card.classList.add('style-circle');
+          }
+
+          // Create image wrapper for lazy loading
+          const imgWrapper = document.createElement("div");
+          imgWrapper.className = "card-img-wrapper";
+
+          // Get image URL
+          const imgUrl = getItemImageUrl(item);
+          if (imgUrl) {
+            const img = document.createElement("img");
+            img.className = "card-img lazy-image";
+            img.dataset.src = imgUrl;
+            img.alt = getItemName(item) || "Item image";
+            img.loading = "lazy";
+            imgWrapper.appendChild(img);
+          } else {
+            imgWrapper.innerHTML = '<div class="card-img-placeholder">No Image</div>';
+          }
+
+          card.appendChild(imgWrapper);
+
+          // Add item name
+          const nameDiv = document.createElement("div");
+          nameDiv.className = "card-name";
+          nameDiv.textContent = getItemName(item) || "Unnamed";
+          card.appendChild(nameDiv);
+
+          // Add click handler
+          card.addEventListener("click", function () {
+            // Find the item index in currentDisplayedItems for navigation
+            const itemIndex = currentDisplayedItems.findIndex(it =>
+              getItemName(it) === getItemName(item) && getItemImageUrl(it) === getItemImageUrl(item)
+            );
+            showDetails(item, itemIndex >= 0 ? itemIndex : i);
+          });
+
+          container.appendChild(card);
+        }
+
+        // Setup lazy loading for new images
+        if (typeof setupLazyLoading === 'function') {
+          setTimeout(() => setupLazyLoading(), 50);
+        }
+      }
+
+      // Helper: Render list view items into a container (used by grouped rendering)
+      function renderListViewItems(items, container, layerIndex) {
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          const listItem = document.createElement("div");
+          listItem.className = "list-item";
+
+          // Image on the left
+          const imgWrapper = document.createElement("div");
+          imgWrapper.className = "list-item-img-wrapper";
+
+          const imgUrl = getItemImageUrl(item);
+          if (imgUrl) {
+            const img = document.createElement("img");
+            img.className = "list-item-img lazy-image";
+            img.dataset.src = imgUrl;
+            img.alt = getItemName(item) || "Item image";
+            img.loading = "lazy";
+            imgWrapper.appendChild(img);
+          } else {
+            imgWrapper.innerHTML = '<div class="list-item-img-placeholder">No Image</div>';
+          }
+
+          listItem.appendChild(imgWrapper);
+
+          // Details on the right
+          const detailsWrapper = document.createElement("div");
+          detailsWrapper.className = "list-item-details";
+
+          const nameDiv = document.createElement("div");
+          nameDiv.className = "list-item-name";
+          nameDiv.textContent = getItemName(item) || "Unnamed";
+          detailsWrapper.appendChild(nameDiv);
+
+          // Add category/subtitle if available
+          const category = getItemCategory(item);
+          if (category) {
+            const categoryDiv = document.createElement("div");
+            categoryDiv.className = "list-item-category";
+            categoryDiv.textContent = category;
+            detailsWrapper.appendChild(categoryDiv);
+          }
+
+          listItem.appendChild(detailsWrapper);
+
+          // Add click handler
+          listItem.addEventListener("click", function () {
+            const itemIndex = currentDisplayedItems.findIndex(it =>
+              getItemName(it) === getItemName(item) && getItemImageUrl(it) === getItemImageUrl(item)
+            );
+            showDetails(item, itemIndex >= 0 ? itemIndex : i);
+          });
+
+          container.appendChild(listItem);
+        }
+
+        // Setup lazy loading
+        if (typeof setupLazyLoading === 'function') {
+          setTimeout(() => setupLazyLoading(), 50);
+        }
+      }
+
+      // Helper: Get item name (handles both main items and layer items)
+      function getItemName(item) {
+        if (item._isLayerItem) {
+          return item["Names"] || item._rawLayerItem?.["Names"] || "";
+        }
+        return item[nameColumn] || item["Names"] || "";
+      }
+
+      // Helper: Get item image URL (handles both main items and layer items)
+      function getItemImageUrl(item) {
+        if (item._isLayerItem) {
+          return item["Picture Link"] || item._rawLayerItem?.["Picture Link"] || "";
+        }
+        return item[imageColumn] || item["Picture Link"] || "";
+      }
+
+      // Helper: Get item category (handles both main items and layer items)
+      function getItemCategory(item) {
+        if (item._isLayerItem) {
+          return item["Description"] || "";
+        }
+        return item[categoryColumn] || "";
+      }
+
+      // Render layer items grouped by a column value
+      // For layer items, we look in _rawLayerItem for the column value
+      function renderGroupedLayerList(items, grid, layerIndex, groupByColumn, parentFilterName) {
+        const viewType = getViewTypeForLayer(layerIndex);
+        const style = getStyleForLayer(layerIndex);
+
+        // Table and Slide views don't support grouping
+        if (viewType === 'table' || viewType === 'slide') {
+          console.log('[Grouping] Table/Slide view does not support grouping, rendering normally');
+          // Render without grouping
+          const savedGroupBy = layerConfig[layerIndex].groupByColumn;
+          layerConfig[layerIndex].groupByColumn = '';
+          renderLayerView(layerIndex, parentFilterName);
+          layerConfig[layerIndex].groupByColumn = savedGroupBy;
+          return;
+        }
+
+        // Group items - for layer items, check _rawLayerItem for the column
+        const groups = {};
+        const otherGroup = [];
+
+        for (const item of items) {
+          // Try to get value from _rawLayerItem (layer table columns) or directly from item
+          let value = '';
+          if (item._rawLayerItem && item._rawLayerItem[groupByColumn] !== undefined) {
+            value = item._rawLayerItem[groupByColumn];
+          } else if (item[groupByColumn] !== undefined) {
+            value = item[groupByColumn];
+          }
+
+          const groupKey = (value && String(value).trim()) || '';
+
+          if (groupKey === '') {
+            otherGroup.push(item);
+          } else {
+            if (!groups[groupKey]) {
+              groups[groupKey] = [];
+            }
+            groups[groupKey].push(item);
+          }
+        }
+
+        // Sort group keys alphabetically
+        const sortedKeys = Object.keys(groups).sort((a, b) => a.localeCompare(b));
+        if (otherGroup.length > 0) {
+          sortedKeys.push('Other');
+          groups['Other'] = otherGroup;
+        }
+
+        console.log('[Grouping] Grouped ' + items.length + ' layer items into ' + sortedKeys.length + ' groups by "' + groupByColumn + '"');
+
+        // Get rows per page
+        const rowsPerPage = getRowsPerPage(layerIndex);
+
+        // Create container for all groups
+        grid.classList.remove('grid', 'list-view', 'table-view', 'slide-view', 'grid-rectangle');
+        grid.classList.add('grouped-view');
+
+        // Render each group
+        for (const groupKey of sortedKeys) {
+          const groupItems = groups[groupKey];
+
+          // Create group container
+          const groupContainer = document.createElement('div');
+          groupContainer.className = 'item-group';
+          groupContainer.dataset.groupKey = groupKey;
+
+          // Create group header
+          const groupHeader = document.createElement('div');
+          groupHeader.className = 'group-header';
+          groupHeader.textContent = groupKey;
+          groupContainer.appendChild(groupHeader);
+
+          // Create group grid
+          const groupGrid = document.createElement('div');
+          groupGrid.className = viewType === 'list' ? 'list-view' : 'grid';
+
+          // Apply style classes
+          if (viewType === 'cards') {
+            if (style === 'Rectangle') {
+              groupGrid.classList.add('grid-rectangle');
+            }
+          } else if (viewType === 'list') {
+            if (style === 'Double') {
+              groupGrid.classList.add('style-double');
+            } else if (style === 'Triple') {
+              groupGrid.classList.add('style-triple');
+            } else {
+              groupGrid.classList.add('style-simple');
+            }
+          }
+
+          // Calculate pagination for this group
+          const columns = cachedGridColumns;
+          const maxPerPage = rowsPerPage > 0 ? rowsPerPage * columns : 0;
+          const totalPages = getTotalPages(groupItems.length, maxPerPage);
+          let page = getCurrentPageForGroup(layerIndex, groupKey);
+
+          // Ensure page is within bounds
+          if (page > totalPages) {
+            page = totalPages;
+            setCurrentPageForGroup(layerIndex, groupKey, page);
+          }
+          if (page < 1) {
+            page = 1;
+            setCurrentPageForGroup(layerIndex, groupKey, page);
+          }
+
+          // Get paginated items for this group
+          const paginatedGroupItems = getPaginatedItems(groupItems, page, maxPerPage);
+
+          // Render items into group grid
+          if (viewType === 'list') {
+            renderLayerListViewItems(paginatedGroupItems, groupGrid, layerIndex);
+          } else {
+            renderLayerCardsViewItems(paginatedGroupItems, groupGrid, layerIndex, style);
+          }
+
+          groupContainer.appendChild(groupGrid);
+
+          // Render group pagination if needed
+          if (totalPages > 1) {
+            const paginationHtml = buildGroupPaginationHtml(page, totalPages, layerIndex, groupKey);
+            if (paginationHtml) {
+              const paginationDiv = document.createElement('div');
+              paginationDiv.innerHTML = paginationHtml;
+              groupContainer.appendChild(paginationDiv.firstChild);
+            }
+          }
+
+          grid.appendChild(groupContainer);
+        }
+
+        // Update UI visibility
+        updateAllUIVisibility();
+      }
+
+      // Helper: Render layer cards view items into a container
+      function renderLayerCardsViewItems(items, container, layerIndex, style) {
+        for (let i = 0; i < items.length; i++) {
+          const standardItem = items[i];
+          const item = standardItem._rawLayerItem;
+          const card = document.createElement("div");
+          card.className = "card";
+
+          // Apply style
+          if (style === 'Rectangle') {
+            card.classList.add('style-rectangle');
+          } else if (style === 'Circle') {
+            card.classList.add('style-circle');
+          }
+
+          // Create image wrapper
+          const imgWrapper = document.createElement("div");
+          imgWrapper.className = "card-img-wrapper";
+
+          const imgUrl = item["Picture Link"] || "";
+          if (imgUrl) {
+            const img = document.createElement("img");
+            img.className = "card-img lazy-image";
+            img.dataset.src = imgUrl;
+            img.alt = standardItem["Names"] || "Item image";
+            img.loading = "lazy";
+            imgWrapper.appendChild(img);
+          } else {
+            imgWrapper.innerHTML = '<div class="card-img-placeholder">No Image</div>';
+          }
+
+          card.appendChild(imgWrapper);
+
+          // Add item name
+          const nameDiv = document.createElement("div");
+          nameDiv.className = "card-name";
+          nameDiv.textContent = standardItem["Names"] || "Unnamed";
+          card.appendChild(nameDiv);
+
+          // Add click handler for layer navigation
+          const filterName = standardItem._filterName || standardItem["Names"];
+          card.addEventListener("click", function () {
+            handleLayerItemClick(standardItem, layerIndex, filterName);
+          });
+
+          container.appendChild(card);
+        }
+
+        // Setup lazy loading
+        if (typeof setupLazyLoading === 'function') {
+          setTimeout(() => setupLazyLoading(), 50);
+        }
+      }
+
+      // Helper: Render layer list view items into a container
+      function renderLayerListViewItems(items, container, layerIndex) {
+        for (let i = 0; i < items.length; i++) {
+          const standardItem = items[i];
+          const item = standardItem._rawLayerItem;
+          const listItem = document.createElement("div");
+          listItem.className = "list-item";
+
+          // Image
+          const imgWrapper = document.createElement("div");
+          imgWrapper.className = "list-item-img-wrapper";
+
+          const imgUrl = item["Picture Link"] || "";
+          if (imgUrl) {
+            const img = document.createElement("img");
+            img.className = "list-item-img lazy-image";
+            img.dataset.src = imgUrl;
+            img.alt = standardItem["Names"] || "Item image";
+            img.loading = "lazy";
+            imgWrapper.appendChild(img);
+          } else {
+            imgWrapper.innerHTML = '<div class="list-item-img-placeholder">No Image</div>';
+          }
+
+          listItem.appendChild(imgWrapper);
+
+          // Details
+          const detailsWrapper = document.createElement("div");
+          detailsWrapper.className = "list-item-details";
+
+          const nameDiv = document.createElement("div");
+          nameDiv.className = "list-item-name";
+          nameDiv.textContent = standardItem["Names"] || "Unnamed";
+          detailsWrapper.appendChild(nameDiv);
+
+          if (standardItem["Description"]) {
+            const descDiv = document.createElement("div");
+            descDiv.className = "list-item-category";
+            descDiv.textContent = standardItem["Description"];
+            detailsWrapper.appendChild(descDiv);
+          }
+
+          listItem.appendChild(detailsWrapper);
+
+          // Click handler
+          const filterName = standardItem._filterName || standardItem["Names"];
+          listItem.addEventListener("click", function () {
+            handleLayerItemClick(standardItem, layerIndex, filterName);
+          });
+
+          container.appendChild(listItem);
+        }
+
+        // Setup lazy loading
+        if (typeof setupLazyLoading === 'function') {
+          setTimeout(() => setupLazyLoading(), 50);
+        }
+      }
+
+      // Handle layer item click (navigate to next layer or filter main items)
+      function handleLayerItemClick(standardItem, layerIndex, filterName) {
+        // Check if there are more layers
+        if (layerIndex < layerConfig.length - 1) {
+          // Navigate to next layer
+          navigateToLayer(layerIndex + 1, filterName);
+        } else {
+          // Last layer - filter and show main items
+          const mainColumnName = layerConfig[layerIndex].mainColumnName;
+
+          // Push to navigation stack
+          navigationStack.push({
+            type: "layer",
+            layerIndex: layerIndex,
+            filterName: filterName,
+            itemName: standardItem["Names"]
+          });
+
+          // Filter main items by this layer's value
+          filterByLayerValue(mainColumnName, filterName);
         }
       }
 
@@ -10076,6 +10794,15 @@ DETECTION SYSTEM (working correctly):
           "Description": item["Description"]
         }));
 
+        // Check if grouping is enabled for this layer
+        const groupByColumn = getGroupByColumn(layerIndex);
+        if (groupByColumn) {
+          // For layer items, we need to look in the raw layer item for the grouping column
+          // Or if it's a Main table column, we group by that column from linked main items
+          renderGroupedLayerList(standardizedItems, grid, layerIndex, groupByColumn, parentFilterName);
+          return;
+        }
+
         // Store columns used for this render (before detection updates cache)
         const columnsUsedForRender = cachedGridColumns;
 
@@ -11707,6 +12434,7 @@ DETECTION SYSTEM (working correctly):
           const mainLayerPagination = cachedData.mainLayerMaxPerPage || {};
           mainLayerMaxPerPage = mainLayerPagination.maxPerPage || 0;
           mainLayerMobileMaxPerPage = mainLayerPagination.mobileMaxPerPage || 0;
+          mainLayerGroupByColumn = mainLayerPagination.groupByColumn || '';
           allItems = cachedData.items || [];
           columnConfig = cachedData.columnConfig || [];
           headers = cachedData.headers || [];
@@ -11774,6 +12502,7 @@ DETECTION SYSTEM (working correctly):
             const mainLayerPagination = tabData.mainLayerMaxPerPage || {};
             mainLayerMaxPerPage = mainLayerPagination.maxPerPage || 0;
             mainLayerMobileMaxPerPage = mainLayerPagination.mobileMaxPerPage || 0;
+            mainLayerGroupByColumn = mainLayerPagination.groupByColumn || '';
             allItems = tabData.items || [];
             columnConfig = tabData.columnConfig || [];
             headers = tabData.headers || [];
@@ -11844,7 +12573,7 @@ DETECTION SYSTEM (working correctly):
         tabDataCache[0] = {
           layerConfig: layerConfig,
           layersData: layersData,
-          mainLayerMaxPerPage: { maxPerPage: mainLayerMaxPerPage, mobileMaxPerPage: mainLayerMobileMaxPerPage },
+          mainLayerMaxPerPage: { maxPerPage: mainLayerMaxPerPage, mobileMaxPerPage: mainLayerMobileMaxPerPage, groupByColumn: mainLayerGroupByColumn },
           items: allItems,
           columnConfig: columnConfig,
           headers: headers,
@@ -13599,6 +14328,7 @@ DETECTION SYSTEM (working correctly):
             const mainLayerPagination = payload.mainLayerMaxPerPage || {};
             mainLayerMaxPerPage = mainLayerPagination.maxPerPage || 0;
             mainLayerMobileMaxPerPage = mainLayerPagination.mobileMaxPerPage || 0;
+            mainLayerGroupByColumn = mainLayerPagination.groupByColumn || '';
 
             // Store tabs configuration (if available)
             tabsConfig = payload.tabsConfig || [];
@@ -13690,6 +14420,7 @@ DETECTION SYSTEM (working correctly):
             const mainLayerPagination = payload.mainLayerMaxPerPage || {};
             mainLayerMaxPerPage = mainLayerPagination.maxPerPage || 0;
             mainLayerMobileMaxPerPage = mainLayerPagination.mobileMaxPerPage || 0;
+            mainLayerGroupByColumn = mainLayerPagination.groupByColumn || '';
 
             // Store tabs configuration (if available)
             tabsConfig = payload.tabsConfig || [];
@@ -13775,6 +14506,7 @@ DETECTION SYSTEM (working correctly):
             const mainLayerPagination = payload.mainLayerMaxPerPage || {};
             mainLayerMaxPerPage = mainLayerPagination.maxPerPage || 0;
             mainLayerMobileMaxPerPage = mainLayerPagination.mobileMaxPerPage || 0;
+            mainLayerGroupByColumn = mainLayerPagination.groupByColumn || '';
 
             // Store tabs configuration (if available)
             tabsConfig = payload.tabsConfig || [];
