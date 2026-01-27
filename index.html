@@ -7158,9 +7158,10 @@ DETECTION SYSTEM (working correctly):
       let expandedRows = new Set(); // Track which rows are expanded (stores item index or identifier)
 
       // Layer navigation state
-      let layerConfig = []; // Layer configuration from backend (includes maxPerPage per layer)
+      let layerConfig = []; // Layer configuration from backend (includes maxPerPage and mobileMaxPerPage per layer)
       let layersData = {}; // All layer data by layer name
-      let mainLayerMaxPerPage = 0; // Max items per page for Main Layer (from F5), 0 = no limit
+      let mainLayerMaxPerPage = 0; // Max rows per page for Main Layer (from F5), 0 = no limit
+      let mainLayerMobileMaxPerPage = 0; // Max rows per page for Main Layer on Mobile (from G5), 0 = use default
       let navigationStack = []; // Stack of navigation history: [{type: "layer", layerName: "Layer 1", item: {...}}, ...]
       let currentLayerIndex = -1; // Index in layerConfig (-1 = home, 0 = Layer 1, 1 = Layer 2, etc.)
 
@@ -7225,14 +7226,31 @@ DETECTION SYSTEM (working correctly):
         return cachedGridColumns;
       }
 
-      // Get rows per page from config (Sheets F2-F5)
+      // Check if device is mobile (not tablet)
+      function isMobileDevice() {
+        return document.body.classList.contains('mobile-device');
+      }
+
+      // Get rows per page from config (Sheets F2-F5, G2-G5 for mobile)
       // Value is now interpreted as ROWS, not items
+      // On mobile devices, uses mobileMaxPerPage if set (G column), otherwise falls back to default (F column)
       function getRowsPerPage(layerIndex) {
+        const isMobile = isMobileDevice();
+
         if (layerIndex === -1 || layerIndex === "main") {
+          // Mobile: use mobile value if set, otherwise fall back to default
+          if (isMobile && mainLayerMobileMaxPerPage > 0) {
+            return mainLayerMobileMaxPerPage;
+          }
           return mainLayerMaxPerPage || 0;
         }
         if (layerIndex >= 0 && layerIndex < layerConfig.length) {
-          return layerConfig[layerIndex].maxPerPage || 0;
+          const layer = layerConfig[layerIndex];
+          // Mobile: use mobile value if set, otherwise fall back to default
+          if (isMobile && layer.mobileMaxPerPage > 0) {
+            return layer.mobileMaxPerPage;
+          }
+          return layer.maxPerPage || 0;
         }
         return 0; // No limit
       }
@@ -11685,7 +11703,10 @@ DETECTION SYSTEM (working correctly):
           const cachedData = tabDataCache[tabIndex];
           layerConfig = cachedData.layerConfig || [];
           layersData = cachedData.layersData || {};
-          mainLayerMaxPerPage = cachedData.mainLayerMaxPerPage || false;
+          // mainLayerMaxPerPage is now an object { maxPerPage, mobileMaxPerPage }
+          const mainLayerPagination = cachedData.mainLayerMaxPerPage || {};
+          mainLayerMaxPerPage = mainLayerPagination.maxPerPage || 0;
+          mainLayerMobileMaxPerPage = mainLayerPagination.mobileMaxPerPage || 0;
           allItems = cachedData.items || [];
           columnConfig = cachedData.columnConfig || [];
           headers = cachedData.headers || [];
@@ -11749,7 +11770,10 @@ DETECTION SYSTEM (working correctly):
             // Update app data with tab-specific configuration
             layerConfig = tabData.layerConfig || [];
             layersData = tabData.layersData || {};
-            mainLayerMaxPerPage = tabData.mainLayerMaxPerPage || false;
+            // mainLayerMaxPerPage is now an object { maxPerPage, mobileMaxPerPage }
+            const mainLayerPagination = tabData.mainLayerMaxPerPage || {};
+            mainLayerMaxPerPage = mainLayerPagination.maxPerPage || 0;
+            mainLayerMobileMaxPerPage = mainLayerPagination.mobileMaxPerPage || 0;
             allItems = tabData.items || [];
             columnConfig = tabData.columnConfig || [];
             headers = tabData.headers || [];
@@ -11762,11 +11786,11 @@ DETECTION SYSTEM (working correctly):
               console.log('✅ View types and styles updated for tab:', tab.tabName);
             }
 
-            // Cache the data for future use
+            // Cache the data for future use (store original object format for mainLayerMaxPerPage)
             tabDataCache[tabIndex] = {
               layerConfig: layerConfig,
               layersData: layersData,
-              mainLayerMaxPerPage: mainLayerMaxPerPage,
+              mainLayerMaxPerPage: tabData.mainLayerMaxPerPage, // Keep original object { maxPerPage, mobileMaxPerPage }
               items: allItems,
               columnConfig: columnConfig,
               headers: headers,
@@ -11816,10 +11840,11 @@ DETECTION SYSTEM (working correctly):
         if (tabsConfig.length === 0) return;
 
         // Store initial tab data in cache so switching back is instant
+        // Store mainLayerMaxPerPage as object format for consistency
         tabDataCache[0] = {
           layerConfig: layerConfig,
           layersData: layersData,
-          mainLayerMaxPerPage: mainLayerMaxPerPage,
+          mainLayerMaxPerPage: { maxPerPage: mainLayerMaxPerPage, mobileMaxPerPage: mainLayerMobileMaxPerPage },
           items: allItems,
           columnConfig: columnConfig,
           headers: headers,
@@ -13570,7 +13595,10 @@ DETECTION SYSTEM (working correctly):
             // Store layer configuration and data
             layerConfig = payload.layerConfig || [];
             layersData = payload.layersData || {};
-            mainLayerMaxPerPage = payload.mainLayerMaxPerPage || false;
+            // mainLayerMaxPerPage is now an object { maxPerPage, mobileMaxPerPage }
+            const mainLayerPagination = payload.mainLayerMaxPerPage || {};
+            mainLayerMaxPerPage = mainLayerPagination.maxPerPage || 0;
+            mainLayerMobileMaxPerPage = mainLayerPagination.mobileMaxPerPage || 0;
 
             // Store tabs configuration (if available)
             tabsConfig = payload.tabsConfig || [];
@@ -13579,7 +13607,7 @@ DETECTION SYSTEM (working correctly):
             console.log('📊 Layer Config:', layerConfig);
             console.log('📊 Layers Data:', layersData);
             console.log('📊 Has Layers:', layerConfig.length > 0);
-            console.log('📊 Main Layer Show Search:', mainLayerMaxPerPage);
+            console.log('📊 Main Layer Max Rows:', mainLayerMaxPerPage, 'Mobile:', mainLayerMobileMaxPerPage);
             console.log('📑 Tabs Config:', tabsConfig);
             console.log('📑 Has Tabs:', tabsConfig.length > 0);
 
@@ -13658,7 +13686,10 @@ DETECTION SYSTEM (working correctly):
             // Store layer configuration and data
             layerConfig = payload.layerConfig || [];
             layersData = payload.layersData || {};
-            mainLayerMaxPerPage = payload.mainLayerMaxPerPage || false;
+            // mainLayerMaxPerPage is now an object { maxPerPage, mobileMaxPerPage }
+            const mainLayerPagination = payload.mainLayerMaxPerPage || {};
+            mainLayerMaxPerPage = mainLayerPagination.maxPerPage || 0;
+            mainLayerMobileMaxPerPage = mainLayerPagination.mobileMaxPerPage || 0;
 
             // Store tabs configuration (if available)
             tabsConfig = payload.tabsConfig || [];
@@ -13667,7 +13698,7 @@ DETECTION SYSTEM (working correctly):
             console.log('📊 Layer Config:', layerConfig);
             console.log('📊 Layers Data:', layersData);
             console.log('📊 Has Layers:', layerConfig.length > 0);
-            console.log('📊 Main Layer Show Search:', mainLayerMaxPerPage);
+            console.log('📊 Main Layer Max Rows:', mainLayerMaxPerPage, 'Mobile:', mainLayerMobileMaxPerPage);
             console.log('📑 Tabs Config:', tabsConfig);
             console.log('📑 Has Tabs:', tabsConfig.length > 0);
 
@@ -13740,7 +13771,10 @@ DETECTION SYSTEM (working correctly):
             // Store layer configuration and data
             layerConfig = payload.layerConfig || [];
             layersData = payload.layersData || {};
-            mainLayerMaxPerPage = payload.mainLayerMaxPerPage || false;
+            // mainLayerMaxPerPage is now an object { maxPerPage, mobileMaxPerPage }
+            const mainLayerPagination = payload.mainLayerMaxPerPage || {};
+            mainLayerMaxPerPage = mainLayerPagination.maxPerPage || 0;
+            mainLayerMobileMaxPerPage = mainLayerPagination.mobileMaxPerPage || 0;
 
             // Store tabs configuration (if available)
             tabsConfig = payload.tabsConfig || [];
@@ -13749,7 +13783,7 @@ DETECTION SYSTEM (working correctly):
             console.log('📊 Layer Config:', layerConfig);
             console.log('📊 Layers Data:', layersData);
             console.log('📊 Has Layers:', layerConfig.length > 0);
-            console.log('📊 Main Layer Show Search:', mainLayerMaxPerPage);
+            console.log('📊 Main Layer Max Rows:', mainLayerMaxPerPage, 'Mobile:', mainLayerMobileMaxPerPage);
             console.log('📑 Tabs Config:', tabsConfig);
             console.log('📑 Has Tabs:', tabsConfig.length > 0);
 

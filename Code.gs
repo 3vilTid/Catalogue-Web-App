@@ -620,20 +620,22 @@ function getLayerConfig(sheetName) {
 
     var layers = [];
 
-    // Hardcoded positions: B2:C4 for layer config, F2:F4 for maxPerPage
-    // B2: Layer 1, C2: Ex Cat, F2: Max items per page for Layer 1
-    // B3: Layer 2, C3: Category, F3: Max items per page for Layer 2
-    // B4: Layer 3, C4: (blank), F4: Max items per page for Layer 3
+    // Hardcoded positions: B2:C4 for layer config, F2:F4 for maxPerPage, G2:G4 for mobileMaxPerPage
+    // B2: Layer 1, C2: Ex Cat, F2: Max rows per page for Layer 1, G2: Mobile max rows
+    // B3: Layer 2, C3: Category, F3: Max rows per page for Layer 2, G3: Mobile max rows
+    // B4: Layer 3, C4: (blank), F4: Max rows per page for Layer 3, G4: Mobile max rows
     var layerRows = [2, 3, 4]; // Rows for Layer 1, 2, 3
     var layerCol = 2;  // Column B (1-indexed)
     var mainCol = 3;   // Column C (1-indexed)
     var maxPerPageCol = 6; // Column F (1-indexed)
+    var mobileMaxPerPageCol = 7; // Column G (1-indexed) - Mobile only
 
     for (var i = 0; i < layerRows.length; i++) {
       var row = layerRows[i];
       var layerName = layersSheet.getRange(row, layerCol).getValue();
       var mainColumnName = layersSheet.getRange(row, mainCol).getValue();
       var maxPerPageValue = layersSheet.getRange(row, maxPerPageCol).getValue();
+      var mobileMaxPerPageValue = layersSheet.getRange(row, mobileMaxPerPageCol).getValue();
 
       layerName = String(layerName || "").trim();
       mainColumnName = String(mainColumnName || "").trim();
@@ -644,14 +646,21 @@ function getLayerConfig(sheetName) {
         maxPerPage = 0; // 0 means no limit
       }
 
+      // mobileMaxPerPage: number = limit for mobile devices, blank/0 = use default maxPerPage
+      var mobileMaxPerPage = parseInt(mobileMaxPerPageValue, 10);
+      if (isNaN(mobileMaxPerPage) || mobileMaxPerPage <= 0) {
+        mobileMaxPerPage = 0; // 0 means use default maxPerPage
+      }
+
       // Only include layers that have both name and main column
       if (layerName !== "" && mainColumnName !== "") {
         layers.push({
           layerName: layerName,
           mainColumnName: mainColumnName,
-          maxPerPage: maxPerPage
+          maxPerPage: maxPerPage,
+          mobileMaxPerPage: mobileMaxPerPage
         });
-        Logger.log("✓ Found layer: " + layerName + " -> " + mainColumnName + " (maxPerPage: " + (maxPerPage || "unlimited") + ")");
+        Logger.log("✓ Found layer: " + layerName + " -> " + mainColumnName + " (maxPerPage: " + (maxPerPage || "unlimited") + ", mobileMaxPerPage: " + (mobileMaxPerPage || "default") + ")");
       }
     }
 
@@ -664,9 +673,9 @@ function getLayerConfig(sheetName) {
 }
 
 /**
- * Get Main Layer (Layer 4) max items per page from F5
+ * Get Main Layer (Layer 4) max rows per page from F5 and mobile max rows from G5
  * @param {string} sheetName - Name of the Layers sheet (default: 'Layers')
- * @return {number} Max items per page (0 = no limit)
+ * @return {object} {maxPerPage: number, mobileMaxPerPage: number} (0 = no limit / use default)
  */
 function getMainLayerMaxPerPage(sheetName) {
   sheetName = sheetName || 'Layers';
@@ -675,20 +684,28 @@ function getMainLayerMaxPerPage(sheetName) {
     var layersSheet = ss.getSheetByName(sheetName);
 
     if (!layersSheet) {
-      return 0;
+      return { maxPerPage: 0, mobileMaxPerPage: 0 };
     }
 
-    // F5 controls max items per page for Main Layer (Layer 4)
+    // F5 controls max rows per page for Main Layer (Layer 4)
     var maxPerPageValue = layersSheet.getRange(5, 6).getValue(); // Row 5, Column F
     var maxPerPage = parseInt(maxPerPageValue, 10);
     if (isNaN(maxPerPage) || maxPerPage <= 0) {
       maxPerPage = 0; // 0 means no limit
     }
-    Logger.log("✓ Main Layer maxPerPage: " + (maxPerPage || "unlimited"));
-    return maxPerPage;
+
+    // G5 controls mobile max rows per page for Main Layer (Layer 4)
+    var mobileMaxPerPageValue = layersSheet.getRange(5, 7).getValue(); // Row 5, Column G
+    var mobileMaxPerPage = parseInt(mobileMaxPerPageValue, 10);
+    if (isNaN(mobileMaxPerPage) || mobileMaxPerPage <= 0) {
+      mobileMaxPerPage = 0; // 0 means use default maxPerPage
+    }
+
+    Logger.log("✓ Main Layer maxPerPage: " + (maxPerPage || "unlimited") + ", mobileMaxPerPage: " + (mobileMaxPerPage || "default"));
+    return { maxPerPage: maxPerPage, mobileMaxPerPage: mobileMaxPerPage };
   } catch (e) {
     Logger.log("✗ Error getting main layer maxPerPage config: " + e.toString());
-    return 0;
+    return { maxPerPage: 0, mobileMaxPerPage: 0 };
   }
 }
 
@@ -709,16 +726,16 @@ function getLayerData(layerName, sheetName) {
       return [];
     }
 
-    // Hardcoded positions for each layer table
-    // Layer 1: H1 (column 8), Layer 2: M1 (column 13), Layer 3: S1 (column 19)
+    // Hardcoded positions for each layer table (shifted +1 after adding column G for mobile max rows)
+    // Layer 1: I1 (column 9), Layer 2: N1 (column 14), Layer 3: T1 (column 20)
     // Each layer table has: Names (filter), Display (display name), Picture Link, [Part of Layer X], Description
     var startCol;
     if (layerName === "Layer 1") {
-      startCol = 8; // Column H (1-indexed)
+      startCol = 9; // Column I (1-indexed)
     } else if (layerName === "Layer 2") {
-      startCol = 13; // Column M (1-indexed)
+      startCol = 14; // Column N (1-indexed)
     } else if (layerName === "Layer 3") {
-      startCol = 19; // Column S (1-indexed)
+      startCol = 20; // Column T (1-indexed)
     } else {
       Logger.log("✗ Unknown layer: " + layerName);
       return [];
