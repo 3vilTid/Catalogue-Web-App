@@ -1206,7 +1206,7 @@ DETECTION SYSTEM (working correctly):
       .grouped-view {
         display: flex;
         flex-direction: column;
-        gap: 32px;
+        gap: 16px;
         margin-top: 8px;
       }
 
@@ -1235,7 +1235,7 @@ DETECTION SYSTEM (working correctly):
 
       /* Group pagination - slightly smaller */
       .group-pagination {
-        padding: 12px 8px;
+        padding: 6px 8px;
       }
 
       .group-pagination .pagination-btn {
@@ -12882,6 +12882,72 @@ DETECTION SYSTEM (working correctly):
         }
       }
 
+      // Swipe detection for pagination navigation (mobile/tablet only)
+      // Attaches once to #gridView and handles both grouped and non-grouped pagination
+      function initializePaginationSwipe() {
+        var grid = document.getElementById('gridView');
+        if (!grid || grid._paginationSwipeInitialized) return;
+        grid._paginationSwipeInitialized = true;
+
+        var pgSwipeStartX = 0;
+        var pgSwipeStartY = 0;
+        var pgSwipeStartTarget = null;
+
+        grid.addEventListener('touchstart', function(e) {
+          pgSwipeStartX = e.changedTouches[0].screenX;
+          pgSwipeStartY = e.changedTouches[0].screenY;
+          pgSwipeStartTarget = e.target;
+        }, { passive: true });
+
+        grid.addEventListener('touchend', function(e) {
+          // Only on mobile/tablet
+          if (!document.body.classList.contains('mobile-device') && !document.body.classList.contains('tablet-device')) return;
+
+          // Skip if image zoom is active
+          if (typeof imageZoomState !== 'undefined' && imageZoomState && imageZoomState.isOpen) return;
+
+          var touchEndX = e.changedTouches[0].screenX;
+          var touchEndY = e.changedTouches[0].screenY;
+
+          var swipeThreshold = 50;
+          var swipeDistanceX = touchEndX - pgSwipeStartX;
+          var swipeDistanceY = touchEndY - pgSwipeStartY;
+
+          // Only horizontal swipes more dominant than vertical
+          if (Math.abs(swipeDistanceX) <= Math.abs(swipeDistanceY) || Math.abs(swipeDistanceX) <= swipeThreshold) return;
+
+          var isNext = swipeDistanceX < 0; // Swipe left = next page
+
+          // Check if swipe started inside a group container (grouped view)
+          var groupContainer = pgSwipeStartTarget ? pgSwipeStartTarget.closest('.item-group') : null;
+          if (groupContainer) {
+            // Group pagination swipe
+            var groupPagination = groupContainer.querySelector('.group-pagination');
+            if (!groupPagination) return;
+
+            if (isNext) {
+              var nextBtn = groupPagination.querySelector('.pagination-next:not(.disabled)');
+              if (nextBtn) nextBtn.click();
+            } else {
+              var prevBtn = groupPagination.querySelector('.pagination-prev:not(.disabled)');
+              if (prevBtn) prevBtn.click();
+            }
+          } else {
+            // Main pagination swipe (non-grouped views)
+            var mainPagination = grid.querySelector('.pagination-container:not(.group-pagination)');
+            if (!mainPagination) return;
+
+            if (isNext) {
+              var nextBtn = mainPagination.querySelector('.pagination-next:not(.disabled)');
+              if (nextBtn) nextBtn.click();
+            } else {
+              var prevBtn = mainPagination.querySelector('.pagination-prev:not(.disabled)');
+              if (prevBtn) prevBtn.click();
+            }
+          }
+        }, { passive: true });
+      }
+
       // Load detail view image with progressive loading and fullscreen capability
       async function loadDetailImage(fileId, wrapper) {
         try {
@@ -14465,6 +14531,9 @@ DETECTION SYSTEM (working correctly):
 
         // Initialize swipe detection for mobile detail view navigation
         initializeSwipeDetection();
+
+        // Initialize swipe detection for mobile/tablet pagination navigation
+        initializePaginationSwipe();
 
         // Global click handler to close table menus and tab menu when clicking outside
         document.addEventListener('click', function(e) {
