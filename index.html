@@ -1233,6 +1233,14 @@ DETECTION SYSTEM (working correctly):
         margin-top: 0;
       }
 
+      .item-group .table-view {
+        margin-top: 0;
+      }
+
+      .item-group .table-view .data-table {
+        width: 100%;
+      }
+
       /* Group pagination - slightly smaller */
       .group-pagination {
         padding: 6px 8px;
@@ -7619,7 +7627,10 @@ DETECTION SYSTEM (working correctly):
         var viewType = lastGroupedData.viewType;
         var rowsPerPage = getRowsPerPage(layerIndex);
         var columns = cachedGridColumns;
-        var maxPerPage = rowsPerPage > 0 ? rowsPerPage * columns : 0;
+        // Table view: rows = items (no column multiplication)
+        var maxPerPage = rowsPerPage > 0
+          ? (viewType === 'table' ? rowsPerPage : rowsPerPage * columns)
+          : 0;
         var totalPages = getTotalPages(groupItems.length, maxPerPage);
 
         // Ensure page in bounds
@@ -7630,17 +7641,22 @@ DETECTION SYSTEM (working correctly):
         var paginatedGroupItems = getPaginatedItems(groupItems, page, maxPerPage);
 
         // Find and clear the group's grid element (not the header or pagination)
-        var groupGrid = groupContainer.querySelector('.grid, .list-view');
+        // Include .table-view to support grouped Table views
+        var groupGrid = groupContainer.querySelector('.grid, .list-view, .table-view');
         if (groupGrid) {
           groupGrid.innerHTML = '';
           if (layerIndex === -1) {
-            if (viewType === 'list') {
+            if (viewType === 'table') {
+              renderTableView(paginatedGroupItems, groupGrid);
+            } else if (viewType === 'list') {
               renderListView(paginatedGroupItems, groupGrid);
             } else {
               renderCardsView(paginatedGroupItems, groupGrid);
             }
           } else {
-            if (viewType === 'list') {
+            if (viewType === 'table') {
+              renderLayerTableView(paginatedGroupItems, groupGrid, layerIndex);
+            } else if (viewType === 'list') {
               renderLayerListView(paginatedGroupItems, groupGrid, layerIndex);
             } else {
               renderLayerCardsView(paginatedGroupItems, groupGrid, layerIndex);
@@ -8666,9 +8682,9 @@ DETECTION SYSTEM (working correctly):
       function renderGroupedList(items, grid, layerIndex, groupByColumn) {
         const viewType = layerIndex === -1 ? getMainViewType() : getViewTypeForLayer(layerIndex);
 
-        // Table and Slide views don't support grouping - fall back to regular render
-        if (viewType === 'table' || viewType === 'slide') {
-          console.log('[Grouping] Table/Slide view does not support grouping, rendering normally');
+        // Slide view doesn't support grouping - fall back to regular render
+        if (viewType === 'slide') {
+          console.log('[Grouping] Slide view does not support grouping, rendering normally');
           if (layerIndex === -1) {
             // Remove grouping temporarily and render
             const savedGroupBy = mainLayerGroupByColumn;
@@ -8717,8 +8733,11 @@ DETECTION SYSTEM (working correctly):
           const groupGrid = document.createElement('div');
 
           // Calculate pagination for this group
+          // Table view: rows = items (no column multiplication)
           const columns = cachedGridColumns;
-          const maxPerPage = rowsPerPage > 0 ? rowsPerPage * columns : 0;
+          const maxPerPage = rowsPerPage > 0
+            ? (viewType === 'table' ? rowsPerPage : rowsPerPage * columns)
+            : 0;
           const totalPages = getTotalPages(groupItems.length, maxPerPage);
           let page = getCurrentPageForGroup(layerIndex, groupKey);
 
@@ -8736,7 +8755,9 @@ DETECTION SYSTEM (working correctly):
           const paginatedGroupItems = getPaginatedItems(groupItems, page, maxPerPage);
 
           // Render items into group grid using existing renderers (proper images, names, SubIds)
-          if (viewType === 'list') {
+          if (viewType === 'table') {
+            renderTableView(paginatedGroupItems, groupGrid);
+          } else if (viewType === 'list') {
             renderListView(paginatedGroupItems, groupGrid);
           } else {
             renderCardsView(paginatedGroupItems, groupGrid);
@@ -8780,9 +8801,9 @@ DETECTION SYSTEM (working correctly):
       function renderGroupedLayerList(items, grid, layerIndex, groupByColumn, parentFilterName) {
         const viewType = getViewTypeForLayer(layerIndex);
 
-        // Table and Slide views don't support grouping
-        if (viewType === 'table' || viewType === 'slide') {
-          console.log('[Grouping] Table/Slide view does not support grouping, rendering normally');
+        // Slide view doesn't support grouping
+        if (viewType === 'slide') {
+          console.log('[Grouping] Slide view does not support grouping, rendering normally');
           // Render without grouping
           const savedGroupBy = layerConfig[layerIndex].groupByColumn;
           layerConfig[layerIndex].groupByColumn = '';
@@ -8863,8 +8884,11 @@ DETECTION SYSTEM (working correctly):
           const groupGrid = document.createElement('div');
 
           // Calculate pagination for this group
+          // Table view: rows = items (no column multiplication)
           const columns = cachedGridColumns;
-          const maxPerPage = rowsPerPage > 0 ? rowsPerPage * columns : 0;
+          const maxPerPage = rowsPerPage > 0
+            ? (viewType === 'table' ? rowsPerPage : rowsPerPage * columns)
+            : 0;
           const totalPages = getTotalPages(groupItems.length, maxPerPage);
           let page = getCurrentPageForGroup(layerIndex, groupKey);
 
@@ -8882,7 +8906,9 @@ DETECTION SYSTEM (working correctly):
           const paginatedGroupItems = getPaginatedItems(groupItems, page, maxPerPage);
 
           // Render items into group grid using existing layer renderers (proper images, names, navigation)
-          if (viewType === 'list') {
+          if (viewType === 'table') {
+            renderLayerTableView(paginatedGroupItems, groupGrid, layerIndex);
+          } else if (viewType === 'list') {
             renderLayerListView(paginatedGroupItems, groupGrid, layerIndex);
           } else {
             renderLayerCardsView(paginatedGroupItems, groupGrid, layerIndex);
@@ -9323,8 +9349,10 @@ DETECTION SYSTEM (working correctly):
         const table = document.querySelector(".data-table");
         const shell = document.querySelector(".shell");
 
-        // Only run if we're in table view and elements exist
-        if (!grid || !grid.classList.contains('table-view') || !table || !topHeader || !filtersRow || !shell) {
+        // Only run if we're in table view (standalone or grouped) and elements exist
+        const isTableView = grid && grid.classList.contains('table-view');
+        const isGroupedTableView = grid && grid.classList.contains('grouped-view') && grid.querySelector('.table-view');
+        if ((!isTableView && !isGroupedTableView) || !table || !topHeader || !filtersRow || !shell) {
           return;
         }
 
@@ -12905,6 +12933,12 @@ DETECTION SYSTEM (working correctly):
 
           // Skip if image zoom is active
           if (typeof imageZoomState !== 'undefined' && imageZoomState && imageZoomState.isOpen) return;
+
+          // Skip swipe pagination for Table views - swipe is needed to scroll the table horizontally
+          var currentViewType = (currentView === 'layer' && currentLayerIndex >= 0)
+            ? getViewTypeForLayer(currentLayerIndex)
+            : getMainViewType();
+          if (currentViewType === 'table') return;
 
           var touchEndX = e.changedTouches[0].screenX;
           var touchEndY = e.changedTouches[0].screenY;
