@@ -7251,22 +7251,37 @@ DETECTION SYSTEM (working correctly):
         const grid = document.getElementById("gridView");
         if (!grid) return cachedGridColumns;
 
-        // Get computed grid-template-columns (returns actual pixel values like "190px 190px 190px")
-        const computedStyle = window.getComputedStyle(grid);
-        const gridTemplateColumns = computedStyle.getPropertyValue('grid-template-columns');
+        // Helper to parse grid-template-columns from an element
+        function parseGridColumns(el) {
+          const computedStyle = window.getComputedStyle(el);
+          const gridTemplateColumns = computedStyle.getPropertyValue('grid-template-columns');
+          if (gridTemplateColumns && gridTemplateColumns !== 'none') {
+            const columns = gridTemplateColumns.split(/\s+/).filter(col => {
+              if (!col || col.length === 0) return false;
+              const numVal = parseFloat(col);
+              return !isNaN(numVal) && numVal > 0;
+            });
+            if (columns.length > 0) return columns.length;
+          }
+          return 0;
+        }
 
-        if (gridTemplateColumns && gridTemplateColumns !== 'none') {
-          // Split by space and filter out empty/zero values
-          const columns = gridTemplateColumns.split(/\s+/).filter(col => {
-            if (!col || col.length === 0) return false;
-            // Filter out 0px columns (can happen with empty grids)
-            const numVal = parseFloat(col);
-            return !isNaN(numVal) && numVal > 0;
-          });
-          if (columns.length > 0) {
-            cachedGridColumns = columns.length;
-            console.log('[Pagination] Detected ' + columns.length + ' columns from grid');
-            return columns.length;
+        // Try the main grid first (works for non-grouped views)
+        var cols = parseGridColumns(grid);
+        if (cols > 0) {
+          cachedGridColumns = cols;
+          console.log('[Pagination] Detected ' + cols + ' columns from main grid');
+          return cols;
+        }
+
+        // If main grid is grouped-view (flex layout), check first group's grid
+        const groupGrid = grid.querySelector('.grid, .list-view');
+        if (groupGrid) {
+          cols = parseGridColumns(groupGrid);
+          if (cols > 0) {
+            cachedGridColumns = cols;
+            console.log('[Pagination] Detected ' + cols + ' columns from group grid');
+            return cols;
           }
         }
 
@@ -7481,6 +7496,9 @@ DETECTION SYSTEM (working correctly):
       // Group pagination state: { groupKey: { page: 1 } }
       let groupPaginationState = {};
 
+      // Store last grouped data for in-place page updates (avoids full re-render)
+      let lastGroupedData = { items: {}, layerIndex: -1, viewType: '' };
+
       // Get group by column for a layer index (-1 = main items)
       function getGroupByColumn(layerIndex) {
         if (layerIndex === -1 || layerIndex === "main") {
@@ -7556,22 +7574,93 @@ DETECTION SYSTEM (working correctly):
       // Reset all group pagination when changing views
       function resetGroupPagination() {
         groupPaginationState = {};
+        lastGroupedData = { items: {}, layerIndex: -1, viewType: '' };
       }
 
-      // Navigate to page within a group
+      // Navigate to page within a group (in-place update - only re-renders the changed group)
       function goToGroupPage(page, layerIndex, groupKey) {
         console.log('[GroupPagination] goToGroupPage: page=' + page + ', layerIndex=' + layerIndex + ', groupKey=' + groupKey);
         setCurrentPageForGroup(layerIndex, groupKey, page);
 
+        // Try in-place update: only re-render the specific group that changed
+        if (lastGroupedData.items[groupKey] && lastGroupedData.layerIndex === layerIndex) {
+          updateSingleGroup(groupKey, page, layerIndex);
+          return;
+        }
+
+        // Fallback: full re-render if grouped data is not available
         if (layerIndex === -1) {
-          // Re-render main items
           applyFiltersAndSorting();
         } else {
-          // Re-render layer view
           const parentFilter = navigationStack.length > 0
             ? (navigationStack[navigationStack.length - 1].filterName || navigationStack[navigationStack.length - 1].itemName)
             : null;
           renderLayerView(layerIndex, parentFilter);
+        }
+      }
+
+      // Update a single group in-place without re-rendering all other groups
+      function updateSingleGroup(groupKey, page, layerIndex) {
+        const grid = document.getElementById("gridView");
+        if (!grid) return;
+
+        // Find the specific group container by data-group-key
+        const allGroups = grid.querySelectorAll('.item-group');
+        var groupContainer = null;
+        for (var i = 0; i < allGroups.length; i++) {
+          if (allGroups[i].dataset.groupKey === groupKey) {
+            groupContainer = allGroups[i];
+            break;
+          }
+        }
+        if (!groupContainer) return;
+
+        var groupItems = lastGroupedData.items[groupKey];
+        var viewType = lastGroupedData.viewType;
+        var rowsPerPage = getRowsPerPage(layerIndex);
+        var columns = cachedGridColumns;
+        var maxPerPage = rowsPerPage > 0 ? rowsPerPage * columns : 0;
+        var totalPages = getTotalPages(groupItems.length, maxPerPage);
+
+        // Ensure page in bounds
+        if (page > totalPages) page = totalPages;
+        if (page < 1) page = 1;
+        setCurrentPageForGroup(layerIndex, groupKey, page);
+
+        var paginatedGroupItems = getPaginatedItems(groupItems, page, maxPerPage);
+
+        // Find and clear the group's grid element (not the header or pagination)
+        var groupGrid = groupContainer.querySelector('.grid, .list-view');
+        if (groupGrid) {
+          groupGrid.innerHTML = '';
+          if (layerIndex === -1) {
+            if (viewType === 'list') {
+              renderListView(paginatedGroupItems, groupGrid);
+            } else {
+              renderCardsView(paginatedGroupItems, groupGrid);
+            }
+          } else {
+            if (viewType === 'list') {
+              renderLayerListView(paginatedGroupItems, groupGrid, layerIndex);
+            } else {
+              renderLayerCardsView(paginatedGroupItems, groupGrid, layerIndex);
+            }
+          }
+        }
+
+        // Update pagination buttons
+        var existingPagination = groupContainer.querySelector('.pagination-container');
+        if (existingPagination) {
+          existingPagination.remove();
+        }
+
+        if (totalPages > 1) {
+          var paginationHtml = buildGroupPaginationHtml(page, totalPages, layerIndex, groupKey);
+          if (paginationHtml) {
+            var paginationDiv = document.createElement('div');
+            paginationDiv.innerHTML = paginationHtml;
+            groupContainer.appendChild(paginationDiv.firstChild);
+          }
         }
       }
 
@@ -8596,6 +8685,12 @@ DETECTION SYSTEM (working correctly):
 
         console.log('[Grouping] Grouped ' + items.length + ' items into ' + groupKeys.length + ' groups by "' + groupByColumn + '"');
 
+        // Store grouped data for in-place page updates
+        lastGroupedData = { items: groups, layerIndex: layerIndex, viewType: viewType };
+
+        // Store columns used for this render (before detection updates cache)
+        const columnsUsedForRender = cachedGridColumns;
+
         // Get rows per page (used for each group)
         const rowsPerPage = getRowsPerPage(layerIndex);
 
@@ -8664,6 +8759,20 @@ DETECTION SYSTEM (working correctly):
 
         // Update filter/sort button visibility
         updateFilterSortVisibility();
+
+        // Post-render: detect actual columns from group grids and re-render if needed
+        if (!isReRenderingForColumns && (viewType === 'cards' || viewType === 'list')) {
+          requestAnimationFrame(function() {
+            var actualColumns = detectGridColumns();
+            if (actualColumns !== columnsUsedForRender) {
+              console.log('[Pagination] Grouped view column count changed: ' + columnsUsedForRender + ' -> ' + actualColumns + ', re-rendering');
+              isReRenderingForColumns = true;
+              grid.innerHTML = '';
+              renderGroupedList(items, grid, layerIndex, groupByColumn);
+              isReRenderingForColumns = false;
+            }
+          });
+        }
       }
 
       // Render layer items grouped by a column value
@@ -8715,6 +8824,18 @@ DETECTION SYSTEM (working correctly):
         }
 
         console.log('[Grouping] Grouped ' + items.length + ' layer items into ' + sortedKeys.length + ' groups by "' + groupByColumn + '"');
+
+        // Build ordered groups object for storage
+        const orderedGroups = {};
+        for (const key of sortedKeys) {
+          orderedGroups[key] = groups[key];
+        }
+
+        // Store grouped data for in-place page updates
+        lastGroupedData = { items: orderedGroups, layerIndex: layerIndex, viewType: viewType };
+
+        // Store columns used for this render (before detection updates cache)
+        const columnsUsedForRender = cachedGridColumns;
 
         // Get rows per page
         const rowsPerPage = getRowsPerPage(layerIndex);
@@ -8784,6 +8905,20 @@ DETECTION SYSTEM (working correctly):
 
         // Update UI visibility
         updateAllUIVisibility();
+
+        // Post-render: detect actual columns from group grids and re-render if needed
+        if (!isReRenderingLayerForColumns && (viewType === 'cards' || viewType === 'list')) {
+          requestAnimationFrame(function() {
+            var actualColumns = detectGridColumns();
+            if (actualColumns !== columnsUsedForRender) {
+              console.log('[Pagination] Grouped layer view column count changed: ' + columnsUsedForRender + ' -> ' + actualColumns + ', re-rendering');
+              isReRenderingLayerForColumns = true;
+              grid.innerHTML = '';
+              renderGroupedLayerList(items, grid, layerIndex, groupByColumn, parentFilterName);
+              isReRenderingLayerForColumns = false;
+            }
+          });
+        }
       }
 
       // Render Cards View (current default grid layout)
