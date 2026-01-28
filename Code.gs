@@ -603,6 +603,54 @@ function getTabsConfig() {
 }
 
 /**
+ * Read tab stacking configuration from Settings sheet (rows 25-34)
+ * Maps child tabs to parent (stacked) tabs
+ * @return {Array} Array of {parentTabName, childTabName} objects
+ */
+function getTabStackConfig() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var settingsSheet = ss.getSheetByName('Settings');
+
+    if (!settingsSheet) {
+      Logger.log('Settings sheet not found for tab stack config');
+      return [];
+    }
+
+    // Read tab stacking configuration from B25:C34
+    var stackRange = settingsSheet.getRange('B25:C34');
+    var stackValues = stackRange.getValues();
+
+    var tabStackConfig = [];
+
+    for (var i = 0; i < stackValues.length; i++) {
+      var row = stackValues[i];
+      var parentTabName = row[0]; // Column B - Parent tab name
+      var childTabName = row[1];  // Column C - Child tab name
+
+      // Skip rows where either parent or child is empty
+      if (!parentTabName || parentTabName.toString().trim() === '' ||
+          !childTabName || childTabName.toString().trim() === '') {
+        continue;
+      }
+
+      tabStackConfig.push({
+        parentTabName: parentTabName.toString().trim(),
+        childTabName: childTabName.toString().trim()
+      });
+
+      Logger.log('Tab Stack: "' + childTabName + '" -> parent "' + parentTabName + '"');
+    }
+
+    Logger.log('Tab stack config loaded: ' + tabStackConfig.length + ' mappings');
+    return tabStackConfig;
+  } catch (e) {
+    Logger.log('Error getting tab stack config: ' + e.toString());
+    return [];
+  }
+}
+
+/**
  * Get layer configuration from Layers sheet
  * Hardcoded to read from B2:C4 (Layer 1, 2, 3)
  * @param {string} sheetName - Name of the Layers sheet (default: 'Layers')
@@ -1052,6 +1100,9 @@ function getInitialData(token) {
   // Get tabs configuration
   var tabsConfig = getTabsConfig();
 
+  // Get tab stacking configuration
+  var tabStackConfig = getTabStackConfig();
+
   // Determine which sheets to use for initial load
   var layersSheetName = 'Layers'; // Default
   var mainSheetName = 'Main'; // Default
@@ -1093,6 +1144,7 @@ function getInitialData(token) {
       layerConfig: layerConfig,
       layersData: layersData,
       tabsConfig: tabsConfig,
+      tabStackConfig: tabStackConfig,
       mainLayerMaxPerPage: mainLayerMaxPerPage
     };
   }
@@ -1115,6 +1167,7 @@ function getInitialData(token) {
     layerConfig: layerConfig,
     layersData: layersData,
     tabsConfig: tabsConfig,
+    tabStackConfig: tabStackConfig,
     mainLayerMaxPerPage: mainLayerMaxPerPage
   };
 }

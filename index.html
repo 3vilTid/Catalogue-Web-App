@@ -511,6 +511,43 @@ DETECTION SYSTEM (working correctly):
         color: #4338ca;
       }
 
+      /* Stacked Tabs Layout */
+      .stacked-tabs-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        width: 100%;
+      }
+
+      .stacked-tab-section {
+        width: 100%;
+      }
+
+      .stacked-tab-header {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1e293b;
+        padding: 16px 20px 8px 20px;
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border-bottom: 2px solid #e2e8f0;
+        letter-spacing: 0.01em;
+      }
+
+      .stacked-tab-content {
+        width: 100%;
+        min-height: 100px;
+      }
+
+      .stacked-tab-content .grid {
+        padding: 0;
+      }
+
+      .stacked-tab-separator {
+        height: 1px;
+        background: #e2e8f0;
+        margin: 0;
+      }
+
       .left-block {
         display: flex;
         flex-direction: row;
@@ -7235,6 +7272,14 @@ DETECTION SYSTEM (working correctly):
       let tabDataCache = {}; // Cache full tab data: {tabIndex: {layerConfig, layersData, items, columnConfig, headers}}
       let tabUniqueValuesCache = {}; // Cache computeUniqueValues results: {tabIndex: uniqueValuesMap}
 
+      // Tab stacking state
+      let tabStackConfig = []; // Raw config from backend: [{parentTabName, childTabName}, ...]
+      let tabStackMap = {};    // Processed: {parentName: [childTabIndex1, childTabIndex2, ...]}
+      let childTabIndices = new Set(); // Tab indices that are children (hidden from switcher)
+      let stackedParentNames = []; // Ordered list of stacked parent tab names
+      let isStackedTabActive = false; // Whether currently viewing a stacked tab
+      let activeStackedParent = null; // Name of active stacked parent tab
+
       // Save state before searching to restore when search is cleared
       let preSearchNavigationStack = [];
       let preSearchLayerIndex = -1;
@@ -7727,6 +7772,23 @@ DETECTION SYSTEM (working correctly):
       // Centralized function to update ALL UI visibility (back button, search bar, filter/sort, filters-row)
       // Call this after any view change (tab switch, layer change, entering detail view)
       function updateAllUIVisibility() {
+        // If stacked tab is active, hide toolbar elements (filters, sort, search, breadcrumb, back button)
+        if (isStackedTabActive) {
+          const backToListBtn = document.getElementById("backToListBtn");
+          if (backToListBtn) backToListBtn.style.display = "none";
+          const searchWrapper = document.getElementById("searchWrapper");
+          if (searchWrapper) searchWrapper.style.display = "none";
+          const filterWrapper = document.getElementById("filterWrapper");
+          if (filterWrapper) filterWrapper.style.display = "none";
+          const sortWrapper = document.getElementById("sortWrapper");
+          if (sortWrapper) sortWrapper.style.display = "none";
+          const addBtn = document.getElementById("addBtn");
+          if (addBtn) addBtn.style.display = "none";
+          updateFiltersRowVisibility();
+          console.log('🔄 UI visibility updated - stacked tab active, toolbar hidden');
+          return;
+        }
+
         // 1. Update back button visibility
         const backToListBtn = document.getElementById("backToListBtn");
         if (backToListBtn) {
@@ -12023,6 +12085,13 @@ DETECTION SYSTEM (working correctly):
       function updateBreadcrumb() {
         const breadcrumbNav = document.getElementById("breadcrumbNav");
 
+        // Hide breadcrumb for stacked tabs
+        if (isStackedTabActive) {
+          breadcrumbNav.style.display = "none";
+          updateFiltersRowVisibility();
+          return;
+        }
+
         if (navigationStack.length === 0 && currentView !== "layer") {
           // No breadcrumb needed
           breadcrumbNav.style.display = "none";
@@ -12128,10 +12197,17 @@ DETECTION SYSTEM (working correctly):
 
       // Initialize tabs UI and populate tab switcher
       function initializeTabs() {
+        // Process tab stacking configuration
+        processTabStackConfig();
+
         // Show tab switcher only if more than one tab is configured
         const tabSwitcherWrapper = document.getElementById("tabSwitcherWrapper");
 
-        if (tabsConfig.length <= 1) {
+        // Count visible tabs (non-child tabs + stacked parents)
+        const visibleRegularTabs = tabsConfig.filter(function(_, idx) { return !childTabIndices.has(idx); }).length;
+        const visibleTabCount = visibleRegularTabs + stackedParentNames.length;
+
+        if (visibleTabCount <= 1) {
           tabSwitcherWrapper.style.display = "none";
           return;
         }
@@ -12153,7 +12229,9 @@ DETECTION SYSTEM (working correctly):
       // Update the displayed current tab name
       function updateCurrentTabName() {
         const currentTabNameEl = document.getElementById("currentTabName");
-        if (currentTabIndex >= 0 && currentTabIndex < tabsConfig.length) {
+        if (isStackedTabActive && activeStackedParent) {
+          currentTabNameEl.textContent = activeStackedParent;
+        } else if (currentTabIndex >= 0 && currentTabIndex < tabsConfig.length) {
           currentTabNameEl.textContent = tabsConfig[currentTabIndex].tabName;
         }
       }
@@ -12163,16 +12241,45 @@ DETECTION SYSTEM (working correctly):
         const tabMenu = document.getElementById("tabSwitcherMenu");
         tabMenu.innerHTML = "";
 
+        // Render regular tabs (excluding child tabs)
         for (let i = 0; i < tabsConfig.length; i++) {
+          // Skip child tabs (they are hidden, shown only as part of stacked parent)
+          if (childTabIndices.has(i)) {
+            continue;
+          }
+
           const tab = tabsConfig[i];
           const item = document.createElement("div");
-          item.className = "tab-menu-item" + (i === currentTabIndex ? " active" : "");
+          const isActive = !isStackedTabActive && i === currentTabIndex;
+          item.className = "tab-menu-item" + (isActive ? " active" : "");
           item.textContent = tab.tabName;
-          item.onclick = function(e) {
-            e.stopPropagation();
-            console.log('🖱️ Tab menu item clicked:', tab.tabName, 'index:', i);
-            switchToTab(i);
-          };
+          item.onclick = (function(tabIndex) {
+            return function(e) {
+              e.stopPropagation();
+              console.log('🖱️ Tab menu item clicked:', tabsConfig[tabIndex].tabName, 'index:', tabIndex);
+              // Deactivate stacked tab if switching to a regular tab
+              isStackedTabActive = false;
+              activeStackedParent = null;
+              switchToTab(tabIndex);
+            };
+          })(i);
+          tabMenu.appendChild(item);
+        }
+
+        // Render stacked parent tabs
+        for (let p = 0; p < stackedParentNames.length; p++) {
+          const parentName = stackedParentNames[p];
+          const item = document.createElement("div");
+          const isActive = isStackedTabActive && activeStackedParent === parentName;
+          item.className = "tab-menu-item" + (isActive ? " active" : "");
+          item.textContent = parentName;
+          item.onclick = (function(name) {
+            return function(e) {
+              e.stopPropagation();
+              console.log('🖱️ Stacked tab menu item clicked:', name);
+              switchToStackedTab(name);
+            };
+          })(parentName);
           tabMenu.appendChild(item);
         }
       }
@@ -12240,9 +12347,9 @@ DETECTION SYSTEM (working correctly):
 
       // Switch to a different tab
       function switchToTab(newTabIndex) {
-        console.log('🔄 switchToTab called: newTabIndex=', newTabIndex, 'currentTabIndex=', currentTabIndex);
+        console.log('🔄 switchToTab called: newTabIndex=', newTabIndex, 'currentTabIndex=', currentTabIndex, 'isStacked:', isStackedTabActive);
 
-        if (newTabIndex === currentTabIndex) {
+        if (!isStackedTabActive && newTabIndex === currentTabIndex) {
           // Same tab - just close the menu
           console.log('📌 Same tab selected, just closing menu');
           toggleTabMenu();
@@ -12252,8 +12359,14 @@ DETECTION SYSTEM (working correctly):
         console.log('🔄 Switching from tab', currentTabIndex, 'to tab', newTabIndex);
 
         try {
-          // Save current tab state
-          saveCurrentTabState();
+          // Save current tab state (only for regular tabs, not stacked)
+          if (!isStackedTabActive) {
+            saveCurrentTabState();
+          }
+
+          // Deactivate stacked tab mode
+          isStackedTabActive = false;
+          activeStackedParent = null;
 
           // Update current tab index
           currentTabIndex = newTabIndex;
@@ -12521,6 +12634,324 @@ DETECTION SYSTEM (working correctly):
       function toggleTabMenu() {
         const menu = document.getElementById("tabSwitcherMenu");
         menu.classList.toggle("show");
+      }
+
+      // -------------------- Tab Stacking Functions --------------------
+
+      // Process raw tabStackConfig into usable maps
+      function processTabStackConfig() {
+        tabStackMap = {};
+        childTabIndices = new Set();
+        stackedParentNames = [];
+
+        if (!tabStackConfig || tabStackConfig.length === 0) {
+          console.log('📋 No tab stack config to process');
+          return;
+        }
+
+        // Build mapping: parentName -> [childTabIndices]
+        // Also track which tab indices are children
+        const parentOrder = []; // Track order of first appearance
+
+        for (let s = 0; s < tabStackConfig.length; s++) {
+          const mapping = tabStackConfig[s];
+          const parentName = mapping.parentTabName;
+          const childName = mapping.childTabName;
+
+          // Find the child tab index by name
+          let childIdx = -1;
+          for (let t = 0; t < tabsConfig.length; t++) {
+            if (tabsConfig[t].tabName === childName) {
+              childIdx = t;
+              break;
+            }
+          }
+
+          if (childIdx === -1) {
+            console.warn('⚠️ Tab stack: child tab "' + childName + '" not found in tabsConfig, skipping');
+            continue;
+          }
+
+          // Check if child is already assigned to another parent
+          if (childTabIndices.has(childIdx)) {
+            console.warn('⚠️ Tab stack: child tab "' + childName + '" is already assigned to a parent, skipping duplicate');
+            continue;
+          }
+
+          // Add to parent map
+          if (!tabStackMap[parentName]) {
+            tabStackMap[parentName] = [];
+            parentOrder.push(parentName);
+          }
+          tabStackMap[parentName].push(childIdx);
+          childTabIndices.add(childIdx);
+        }
+
+        stackedParentNames = parentOrder;
+
+        console.log('📋 Tab stack processed:', {
+          parents: stackedParentNames,
+          map: tabStackMap,
+          hiddenChildren: Array.from(childTabIndices)
+        });
+      }
+
+      // Switch to a stacked parent tab
+      function switchToStackedTab(parentName) {
+        console.log('🔄 switchToStackedTab called:', parentName);
+
+        // If already on this stacked tab, just close the menu
+        if (isStackedTabActive && activeStackedParent === parentName) {
+          toggleTabMenu();
+          return;
+        }
+
+        // Save current state if switching from a regular tab
+        if (!isStackedTabActive) {
+          saveCurrentTabState();
+        }
+
+        isStackedTabActive = true;
+        activeStackedParent = parentName;
+
+        // Close the tab menu
+        toggleTabMenu();
+
+        // Render the stacked view
+        renderStackedView(parentName);
+
+        // Update UI
+        updateCurrentTabName();
+        renderTabMenu();
+        updateBreadcrumb();
+
+        // Hide filter/sort/search/breadcrumb for stacked view
+        updateAllUIVisibility();
+      }
+
+      // Render stacked view: multiple child tabs stacked vertically
+      function renderStackedView(parentName) {
+        const childIndices = tabStackMap[parentName];
+        if (!childIndices || childIndices.length === 0) {
+          console.error('❌ No children found for stacked parent:', parentName);
+          return;
+        }
+
+        const gridView = document.getElementById("gridView");
+        const detailView = document.getElementById("detailView");
+        detailView.style.display = "none";
+        detailView.innerHTML = "";
+        gridView.innerHTML = "";
+
+        // Remove all view-specific classes
+        gridView.classList.remove('grid', 'list-view', 'table-view', 'slide-view',
+          'slide-vertical', 'slide-horizontal', 'grid-rectangle');
+
+        // Create stacked container
+        const stackContainer = document.createElement("div");
+        stackContainer.className = "stacked-tabs-container";
+
+        // Save current global state before rendering children
+        const savedState = saveGlobalStateForStack();
+
+        for (let c = 0; c < childIndices.length; c++) {
+          const childIdx = childIndices[c];
+          const tab = tabsConfig[childIdx];
+
+          // Create section for this child tab
+          const section = document.createElement("div");
+          section.className = "stacked-tab-section";
+
+          // Section header
+          const header = document.createElement("div");
+          header.className = "stacked-tab-header";
+          header.textContent = tab.tabName;
+          section.appendChild(header);
+
+          // Section content container
+          const contentContainer = document.createElement("div");
+          contentContainer.className = "stacked-tab-content";
+          section.appendChild(contentContainer);
+
+          // Add separator between sections (not after last)
+          if (c < childIndices.length - 1) {
+            const separator = document.createElement("div");
+            separator.className = "stacked-tab-separator";
+            section.appendChild(separator);
+          }
+
+          stackContainer.appendChild(section);
+
+          // Render child tab content
+          if (tabDataCache[childIdx]) {
+            renderChildTabIntoContainer(childIdx, contentContainer);
+          } else {
+            // Show loading state, then load data
+            contentContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #9ca3af;">Loading...</div>';
+            loadAndRenderChildTab(childIdx, contentContainer);
+          }
+        }
+
+        // Restore global state after rendering all children
+        restoreGlobalStateForStack(savedState);
+
+        gridView.appendChild(stackContainer);
+      }
+
+      // Render a single child tab's content into a container
+      function renderChildTabIntoContainer(childIdx, container) {
+        const cachedData = tabDataCache[childIdx];
+        if (!cachedData) {
+          container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">No data available</div>';
+          return;
+        }
+
+        // Temporarily set globals to this child tab's data
+        const savedState = saveGlobalStateForStack();
+
+        try {
+          // Set globals from cached data
+          layerConfig = cachedData.layerConfig || [];
+          layersData = cachedData.layersData || {};
+          allItems = cachedData.items || [];
+          columnConfig = cachedData.columnConfig || [];
+          headers = cachedData.headers || [];
+
+          if (cachedData.settings) {
+            settings = cachedData.settings;
+            initializeDisplayViewType();
+          }
+
+          // Load column config to set nameColumn, imageColumn, etc.
+          loadColumnConfig();
+
+          // Get items for rendering
+          const items = allItems;
+
+          if (!items || items.length === 0) {
+            container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6b7280;">No items for this tab.</div>';
+            restoreGlobalStateForStack(savedState);
+            return;
+          }
+
+          // Determine view type and render
+          const viewType = getMainViewType();
+          const style = getMainStyle();
+
+          // Create a grid-like container to pass to renderers
+          const renderTarget = document.createElement("div");
+          renderTarget.className = "grid";
+          container.appendChild(renderTarget);
+
+          if (viewType === 'list') {
+            renderListView(items, renderTarget);
+          } else if (viewType === 'table') {
+            renderTableView(items, renderTarget);
+          } else if (viewType === 'slide') {
+            // For stacked view, render slide items as cards instead
+            // (slide view is full-screen and doesn't work well stacked)
+            renderCardsView(items, renderTarget);
+          } else {
+            // Default to cards view
+            renderCardsView(items, renderTarget);
+          }
+        } catch (err) {
+          console.error('❌ Error rendering child tab ' + childIdx + ':', err);
+          container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">Error rendering content</div>';
+        }
+
+        // Restore globals
+        restoreGlobalStateForStack(savedState);
+      }
+
+      // Load child tab data from backend, then render into container
+      function loadAndRenderChildTab(childIdx, container) {
+        const token = getSessionToken();
+        const tab = tabsConfig[childIdx];
+
+        google.script.run
+          .withSuccessHandler(function(tabData) {
+            if (!tabData) {
+              container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">Error loading data</div>';
+              return;
+            }
+
+            // Cache the data
+            tabDataCache[childIdx] = {
+              layerConfig: tabData.layerConfig || [],
+              layersData: tabData.layersData || {},
+              mainLayerMaxPerPage: tabData.mainLayerMaxPerPage || false,
+              items: tabData.items || [],
+              columnConfig: tabData.columnConfig || [],
+              headers: tabData.headers || [],
+              settings: tabData.settings
+            };
+
+            // Now render into container
+            container.innerHTML = "";
+            renderChildTabIntoContainer(childIdx, container);
+          })
+          .withFailureHandler(function(error) {
+            console.error('❌ Error loading child tab data:', error);
+            container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">Error loading data</div>';
+          })
+          .getTabData(tab.layersSheetName, tab.mainSheetName, tab.columnConfigSheetName, token);
+      }
+
+      // Save global state before rendering stacked children
+      function saveGlobalStateForStack() {
+        return {
+          layerConfig: layerConfig,
+          layersData: layersData,
+          allItems: allItems,
+          columnConfig: columnConfig,
+          headers: headers,
+          settings: settings,
+          mainViewType: mainViewType,
+          mainStyle: mainStyle,
+          layer1ViewType: layer1ViewType,
+          layer2ViewType: layer2ViewType,
+          layer3ViewType: layer3ViewType,
+          layer1Style: layer1Style,
+          layer2Style: layer2Style,
+          layer3Style: layer3Style,
+          nameColumn: nameColumn,
+          descriptionColumn: descriptionColumn,
+          imageColumn: imageColumn,
+          categoryColumn: categoryColumn,
+          placeColumn: placeColumn,
+          dateColumn: dateColumn,
+          externalLinkColumn: externalLinkColumn,
+          addedByColumn: addedByColumn,
+          filterColumns: [...filterColumns]
+        };
+      }
+
+      // Restore global state after rendering stacked children
+      function restoreGlobalStateForStack(saved) {
+        layerConfig = saved.layerConfig;
+        layersData = saved.layersData;
+        allItems = saved.allItems;
+        columnConfig = saved.columnConfig;
+        headers = saved.headers;
+        settings = saved.settings;
+        mainViewType = saved.mainViewType;
+        mainStyle = saved.mainStyle;
+        layer1ViewType = saved.layer1ViewType;
+        layer2ViewType = saved.layer2ViewType;
+        layer3ViewType = saved.layer3ViewType;
+        layer1Style = saved.layer1Style;
+        layer2Style = saved.layer2Style;
+        layer3Style = saved.layer3Style;
+        nameColumn = saved.nameColumn;
+        descriptionColumn = saved.descriptionColumn;
+        imageColumn = saved.imageColumn;
+        categoryColumn = saved.categoryColumn;
+        placeColumn = saved.placeColumn;
+        dateColumn = saved.dateColumn;
+        externalLinkColumn = saved.externalLinkColumn;
+        addedByColumn = saved.addedByColumn;
+        filterColumns = [...saved.filterColumns];
       }
 
       function showDetails(item, index) {
@@ -14259,6 +14690,9 @@ DETECTION SYSTEM (working correctly):
             // Store tabs configuration (if available)
             tabsConfig = payload.tabsConfig || [];
 
+            // Store tab stacking configuration (if available)
+            tabStackConfig = payload.tabStackConfig || [];
+
             // Debug: Log layer data
             console.log('📊 Layer Config:', layerConfig);
             console.log('📊 Layers Data:', layersData);
@@ -14351,6 +14785,9 @@ DETECTION SYSTEM (working correctly):
             // Store tabs configuration (if available)
             tabsConfig = payload.tabsConfig || [];
 
+            // Store tab stacking configuration (if available)
+            tabStackConfig = payload.tabStackConfig || [];
+
             // Debug: Log layer data
             console.log('📊 Layer Config:', layerConfig);
             console.log('📊 Layers Data:', layersData);
@@ -14436,6 +14873,9 @@ DETECTION SYSTEM (working correctly):
 
             // Store tabs configuration (if available)
             tabsConfig = payload.tabsConfig || [];
+
+            // Store tab stacking configuration (if available)
+            tabStackConfig = payload.tabStackConfig || [];
 
             // Debug: Log layer data
             console.log('📊 Layer Config:', layerConfig);
