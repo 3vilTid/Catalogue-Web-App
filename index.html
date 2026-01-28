@@ -556,44 +556,9 @@ DETECTION SYSTEM (working correctly):
         display: none !important;
       }
 
-      /* Stacked slide navigation arrows (self-contained, always visible) */
-      .stacked-slide-nav {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        background: rgba(0, 0, 0, 0.5);
-        color: white;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background 0.2s;
-      }
-
-      .stacked-slide-nav:hover {
-        background: rgba(0, 0, 0, 0.7);
-      }
-
-      .stacked-slide-prev {
-        left: 10px;
-      }
-
-      .stacked-slide-next {
-        right: 10px;
-      }
-
-      .stacked-slide-counter {
-        text-align: center;
-        padding: 8px 0;
-        color: #64748b;
-        font-size: 13px;
-        font-weight: 500;
+      /* Stacked slide pagination (uses standard pagination-container styles) */
+      .stacked-slide-pagination {
+        padding: 12px 16px;
       }
 
       /* Ensure table view works properly in stacked containers */
@@ -12170,15 +12135,12 @@ DETECTION SYSTEM (working correctly):
           return;
         }
 
-        // If we came from a stacked tab, always show breadcrumb: Home > ChildTabName > ...
+        // If we came from a stacked tab, show: ChildTab > LayerItems...
+        // ChildTab acts as root (clicking it returns to stacked view)
         if (_stackedTabOrigin) {
-          let homeAction = 'switchToStackedTab(\'' + _stackedTabOrigin.replace(/'/g, "\\'") + '\'); return false;';
-          let breadcrumbHTML = '<a href="#" onclick="' + homeAction + '" style="color: #64748b; text-decoration: none; font-weight: 500;">Home</a>';
-
-          // Add child tab name as second breadcrumb entry
           const childTabName = tabsConfig[currentTabIndex].tabName;
-          breadcrumbHTML += ' <span style="color: #cbd5e1; margin: 0 6px;">›</span> ';
-          breadcrumbHTML += '<a href="#" onclick="navigateToChildTabHome(); return false;" style="color: #64748b; text-decoration: none;">' + childTabName + '</a>';
+          let homeAction = 'switchToStackedTab(\'' + _stackedTabOrigin.replace(/'/g, "\\'") + '\'); return false;';
+          let breadcrumbHTML = '<a href="#" onclick="' + homeAction + '" style="color: #64748b; text-decoration: none; font-weight: 500;">' + childTabName + '</a>';
 
           // Add remaining navigation stack items
           for (let i = 0; i < navigationStack.length; i++) {
@@ -13152,6 +13114,7 @@ DETECTION SYSTEM (working correctly):
 
       // Set up self-contained navigation for horizontal slide views in stacked containers.
       // Pre-builds all item HTML while globals are set, then uses per-container state.
+      // Uses numbered pagination (like other view types) instead of arrows.
       function setupStackedSlideNavigation(container) {
         // Also clean up vertical slide views (remove duplicate IDs, quick nav)
         var slideVertical = container.querySelector('.slide-vertical');
@@ -13180,8 +13143,6 @@ DETECTION SYSTEM (working correctly):
         var layerIdx = currentSlideLayerIndex;
         var isLayer = layerIdx >= 0;
 
-        if (items.length <= 1) return;
-
         // Pre-build HTML for every item (globals still set for this child tab)
         var itemHtmls = [];
         for (var i = 0; i < items.length; i++) {
@@ -13192,46 +13153,85 @@ DETECTION SYSTEM (working correctly):
           }
         }
 
+        // Fix: render the first item directly (getElementById fails on detached DOM)
+        var itemContainer = slideEl.querySelector('.slide-item-container');
+        if (itemContainer && itemHtmls.length > 0) {
+          itemContainer.innerHTML = itemHtmls[0];
+        }
+
         // Store state on the container element
         container._stackedSlideHtmls = itemHtmls;
         container._stackedSlideIndex = 0;
 
-        // Add self-contained nav buttons (always visible regardless of device)
-        slideEl.style.position = 'relative';
+        // Only add pagination if more than 1 item
+        if (items.length <= 1) return;
 
-        var prevBtn = document.createElement('button');
-        prevBtn.className = 'stacked-slide-nav stacked-slide-prev';
-        prevBtn.innerHTML = '&#8249;';
-        prevBtn.style.display = 'none'; // Hidden at first item
-        prevBtn.onclick = function(e) {
-          e.stopPropagation();
-          navigateStackedSlide(container, -1);
-        };
-
-        var nextBtn = document.createElement('button');
-        nextBtn.className = 'stacked-slide-nav stacked-slide-next';
-        nextBtn.innerHTML = '&#8250;';
-        nextBtn.onclick = function(e) {
-          e.stopPropagation();
-          navigateStackedSlide(container, 1);
-        };
-
-        var counter = document.createElement('div');
-        counter.className = 'stacked-slide-counter';
-        counter.textContent = '1 / ' + items.length;
-
-        slideEl.appendChild(prevBtn);
-        slideEl.appendChild(nextBtn);
-        slideEl.appendChild(counter);
+        // Build numbered pagination (matching the app's pagination-container style)
+        var paginationDiv = document.createElement('div');
+        paginationDiv.className = 'pagination-container stacked-slide-pagination';
+        renderStackedSlidePagination(container, paginationDiv, 0, items.length);
+        slideEl.parentNode.insertBefore(paginationDiv, slideEl.nextSibling);
       }
 
-      // Navigate a stacked horizontal slide using pre-built HTML (per-container state)
-      function navigateStackedSlide(container, direction) {
-        var htmls = container._stackedSlideHtmls;
-        if (!htmls) return;
+      // Build and render numbered pagination for stacked slide
+      function renderStackedSlidePagination(container, paginationDiv, currentIdx, totalItems) {
+        var currentPage = currentIdx + 1;
+        var totalPages = totalItems;
+        var html = '';
 
-        var newIdx = container._stackedSlideIndex + direction;
-        if (newIdx < 0 || newIdx >= htmls.length) return;
+        // Previous button
+        if (currentPage > 1) {
+          html += '<button class="pagination-btn pagination-prev" data-stacked-slide-page="' + (currentPage - 1) + '">&laquo;</button>';
+        } else {
+          html += '<button class="pagination-btn pagination-prev disabled" disabled>&laquo;</button>';
+        }
+
+        // Page numbers - show exactly 5 buttons (or fewer if fewer pages)
+        if (totalPages <= 5) {
+          for (var i = 1; i <= totalPages; i++) {
+            var activeClass = i === currentPage ? ' active' : '';
+            html += '<button class="pagination-btn pagination-num' + activeClass + '" data-stacked-slide-page="' + i + '">' + i + '</button>';
+          }
+        } else {
+          var middlePages;
+          if (currentPage <= 3) {
+            middlePages = [2, 3, 4];
+          } else if (currentPage >= totalPages - 2) {
+            middlePages = [totalPages - 3, totalPages - 2, totalPages - 1];
+          } else {
+            middlePages = [currentPage - 1, currentPage, currentPage + 1];
+          }
+          var pagesToShow = [1].concat(middlePages).concat([totalPages]);
+          for (var j = 0; j < pagesToShow.length; j++) {
+            var pageNum = pagesToShow[j];
+            var activeClass2 = pageNum === currentPage ? ' active' : '';
+            html += '<button class="pagination-btn pagination-num' + activeClass2 + '" data-stacked-slide-page="' + pageNum + '">' + pageNum + '</button>';
+          }
+        }
+
+        // Next button
+        if (currentPage < totalPages) {
+          html += '<button class="pagination-btn pagination-next" data-stacked-slide-page="' + (currentPage + 1) + '">&raquo;</button>';
+        } else {
+          html += '<button class="pagination-btn pagination-next disabled" disabled>&raquo;</button>';
+        }
+
+        paginationDiv.innerHTML = html;
+
+        // Attach click handlers via delegation
+        paginationDiv.onclick = function(e) {
+          var btn = e.target.closest('[data-stacked-slide-page]');
+          if (!btn || btn.disabled) return;
+          e.stopPropagation();
+          var page = parseInt(btn.getAttribute('data-stacked-slide-page'), 10);
+          navigateStackedSlideToPage(container, page - 1);
+        };
+      }
+
+      // Navigate a stacked horizontal slide to a specific index
+      function navigateStackedSlideToPage(container, newIdx) {
+        var htmls = container._stackedSlideHtmls;
+        if (!htmls || newIdx < 0 || newIdx >= htmls.length) return;
         container._stackedSlideIndex = newIdx;
 
         var slideEl = container.querySelector('.slide-horizontal');
@@ -13241,7 +13241,6 @@ DETECTION SYSTEM (working correctly):
         var itemContainer = slideEl.querySelector('.slide-item-container');
         if (itemContainer) {
           itemContainer.innerHTML = htmls[newIdx];
-          // Set up image zoom after DOM update
           setTimeout(function() {
             if (typeof setupSlideImages === 'function') {
               setupSlideImages(itemContainer);
@@ -13249,15 +13248,11 @@ DETECTION SYSTEM (working correctly):
           }, 0);
         }
 
-        // Update nav button visibility
-        var prevBtn = slideEl.querySelector('.stacked-slide-prev');
-        var nextBtn = slideEl.querySelector('.stacked-slide-next');
-        if (prevBtn) prevBtn.style.display = newIdx > 0 ? 'flex' : 'none';
-        if (nextBtn) nextBtn.style.display = newIdx < htmls.length - 1 ? 'flex' : 'none';
-
-        // Update counter
-        var counterEl = slideEl.querySelector('.stacked-slide-counter');
-        if (counterEl) counterEl.textContent = (newIdx + 1) + ' / ' + htmls.length;
+        // Re-render pagination with new active page
+        var paginationDiv = slideEl.parentNode.querySelector('.stacked-slide-pagination');
+        if (paginationDiv) {
+          renderStackedSlidePagination(container, paginationDiv, newIdx, htmls.length);
+        }
       }
 
       // Load child tab data from backend, then render into container
@@ -13935,6 +13930,13 @@ DETECTION SYSTEM (working correctly):
         if (navigationStack.length > 0 || currentLayerIndex >= 0) {
           // Navigate back through layers
           backFromLayer();
+          return;
+        }
+
+        // If we came from a stacked tab and no layers to go back through,
+        // return to the stacked view
+        if (_stackedTabOrigin) {
+          navigateToHome();
           return;
         }
 
