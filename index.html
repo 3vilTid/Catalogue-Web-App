@@ -542,6 +542,20 @@ DETECTION SYSTEM (working correctly):
         padding: 0;
       }
 
+      /* Override slide view styles when inside stacked containers */
+      .stacked-tab-content .slide-view {
+        margin-top: 0 !important; /* Remove the -10px offset designed for #gridView */
+      }
+
+      .stacked-tab-content .slide-horizontal {
+        min-height: auto; /* Don't fill viewport height in stacked context */
+      }
+
+      /* Ensure table view works properly in stacked containers */
+      .stacked-tab-content .table-view {
+        margin-top: 0;
+      }
+
       .stacked-tab-separator {
         height: 1px;
         background: #e2e8f0;
@@ -7279,6 +7293,7 @@ DETECTION SYSTEM (working correctly):
       let stackedParentNames = []; // Ordered list of stacked parent tab names
       let isStackedTabActive = false; // Whether currently viewing a stacked tab
       let activeStackedParent = null; // Name of active stacked parent tab
+      let _stackedTabOrigin = null;   // Remembers which stacked parent we came from when navigating into a child
 
       // Save state before searching to restore when search is cleared
       let preSearchNavigationStack = [];
@@ -12083,22 +12098,48 @@ DETECTION SYSTEM (working correctly):
         updateBreadcrumb();
       }
 
+      // Navigate to child tab's home view (Layer 1 or main list) when inside a child from stacked
+      function navigateToChildTabHome() {
+        navigationStack = [];
+        currentLayerIndex = -1;
+        paginationState = {};
+
+        if (layerConfig.length > 0) {
+          renderLayerView(0, null);
+        } else {
+          currentView = "list";
+          applyFiltersAndSorting();
+          updateAllUIVisibility();
+        }
+        updateBreadcrumb();
+      }
+
       // Update breadcrumb navigation
       function updateBreadcrumb() {
         const breadcrumbNav = document.getElementById("breadcrumbNav");
 
-        // Stacked tab breadcrumb: Home > StackName > ChildTabNames
-        if (isStackedTabActive && activeStackedParent) {
-          let breadcrumbHTML = '<a href="#" onclick="navigateToHome(); return false;" style="color: #64748b; text-decoration: none; font-weight: 500;">Home</a>';
-          breadcrumbHTML += ' <span style="color: #cbd5e1; margin: 0 6px;">›</span> ';
-          breadcrumbHTML += '<span style="color: #1e293b; font-weight: 600;">' + activeStackedParent + '</span>';
+        // Stacked tab IS home level → no breadcrumb when viewing stacked tab
+        if (isStackedTabActive) {
+          breadcrumbNav.style.display = "none";
+          updateFiltersRowVisibility();
+          return;
+        }
 
-          // Show child tab names
-          const childIndices = tabStackMap[activeStackedParent];
-          if (childIndices && childIndices.length > 0) {
-            const childNames = childIndices.map(function(idx) { return tabsConfig[idx].tabName; });
+        // If we came from a stacked tab, always show breadcrumb: Home > ChildTabName > ...
+        if (_stackedTabOrigin) {
+          let homeAction = 'switchToStackedTab(\'' + _stackedTabOrigin.replace(/'/g, "\\'") + '\'); return false;';
+          let breadcrumbHTML = '<a href="#" onclick="' + homeAction + '" style="color: #64748b; text-decoration: none; font-weight: 500;">Home</a>';
+
+          // Add child tab name as second breadcrumb entry
+          const childTabName = tabsConfig[currentTabIndex].tabName;
+          breadcrumbHTML += ' <span style="color: #cbd5e1; margin: 0 6px;">›</span> ';
+          breadcrumbHTML += '<a href="#" onclick="navigateToChildTabHome(); return false;" style="color: #64748b; text-decoration: none;">' + childTabName + '</a>';
+
+          // Add remaining navigation stack items
+          for (let i = 0; i < navigationStack.length; i++) {
+            const nav = navigationStack[i];
             breadcrumbHTML += ' <span style="color: #cbd5e1; margin: 0 6px;">›</span> ';
-            breadcrumbHTML += '<span style="color: #64748b; font-weight: 400;">' + childNames.join(' + ') + '</span>';
+            breadcrumbHTML += '<a href="#" onclick="navigateToBreadcrumb(' + i + '); return false;" style="color: #64748b; text-decoration: none;">' + nav.itemName + '</a>';
           }
 
           breadcrumbNav.innerHTML = breadcrumbHTML;
@@ -12114,7 +12155,7 @@ DETECTION SYSTEM (working correctly):
           return;
         }
 
-        // Build breadcrumb path
+        // Build breadcrumb path (normal, non-stacked)
         let breadcrumbHTML = '<a href="#" onclick="navigateToHome(); return false;" style="color: #64748b; text-decoration: none; font-weight: 500;">Home</a>';
 
         for (let i = 0; i < navigationStack.length; i++) {
@@ -12186,6 +12227,15 @@ DETECTION SYSTEM (working correctly):
       // Navigate to home (Layer 1 or main list)
       function navigateToHome() {
         console.log('[Pagination] navigateToHome called');
+
+        // If we came from a stacked tab, return to it
+        if (_stackedTabOrigin) {
+          console.log('[Pagination] Returning to stacked tab origin:', _stackedTabOrigin);
+          const origin = _stackedTabOrigin;
+          _stackedTabOrigin = null;
+          switchToStackedTab(origin);
+          return;
+        }
 
         // If on stacked tab, exit stacked mode and reload current regular tab
         if (isStackedTabActive) {
@@ -12390,6 +12440,7 @@ DETECTION SYSTEM (working correctly):
           // Deactivate stacked tab mode
           isStackedTabActive = false;
           activeStackedParent = null;
+          _stackedTabOrigin = null; // Clear stacked origin when explicitly switching tabs
 
           // Update current tab index
           currentTabIndex = newTabIndex;
@@ -12736,6 +12787,7 @@ DETECTION SYSTEM (working correctly):
 
         isStackedTabActive = true;
         activeStackedParent = parentName;
+        _stackedTabOrigin = null; // Clear origin when entering stacked tab directly
 
         // Close the tab menu
         toggleTabMenu();
@@ -12903,6 +12955,9 @@ DETECTION SYSTEM (working correctly):
           return;
         }
 
+        // Set currentView so renderers (especially table) know we're in layer context
+        currentView = "layer";
+
         const layerName = layerConfig[layerIndex].layerName;
         const layerItems = getFilteredLayerItems(layerName, parentFilterName);
 
@@ -12958,6 +13013,9 @@ DETECTION SYSTEM (working correctly):
 
       // Render main items into a custom container (replicates renderList rendering logic)
       function renderMainItemsIntoContainer(container) {
+        // Set currentView so renderers (especially table) know we're in main items context
+        currentView = "list";
+
         const items = allItems;
 
         if (!items || !items.length) {
@@ -13007,6 +13065,9 @@ DETECTION SYSTEM (working correctly):
           if (!clickable) return;
 
           console.log('🖱️ Stacked section click intercepted for child tab:', childIdx);
+
+          // Remember which stacked parent we came from so "Home" returns here
+          _stackedTabOrigin = activeStackedParent;
 
           // Exit stacked mode and switch to this child tab
           isStackedTabActive = false;
