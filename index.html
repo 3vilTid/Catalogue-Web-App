@@ -7772,7 +7772,7 @@ DETECTION SYSTEM (working correctly):
       // Centralized function to update ALL UI visibility (back button, search bar, filter/sort, filters-row)
       // Call this after any view change (tab switch, layer change, entering detail view)
       function updateAllUIVisibility() {
-        // If stacked tab is active, hide toolbar elements (filters, sort, search, breadcrumb, back button)
+        // If stacked tab is active, hide toolbar elements except breadcrumb
         if (isStackedTabActive) {
           const backToListBtn = document.getElementById("backToListBtn");
           if (backToListBtn) backToListBtn.style.display = "none";
@@ -7784,8 +7784,10 @@ DETECTION SYSTEM (working correctly):
           if (sortWrapper) sortWrapper.style.display = "none";
           const addBtn = document.getElementById("addBtn");
           if (addBtn) addBtn.style.display = "none";
+          // Let breadcrumb update normally (don't hide it)
+          updateBreadcrumb();
           updateFiltersRowVisibility();
-          console.log('🔄 UI visibility updated - stacked tab active, toolbar hidden');
+          console.log('🔄 UI visibility updated - stacked tab active, toolbar hidden (breadcrumb preserved)');
           return;
         }
 
@@ -12085,13 +12087,6 @@ DETECTION SYSTEM (working correctly):
       function updateBreadcrumb() {
         const breadcrumbNav = document.getElementById("breadcrumbNav");
 
-        // Hide breadcrumb for stacked tabs
-        if (isStackedTabActive) {
-          breadcrumbNav.style.display = "none";
-          updateFiltersRowVisibility();
-          return;
-        }
-
         if (navigationStack.length === 0 && currentView !== "layer") {
           // No breadcrumb needed
           breadcrumbNav.style.display = "none";
@@ -12257,9 +12252,6 @@ DETECTION SYSTEM (working correctly):
             return function(e) {
               e.stopPropagation();
               console.log('🖱️ Tab menu item clicked:', tabsConfig[tabIndex].tabName, 'index:', tabIndex);
-              // Deactivate stacked tab if switching to a regular tab
-              isStackedTabActive = false;
-              activeStackedParent = null;
               switchToTab(tabIndex);
             };
           })(i);
@@ -12834,13 +12826,12 @@ DETECTION SYSTEM (working correctly):
             return;
           }
 
-          // Determine view type and render
+          // Determine view type and render using the exact same type/style as the original tab
           const viewType = getMainViewType();
           const style = getMainStyle();
 
           // Create a grid-like container to pass to renderers
           const renderTarget = document.createElement("div");
-          renderTarget.className = "grid";
           container.appendChild(renderTarget);
 
           if (viewType === 'list') {
@@ -12848,9 +12839,7 @@ DETECTION SYSTEM (working correctly):
           } else if (viewType === 'table') {
             renderTableView(items, renderTarget);
           } else if (viewType === 'slide') {
-            // For stacked view, render slide items as cards instead
-            // (slide view is full-screen and doesn't work well stacked)
-            renderCardsView(items, renderTarget);
+            renderSlideView(items, renderTarget, null);
           } else {
             // Default to cards view
             renderCardsView(items, renderTarget);
