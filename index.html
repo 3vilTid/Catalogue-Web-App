@@ -551,6 +551,51 @@ DETECTION SYSTEM (working correctly):
         min-height: auto; /* Don't fill viewport height in stacked context */
       }
 
+      /* Hide the default position:fixed nav arrows inside stacked containers */
+      .stacked-tab-content .slide-nav {
+        display: none !important;
+      }
+
+      /* Stacked slide navigation arrows (self-contained, always visible) */
+      .stacked-slide-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+      }
+
+      .stacked-slide-nav:hover {
+        background: rgba(0, 0, 0, 0.7);
+      }
+
+      .stacked-slide-prev {
+        left: 10px;
+      }
+
+      .stacked-slide-next {
+        right: 10px;
+      }
+
+      .stacked-slide-counter {
+        text-align: center;
+        padding: 8px 0;
+        color: #64748b;
+        font-size: 13px;
+        font-weight: 500;
+      }
+
       /* Ensure table view works properly in stacked containers */
       .stacked-tab-content .table-view {
         margin-top: 0;
@@ -12307,6 +12352,9 @@ DETECTION SYSTEM (working correctly):
         const currentTabNameEl = document.getElementById("currentTabName");
         if (isStackedTabActive && activeStackedParent) {
           currentTabNameEl.textContent = activeStackedParent;
+        } else if (_stackedTabOrigin) {
+          // Inside a child tab from stacked context - show stacked parent name
+          currentTabNameEl.textContent = _stackedTabOrigin;
         } else if (currentTabIndex >= 0 && currentTabIndex < tabsConfig.length) {
           currentTabNameEl.textContent = tabsConfig[currentTabIndex].tabName;
         }
@@ -12326,7 +12374,8 @@ DETECTION SYSTEM (working correctly):
 
           const tab = tabsConfig[i];
           const item = document.createElement("div");
-          const isActive = !isStackedTabActive && i === currentTabIndex;
+          // Regular tabs: not active when stacked tab or stacked child is active
+          const isActive = !isStackedTabActive && !_stackedTabOrigin && i === currentTabIndex;
           item.className = "tab-menu-item" + (isActive ? " active" : "");
           item.textContent = tab.tabName;
           item.onclick = (function(tabIndex) {
@@ -12343,7 +12392,9 @@ DETECTION SYSTEM (working correctly):
         for (let p = 0; p < stackedParentNames.length; p++) {
           const parentName = stackedParentNames[p];
           const item = document.createElement("div");
-          const isActive = isStackedTabActive && activeStackedParent === parentName;
+          // Active when viewing stacked tab OR navigating within a child from this stacked tab
+          const isActive = (isStackedTabActive && activeStackedParent === parentName)
+            || (_stackedTabOrigin === parentName);
           item.className = "tab-menu-item" + (isActive ? " active" : "");
           item.textContent = parentName;
           item.onclick = (function(name) {
@@ -12789,8 +12840,8 @@ DETECTION SYSTEM (working correctly):
         activeStackedParent = parentName;
         _stackedTabOrigin = null; // Clear origin when entering stacked tab directly
 
-        // Close the tab menu
-        toggleTabMenu();
+        // Ensure the tab menu is closed (don't toggle - always close)
+        document.getElementById("tabSwitcherMenu").classList.remove("show");
 
         // Render the stacked view
         renderStackedView(parentName);
@@ -12939,6 +12990,9 @@ DETECTION SYSTEM (working correctly):
           // Set up click delegation: clicking any item exits stacked mode and enters this child tab
           setupStackedSectionInteraction(container, childIdx);
 
+          // Set up stacked horizontal slide navigation (must be done before globals restore)
+          setupStackedSlideNavigation(container);
+
         } catch (err) {
           console.error('❌ Error rendering child tab ' + childIdx + ':', err);
           container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">Error rendering content</div>';
@@ -13083,13 +13137,127 @@ DETECTION SYSTEM (working correctly):
           currentView = layerConfig.length > 0 ? "layer" : "list";
           paginationState = {};
 
-          // Update tab UI
+          // Update tab UI to keep stacked parent shown as active
           updateCurrentTabName();
           renderTabMenu();
 
           // The element's own onclick handler (showDetails, onLayerItemClick, etc.)
-          // will fire next in the bubbling phase with the correct globals in place
+          // will fire next in the bubbling phase with the correct globals in place.
+          // After that, update breadcrumb to show stacked context (Home > ChildTabName > ...)
+          setTimeout(function() {
+            updateBreadcrumb();
+          }, 0);
         }, true); // capture phase
+      }
+
+      // Set up self-contained navigation for horizontal slide views in stacked containers.
+      // Pre-builds all item HTML while globals are set, then uses per-container state.
+      function setupStackedSlideNavigation(container) {
+        // Also clean up vertical slide views (remove duplicate IDs, quick nav)
+        var slideVertical = container.querySelector('.slide-vertical');
+        if (slideVertical) {
+          var vQuickNav = slideVertical.querySelector('.slide-quick-nav');
+          if (vQuickNav) vQuickNav.remove();
+        }
+
+        var slideEl = container.querySelector('.slide-horizontal');
+        if (!slideEl) return;
+
+        // Remove ID-based elements that would cause duplicate IDs across stacked sections
+        var existingPrev = slideEl.querySelector('#slidePrevBtn');
+        var existingNext = slideEl.querySelector('#slideNextBtn');
+        var existingItemContainer = slideEl.querySelector('#slideItemContainer');
+        if (existingPrev) existingPrev.remove();
+        if (existingNext) existingNext.remove();
+        if (existingItemContainer) existingItemContainer.removeAttribute('id');
+
+        // Also remove the default quick nav (uses global jumpToSlide)
+        var quickNav = slideEl.querySelector('.slide-quick-nav');
+        if (quickNav) quickNav.remove();
+
+        // Capture slide items and build all HTML while child globals are active
+        var items = currentSlideItems ? currentSlideItems.slice() : [];
+        var layerIdx = currentSlideLayerIndex;
+        var isLayer = layerIdx >= 0;
+
+        if (items.length <= 1) return;
+
+        // Pre-build HTML for every item (globals still set for this child tab)
+        var itemHtmls = [];
+        for (var i = 0; i < items.length; i++) {
+          if (isLayer) {
+            itemHtmls.push(buildSlideItemHtml(items[i], i, layerIdx));
+          } else {
+            itemHtmls.push(buildMainSlideItemHtml(items[i], i));
+          }
+        }
+
+        // Store state on the container element
+        container._stackedSlideHtmls = itemHtmls;
+        container._stackedSlideIndex = 0;
+
+        // Add self-contained nav buttons (always visible regardless of device)
+        slideEl.style.position = 'relative';
+
+        var prevBtn = document.createElement('button');
+        prevBtn.className = 'stacked-slide-nav stacked-slide-prev';
+        prevBtn.innerHTML = '&#8249;';
+        prevBtn.style.display = 'none'; // Hidden at first item
+        prevBtn.onclick = function(e) {
+          e.stopPropagation();
+          navigateStackedSlide(container, -1);
+        };
+
+        var nextBtn = document.createElement('button');
+        nextBtn.className = 'stacked-slide-nav stacked-slide-next';
+        nextBtn.innerHTML = '&#8250;';
+        nextBtn.onclick = function(e) {
+          e.stopPropagation();
+          navigateStackedSlide(container, 1);
+        };
+
+        var counter = document.createElement('div');
+        counter.className = 'stacked-slide-counter';
+        counter.textContent = '1 / ' + items.length;
+
+        slideEl.appendChild(prevBtn);
+        slideEl.appendChild(nextBtn);
+        slideEl.appendChild(counter);
+      }
+
+      // Navigate a stacked horizontal slide using pre-built HTML (per-container state)
+      function navigateStackedSlide(container, direction) {
+        var htmls = container._stackedSlideHtmls;
+        if (!htmls) return;
+
+        var newIdx = container._stackedSlideIndex + direction;
+        if (newIdx < 0 || newIdx >= htmls.length) return;
+        container._stackedSlideIndex = newIdx;
+
+        var slideEl = container.querySelector('.slide-horizontal');
+        if (!slideEl) return;
+
+        // Update item content
+        var itemContainer = slideEl.querySelector('.slide-item-container');
+        if (itemContainer) {
+          itemContainer.innerHTML = htmls[newIdx];
+          // Set up image zoom after DOM update
+          setTimeout(function() {
+            if (typeof setupSlideImages === 'function') {
+              setupSlideImages(itemContainer);
+            }
+          }, 0);
+        }
+
+        // Update nav button visibility
+        var prevBtn = slideEl.querySelector('.stacked-slide-prev');
+        var nextBtn = slideEl.querySelector('.stacked-slide-next');
+        if (prevBtn) prevBtn.style.display = newIdx > 0 ? 'flex' : 'none';
+        if (nextBtn) nextBtn.style.display = newIdx < htmls.length - 1 ? 'flex' : 'none';
+
+        // Update counter
+        var counterEl = slideEl.querySelector('.stacked-slide-counter');
+        if (counterEl) counterEl.textContent = (newIdx + 1) + ' / ' + htmls.length;
       }
 
       // Load child tab data from backend, then render into container
@@ -13778,6 +13946,9 @@ DETECTION SYSTEM (working correctly):
         updateFilterSortVisibility();
 
         applyFiltersAndSorting();
+
+        // Update breadcrumb (important for stacked tab context)
+        updateBreadcrumb();
       }
 
       function clearSearch() {
