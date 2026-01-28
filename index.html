@@ -544,11 +544,11 @@ DETECTION SYSTEM (working correctly):
 
       /* Override slide view styles when inside stacked containers */
       .stacked-tab-content .slide-view {
-        margin-top: 0 !important; /* Remove the -10px offset designed for #gridView */
+        margin-top: 12px !important; /* Add gap between tab header and slide content */
       }
 
       .stacked-tab-content .slide-horizontal {
-        min-height: auto; /* Don't fill viewport height in stacked context */
+        min-height: auto !important; /* Override viewport min-height in stacked context */
       }
 
       /* Hide the default position:fixed nav arrows inside stacked containers */
