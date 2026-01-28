@@ -12087,6 +12087,26 @@ DETECTION SYSTEM (working correctly):
       function updateBreadcrumb() {
         const breadcrumbNav = document.getElementById("breadcrumbNav");
 
+        // Stacked tab breadcrumb: Home > StackName > ChildTabNames
+        if (isStackedTabActive && activeStackedParent) {
+          let breadcrumbHTML = '<a href="#" onclick="navigateToHome(); return false;" style="color: #64748b; text-decoration: none; font-weight: 500;">Home</a>';
+          breadcrumbHTML += ' <span style="color: #cbd5e1; margin: 0 6px;">›</span> ';
+          breadcrumbHTML += '<span style="color: #1e293b; font-weight: 600;">' + activeStackedParent + '</span>';
+
+          // Show child tab names
+          const childIndices = tabStackMap[activeStackedParent];
+          if (childIndices && childIndices.length > 0) {
+            const childNames = childIndices.map(function(idx) { return tabsConfig[idx].tabName; });
+            breadcrumbHTML += ' <span style="color: #cbd5e1; margin: 0 6px;">›</span> ';
+            breadcrumbHTML += '<span style="color: #64748b; font-weight: 400;">' + childNames.join(' + ') + '</span>';
+          }
+
+          breadcrumbNav.innerHTML = breadcrumbHTML;
+          breadcrumbNav.style.display = "flex";
+          updateFiltersRowVisibility();
+          return;
+        }
+
         if (navigationStack.length === 0 && currentView !== "layer") {
           // No breadcrumb needed
           breadcrumbNav.style.display = "none";
@@ -12166,6 +12186,17 @@ DETECTION SYSTEM (working correctly):
       // Navigate to home (Layer 1 or main list)
       function navigateToHome() {
         console.log('[Pagination] navigateToHome called');
+
+        // If on stacked tab, exit stacked mode and reload current regular tab
+        if (isStackedTabActive) {
+          console.log('[Pagination] Exiting stacked tab mode');
+          isStackedTabActive = false;
+          activeStackedParent = null;
+          // Reload the current regular tab (restores its saved state and renders)
+          loadTabData(currentTabIndex);
+          return;
+        }
+
         console.log('[Pagination] paginationState:', JSON.stringify(paginationState));
         navigationStack = [];
         currentLayerIndex = -1;
@@ -12790,7 +12821,45 @@ DETECTION SYSTEM (working correctly):
         gridView.appendChild(stackContainer);
       }
 
-      // Render a single child tab's content into a container
+      // Set globals from a child tab's cached data (used by stacked rendering and click delegation)
+      function setGlobalsFromChildTabCache(childIdx) {
+        const cachedData = tabDataCache[childIdx];
+        if (!cachedData) return;
+
+        layerConfig = cachedData.layerConfig || [];
+        layersData = cachedData.layersData || {};
+        allItems = cachedData.items || [];
+        columnConfig = cachedData.columnConfig || [];
+        headers = cachedData.headers || [];
+
+        if (cachedData.settings) {
+          settings = cachedData.settings;
+          initializeDisplayViewType();
+        }
+
+        // Set pagination/grouping globals
+        if (cachedData.mainLayerMaxPerPage) {
+          const mlp = cachedData.mainLayerMaxPerPage;
+          if (typeof mlp === 'object') {
+            mainLayerMaxPerPage = mlp.maxPerPage || 0;
+            mainLayerMobileMaxPerPage = mlp.mobileMaxPerPage || 0;
+            mainLayerGroupByColumn = mlp.groupByColumn || '';
+          } else {
+            mainLayerMaxPerPage = mlp || 0;
+            mainLayerMobileMaxPerPage = 0;
+            mainLayerGroupByColumn = '';
+          }
+        } else {
+          mainLayerMaxPerPage = 0;
+          mainLayerMobileMaxPerPage = 0;
+          mainLayerGroupByColumn = '';
+        }
+
+        loadColumnConfig();
+      }
+
+      // Render a single child tab's HOME view into a container
+      // Replicates the exact same rendering pipeline as navigateToHome() → renderLayerView() / renderList()
       function renderChildTabIntoContainer(childIdx, container) {
         const cachedData = tabDataCache[childIdx];
         if (!cachedData) {
@@ -12802,48 +12871,22 @@ DETECTION SYSTEM (working correctly):
         const savedState = saveGlobalStateForStack();
 
         try {
-          // Set globals from cached data
-          layerConfig = cachedData.layerConfig || [];
-          layersData = cachedData.layersData || {};
-          allItems = cachedData.items || [];
-          columnConfig = cachedData.columnConfig || [];
-          headers = cachedData.headers || [];
+          setGlobalsFromChildTabCache(childIdx);
 
-          if (cachedData.settings) {
-            settings = cachedData.settings;
-            initializeDisplayViewType();
-          }
+          // Reset pagination state for fresh rendering
+          paginationState = {};
 
-          // Load column config to set nameColumn, imageColumn, etc.
-          loadColumnConfig();
-
-          // Get items for rendering
-          const items = allItems;
-
-          if (!items || items.length === 0) {
-            container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6b7280;">No items for this tab.</div>';
-            restoreGlobalStateForStack(savedState);
-            return;
-          }
-
-          // Determine view type and render using the exact same type/style as the original tab
-          const viewType = getMainViewType();
-          const style = getMainStyle();
-
-          // Create a grid-like container to pass to renderers
-          const renderTarget = document.createElement("div");
-          container.appendChild(renderTarget);
-
-          if (viewType === 'list') {
-            renderListView(items, renderTarget);
-          } else if (viewType === 'table') {
-            renderTableView(items, renderTarget);
-          } else if (viewType === 'slide') {
-            renderSlideView(items, renderTarget, null);
+          if (layerConfig.length > 0) {
+            // Has layers → render Layer 1 home view (same as renderLayerView(0, null))
+            renderLayerIntoContainer(0, null, container);
           } else {
-            // Default to cards view
-            renderCardsView(items, renderTarget);
+            // No layers → render main items (same as renderList)
+            renderMainItemsIntoContainer(container);
           }
+
+          // Set up click delegation: clicking any item exits stacked mode and enters this child tab
+          setupStackedSectionInteraction(container, childIdx);
+
         } catch (err) {
           console.error('❌ Error rendering child tab ' + childIdx + ':', err);
           container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">Error rendering content</div>';
@@ -12851,6 +12894,141 @@ DETECTION SYSTEM (working correctly):
 
         // Restore globals
         restoreGlobalStateForStack(savedState);
+      }
+
+      // Render layer items into a custom container (replicates renderLayerView rendering logic)
+      function renderLayerIntoContainer(layerIndex, parentFilterName, container) {
+        if (layerIndex < 0 || layerIndex >= layerConfig.length) {
+          container.innerHTML = "<p style='color:#6b7280;font-size:13px;'>Invalid layer.</p>";
+          return;
+        }
+
+        const layerName = layerConfig[layerIndex].layerName;
+        const layerItems = getFilteredLayerItems(layerName, parentFilterName);
+
+        if (!layerItems.length) {
+          container.innerHTML = "<p style='color:#6b7280;font-size:13px;'>No items in this layer.</p>";
+          return;
+        }
+
+        // Standardize items (same as renderLayerView)
+        const standardizedItems = layerItems.map(function(item) {
+          return {
+            _isLayerItem: true,
+            _layerIndex: layerIndex,
+            _rawLayerItem: item,
+            "Picture Link": item["Picture Link"],
+            "Names": (item["Display"] && String(item["Display"]).trim()) || item["Names"],
+            "_filterName": item["Names"],
+            "Description": item["Description"]
+          };
+        });
+
+        // Check grouping
+        const groupByColumn = getGroupByColumn(layerIndex);
+        if (groupByColumn) {
+          renderGroupedLayerList(standardizedItems, container, layerIndex, groupByColumn, parentFilterName);
+          return;
+        }
+
+        // Pagination
+        const maxPerPage = getMaxPerPage(layerIndex);
+        const totalItems = standardizedItems.length;
+        const totalPages = getTotalPages(totalItems, maxPerPage);
+        var page = 1;
+        const paginatedItems = getPaginatedItems(standardizedItems, page, maxPerPage);
+
+        // Route to layer renderer using exact view type/style for this layer
+        const viewType = getViewTypeForLayer(layerIndex);
+        if (viewType === 'list') {
+          renderLayerListView(paginatedItems, container, layerIndex);
+        } else if (viewType === 'table') {
+          renderLayerTableView(paginatedItems, container, layerIndex);
+        } else if (viewType === 'slide') {
+          renderLayerSlideView(standardizedItems, container, layerIndex, totalPages > 1 ? { page: page, totalPages: totalPages, maxPerPage: maxPerPage } : null);
+        } else {
+          renderLayerCardsView(paginatedItems, container, layerIndex);
+        }
+
+        // Pagination UI (not for slide)
+        if (viewType !== 'slide' && totalPages > 1) {
+          renderPagination(container, page, totalPages, layerIndex);
+        }
+      }
+
+      // Render main items into a custom container (replicates renderList rendering logic)
+      function renderMainItemsIntoContainer(container) {
+        const items = allItems;
+
+        if (!items || !items.length) {
+          container.innerHTML = "<p style='color:#6b7280;font-size:13px;'>No items for this selection.</p>";
+          return;
+        }
+
+        // Check grouping
+        const groupByColumn = getGroupByColumn(-1);
+        if (groupByColumn) {
+          renderGroupedList(items, container, -1, groupByColumn);
+          return;
+        }
+
+        // Pagination
+        const maxPerPage = getMaxPerPage(-1);
+        const totalItems = items.length;
+        const totalPages = getTotalPages(totalItems, maxPerPage);
+        var page = 1;
+        const paginatedItems = getPaginatedItems(items, page, maxPerPage);
+
+        // Route to renderer using exact main view type/style
+        const viewType = getMainViewType();
+        if (viewType === 'list') {
+          renderListView(paginatedItems, container);
+        } else if (viewType === 'table') {
+          renderTableView(paginatedItems, container);
+        } else if (viewType === 'slide') {
+          renderSlideView(items, container, totalPages > 1 ? { page: page, totalPages: totalPages, maxPerPage: maxPerPage } : null);
+        } else {
+          renderCardsView(paginatedItems, container);
+        }
+
+        // Pagination UI (not for slide)
+        if (viewType !== 'slide' && totalPages > 1) {
+          renderPagination(container, page, totalPages, -1);
+        }
+      }
+
+      // Set up click delegation on a stacked section
+      // When any interactive item is clicked, exit stacked mode and switch to that child tab
+      // Uses capture phase so globals are set BEFORE the element's own onclick handler fires
+      function setupStackedSectionInteraction(container, childIdx) {
+        container.addEventListener('click', function(e) {
+          // Only intercept clicks on interactive items (cards, list items, table rows, slide items)
+          var clickable = e.target.closest('.card, .list-item, .table-row, .slide-item, .slide-card');
+          if (!clickable) return;
+
+          console.log('🖱️ Stacked section click intercepted for child tab:', childIdx);
+
+          // Exit stacked mode and switch to this child tab
+          isStackedTabActive = false;
+          activeStackedParent = null;
+          currentTabIndex = childIdx;
+
+          // Load child tab data into globals
+          setGlobalsFromChildTabCache(childIdx);
+
+          // Reset navigation state for fresh entry into this tab
+          navigationStack = [];
+          currentLayerIndex = layerConfig.length > 0 ? 0 : -1;
+          currentView = layerConfig.length > 0 ? "layer" : "list";
+          paginationState = {};
+
+          // Update tab UI
+          updateCurrentTabName();
+          renderTabMenu();
+
+          // The element's own onclick handler (showDetails, onLayerItemClick, etc.)
+          // will fire next in the bubbling phase with the correct globals in place
+        }, true); // capture phase
       }
 
       // Load child tab data from backend, then render into container
@@ -12912,7 +13090,20 @@ DETECTION SYSTEM (working correctly):
           dateColumn: dateColumn,
           externalLinkColumn: externalLinkColumn,
           addedByColumn: addedByColumn,
-          filterColumns: [...filterColumns]
+          filterColumns: [...filterColumns],
+          mainLayerMaxPerPage: mainLayerMaxPerPage,
+          mainLayerMobileMaxPerPage: mainLayerMobileMaxPerPage,
+          mainLayerGroupByColumn: mainLayerGroupByColumn,
+          paginationState: Object.assign({}, paginationState),
+          navigationStack: [...navigationStack],
+          currentLayerIndex: currentLayerIndex,
+          currentView: currentView,
+          currentDetailIndex: currentDetailIndex,
+          currentDisplayedItems: currentDisplayedItems ? [...currentDisplayedItems] : [],
+          searchQuery: searchQuery,
+          activeFilters: Object.assign({}, activeFilters),
+          sortField: sortField,
+          sortOrder: sortOrder
         };
       }
 
@@ -12941,6 +13132,19 @@ DETECTION SYSTEM (working correctly):
         externalLinkColumn = saved.externalLinkColumn;
         addedByColumn = saved.addedByColumn;
         filterColumns = [...saved.filterColumns];
+        mainLayerMaxPerPage = saved.mainLayerMaxPerPage;
+        mainLayerMobileMaxPerPage = saved.mainLayerMobileMaxPerPage;
+        mainLayerGroupByColumn = saved.mainLayerGroupByColumn;
+        paginationState = Object.assign({}, saved.paginationState);
+        navigationStack = [...saved.navigationStack];
+        currentLayerIndex = saved.currentLayerIndex;
+        currentView = saved.currentView;
+        currentDetailIndex = saved.currentDetailIndex;
+        currentDisplayedItems = saved.currentDisplayedItems ? [...saved.currentDisplayedItems] : [];
+        searchQuery = saved.searchQuery;
+        activeFilters = Object.assign({}, saved.activeFilters);
+        sortField = saved.sortField;
+        sortOrder = saved.sortOrder;
       }
 
       function showDetails(item, index) {
