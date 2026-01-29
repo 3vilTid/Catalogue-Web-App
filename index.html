@@ -538,6 +538,11 @@ DETECTION SYSTEM (working correctly):
         display: none;
       }
 
+      /* Hide separator above Slide type views */
+      .stacked-tab-section:has(+ .stacked-tab-section .stacked-tab-content.slide-view) .stacked-tab-separator {
+        display: none;
+      }
+
       .stacked-tab-content {
         width: 100%;
         min-height: 100px;
