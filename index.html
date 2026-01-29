@@ -555,9 +555,9 @@ DETECTION SYSTEM (working correctly):
 
       /* Override slide view styles when inside stacked containers */
       /* Note: .slide-view class is added TO the container, not as a child */
-      /* No padding-top needed since header is hidden for Slide views */
+      /* Add padding-top for gap above Slide views (header is hidden) */
       .stacked-tab-content.slide-view {
-        padding-top: 0;
+        padding-top: 24px;
       }
 
       .stacked-tab-content .slide-horizontal {
