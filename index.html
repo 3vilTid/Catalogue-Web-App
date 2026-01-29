@@ -536,6 +536,7 @@ DETECTION SYSTEM (working correctly):
       .stacked-tab-content {
         width: 100%;
         min-height: 100px;
+        padding-bottom: 20px; /* Gap at bottom of each stacked section */
       }
 
       .stacked-tab-content .grid {
@@ -543,8 +544,9 @@ DETECTION SYSTEM (working correctly):
       }
 
       /* Override slide view styles when inside stacked containers */
-      .stacked-tab-content .slide-view {
-        margin-top: 12px !important; /* Add gap between tab header and slide content */
+      /* Note: .slide-view class is added TO the container, not as a child */
+      .stacked-tab-content.slide-view {
+        padding-top: 12px; /* Gap between tab header and slide content */
       }
 
       .stacked-tab-content .slide-horizontal {
@@ -13166,6 +13168,12 @@ DETECTION SYSTEM (working correctly):
         var itemContainer = slideEl.querySelector('.slide-item-container');
         if (itemContainer && itemHtmls.length > 0) {
           itemContainer.innerHTML = itemHtmls[0];
+          // Setup images after DOM is attached (setTimeout ensures it runs after attachment)
+          setTimeout(function() {
+            if (typeof setupSlideImages === 'function') {
+              setupSlideImages(itemContainer);
+            }
+          }, 0);
         }
 
         // Store state on the container element
