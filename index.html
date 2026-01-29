@@ -7457,6 +7457,11 @@ DETECTION SYSTEM (working correctly):
         // Debounce: wait 250ms after last resize event
         if (resizeTimeout) clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(() => {
+          // Don't re-render if in stacked tab view (stacked view has its own orientation handling)
+          if (isStackedTabActive) {
+            return;
+          }
+
           const oldColumns = cachedGridColumns;
           const newColumns = detectGridColumns();
 
