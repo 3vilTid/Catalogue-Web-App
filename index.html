@@ -206,6 +206,16 @@ DETECTION SYSTEM (working correctly):
 
               // Wait for orientation CSS to fully apply, then re-render
               setTimeout(() => {
+                // Check if in stacked tab view - re-render stacked view instead
+                if (typeof isStackedTabActive !== 'undefined' && isStackedTabActive &&
+                    typeof renderStackedView === 'function' && activeStackedParent) {
+                  renderStackedView(activeStackedParent);
+                  requestAnimationFrame(() => {
+                    window.scrollTo(0, 0);
+                  });
+                  return;
+                }
+
                 // Re-render based on current view type to preserve correct rendering
                 if (currentView === "layer" && currentLayerIndex >= 0) {
                   // In layer view - re-render the layer
