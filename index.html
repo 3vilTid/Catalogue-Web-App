@@ -13099,6 +13099,13 @@ DETECTION SYSTEM (working correctly):
           currentView = layerConfig.length > 0 ? "layer" : "list";
           paginationState = {};
 
+          // Set currentDisplayedItems for detail view navigation
+          // (needed for navigateToPrevious/navigateToNext and fullscreen image nav)
+          if (layerConfig.length === 0) {
+            // Main items view - set all items for navigation
+            currentDisplayedItems = allItems || [];
+          }
+
           // Update tab UI to keep stacked parent shown as active
           updateCurrentTabName();
           renderTabMenu();
@@ -13117,13 +13124,15 @@ DETECTION SYSTEM (working correctly):
       // Uses numbered pagination (like other view types) instead of arrows.
       function setupStackedSlideNavigation(container) {
         // Also clean up vertical slide views (remove duplicate IDs, quick nav)
-        var slideVertical = container.querySelector('.slide-vertical');
+        // Check if container itself is vertical or has a vertical child
+        var slideVertical = container.classList.contains('slide-vertical') ? container : container.querySelector('.slide-vertical');
         if (slideVertical) {
           var vQuickNav = slideVertical.querySelector('.slide-quick-nav');
           if (vQuickNav) vQuickNav.remove();
         }
 
-        var slideEl = container.querySelector('.slide-horizontal');
+        // Check if container itself is horizontal or has a horizontal child
+        var slideEl = container.classList.contains('slide-horizontal') ? container : container.querySelector('.slide-horizontal');
         if (!slideEl) return;
 
         // Remove ID-based elements that would cause duplicate IDs across stacked sections
@@ -13170,7 +13179,8 @@ DETECTION SYSTEM (working correctly):
         var paginationDiv = document.createElement('div');
         paginationDiv.className = 'pagination-container stacked-slide-pagination';
         renderStackedSlidePagination(container, paginationDiv, 0, items.length);
-        slideEl.parentNode.insertBefore(paginationDiv, slideEl.nextSibling);
+        // Append pagination inside the slide container
+        slideEl.appendChild(paginationDiv);
       }
 
       // Build and render numbered pagination for stacked slide
@@ -13234,7 +13244,8 @@ DETECTION SYSTEM (working correctly):
         if (!htmls || newIdx < 0 || newIdx >= htmls.length) return;
         container._stackedSlideIndex = newIdx;
 
-        var slideEl = container.querySelector('.slide-horizontal');
+        // Check if container itself is horizontal or has a horizontal child
+        var slideEl = container.classList.contains('slide-horizontal') ? container : container.querySelector('.slide-horizontal');
         if (!slideEl) return;
 
         // Update item content
@@ -13248,8 +13259,8 @@ DETECTION SYSTEM (working correctly):
           }, 0);
         }
 
-        // Re-render pagination with new active page
-        var paginationDiv = slideEl.parentNode.querySelector('.stacked-slide-pagination');
+        // Re-render pagination with new active page (pagination is inside slideEl)
+        var paginationDiv = slideEl.querySelector('.stacked-slide-pagination');
         if (paginationDiv) {
           renderStackedSlidePagination(container, paginationDiv, newIdx, htmls.length);
         }
