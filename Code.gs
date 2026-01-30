@@ -1665,16 +1665,24 @@ function getItemByName(name, token, mainSheetName, columnConfigSheetName) {
       throw new Error("Authentication required.");
     }
 
+    var user = sessionResult.user;
+    var userGroups = user.visibilityGroups || [];
+
     var sh = getMainSheet_(mainSheetName);
     var data = sh.getDataRange().getValues();
     if (data.length < 2) return null;
 
-    // Get column config to identify date columns
-    var configs = getColumnConfig(columnConfigSheetName);
+    // Get all column configs and filter by user's visibility groups
+    var allConfigs = getColumnConfig(columnConfigSheetName);
+    var visibleConfigs = filterColumnsByVisibility_(allConfigs, userGroups);
+
+    // Build a set of visible column names
+    var visibleColumnNames = {};
     var dateColumns = {};
-    for (var i = 0; i < configs.length; i++) {
-      if (configs[i].type === "date") {
-        dateColumns[configs[i].columnName] = true;
+    for (var i = 0; i < visibleConfigs.length; i++) {
+      visibleColumnNames[visibleConfigs[i].columnName] = true;
+      if (visibleConfigs[i].type === "date") {
+        dateColumns[visibleConfigs[i].columnName] = true;
       }
     }
 
@@ -1688,6 +1696,12 @@ function getItemByName(name, token, mainSheetName, columnConfigSheetName) {
         var obj = {};
         for (var c = 0; c < headers.length; c++) {
           var h = headers[c];
+
+          // Only include visible columns
+          if (!visibleColumnNames[h]) {
+            continue;
+          }
+
           var val = data[r][c];
           // Convert Date objects to YYYY-MM-DD strings using local methods
           // Apply date adjustment from Settings F2
