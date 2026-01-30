@@ -7323,6 +7323,7 @@ DETECTION SYSTEM (working correctly):
       // Tab data caching for performance
       let tabDataCache = {}; // Cache full tab data: {tabIndex: {layerConfig, layersData, items, columnConfig, headers}}
       let tabUniqueValuesCache = {}; // Cache computeUniqueValues results: {tabIndex: uniqueValuesMap}
+      let initiallyLoadedTabSheets = null; // Track which tab's data was initially loaded: {mainSheetName, layersSheetName}
 
       // Tab stacking state
       let tabStackConfig = []; // Raw config from backend: [{parentTabName, childTabName}, ...]
@@ -12268,6 +12269,28 @@ DETECTION SYSTEM (working correctly):
       function navigateToHome() {
         console.log('[Pagination] navigateToHome called');
 
+        // Handle initial load - show stacked parent if needed
+        if (window._showStackedParentOnInit && activeStackedParent) {
+          console.log('[Pagination] Initial load: showing stacked parent:', activeStackedParent);
+          window._showStackedParentOnInit = false;
+          renderStackedView(activeStackedParent);
+          updateCurrentTabName();
+          renderTabMenu();
+          updateBreadcrumb();
+          updateAllUIVisibility();
+          return;
+        }
+
+        // Handle initial load - reload data for correct first tab if needed
+        if (window._needsInitialTabReload && window._initialTabReloadIndex !== undefined) {
+          console.log('[Pagination] Initial load: reloading data for tab', window._initialTabReloadIndex);
+          const reloadIndex = window._initialTabReloadIndex;
+          window._needsInitialTabReload = false;
+          window._initialTabReloadIndex = undefined;
+          loadTabData(reloadIndex);
+          return;
+        }
+
         // If we came from a stacked tab, return to it
         if (_stackedTabOrigin) {
           console.log('[Pagination] Returning to stacked tab origin:', _stackedTabOrigin);
@@ -12405,6 +12428,12 @@ DETECTION SYSTEM (working correctly):
         // Process tab stacking configuration
         processTabStackConfig();
 
+        // Determine what to show first after filtering/sorting
+        // The first visible item should be either:
+        // 1. A stacked parent (if tabs[0] is a child of a stacked parent)
+        // 2. The first regular (non-child) tab
+        determineInitialTabState();
+
         // Show tab switcher only if more than one tab is configured
         const tabSwitcherWrapper = document.getElementById("tabSwitcherWrapper");
 
@@ -12428,6 +12457,61 @@ DETECTION SYSTEM (working correctly):
         // Position tab switcher based on current orientation
         if (window.handleTabSwitcherPosition) {
           window.handleTabSwitcherPosition();
+        }
+      }
+
+      /**
+       * Determine the initial tab state after filtering/sorting
+       * Sets currentTabIndex, isStackedTabActive, and activeStackedParent correctly
+       * Also handles reloading data if the first visible tab needs different data
+       */
+      function determineInitialTabState() {
+        if (tabsConfig.length === 0) {
+          console.log('📋 No visible tabs after filtering');
+          return;
+        }
+
+        // Find the first visible tab that is NOT a child tab
+        let firstVisibleNonChildIndex = -1;
+        for (let i = 0; i < tabsConfig.length; i++) {
+          if (!childTabIndices.has(i)) {
+            firstVisibleNonChildIndex = i;
+            break;
+          }
+        }
+
+        // Check if the first tab overall is a child (meaning we should show stacked parent first)
+        const firstTab = tabsConfig[0];
+        const isFirstTabChild = childTabIndices.has(0);
+
+        if (isFirstTabChild) {
+          // First tab is a child - we should show its stacked parent instead
+          const parentName = firstTab.stackedParent;
+          console.log('📋 First tab is a stacked child, will show parent:', parentName);
+
+          isStackedTabActive = true;
+          activeStackedParent = parentName;
+          currentTabIndex = 0;
+
+          // Set flag for navigateToHome to show stacked parent on initial load
+          window._showStackedParentOnInit = true;
+        } else if (firstVisibleNonChildIndex !== -1) {
+          // Show first regular (non-child) tab
+          const targetTab = tabsConfig[firstVisibleNonChildIndex];
+          console.log('📋 First visible non-child tab:', targetTab.tabName, 'at index', firstVisibleNonChildIndex);
+
+          currentTabIndex = firstVisibleNonChildIndex;
+          isStackedTabActive = false;
+          activeStackedParent = null;
+
+          // Check if we need to load data for this tab
+          // (if it's different from what was initially loaded)
+          if (initiallyLoadedTabSheets && targetTab.mainSheetName !== initiallyLoadedTabSheets.mainSheetName) {
+            console.log('📋 First visible tab needs different data, will reload');
+            // Mark that we need to reload - this will be handled by navigateToHome
+            window._needsInitialTabReload = true;
+            window._initialTabReloadIndex = firstVisibleNonChildIndex;
+          }
         }
       }
 
@@ -12740,13 +12824,35 @@ DETECTION SYSTEM (working correctly):
           .getTabData(tab.layersSheetName, tab.mainSheetName, tab.columnConfigSheetName, token);
       }
 
-      // Cache initial tab data (tab 0) that was loaded via getInitialData
+      /**
+       * Cache initial tab data that was loaded via getInitialData
+       * Finds the correct tab index by matching sheet names
+       */
       function cacheInitialTabData() {
         if (tabsConfig.length === 0) return;
 
+        // Find which tab index in the sorted tabsConfig matches the initially loaded data
+        let cacheIndex = -1;
+        if (initiallyLoadedTabSheets) {
+          for (let i = 0; i < tabsConfig.length; i++) {
+            const tab = tabsConfig[i];
+            const tabMainSheet = tab.mainSheetName || 'Main';
+            if (tabMainSheet === initiallyLoadedTabSheets.mainSheetName) {
+              cacheIndex = i;
+              break;
+            }
+          }
+        }
+
+        // If no match found (tab was filtered out), default to index 0
+        if (cacheIndex === -1) {
+          console.log('💾 Initially loaded tab not visible, caching data at index 0 for potential reuse');
+          cacheIndex = 0;
+        }
+
         // Store initial tab data in cache so switching back is instant
         // Store mainLayerMaxPerPage as object format for consistency
-        tabDataCache[0] = {
+        tabDataCache[cacheIndex] = {
           layerConfig: layerConfig,
           layersData: layersData,
           mainLayerMaxPerPage: { maxPerPage: mainLayerMaxPerPage, mobileMaxPerPage: mainLayerMobileMaxPerPage, groupByColumn: mainLayerGroupByColumn },
@@ -12755,7 +12861,7 @@ DETECTION SYSTEM (working correctly):
           headers: headers,
           settings: settings
         };
-        console.log('💾 Initial tab (tab 0) cached for instant switching');
+        console.log('💾 Initial tab data cached at index', cacheIndex, '(' + (initiallyLoadedTabSheets ? initiallyLoadedTabSheets.tabName : 'unknown') + ')');
       }
 
       // Preload other tabs in background for instant switching
@@ -15249,6 +15355,16 @@ DETECTION SYSTEM (working correctly):
             // Store tab stacking configuration (if available)
             tabStackConfig = payload.tabStackConfig || [];
 
+            // Track which tab's data was initially loaded by the backend
+            // Backend loads data for rawTabsConfig[0] (first tab in row order)
+            if (rawTabsConfig.length > 0) {
+              initiallyLoadedTabSheets = {
+                mainSheetName: rawTabsConfig[0].mainSheetName || 'Main',
+                layersSheetName: rawTabsConfig[0].layersSheetName || 'Layers',
+                tabName: rawTabsConfig[0].tabName
+              };
+            }
+
             // Debug: Log layer data
             console.log('📊 Layer Config:', layerConfig);
             console.log('📊 Layers Data:', layersData);
@@ -15258,6 +15374,7 @@ DETECTION SYSTEM (working correctly):
             console.log('📑 User Visibility Groups:', userVisibilityGroups);
             console.log('📑 Filtered/Sorted Tabs Config:', tabsConfig);
             console.log('📑 Has Visible Tabs:', tabsConfig.length > 0);
+            console.log('📑 Initially Loaded Tab:', initiallyLoadedTabSheets);
 
             console.log('Public viewer loaded:', user ? user.email : 'null', user ? user.profile : 'null');
 
@@ -15348,6 +15465,15 @@ DETECTION SYSTEM (working correctly):
             // Store tab stacking configuration (if available)
             tabStackConfig = payload.tabStackConfig || [];
 
+            // Track which tab's data was initially loaded by the backend
+            if (rawTabsConfig2.length > 0) {
+              initiallyLoadedTabSheets = {
+                mainSheetName: rawTabsConfig2[0].mainSheetName || 'Main',
+                layersSheetName: rawTabsConfig2[0].layersSheetName || 'Layers',
+                tabName: rawTabsConfig2[0].tabName
+              };
+            }
+
             // Debug: Log layer data
             console.log('📊 Layer Config:', layerConfig);
             console.log('📊 Layers Data:', layersData);
@@ -15356,6 +15482,7 @@ DETECTION SYSTEM (working correctly):
             console.log('📑 Raw Tabs Config:', rawTabsConfig2.length, 'tabs');
             console.log('📑 Filtered/Sorted Tabs Config (public with login):', tabsConfig);
             console.log('📑 Has Visible Tabs:', tabsConfig.length > 0);
+            console.log('📑 Initially Loaded Tab:', initiallyLoadedTabSheets);
 
             // Setup image proxy if available
             if (settings && settings.deploymentUrl) {
@@ -15441,6 +15568,15 @@ DETECTION SYSTEM (working correctly):
             // Store tab stacking configuration (if available)
             tabStackConfig = payload.tabStackConfig || [];
 
+            // Track which tab's data was initially loaded by the backend
+            if (rawTabsConfig3.length > 0) {
+              initiallyLoadedTabSheets = {
+                mainSheetName: rawTabsConfig3[0].mainSheetName || 'Main',
+                layersSheetName: rawTabsConfig3[0].layersSheetName || 'Layers',
+                tabName: rawTabsConfig3[0].tabName
+              };
+            }
+
             // Debug: Log layer data
             console.log('📊 Layer Config:', layerConfig);
             console.log('📊 Layers Data:', layersData);
@@ -15450,6 +15586,7 @@ DETECTION SYSTEM (working correctly):
             console.log('📑 User Visibility Groups:', authUserGroups);
             console.log('📑 Filtered/Sorted Tabs Config:', tabsConfig);
             console.log('📑 Has Visible Tabs:', tabsConfig.length > 0);
+            console.log('📑 Initially Loaded Tab:', initiallyLoadedTabSheets);
 
             // Check if user is still authenticated
             if (!user) {
