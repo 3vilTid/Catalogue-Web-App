@@ -15207,7 +15207,7 @@ DETECTION SYSTEM (working correctly):
             .withFailureHandler(function(error) {
               showToast("Error: " + error.message, "error");
             })
-            .editItem(editingItemName, obj, token, getCurrentMainSheetName());
+            .editItem(editingItemName, obj, token, getCurrentMainSheetName(), getCurrentColumnConfigSheetName());
         }
       }
 

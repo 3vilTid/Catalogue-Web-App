@@ -124,6 +124,17 @@ function getColumnConfigSheet_() {
 /**
  * Get column configuration from specified sheet
  * @param {string} sheetName - Name of the ColumnConfig sheet (default: 'ColumnConfig')
+ *
+ * ColumnConfig columns:
+ * A = Column Name
+ * B = Display Name
+ * C = Type (text, date, number, url)
+ * D = Show in Filter (TRUE/FALSE)
+ * E = Show in Sort (TRUE/FALSE)
+ * F = Show on Table (TRUE/FALSE)
+ * G = Item Place
+ * H = Special Role
+ * I = Visibility Groups (comma-separated, matches Users sheet Column D)
  */
 function getColumnConfig(sheetName) {
   sheetName = sheetName || 'ColumnConfig';
@@ -151,18 +162,32 @@ function getColumnConfig(sheetName) {
 
     for (var i = 1; i < data.length; i++) {
       var row = data[i];
-      var rawItemPlace, rawSpecialRole, showOnTable;
+      var rawItemPlace, rawSpecialRole, showOnTable, visibilityGroupsValue;
 
       if (hasShowOnTableColumn) {
-        // New structure: F=Show on Table, G=Item Place, H=Special Role
+        // New structure: F=Show on Table, G=Item Place, H=Special Role, I=Visibility Groups
         showOnTable = row[5] === true || row[5] === "TRUE";
         rawItemPlace = String(row[6] || "").trim();
         rawSpecialRole = String(row[7] || "").trim();
+        visibilityGroupsValue = String(row[8] || "").trim(); // Column I (index 8)
       } else {
-        // Old structure: F=Item Place, G=Special Role
+        // Old structure: F=Item Place, G=Special Role, H=Visibility Groups
         showOnTable = false; // Default to false if column doesn't exist
         rawItemPlace = String(row[5] || "").trim();
         rawSpecialRole = String(row[6] || "").trim();
+        visibilityGroupsValue = String(row[7] || "").trim(); // Column H in old structure
+      }
+
+      // Parse visibility groups (comma-separated)
+      var visibilityGroups = [];
+      if (visibilityGroupsValue !== '') {
+        var parts = visibilityGroupsValue.split(',');
+        for (var j = 0; j < parts.length; j++) {
+          var grp = parts[j].trim();
+          if (grp !== '') {
+            visibilityGroups.push(grp);
+          }
+        }
       }
 
       configs.push({
@@ -175,7 +200,8 @@ function getColumnConfig(sheetName) {
         itemPlace: normalizeItemPlace_(rawItemPlace),
         itemPlaceDisplay: rawItemPlace,
         specialRole: normalizeSpecialRole_(rawSpecialRole),
-        specialRoleDisplay: rawSpecialRole
+        specialRoleDisplay: rawSpecialRole,
+        visibilityGroups: visibilityGroups
       });
     }
 
@@ -184,6 +210,154 @@ function getColumnConfig(sheetName) {
     Logger.log("Error getting column config: " + err);
     return [];
   }
+}
+
+/**
+ * Filter columns based on user's visibility groups
+ * Rules:
+ * - If column.visibilityGroups is empty/undefined -> visible to everyone
+ * - If column.visibilityGroups has values -> visible only if user has at least one matching group
+ * - Unlogged users (empty userGroups) only see columns with empty visibilityGroups
+ *
+ * @param {Array} columns - Array of column config objects
+ * @param {Array} userGroups - User's visibility groups (empty array if unlogged/public)
+ * @return {Array} Filtered columns
+ */
+function filterColumnsByVisibility_(columns, userGroups) {
+  if (!columns || columns.length === 0) return [];
+
+  userGroups = userGroups || [];
+  var isUnlogged = userGroups.length === 0;
+
+  var filtered = [];
+  for (var i = 0; i < columns.length; i++) {
+    var col = columns[i];
+    var colGroups = col.visibilityGroups || [];
+
+    // If column has no visibility groups, it's visible to everyone
+    if (colGroups.length === 0) {
+      filtered.push(col);
+      continue;
+    }
+
+    // Column has visibility groups - check for intersection with user groups
+    // Unlogged users (empty userGroups) can't see columns with visibility restrictions
+    if (isUnlogged) {
+      continue;
+    }
+
+    // Check if user has at least one matching group
+    var hasMatch = false;
+    for (var j = 0; j < colGroups.length; j++) {
+      for (var k = 0; k < userGroups.length; k++) {
+        if (colGroups[j] === userGroups[k]) {
+          hasMatch = true;
+          break;
+        }
+      }
+      if (hasMatch) break;
+    }
+
+    if (hasMatch) {
+      filtered.push(col);
+    }
+  }
+
+  Logger.log('Filtered columns: ' + filtered.length + ' of ' + columns.length + ' visible for user groups: ' + (userGroups.length > 0 ? userGroups.join(', ') : 'none'));
+  return filtered;
+}
+
+/**
+ * Filter item data to exclude values for columns user can't see
+ * This ensures sensitive data is never sent to the frontend
+ *
+ * @param {Array} items - Array of item objects
+ * @param {Array} visibleColumns - Array of column configs user can see
+ * @return {Array} Filtered items with only visible column values
+ */
+function filterItemData_(items, visibleColumns) {
+  if (!items || items.length === 0) return [];
+  if (!visibleColumns || visibleColumns.length === 0) return [];
+
+  // Build a set of visible column names for fast lookup
+  var visibleColumnNames = {};
+  for (var i = 0; i < visibleColumns.length; i++) {
+    visibleColumnNames[visibleColumns[i].columnName] = true;
+  }
+
+  var filteredItems = [];
+  for (var j = 0; j < items.length; j++) {
+    var item = items[j];
+    var filteredItem = {};
+
+    // Only include values for visible columns
+    for (var key in item) {
+      if (item.hasOwnProperty(key) && visibleColumnNames[key]) {
+        filteredItem[key] = item[key];
+      }
+    }
+
+    filteredItems.push(filteredItem);
+  }
+
+  return filteredItems;
+}
+
+/**
+ * Filter headers to exclude columns user can't see
+ *
+ * @param {Array} headers - Array of header names
+ * @param {Array} visibleColumns - Array of column configs user can see
+ * @return {Array} Filtered headers
+ */
+function filterHeaders_(headers, visibleColumns) {
+  if (!headers || headers.length === 0) return [];
+  if (!visibleColumns || visibleColumns.length === 0) return [];
+
+  // Build a set of visible column names for fast lookup
+  var visibleColumnNames = {};
+  for (var i = 0; i < visibleColumns.length; i++) {
+    visibleColumnNames[visibleColumns[i].columnName] = true;
+  }
+
+  var filteredHeaders = [];
+  for (var j = 0; j < headers.length; j++) {
+    if (visibleColumnNames[headers[j]]) {
+      filteredHeaders.push(headers[j]);
+    }
+  }
+
+  return filteredHeaders;
+}
+
+/**
+ * Get list of restricted column names for a user
+ * Used for validation in add/edit operations
+ *
+ * @param {Array} allColumns - All column configs
+ * @param {Array} userGroups - User's visibility groups
+ * @return {Array} Array of column names user cannot access
+ */
+function getRestrictedColumnNames_(allColumns, userGroups) {
+  if (!allColumns || allColumns.length === 0) return [];
+
+  var visibleColumns = filterColumnsByVisibility_(allColumns, userGroups);
+
+  // Build a set of visible column names
+  var visibleColumnNames = {};
+  for (var i = 0; i < visibleColumns.length; i++) {
+    visibleColumnNames[visibleColumns[i].columnName] = true;
+  }
+
+  // Find columns that are not visible
+  var restricted = [];
+  for (var j = 0; j < allColumns.length; j++) {
+    if (!visibleColumnNames[allColumns[j].columnName]) {
+      restricted.push(allColumns[j].columnName);
+    }
+  }
+
+  return restricted;
 }
 
 /**************************************************
@@ -1182,7 +1356,21 @@ function getInitialData(token) {
   // Check if app is in public mode
   if (isPublicMode_()) {
     // Public mode: Everyone is a Viewer, no authentication required
-    // visibilityGroups empty = can see all tabs with blank visibility rules
+    // visibilityGroups empty = can see all columns with blank visibility rules
+
+    // Get all column configs and filter by visibility (empty groups = public can see)
+    var allColumnConfig = getColumnConfig(columnConfigSheetName);
+    var userGroups = []; // Public user has no groups
+    var filteredColumnConfig = filterColumnsByVisibility_(allColumnConfig, userGroups);
+
+    // Get raw data
+    var rawItems = getMainData(mainSheetName);
+    var rawHeaders = getHeaders(mainSheetName);
+
+    // Filter items and headers to only include visible columns
+    var filteredItems = filterItemData_(rawItems, filteredColumnConfig);
+    var filteredHeaders = filterHeaders_(rawHeaders, filteredColumnConfig);
+
     return {
       user: {
         email: "public@viewer",
@@ -1191,9 +1379,9 @@ function getInitialData(token) {
         visibilityGroups: []
       },
       settings: getSettings(),
-      headers: getHeaders(mainSheetName),
-      items: getMainData(mainSheetName),
-      columnConfig: getColumnConfig(columnConfigSheetName),
+      headers: filteredHeaders,
+      items: filteredItems,
+      columnConfig: filteredColumnConfig,
       layerConfig: layerConfig,
       layersData: layersData,
       tabsConfig: tabsConfig,
@@ -1204,19 +1392,33 @@ function getInitialData(token) {
 
   // Private mode: Verify session if token provided
   var user = null;
+  var userGroups = [];
   if (token) {
     var sessionResult = verifySession(token);
     if (sessionResult.success) {
       user = sessionResult.user;
+      userGroups = user.visibilityGroups || [];
     }
   }
+
+  // Get all column configs and filter by user's visibility groups
+  var allColumnConfig = getColumnConfig(columnConfigSheetName);
+  var filteredColumnConfig = filterColumnsByVisibility_(allColumnConfig, userGroups);
+
+  // Get raw data
+  var rawItems = getMainData(mainSheetName);
+  var rawHeaders = getHeaders(mainSheetName);
+
+  // Filter items and headers to only include visible columns
+  var filteredItems = filterItemData_(rawItems, filteredColumnConfig);
+  var filteredHeaders = filterHeaders_(rawHeaders, filteredColumnConfig);
 
   return {
     user: user,
     settings: getSettings(),
-    headers: getHeaders(mainSheetName),
-    items: getMainData(mainSheetName),
-    columnConfig: getColumnConfig(columnConfigSheetName),
+    headers: filteredHeaders,
+    items: filteredItems,
+    columnConfig: filteredColumnConfig,
     layerConfig: layerConfig,
     layersData: layersData,
     tabsConfig: tabsConfig,
@@ -1237,20 +1439,27 @@ function getInitialData(token) {
  */
 function getTabData(layersSheetName, mainSheetName, columnConfigSheetName, token) {
   try {
+    // Determine user's visibility groups for column filtering
+    var userGroups = [];
+
     // Check if app is in public mode
-    if (!isPublicMode_()) {
+    if (isPublicMode_()) {
+      // Public mode: user has no visibility groups
+      userGroups = [];
+    } else {
       // Private or "Public with Login" mode: Verify session if token provided
-      // In "Public with Login" mode, allow access even without token (user will be null)
       if (token) {
         var sessionResult = verifySession(token);
-        if (!sessionResult.success) {
+        if (sessionResult.success) {
+          userGroups = sessionResult.user.visibilityGroups || [];
+        } else {
           // Session verification failed - log it but continue gracefully
           // This allows the tab to load in viewer mode, matching getInitialData() behavior
           Logger.log('Session verification failed in getTabData, continuing in viewer mode');
         }
       }
       // Note: If no token provided or verification fails, we allow access
-      // The user will simply not be authenticated (viewer mode)
+      // The user will simply not be authenticated (viewer mode with no groups)
     }
 
     // Load tab-specific configuration and data
@@ -1266,17 +1475,26 @@ function getTabData(layersSheetName, mainSheetName, columnConfigSheetName, token
       }
     }
 
-    var items = getMainData(mainSheetName);
-    var columnConfig = getColumnConfig(columnConfigSheetName);
-    var headers = getHeaders(mainSheetName);
+    // Get all column configs and filter by user's visibility groups
+    var allColumnConfig = getColumnConfig(columnConfigSheetName);
+    var filteredColumnConfig = filterColumnsByVisibility_(allColumnConfig, userGroups);
+
+    // Get raw data
+    var rawItems = getMainData(mainSheetName);
+    var rawHeaders = getHeaders(mainSheetName);
+
+    // Filter items and headers to only include visible columns
+    var filteredItems = filterItemData_(rawItems, filteredColumnConfig);
+    var filteredHeaders = filterHeaders_(rawHeaders, filteredColumnConfig);
+
     var tabSettings = getSettings(layersSheetName);
 
     return {
       layerConfig: layerConfig,
       layersData: layersData,
-      items: items,
-      columnConfig: columnConfig,
-      headers: headers,
+      items: filteredItems,
+      columnConfig: filteredColumnConfig,
+      headers: filteredHeaders,
       settings: tabSettings,
       mainLayerMaxPerPage: mainLayerMaxPerPage
     };
@@ -1388,8 +1606,37 @@ function addMainRow(obj, token, mainSheetName, columnConfigSheetName) {
     var sh = getMainSheet_(mainSheetName);
     var headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
 
-    // Auto-fill columns with "addedby" special role
+    // Get column config and determine which columns user can access
     var configs = getColumnConfig(columnConfigSheetName);
+    var userGroups = user.visibilityGroups || [];
+    var restrictedColumns = getRestrictedColumnNames_(configs, userGroups);
+
+    // Validate: user shouldn't be trying to set values for restricted columns
+    // (except for auto-filled columns like "addedby" which are set server-side)
+    for (var key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        // Check if this column is restricted
+        for (var k = 0; k < restrictedColumns.length; k++) {
+          if (restrictedColumns[k] === key) {
+            // Check if it's an auto-filled column (these are set server-side, so it's OK)
+            var isAutoFilled = false;
+            for (var m = 0; m < configs.length; m++) {
+              if (configs[m].columnName === key && configs[m].specialRole === "addedby") {
+                isAutoFilled = true;
+                break;
+              }
+            }
+            if (!isAutoFilled) {
+              Logger.log("Warning: User tried to set restricted column: " + key);
+              delete obj[key]; // Remove restricted column from object
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    // Auto-fill columns with "addedby" special role
     for (var i = 0; i < configs.length; i++) {
       if (configs[i].specialRole === "addedby") {
         obj[configs[i].columnName] = user.email;
@@ -1467,7 +1714,7 @@ function getItemByName(name, token, mainSheetName, columnConfigSheetName) {
   }
 }
 
-function editItem(name, updates, token, mainSheetName) {
+function editItem(name, updates, token, mainSheetName, columnConfigSheetName) {
   try {
     // Verify session
     var sessionResult = verifySession(token);
@@ -1502,6 +1749,27 @@ function editItem(name, updates, token, mainSheetName) {
       }
     }
     // Creator can edit all items
+
+    // Get column config and determine which columns user can access
+    // Use default 'ColumnConfig' if not specified (backwards compatibility)
+    columnConfigSheetName = columnConfigSheetName || 'ColumnConfig';
+    var configs = getColumnConfig(columnConfigSheetName);
+    var userGroups = user.visibilityGroups || [];
+    var restrictedColumns = getRestrictedColumnNames_(configs, userGroups);
+
+    // Validate: user shouldn't be trying to update values for restricted columns
+    for (var key in updates) {
+      if (updates.hasOwnProperty(key)) {
+        // Check if this column is restricted
+        for (var k = 0; k < restrictedColumns.length; k++) {
+          if (restrictedColumns[k] === key) {
+            Logger.log("Warning: User tried to update restricted column: " + key);
+            delete updates[key]; // Remove restricted column from updates
+            break;
+          }
+        }
+      }
+    }
 
     // Update the row
     var updatedRow = data[rowIndex];
