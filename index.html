@@ -11967,16 +11967,22 @@ DETECTION SYSTEM (working correctly):
 
       // Render expanded layer content as a grid of cards/list
       function renderExpandedLayerContent(items, layerIndex, viewType, style, parentFilterName) {
+        // Get column names safely (handle case where columns might be hidden)
+        const nameColName = nameColumn ? nameColumn.columnName : '_name';
+        const descColName = descriptionColumn ? descriptionColumn.columnName : '_description';
+        const imgColName = imageColumn ? imageColumn.columnName : '_image';
+
         // Convert layer items to standardized format
         // Use "Display" column for display name, fallback to "Names" if empty
         const standardizedItems = items.map(layerItem => {
           const displayName = (layerItem["Display"] && String(layerItem["Display"]).trim()) || layerItem["Names"] || "";
-          return {
-            [nameColumn]: displayName,
-            [descriptionColumn]: layerItem["Description"] || "",
-            [imageColumn]: layerItem["Picture Link"] || "",
+          const item = {
             _rawLayerItem: layerItem
           };
+          item[nameColName] = displayName;
+          item[descColName] = layerItem["Description"] || "";
+          item[imgColName] = layerItem["Picture Link"] || "";
+          return item;
         });
 
         // Create a container div
@@ -11998,9 +12004,9 @@ DETECTION SYSTEM (working correctly):
 
           for (let i = 0; i < standardizedItems.length; i++) {
             const item = standardizedItems[i];
-            const name = item[nameColumn] || "";
-            const description = item[descriptionColumn] || "";
-            const image = item[imageColumn] || "";
+            const name = item[nameColName] || "";
+            const description = item[descColName] || "";
+            const image = item[imgColName] || "";
 
             html += `
               <div style="display: flex; gap: 12px; padding: 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb; cursor: pointer;"
@@ -12023,6 +12029,11 @@ DETECTION SYSTEM (working correctly):
 
       // Render expanded main items content
       function renderExpandedMainContent(items, viewType, style) {
+        // Get column names safely (handle case where columns might be hidden)
+        const nameColName = nameColumn ? nameColumn.columnName : null;
+        const descColName = descriptionColumn ? descriptionColumn.columnName : null;
+        const imgColName = imageColumn ? imageColumn.columnName : null;
+
         // Create a container div
         let html = '<div style="padding: 20px; max-height: 600px; overflow-y: auto;">';
 
@@ -12042,9 +12053,9 @@ DETECTION SYSTEM (working correctly):
 
           for (let i = 0; i < items.length; i++) {
             const item = items[i];
-            const name = item[nameColumn] || "";
-            const description = item[descriptionColumn] || "";
-            const image = item[imageColumn] || "";
+            const name = nameColName ? (item[nameColName] || "") : "";
+            const description = descColName ? (item[descColName] || "") : "";
+            const image = imgColName ? (item[imgColName] || "") : "";
 
             html += `
               <div style="display: flex; gap: 12px; padding: 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb; cursor: pointer;"
@@ -12067,9 +12078,14 @@ DETECTION SYSTEM (working correctly):
 
       // Helper function to create card HTML for expanded rows
       function createCardHtml(item, style, layerIndex, isInExpandedRow) {
-        const name = item[nameColumn] || "";
-        const description = item[descriptionColumn] || "";
-        const image = item[imageColumn] || "";
+        // Get column names safely (handle case where columns might be hidden)
+        const nameColName = nameColumn ? nameColumn.columnName : null;
+        const descColName = descriptionColumn ? descriptionColumn.columnName : null;
+        const imgColName = imageColumn ? imageColumn.columnName : null;
+
+        const name = nameColName ? (item[nameColName] || "") : "";
+        const description = descColName ? (item[descColName] || "") : "";
+        const image = imgColName ? (item[imgColName] || "") : "";
 
         // Basic card structure
         let cardClass = 'card';
