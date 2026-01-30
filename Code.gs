@@ -153,29 +153,57 @@ function getColumnConfig(sheetName) {
     var headers = data[0];
     var configs = [];
 
-    // Detect if "Show on Table" column exists by checking header
-    var hasShowOnTableColumn = false;
-    if (headers.length > 5) {
-      var headerF = String(headers[5] || "").trim();
-      hasShowOnTableColumn = (headerF === "Show on Table" || headerF === "Show on table" || headerF === "show on table");
+    // Detect column indices by header names (case-insensitive)
+    var showOnTableIndex = -1;
+    var itemPlaceIndex = -1;
+    var specialRoleIndex = -1;
+    var visibilityIndex = -1;
+
+    for (var h = 0; h < headers.length; h++) {
+      var headerName = String(headers[h] || "").trim().toLowerCase();
+      if (headerName === "show on table") {
+        showOnTableIndex = h;
+      } else if (headerName === "element" || headerName === "item place") {
+        itemPlaceIndex = h;
+      } else if (headerName === "special role") {
+        specialRoleIndex = h;
+      } else if (headerName === "visibility") {
+        visibilityIndex = h;
+      }
     }
+
+    Logger.log("ColumnConfig indices - showOnTable: " + showOnTableIndex +
+               ", itemPlace: " + itemPlaceIndex +
+               ", specialRole: " + specialRoleIndex +
+               ", visibility: " + visibilityIndex);
 
     for (var i = 1; i < data.length; i++) {
       var row = data[i];
-      var rawItemPlace, rawSpecialRole, showOnTable, visibilityGroupsValue;
 
-      if (hasShowOnTableColumn) {
-        // New structure: F=Show on Table, G=Item Place, H=Special Role, I=Visibility Groups
-        showOnTable = row[5] === true || row[5] === "TRUE";
-        rawItemPlace = String(row[6] || "").trim();
-        rawSpecialRole = String(row[7] || "").trim();
-        visibilityGroupsValue = String(row[8] || "").trim(); // Column I (index 8)
+      // Get values by detected indices (with fallbacks)
+      var showOnTable = showOnTableIndex >= 0 ? (row[showOnTableIndex] === true || row[showOnTableIndex] === "TRUE") : false;
+
+      var rawItemPlace = "";
+      if (itemPlaceIndex >= 0) {
+        rawItemPlace = String(row[itemPlaceIndex] || "").trim();
+      } else if (showOnTableIndex >= 0) {
+        rawItemPlace = String(row[6] || "").trim(); // Fallback: assume G column
       } else {
-        // Old structure: F=Item Place, G=Special Role, H=Visibility Groups
-        showOnTable = false; // Default to false if column doesn't exist
-        rawItemPlace = String(row[5] || "").trim();
-        rawSpecialRole = String(row[6] || "").trim();
-        visibilityGroupsValue = String(row[7] || "").trim(); // Column H in old structure
+        rawItemPlace = String(row[5] || "").trim(); // Legacy fallback
+      }
+
+      var rawSpecialRole = "";
+      if (specialRoleIndex >= 0) {
+        rawSpecialRole = String(row[specialRoleIndex] || "").trim();
+      } else if (showOnTableIndex >= 0) {
+        rawSpecialRole = String(row[7] || "").trim(); // Fallback: assume H column
+      } else {
+        rawSpecialRole = String(row[6] || "").trim(); // Legacy fallback
+      }
+
+      var visibilityGroupsValue = "";
+      if (visibilityIndex >= 0) {
+        visibilityGroupsValue = String(row[visibilityIndex] || "").trim();
       }
 
       // Parse visibility groups (comma-separated)
