@@ -547,8 +547,18 @@ function getSettings(layersSheetName) {
 }
 
 /**
- * Read tabs configuration from Settings sheet (rows 10-20)
+ * Read tabs configuration from Settings sheet (rows 11-20)
  * Returns array of tab objects, skipping empty rows
+ *
+ * Columns:
+ * B = Tab Name
+ * C = Layers Sheet Name
+ * D = Main Sheet Name
+ * E = ColumnConfig Sheet Name
+ * F = Show Search (Yes/No)
+ * G = Stacked Parent Name (if filled, tab is child of this stacked parent)
+ * H = Order number (blank = last, lower numbers first)
+ * I = Visibility Groups (comma-separated, matches Users sheet Column D)
  */
 function getTabsConfig() {
   try {
@@ -560,9 +570,8 @@ function getTabsConfig() {
       return [];
     }
 
-    // Read tab configuration from B11:F20 (data rows, skipping header in row 10)
-    // Column F contains showSearch setting ("Yes" = visible, anything else = hidden)
-    var tabRange = settingsSheet.getRange('B11:F20');
+    // Read tab configuration from B11:I20 (data rows, skipping header in row 10)
+    var tabRange = settingsSheet.getRange('B11:I20');
     var tabValues = tabRange.getValues();
 
     var tabsConfig = [];
@@ -574,6 +583,9 @@ function getTabsConfig() {
       var mainSheetName = row[2]; // Column D
       var columnConfigSheetName = row[3]; // Column E
       var showSearchValue = row[4]; // Column F
+      var stackedParentName = row[5]; // Column G
+      var orderValue = row[6]; // Column H
+      var visibilityGroupsValue = row[7]; // Column I
 
       // Skip empty rows (check if tab name is empty)
       if (!tabName || tabName.toString().trim() === '') {
@@ -583,15 +595,45 @@ function getTabsConfig() {
       // showSearch: "Yes" = true, anything else (including blank) = false
       var showSearch = String(showSearchValue || "").trim().toLowerCase() === "yes";
 
+      // stackedParent: if filled, this tab is a child of the named stacked parent
+      var stackedParent = String(stackedParentName || "").trim();
+
+      // order: parse as number, blank/invalid = null (treated as last)
+      var order = parseInt(orderValue, 10);
+      if (isNaN(order)) {
+        order = null;
+      }
+
+      // visibilityGroups: comma-separated list of groups, trim each
+      var visibilityGroups = [];
+      var vgStr = String(visibilityGroupsValue || "").trim();
+      if (vgStr !== '') {
+        var parts = vgStr.split(',');
+        for (var j = 0; j < parts.length; j++) {
+          var grp = parts[j].trim();
+          if (grp !== '') {
+            visibilityGroups.push(grp);
+          }
+        }
+      }
+
       tabsConfig.push({
         tabName: tabName.toString().trim(),
         layersSheetName: layersSheetName ? layersSheetName.toString().trim() : '',
         mainSheetName: mainSheetName ? mainSheetName.toString().trim() : '',
         columnConfigSheetName: columnConfigSheetName ? columnConfigSheetName.toString().trim() : '',
-        showSearch: showSearch
+        showSearch: showSearch,
+        stackedParent: stackedParent,
+        order: order,
+        visibilityGroups: visibilityGroups,
+        rowIndex: i // preserve original row order for same-order sorting
       });
 
-      Logger.log('Tab ' + (i + 1) + ': ' + tabName + ' (showSearch: ' + showSearch + ')');
+      Logger.log('Tab ' + (i + 1) + ': ' + tabName +
+                 ' (showSearch: ' + showSearch +
+                 ', stackedParent: ' + (stackedParent || 'none') +
+                 ', order: ' + (order !== null ? order : 'none') +
+                 ', visibilityGroups: ' + (visibilityGroups.length > 0 ? visibilityGroups.join(', ') : 'all') + ')');
     }
 
     Logger.log('Tabs config loaded: ' + tabsConfig.length + ' tabs');
@@ -603,46 +645,33 @@ function getTabsConfig() {
 }
 
 /**
- * Read tab stacking configuration from Settings sheet (rows 25-34)
+ * Derive tab stacking configuration from getTabsConfig()
+ * Stacked parents are auto-created from unique values in the G column (stackedParent field)
  * Maps child tabs to parent (stacked) tabs
  * @return {Array} Array of {parentTabName, childTabName} objects
  */
 function getTabStackConfig() {
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var settingsSheet = ss.getSheetByName('Settings');
-
-    if (!settingsSheet) {
-      Logger.log('Settings sheet not found for tab stack config');
-      return [];
-    }
-
-    // Read tab stacking configuration from B25:C34
-    var stackRange = settingsSheet.getRange('B25:C34');
-    var stackValues = stackRange.getValues();
+    // Get tabs config which now includes stackedParent field from column G
+    var tabsConfig = getTabsConfig();
 
     var tabStackConfig = [];
 
-    for (var i = 0; i < stackValues.length; i++) {
-      var row = stackValues[i];
-      var parentTabName = row[0]; // Column B - Parent tab name
-      var childTabName = row[1];  // Column C - Child tab name
+    for (var i = 0; i < tabsConfig.length; i++) {
+      var tab = tabsConfig[i];
 
-      // Skip rows where either parent or child is empty
-      if (!parentTabName || parentTabName.toString().trim() === '' ||
-          !childTabName || childTabName.toString().trim() === '') {
-        continue;
+      // If tab has a stacked parent, it's a child tab
+      if (tab.stackedParent && tab.stackedParent !== '') {
+        tabStackConfig.push({
+          parentTabName: tab.stackedParent,
+          childTabName: tab.tabName
+        });
+
+        Logger.log('Tab Stack: "' + tab.tabName + '" -> parent "' + tab.stackedParent + '"');
       }
-
-      tabStackConfig.push({
-        parentTabName: parentTabName.toString().trim(),
-        childTabName: childTabName.toString().trim()
-      });
-
-      Logger.log('Tab Stack: "' + childTabName + '" -> parent "' + parentTabName + '"');
     }
 
-    Logger.log('Tab stack config loaded: ' + tabStackConfig.length + ' mappings');
+    Logger.log('Tab stack config derived: ' + tabStackConfig.length + ' mappings');
     return tabStackConfig;
   } catch (e) {
     Logger.log('Error getting tab stack config: ' + e.toString());
@@ -989,7 +1018,8 @@ function verifyOTP(email, code) {
     var sessionData = {
       email: userInfo.email,
       profile: userInfo.profile,
-      name: userInfo.name
+      name: userInfo.name,
+      visibilityGroups: userInfo.visibilityGroups || []
     };
 
     // Store session for 90 days (7,776,000 seconds)
@@ -1033,9 +1063,15 @@ function verifySession(token) {
       return { success: false, message: "User no longer exists." };
     }
 
+    // Return full user info including visibility groups
     return {
       success: true,
-      user: userInfo
+      user: {
+        email: userInfo.email,
+        profile: userInfo.profile,
+        name: userInfo.name,
+        visibilityGroups: userInfo.visibilityGroups || []
+      }
     };
 
   } catch (err) {
@@ -1045,6 +1081,7 @@ function verifySession(token) {
 }
 
 // Get user by email (internal helper)
+// Users sheet structure: A=Email, B=Profile, C=Status, D=Visibility Groups (comma-separated), E=Name
 function getUserByEmail_(email) {
   try {
     email = String(email).trim().toLowerCase();
@@ -1061,13 +1098,27 @@ function getUserByEmail_(email) {
       var rowEmail = String(userData[i][0] || "").trim().toLowerCase();
       var profile = String(userData[i][1] || "Viewer").trim();
       var status = String(userData[i][2] || "").trim();
-      var name = String(userData[i][3] || "").trim();
+      var visibilityGroupsValue = String(userData[i][3] || "").trim(); // Column D (index 3)
+      var name = String(userData[i][4] || "").trim(); // Column E (index 4)
 
       if (rowEmail === email && status === "Active") {
+        // Parse visibility groups (comma-separated)
+        var visibilityGroups = [];
+        if (visibilityGroupsValue !== '') {
+          var parts = visibilityGroupsValue.split(',');
+          for (var j = 0; j < parts.length; j++) {
+            var grp = parts[j].trim();
+            if (grp !== '') {
+              visibilityGroups.push(grp);
+            }
+          }
+        }
+
         return {
           email: email,
           profile: profile,
-          name: name || email
+          name: name || email,
+          visibilityGroups: visibilityGroups
         };
       }
     }
@@ -1131,11 +1182,13 @@ function getInitialData(token) {
   // Check if app is in public mode
   if (isPublicMode_()) {
     // Public mode: Everyone is a Viewer, no authentication required
+    // visibilityGroups empty = can see all tabs with blank visibility rules
     return {
       user: {
         email: "public@viewer",
         name: "Public Viewer",
-        profile: "Viewer"
+        profile: "Viewer",
+        visibilityGroups: []
       },
       settings: getSettings(),
       headers: getHeaders(mainSheetName),

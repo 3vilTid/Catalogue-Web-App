@@ -12311,6 +12311,95 @@ DETECTION SYSTEM (working correctly):
 
       // -------------------- Tab Management Functions --------------------
 
+      /**
+       * Filter tabs based on user's visibility groups
+       * Rules:
+       * - If tab.visibilityGroups is empty/undefined -> visible to everyone (including unlogged)
+       * - If tab.visibilityGroups has values -> visible only if user has at least one matching group
+       * - Unlogged users (empty userGroups) only see tabs with empty visibilityGroups
+       * @param {Array} tabs - Array of tab config objects
+       * @param {Array} userGroups - User's visibility groups (empty array if unlogged)
+       * @returns {Array} Filtered tabs
+       */
+      function filterTabsByVisibility(tabs, userGroups) {
+        if (!tabs || tabs.length === 0) return [];
+
+        userGroups = userGroups || [];
+        const isUnlogged = userGroups.length === 0;
+
+        return tabs.filter(function(tab) {
+          const tabGroups = tab.visibilityGroups || [];
+
+          // If tab has no visibility groups, it's visible to everyone
+          if (tabGroups.length === 0) {
+            return true;
+          }
+
+          // Tab has visibility groups - check for intersection with user groups
+          // Unlogged users (empty userGroups) can't see tabs with visibility restrictions
+          if (isUnlogged) {
+            return false;
+          }
+
+          // Check if user has at least one matching group
+          for (let i = 0; i < tabGroups.length; i++) {
+            if (userGroups.indexOf(tabGroups[i]) !== -1) {
+              return true;
+            }
+          }
+
+          return false;
+        });
+      }
+
+      /**
+       * Sort tabs by order field
+       * Rules:
+       * - Lower order numbers come first
+       * - Tabs with null/undefined order go last
+       * - When order is the same, preserve original row order (rowIndex)
+       * @param {Array} tabs - Array of tab config objects
+       * @returns {Array} Sorted tabs (new array)
+       */
+      function sortTabsByOrder(tabs) {
+        if (!tabs || tabs.length === 0) return [];
+
+        // Create a copy to avoid mutating original
+        return tabs.slice().sort(function(a, b) {
+          const orderA = a.order;
+          const orderB = b.order;
+
+          // Both have order: compare by order
+          if (orderA !== null && orderB !== null) {
+            if (orderA !== orderB) {
+              return orderA - orderB;
+            }
+            // Same order: use rowIndex
+            return (a.rowIndex || 0) - (b.rowIndex || 0);
+          }
+
+          // Only A has order: A comes first
+          if (orderA !== null) return -1;
+
+          // Only B has order: B comes first
+          if (orderB !== null) return 1;
+
+          // Neither has order: use rowIndex
+          return (a.rowIndex || 0) - (b.rowIndex || 0);
+        });
+      }
+
+      /**
+       * Process tabs configuration: filter by visibility and sort by order
+       * @param {Array} tabs - Raw tabs config from backend
+       * @param {Array} userGroups - User's visibility groups
+       * @returns {Array} Processed tabs
+       */
+      function processTabsVisibilityAndOrder(tabs, userGroups) {
+        const filtered = filterTabsByVisibility(tabs, userGroups);
+        return sortTabsByOrder(filtered);
+      }
+
       // Initialize tabs UI and populate tab switcher
       function initializeTabs() {
         // Process tab stacking configuration
@@ -12758,43 +12847,30 @@ DETECTION SYSTEM (working correctly):
 
       // -------------------- Tab Stacking Functions --------------------
 
-      // Process raw tabStackConfig into usable maps
+      // Process tabsConfig to build stacked tab maps
+      // Uses the stackedParent field on each tab config (from column G)
+      // Children are already in correct order since tabsConfig is sorted by order
       function processTabStackConfig() {
         tabStackMap = {};
         childTabIndices = new Set();
         stackedParentNames = [];
 
-        if (!tabStackConfig || tabStackConfig.length === 0) {
-          console.log('📋 No tab stack config to process');
+        if (!tabsConfig || tabsConfig.length === 0) {
+          console.log('📋 No tabs config to process for stacking');
           return;
         }
 
         // Build mapping: parentName -> [childTabIndices]
         // Also track which tab indices are children
-        const parentOrder = []; // Track order of first appearance
+        // Iterate through already-sorted tabsConfig to maintain order
+        const parentOrder = []; // Track order of first stacked parent appearance
 
-        for (let s = 0; s < tabStackConfig.length; s++) {
-          const mapping = tabStackConfig[s];
-          const parentName = mapping.parentTabName;
-          const childName = mapping.childTabName;
+        for (let i = 0; i < tabsConfig.length; i++) {
+          const tab = tabsConfig[i];
+          const parentName = tab.stackedParent;
 
-          // Find the child tab index by name
-          let childIdx = -1;
-          for (let t = 0; t < tabsConfig.length; t++) {
-            if (tabsConfig[t].tabName === childName) {
-              childIdx = t;
-              break;
-            }
-          }
-
-          if (childIdx === -1) {
-            console.warn('⚠️ Tab stack: child tab "' + childName + '" not found in tabsConfig, skipping');
-            continue;
-          }
-
-          // Check if child is already assigned to another parent
-          if (childTabIndices.has(childIdx)) {
-            console.warn('⚠️ Tab stack: child tab "' + childName + '" is already assigned to a parent, skipping duplicate');
+          // Skip tabs that are not children (no stackedParent)
+          if (!parentName || parentName === '') {
             continue;
           }
 
@@ -12803,8 +12879,8 @@ DETECTION SYSTEM (working correctly):
             tabStackMap[parentName] = [];
             parentOrder.push(parentName);
           }
-          tabStackMap[parentName].push(childIdx);
-          childTabIndices.add(childIdx);
+          tabStackMap[parentName].push(i);
+          childTabIndices.add(i);
         }
 
         stackedParentNames = parentOrder;
@@ -15165,7 +15241,10 @@ DETECTION SYSTEM (working correctly):
             mainLayerGroupByColumn = mainLayerPagination.groupByColumn || '';
 
             // Store tabs configuration (if available)
-            tabsConfig = payload.tabsConfig || [];
+            // Apply visibility filtering and ordering
+            const rawTabsConfig = payload.tabsConfig || [];
+            const userVisibilityGroups = user && user.visibilityGroups ? user.visibilityGroups : [];
+            tabsConfig = processTabsVisibilityAndOrder(rawTabsConfig, userVisibilityGroups);
 
             // Store tab stacking configuration (if available)
             tabStackConfig = payload.tabStackConfig || [];
@@ -15175,8 +15254,10 @@ DETECTION SYSTEM (working correctly):
             console.log('📊 Layers Data:', layersData);
             console.log('📊 Has Layers:', layerConfig.length > 0);
             console.log('📊 Main Layer Max Rows:', mainLayerMaxPerPage, 'Mobile:', mainLayerMobileMaxPerPage);
-            console.log('📑 Tabs Config:', tabsConfig);
-            console.log('📑 Has Tabs:', tabsConfig.length > 0);
+            console.log('📑 Raw Tabs Config:', rawTabsConfig.length, 'tabs');
+            console.log('📑 User Visibility Groups:', userVisibilityGroups);
+            console.log('📑 Filtered/Sorted Tabs Config:', tabsConfig);
+            console.log('📑 Has Visible Tabs:', tabsConfig.length > 0);
 
             console.log('Public viewer loaded:', user ? user.email : 'null', user ? user.profile : 'null');
 
@@ -15260,7 +15341,9 @@ DETECTION SYSTEM (working correctly):
             mainLayerGroupByColumn = mainLayerPagination.groupByColumn || '';
 
             // Store tabs configuration (if available)
-            tabsConfig = payload.tabsConfig || [];
+            // Apply visibility filtering and ordering (user is null in this mode, so no visibility groups)
+            const rawTabsConfig2 = payload.tabsConfig || [];
+            tabsConfig = processTabsVisibilityAndOrder(rawTabsConfig2, []);
 
             // Store tab stacking configuration (if available)
             tabStackConfig = payload.tabStackConfig || [];
@@ -15270,8 +15353,9 @@ DETECTION SYSTEM (working correctly):
             console.log('📊 Layers Data:', layersData);
             console.log('📊 Has Layers:', layerConfig.length > 0);
             console.log('📊 Main Layer Max Rows:', mainLayerMaxPerPage, 'Mobile:', mainLayerMobileMaxPerPage);
-            console.log('📑 Tabs Config:', tabsConfig);
-            console.log('📑 Has Tabs:', tabsConfig.length > 0);
+            console.log('📑 Raw Tabs Config:', rawTabsConfig2.length, 'tabs');
+            console.log('📑 Filtered/Sorted Tabs Config (public with login):', tabsConfig);
+            console.log('📑 Has Visible Tabs:', tabsConfig.length > 0);
 
             // Setup image proxy if available
             if (settings && settings.deploymentUrl) {
@@ -15349,7 +15433,10 @@ DETECTION SYSTEM (working correctly):
             mainLayerGroupByColumn = mainLayerPagination.groupByColumn || '';
 
             // Store tabs configuration (if available)
-            tabsConfig = payload.tabsConfig || [];
+            // Apply visibility filtering and ordering based on user's visibility groups
+            const rawTabsConfig3 = payload.tabsConfig || [];
+            const authUserGroups = user && user.visibilityGroups ? user.visibilityGroups : [];
+            tabsConfig = processTabsVisibilityAndOrder(rawTabsConfig3, authUserGroups);
 
             // Store tab stacking configuration (if available)
             tabStackConfig = payload.tabStackConfig || [];
@@ -15359,8 +15446,10 @@ DETECTION SYSTEM (working correctly):
             console.log('📊 Layers Data:', layersData);
             console.log('📊 Has Layers:', layerConfig.length > 0);
             console.log('📊 Main Layer Max Rows:', mainLayerMaxPerPage, 'Mobile:', mainLayerMobileMaxPerPage);
-            console.log('📑 Tabs Config:', tabsConfig);
-            console.log('📑 Has Tabs:', tabsConfig.length > 0);
+            console.log('📑 Raw Tabs Config:', rawTabsConfig3.length, 'tabs');
+            console.log('📑 User Visibility Groups:', authUserGroups);
+            console.log('📑 Filtered/Sorted Tabs Config:', tabsConfig);
+            console.log('📑 Has Visible Tabs:', tabsConfig.length > 0);
 
             // Check if user is still authenticated
             if (!user) {
